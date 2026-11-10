@@ -5,16 +5,6 @@ const nextConfig: NextConfig = {
     // This allows the production build to successfully complete even with ESLint config errors
     ignoreDuringBuilds: true,
   },
-  experimental: {
-    turbo: {
-      rules: {
-        "*.css": {
-          loaders: ["@tailwindcss/turbopack"],
-          as: "*.css",
-        },
-      },
-    },
-  },
 };
 
 export default nextConfig;
