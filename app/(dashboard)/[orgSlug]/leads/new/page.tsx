@@ -7,6 +7,8 @@ import { redirect } from 'next/navigation'
 
 export const metadata: Metadata = { title: 'Add Lead' }
 
+export const instant = false
+
 interface PageProps {
   params: Promise<{ orgSlug: string }>
 }
