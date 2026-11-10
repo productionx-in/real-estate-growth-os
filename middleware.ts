@@ -1,8 +1,9 @@
-// middleware.ts
+// middleware.ts - Updated for stable Next.js 15 Edge Runtime
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/types/database'
 
+export const runtime = 'edge'
 
 const PUBLIC_ROUTES = ['/', '/login', '/register', '/auth/callback', '/auth/confirm']
 const AUTH_ROUTES = ['/login', '/register']
@@ -49,7 +50,7 @@ export async function middleware(request: NextRequest) {
   let user = null
   try {
     const { data } = await supabase.auth.getUser()
-    user = data.user
+    user = data?.user ?? null
   } catch (error) {
     console.error('Failed to get user session:', error)
   }
