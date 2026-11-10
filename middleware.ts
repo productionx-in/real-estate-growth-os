@@ -3,7 +3,6 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/types/database'
 
-export const runtime = 'experimental-edge'
 
 const PUBLIC_ROUTES = ['/', '/login', '/register', '/auth/callback', '/auth/confirm']
 const AUTH_ROUTES = ['/login', '/register']
