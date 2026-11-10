@@ -12,6 +12,8 @@ import type { MemberRole } from '@/types/database'
 
 export const metadata: Metadata = { title: 'Project' }
 
+export const dynamic = 'force-dynamic'
+
 interface PageProps {
   params: Promise<{ orgSlug: string; projectId: string }>
 }

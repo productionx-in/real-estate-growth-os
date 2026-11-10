@@ -9,6 +9,8 @@ import { formatDate } from '@/lib/utils/format'
 
 export const metadata: Metadata = { title: 'Projects' }
 
+export const dynamic = 'force-dynamic'
+
 interface PageProps {
   params: Promise<{ orgSlug: string }>
 }
