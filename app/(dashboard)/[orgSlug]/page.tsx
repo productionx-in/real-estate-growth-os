@@ -6,7 +6,7 @@ import { WorkspaceOverview } from '@/components/dashboard/WorkspaceOverview'
 
 export const metadata: Metadata = { title: 'Overview' }
 
-export const instant = false;
+;
 
 interface PageProps {
   params: Promise<{ orgSlug: string }>

@@ -14,7 +14,7 @@ import type { MemberRole, LeadStatus } from '@/types/database'
 
 export const metadata: Metadata = { title: 'Lead Detail' }
 
-export const instant = false;
+;
 
 interface PageProps {
   params: Promise<{ orgSlug: string; leadId: string }>
