@@ -5,7 +5,7 @@ import type { Database } from '@/types/database'
 const PUBLIC_ROUTES = ['/', '/login', '/register', '/auth/callback', '/auth/confirm']
 const AUTH_ROUTES = ['/login', '/register']
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
