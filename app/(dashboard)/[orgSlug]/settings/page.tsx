@@ -1,5 +1,7 @@
 // app/(dashboard)/[orgSlug]/settings/page.tsx
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { Plug, ArrowRight } from 'lucide-react'
 import { PageShell } from '@/components/layout/PageShell'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { IntegrationReadinessPanel } from '@/components/integrations/IntegrationReadinessPanel'
@@ -57,6 +59,28 @@ export default async function SettingsPage({ params }: PageProps) {
               Only workspace owners and administrators can edit organisation settings.
             </p>
           )}
+        </div>
+
+        {/* Integration Centre Link */}
+        <div className="bg-[var(--surface)] border border-blue-200/80 rounded-xl p-5 shadow-2xs flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-2xs">
+              <Plug className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-[14px] font-bold text-[var(--foreground)]">Integration Centre</h2>
+              <p className="text-[12px] text-[var(--foreground-muted)]">
+                Connect Meta Lead Ads, manage Facebook Pages, and map forms to your projects.
+              </p>
+            </div>
+          </div>
+          <Link
+            href={`/${orgSlug}/integrations`}
+            className="px-4 py-2 text-[12px] font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors flex items-center gap-1.5"
+          >
+            Open Integration Centre
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
 
         {/* CRM Integration Readiness & Lead Source Architecture (Stage 3G) */}

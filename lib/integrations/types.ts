@@ -26,6 +26,41 @@ export type EnquiryClassification =
   | 'separate_customer_enquiry'
   | 'new_customer_enquiry'
 
+// ── Meta Asset Types for Customer-Facing UX (Stage 4A) ──────────────────────
+
+export interface MetaLeadFormAsset {
+  id: string
+  name: string
+  status?: 'ACTIVE' | 'ARCHIVED' | 'PAUSED' | string
+  leadsCount?: number
+  createdTime?: string
+}
+
+export interface MetaPageAsset {
+  id: string
+  name: string
+  category?: string
+  accessStatus?: 'active' | 'expired' | 'revoked'
+  forms?: MetaLeadFormAsset[]
+}
+
+export interface MetaAdAccountAsset {
+  id: string
+  name: string
+  accountStatus?: string
+}
+
+export interface MetaConnectionMetadata {
+  pages?: MetaPageAsset[]
+  adAccounts?: MetaAdAccountAsset[]
+  authorizedUserName?: string
+  tokenExpiry?: string
+  scopes?: string[]
+  appId?: string
+  healthStatus?: 'healthy' | 'warning' | 'error' | 'pending'
+  [key: string]: unknown
+}
+
 export interface IntegrationConnectionRecord {
   id: string
   org_id: string

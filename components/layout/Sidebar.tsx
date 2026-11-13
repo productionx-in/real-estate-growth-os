@@ -10,6 +10,7 @@ import {
   Settings,
   Building2,
   Layers,
+  Plug,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
@@ -42,6 +43,11 @@ function useNavItems(orgSlug: string): NavItem[] {
       label: 'Inventory',
       href: `/${orgSlug}/inventory`,
       icon: Layers,
+    },
+    {
+      label: 'Integrations',
+      href: `/${orgSlug}/integrations`,
+      icon: Plug,
     },
     {
       label: 'Team',

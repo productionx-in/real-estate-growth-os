@@ -89,6 +89,58 @@ export async function processInboundLead(
   let routingStatus: 'mapped' | 'unmapped' = 'unmapped'
 
   if (payload.connectionId) {
+    // Verify connection exists in this organisation and is in active 'connected' status
+    const { data: conn } = await service
+      .from('integration_connections')
+      .select('id, org_id, status')
+      .eq('id', payload.connectionId)
+      .eq('org_id', orgId)
+      .maybeSingle()
+
+    if (!conn) {
+      await safeLogEvent(service, {
+        org_id: orgId,
+        connection_id: payload.connectionId,
+        provider: payload.provider,
+        event_type: 'lead_ingest_failed',
+        processing_status: 'failed',
+        external_event_id: payload.externalLeadId ?? null,
+        error_message: 'Referenced integration connection does not exist in this organisation',
+      })
+      return {
+        success: false,
+        isDuplicate: false,
+        duplicateOfId: null,
+        projectId: null,
+        routingStatus: 'unmapped',
+        idempotencyKey,
+        action: 'error',
+        errorMessage: 'Integration connection not found in this organisation',
+      }
+    }
+
+    if (conn.status !== 'connected') {
+      await safeLogEvent(service, {
+        org_id: orgId,
+        connection_id: payload.connectionId,
+        provider: payload.provider,
+        event_type: 'lead_ingest_rejected',
+        processing_status: 'failed',
+        external_event_id: payload.externalLeadId ?? null,
+        error_message: `Connection is ${conn.status}. Inbound leads are blocked for inactive or disabled connections.`,
+      })
+      return {
+        success: false,
+        isDuplicate: false,
+        duplicateOfId: null,
+        projectId: null,
+        routingStatus: 'unmapped',
+        idempotencyKey,
+        action: 'error',
+        errorMessage: `Connection is ${conn.status}. Inbound leads cannot be processed for inactive or disabled connections.`,
+      }
+    }
+
     const { data: mappings } = await service
       .from('integration_project_mappings')
       .select('*')
