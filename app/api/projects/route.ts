@@ -26,7 +26,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Resolve target organisation for multi-org users
-    const requestedOrgId = (body.orgId || body.org_id) as string | undefined
+    const { searchParams } = new URL(request.url)
+    let requestedOrgId = (body.orgId || body.org_id || searchParams.get('orgId') || searchParams.get('org_id')) as string | undefined
+    const requestedOrgSlug = (body.orgSlug || searchParams.get('orgSlug')) as string | undefined
+
+    if (!requestedOrgId && requestedOrgSlug) {
+      const { data: orgBySlug } = await service
+        .from('organisations')
+        .select('id')
+        .eq('slug', requestedOrgSlug)
+        .maybeSingle()
+
+      if (orgBySlug) {
+        requestedOrgId = orgBySlug.id
+      }
+    }
+
     let targetOrgId: string
 
     if (requestedOrgId) {
@@ -68,7 +83,7 @@ export async function POST(request: NextRequest) {
 
       if (managerMemberships.length > 1) {
         return NextResponse.json(
-          { error: 'User belongs to multiple organisations. Please specify orgId in the request body.' },
+          { error: 'User belongs to multiple organisations. Please select a workspace or specify orgId/orgSlug.' },
           { status: 400 }
         )
       }

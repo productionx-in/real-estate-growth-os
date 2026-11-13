@@ -9,6 +9,7 @@ import { PROJECT_CATEGORY_LABELS, type ProjectCategory } from '@/types/inventory
 
 interface ProjectFormProps {
   orgSlug: string
+  orgId?: string
   defaultValues?: Partial<ProjectFormValues>
   projectId?: string
 }
@@ -52,7 +53,7 @@ const PROJECT_STATUSES = [
   { value: 'completed', label: 'Completed' },
 ] as const
 
-export function ProjectForm({ orgSlug, defaultValues, projectId }: ProjectFormProps) {
+export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: ProjectFormProps) {
   const router = useRouter()
   const isEditing = !!projectId
 
@@ -103,10 +104,16 @@ export function ProjectForm({ orgSlug, defaultValues, projectId }: ProjectFormPr
       const url = isEditing ? `/api/projects/${projectId}` : '/api/projects'
       const method = isEditing ? 'PUT' : 'POST'
 
+      const payload = {
+        ...form,
+        ...(orgId ? { orgId, org_id: orgId } : {}),
+        orgSlug,
+      }
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
 
       if (!response.ok) {
