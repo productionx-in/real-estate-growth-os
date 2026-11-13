@@ -1,5 +1,6 @@
 // app/(dashboard)/[orgSlug]/leads/page.tsx
 import type { Metadata } from 'next'
+import type { ComponentProps } from 'react'
 import Link from 'next/link'
 import { Plus, Upload, Users } from 'lucide-react'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -84,7 +85,7 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
     >
       {leads && leads.length > 0 ? (
         <LeadsTable
-          leads={leads as any}
+          leads={(leads ?? []) as unknown as ComponentProps<typeof LeadsTable>['leads']}
           orgSlug={orgSlug}
           orgId={org.id}
           viewerRole={role}

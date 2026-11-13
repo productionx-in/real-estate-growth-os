@@ -1,10 +1,27 @@
 // app/api/leads/export/route.ts
 // Streams a formatted CSV export of leads.
-// Access-controlled: owner, admin, manager, and sales_exec (RLS isolates sales_exec to assigned leads).
+// Access-controlled: owner, admin, manager can export all leads; sales_exec can only export assigned leads.
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import Papa from 'papaparse'
-import type { LeadStatus, LeadSource } from '@/types/database'
+import { authenticateCaller } from '@/lib/auth/tenant'
+import { createServiceClient } from '@/lib/supabase/server'
+import type { LeadStatus, LeadSource, MemberRole } from '@/types/database'
+
+interface LeadExportRecord {
+  id: string
+  name: string
+  phone: string
+  email: string | null
+  status: string
+  priority: string
+  source: string
+  project: { name: string } | null
+  assignee: { full_name: string } | null
+  budget_min: number | null
+  budget_max: number | null
+  notes: string | null
+  created_at: string
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,50 +34,45 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'orgSlug query param is required' }, { status: 400 })
     }
 
-    const supabase = await createClient()
-
     // 1. Auth check
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+    const authResult = await authenticateCaller()
+    if (!authResult.success) {
+      return authResult.response
     }
 
+    const { auth } = authResult
+    const service = createServiceClient()
+
     // 2. Resolve org
-    const { data: org } = await supabase
+    const { data: org } = await service
       .from('organisations')
       .select('id, name, slug')
       .eq('slug', orgSlug)
-      .single()
+      .maybeSingle()
 
     if (!org) {
       return NextResponse.json({ error: 'Organisation not found' }, { status: 404 })
     }
 
-    // 3. Resolve user profile & role
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single()
-
-    if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 403 })
-
-    const { data: membership } = await supabase
+    // 3. Resolve user profile & role in this org
+    const { data: membership } = await service
       .from('org_members')
       .select('role')
       .eq('org_id', org.id)
-      .eq('profile_id', profile.id)
-      .single()
+      .eq('profile_id', auth.profile.id)
+      .maybeSingle()
 
     if (!membership || membership.role === 'readonly') {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'Forbidden. Insufficient permissions to export leads.' },
+        { status: 403 }
+      )
     }
 
-    // 4. Query leads — RLS automatically restricts sales_exec to assigned leads
-    let query = supabase
+    const role = membership.role as MemberRole
+
+    // 4. Query leads — sales_exec is strictly constrained to assigned leads
+    let query = service
       .from('leads')
       .select(`
         id, name, phone, email, status, priority, source,
@@ -71,6 +83,10 @@ export async function GET(request: NextRequest) {
       .eq('org_id', org.id)
       .order('created_at', { ascending: false })
 
+    if (role === 'sales_exec') {
+      query = query.eq('assigned_to', auth.profile.id)
+    }
+
     if (status) query = query.eq('status', status as LeadStatus)
     if (source) query = query.eq('source', source as LeadSource)
 
@@ -80,31 +96,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: fetchError.message }, { status: 500 })
     }
 
-    // 5. Transform records for CSV export
-    const exportRows = (leads ?? []).map((lead) => {
-      const project = lead.project as { name: string } | null
-      const assignee = lead.assignee as { full_name: string } | null
+    const rows = ((leads ?? []) as unknown as LeadExportRecord[]).map((lead) => ({
+      'Lead ID': lead.id,
+      Name: lead.name,
+      Phone: lead.phone,
+      Email: lead.email ?? '',
+      Status: lead.status,
+      Priority: lead.priority,
+      Source: lead.source,
+      Project: lead.project?.name ?? '',
+      'Assigned To': lead.assignee?.full_name ?? 'Unassigned',
+      'Min Budget': lead.budget_min ?? '',
+      'Max Budget': lead.budget_max ?? '',
+      Notes: lead.notes ?? '',
+      'Created At': lead.created_at,
+    }))
 
-      return {
-        Name: lead.name,
-        Phone: lead.phone,
-        Email: lead.email ?? '',
-        Status: lead.status,
-        Priority: lead.priority,
-        Source: lead.source,
-        Project: project?.name ?? '',
-        'Assigned To': assignee?.full_name ?? 'Unassigned',
-        'Budget Min': lead.budget_min ?? '',
-        'Budget Max': lead.budget_max ?? '',
-        Notes: lead.notes ?? '',
-        'Created Date': lead.created_at ? new Date(lead.created_at).toISOString().split('T')[0] : '',
-      }
-    })
+    const csv = Papa.unparse(rows)
+    const filename = `${orgSlug}-leads-${new Date().toISOString().split('T')[0]}.csv`
 
-    const csvString = Papa.unparse(exportRows)
-    const filename = `leads_${orgSlug}_${new Date().toISOString().split('T')[0]}.csv`
-
-    return new NextResponse(csvString, {
+    return new NextResponse(csv, {
       status: 200,
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',

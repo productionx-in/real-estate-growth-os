@@ -1,6 +1,7 @@
 // lib/demo/seed.ts
 // Seeds starter demonstration data for newly created real estate workspaces
 import { createServiceClient } from '@/lib/supabase/server'
+import type { InventoryStatus, LeadStatus, LeadPriority, LeadSource } from '@/types/database'
 
 export async function seedWorkspaceDemoData(orgId: string, profileId?: string) {
   const service = createServiceClient()
@@ -60,7 +61,7 @@ export async function seedWorkspaceDemoData(orgId: string, profileId?: string) {
         .single()
 
       // Units in Tower A
-      const towerAUnits = [
+      const towerAUnits: { unit: string; floor: number; bhk: string; facing: string; area: number; price: number; status: InventoryStatus }[] = [
         { unit: '101', floor: 1, bhk: '2 BHK', facing: 'East', area: 1250, price: 8500000, status: 'available' },
         { unit: '102', floor: 1, bhk: '3 BHK', facing: 'North', area: 1650, price: 11200000, status: 'booked' },
         { unit: '201', floor: 2, bhk: '2 BHK', facing: 'East', area: 1250, price: 8600000, status: 'available' },
@@ -88,13 +89,13 @@ export async function seedWorkspaceDemoData(orgId: string, profileId?: string) {
           built_up_area: u.area,
           base_rate: Math.round(u.price / u.area),
           total_price: u.price,
-          status: u.status as any,
+          status: u.status,
           internal_notes: `Standard sample inventory record for ${u.bhk} in Tower A.`,
         })
       }
 
       // Units in Tower B
-      const towerBUnits = [
+      const towerBUnits: { unit: string; floor: number; bhk: string; facing: string; area: number; price: number; status: InventoryStatus }[] = [
         { unit: '101', floor: 1, bhk: '3 BHK', facing: 'East', area: 1650, price: 11200000, status: 'available' },
         { unit: '102', floor: 1, bhk: '3 BHK', facing: 'West', area: 1650, price: 11200000, status: 'blocked' },
         { unit: '201', floor: 2, bhk: '3 BHK', facing: 'East', area: 1650, price: 11300000, status: 'available' },
@@ -118,7 +119,7 @@ export async function seedWorkspaceDemoData(orgId: string, profileId?: string) {
           built_up_area: u.area,
           base_rate: Math.round(u.price / u.area),
           total_price: u.price,
-          status: u.status as any,
+          status: u.status,
         })
       }
     }
@@ -162,7 +163,7 @@ export async function seedWorkspaceDemoData(orgId: string, profileId?: string) {
         .select()
         .single()
 
-      const plots = [
+      const plots: { unit: string; area: number; price: number; facing: string; corner: boolean; road: number; status: InventoryStatus }[] = [
         { unit: 'Plot 1', area: 200, price: 4000000, facing: 'East', corner: true, road: 40, status: 'available' },
         { unit: 'Plot 2', area: 167, price: 3340000, facing: 'East', corner: false, road: 33, status: 'available' },
         { unit: 'Plot 3', area: 167, price: 3340000, facing: 'North', corner: false, road: 33, status: 'on_hold' },
@@ -186,19 +187,30 @@ export async function seedWorkspaceDemoData(orgId: string, profileId?: string) {
           road_width_ft: p.road,
           base_rate: Math.round(p.price / p.area),
           total_price: p.price,
-          status: p.status as any,
+          status: p.status,
         })
       }
     }
 
     // 3. Create Sample Leads
-    const sampleLeads = [
+    const sampleLeads: {
+      name: string
+      phone: string
+      email: string
+      status: LeadStatus
+      priority: LeadPriority
+      source: LeadSource
+      budget_min: number
+      budget_max: number
+      project_id: string | null
+      notes: string
+    }[] = [
       {
         name: 'Rajesh Kumar',
         phone: '+91 98490 12345',
         email: 'rajesh.kumar@example.com',
-        status: 'site_visit',
-        priority: 'hot',
+        status: 'site_visit_scheduled',
+        priority: 'high',
         source: 'meta_ads',
         budget_min: 8000000,
         budget_max: 12000000,
@@ -211,7 +223,7 @@ export async function seedWorkspaceDemoData(orgId: string, profileId?: string) {
         email: 'priya.sharma@example.com',
         status: 'negotiation',
         priority: 'high',
-        source: 'website',
+        source: 'walk_in',
         budget_min: 10000000,
         budget_max: 14000000,
         project_id: aptProject?.id || null,
@@ -223,7 +235,7 @@ export async function seedWorkspaceDemoData(orgId: string, profileId?: string) {
         email: 'venkat.rao@example.com',
         status: 'booked',
         priority: 'medium',
-        source: 'channel_partner',
+        source: 'referral',
         budget_min: 3000000,
         budget_max: 4500000,
         project_id: plotProject?.id || null,
@@ -247,7 +259,7 @@ export async function seedWorkspaceDemoData(orgId: string, profileId?: string) {
         email: 'anand.verma@example.com',
         status: 'new',
         priority: 'low',
-        source: 'housing_com',
+        source: 'housing',
         budget_min: 3000000,
         budget_max: 3500000,
         project_id: plotProject?.id || null,
@@ -263,9 +275,9 @@ export async function seedWorkspaceDemoData(orgId: string, profileId?: string) {
         name: lead.name,
         phone: lead.phone,
         email: lead.email,
-        status: lead.status as any,
-        priority: lead.priority as any,
-        source: lead.source as any,
+        status: lead.status,
+        priority: lead.priority,
+        source: lead.source,
         budget_min: lead.budget_min,
         budget_max: lead.budget_max,
         notes: lead.notes,

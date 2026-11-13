@@ -1,8 +1,10 @@
 // app/api/projects/[projectId]/route.ts
+// Secure Project detail routes: Enforces authentication, tenant isolation, and RBAC.
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { ProjectSchema } from '@/lib/validations/project'
 import { getProjectById, updateProject } from '@/lib/dal/projects'
+import { authorizeProjectAccess } from '@/lib/auth/tenant'
+import { createServiceClient } from '@/lib/supabase/server'
 
 interface RouteParams {
   params: Promise<{ projectId: string }>
@@ -11,10 +13,18 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { projectId } = await params
+
+    // Verify authentication and membership in project's organisation
+    const authResult = await authorizeProjectAccess(projectId)
+    if (!authResult.success) {
+      return authResult.response
+    }
+
     const project = await getProjectById(projectId)
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
+
     return NextResponse.json({ project })
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -24,10 +34,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { projectId } = await params
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+    // Verify manager/admin/owner permissions on this specific project's organisation
+    const authResult = await authorizeProjectAccess(projectId, ['owner', 'admin', 'manager'])
+    if (!authResult.success) {
+      return authResult.response
     }
 
     const body = await request.json()
@@ -53,16 +64,19 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { projectId } = await params
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+    // Verify admin/owner permissions on this project's organisation
+    const authResult = await authorizeProjectAccess(projectId, ['owner', 'admin'])
+    if (!authResult.success) {
+      return authResult.response
     }
 
-    const { error } = await supabase
+    const service = createServiceClient()
+    const { error } = await service
       .from('projects')
       .delete()
       .eq('id', projectId)
+      .eq('org_id', authResult.context.orgId)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

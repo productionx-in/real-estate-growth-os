@@ -8,6 +8,7 @@ import { getLeadById, getLeadActivities } from '@/lib/dal/leads'
 import { PageShell } from '@/components/layout/PageShell'
 import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge'
 import { StatusTransitionPanel } from '@/components/leads/StatusTransitionPanel'
+import type { ComponentProps } from 'react'
 import { ActivityLog } from '@/components/leads/ActivityLog'
 import { formatDate, formatBudgetRange } from '@/lib/utils/format'
 import type { MemberRole, LeadStatus } from '@/types/database'
@@ -76,7 +77,6 @@ export default async function LeadDetailPage({ params }: PageProps) {
     }
   }
 
-  const isManager = ['owner', 'admin', 'manager'].includes(viewerRole)
   const canEdit = viewerRole !== 'readonly'
   const priority = PRIORITY_CONFIG[lead.priority as keyof typeof PRIORITY_CONFIG]
   const assignee = lead.assignee as { id: string; full_name: string } | null
@@ -178,7 +178,10 @@ export default async function LeadDetailPage({ params }: PageProps) {
           )}
 
           {/* Activity log */}
-          <ActivityLog leadId={leadId} activities={activities as any} />
+          <ActivityLog
+            leadId={leadId}
+            activities={(activities ?? []) as unknown as ComponentProps<typeof ActivityLog>['activities']}
+          />
         </div>
 
         {/* ── Right: status transitions ── */}

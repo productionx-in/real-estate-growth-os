@@ -4,9 +4,8 @@ import { createServiceClient } from '@/lib/supabase/server'
 import type {
   InventoryItemFormValues,
   InventoryStatusChangeValues,
-  HierarchyNodeFormValues,
 } from '@/lib/validations/inventory'
-import type { InventoryStatus, ProjectCategory } from '@/types/database'
+import type { InventoryStatus, ProjectCategory, Database } from '@/types/database'
 import { canTransitionStatus } from '@/types/inventory'
 
 export interface InventoryFilterParams {
@@ -116,7 +115,7 @@ export async function createInventoryItem(
 ) {
   const service = createServiceClient()
 
-  const payload: any = {
+  const payload: Database['public']['Tables']['inventory_items']['Insert'] = {
     org_id: orgId,
     project_id: values.project_id,
     unit_number: values.unit_number,

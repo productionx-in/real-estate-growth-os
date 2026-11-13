@@ -1,21 +1,21 @@
 // app/api/leads/import/route.ts
-// Handles batch CSV lead import.
-// Role-gated to managers, admins, and owners.
+// Handles batch CSV lead imports (up to 500 leads) with tenant isolation and validation.
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { authenticateCaller } from '@/lib/auth/tenant'
+import { createServiceClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
 const ImportPayloadSchema = z.object({
+  orgId: z.string().uuid().optional(),
   projectId: z.string().uuid().optional().nullable(),
   leads: z
     .array(
       z.object({
-        name: z.string().min(2).max(120),
-        phone: z.string().min(7).max(20),
-        email: z.string().email().optional().nullable(),
+        name: z.string().min(1, 'Name is required').max(100),
+        phone: z.string().min(6, 'Valid phone number required').max(20),
+        email: z.string().email().optional().nullable().or(z.literal('')),
         source: z
           .enum([
-            'website',
             'meta_ads',
             'google_ads',
             '99acres',
@@ -40,18 +40,14 @@ const ImportPayloadSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-
-    // 1. Auth check
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+    const authResult = await authenticateCaller()
+    if (!authResult.success) {
+      return authResult.response
     }
 
-    // 2. Validate payload
+    const { auth } = authResult
+    const service = createServiceClient()
+
     const body = await request.json()
     const parsed = ImportPayloadSchema.safeParse(body)
     if (!parsed.success) {
@@ -61,91 +57,122 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 3. Resolve profile & membership
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single()
+    // Resolve target organisation
+    const { orgId: requestedOrgId, leads, projectId } = parsed.data
+    let targetOrgId: string
 
-    if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 403 })
+    if (requestedOrgId) {
+      const { data: membership } = await service
+        .from('org_members')
+        .select('role')
+        .eq('org_id', requestedOrgId)
+        .eq('profile_id', auth.profile.id)
+        .maybeSingle()
 
-    const { data: membership } = await supabase
-      .from('org_members')
-      .select('org_id, role')
-      .eq('profile_id', profile.id)
-      .single()
+      if (!membership || !['owner', 'admin', 'manager'].includes(membership.role)) {
+        return NextResponse.json(
+          { error: 'Insufficient permissions for the specified organisation' },
+          { status: 403 }
+        )
+      }
+      targetOrgId = requestedOrgId
+    } else {
+      const { data: memberships } = await service
+        .from('org_members')
+        .select('org_id, role')
+        .eq('profile_id', auth.profile.id)
 
-    if (!membership) return NextResponse.json({ error: 'Organisation not found' }, { status: 403 })
+      if (!memberships || memberships.length === 0) {
+        return NextResponse.json({ error: 'Organisation not found' }, { status: 403 })
+      }
 
-    if (!['owner', 'admin', 'manager'].includes(membership.role)) {
-      return NextResponse.json(
-        { error: 'Only managers, admins, and owners can import leads' },
-        { status: 403 }
+      const managerMemberships = memberships.filter((m) =>
+        ['owner', 'admin', 'manager'].includes(m.role)
       )
+
+      if (managerMemberships.length === 0) {
+        return NextResponse.json(
+          { error: 'Only managers, admins, and owners can import leads' },
+          { status: 403 }
+        )
+      }
+
+      if (managerMemberships.length > 1) {
+        return NextResponse.json(
+          { error: 'User belongs to multiple organisations. Please specify orgId in the request.' },
+          { status: 400 }
+        )
+      }
+
+      targetOrgId = managerMemberships[0].org_id
     }
 
-    const orgId = membership.org_id
-    const { leads, projectId } = parsed.data
-
-    // If projectId was supplied, confirm it belongs to this org
+    // Cross-tenant scope verification: If projectId supplied, confirm it belongs to this org
     if (projectId) {
-      const { data: proj } = await supabase
+      const { data: proj } = await service
         .from('projects')
         .select('id')
         .eq('id', projectId)
-        .eq('org_id', orgId)
-        .single()
+        .eq('org_id', targetOrgId)
+        .maybeSingle()
 
       if (!proj) {
-        return NextResponse.json({ error: 'Selected project does not exist in your organisation' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Selected project does not exist in the target organisation' },
+          { status: 400 }
+        )
       }
     }
 
-    // 4. Prepare insert records
+    // Prepare insert records
     const insertPayload = leads.map((lead) => ({
-      org_id: orgId,
+      org_id: targetOrgId,
       project_id: projectId || null,
       name: lead.name,
       phone: lead.phone,
       email: lead.email || null,
       source: lead.source,
-      status: 'new' as const,
       priority: lead.priority,
       budget_min: lead.budget_min ?? null,
       budget_max: lead.budget_max ?? null,
       notes: lead.notes || null,
-      custom_fields: {},
+      status: 'new' as const,
+      custom_fields: { imported_at: new Date().toISOString() },
     }))
 
-    // 5. Batch insert leads
-    const { data: insertedLeads, error: insertError } = await supabase
+    const { data: inserted, error: insertError } = await service
       .from('leads')
       .insert(insertPayload)
       .select('id')
 
-    if (insertError || !insertedLeads) {
+    if (insertError) {
       return NextResponse.json(
-        { error: insertError?.message ?? 'Failed to import leads' },
+        { error: insertError.message ?? 'Failed to insert leads batch' },
         { status: 500 }
       )
     }
 
-    // 6. Log activities in bulk
-    const activityPayload = insertedLeads.map((l) => ({
-      lead_id: l.id,
-      actor_id: profile.id,
-      type: 'created' as const,
-      note: 'Imported via CSV file',
-      metadata: { source: 'csv_import' },
-    }))
+    const importedCount = inserted?.length ?? 0
 
-    await supabase.from('lead_activities').insert(activityPayload)
+    // Log batch activity
+    if (importedCount > 0) {
+      await service.from('lead_activities').insert({
+        lead_id: inserted![0].id,
+        actor_id: auth.profile.id,
+        type: 'note_added',
+        note: `Imported as part of a batch of ${importedCount} leads via CSV.`,
+        metadata: { batch_size: importedCount },
+      })
+    }
 
-    return NextResponse.json({
-      success: true,
-      importedCount: insertedLeads.length,
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        importedCount,
+        message: `Successfully imported ${importedCount} leads.`,
+      },
+      { status: 201 }
+    )
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

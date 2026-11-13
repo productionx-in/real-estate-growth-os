@@ -3,25 +3,30 @@
 import { useState, useEffect } from 'react'
 import {
   X,
-  Building2,
   Maximize2,
   Compass,
-  Car,
-  Layers,
   History,
   Tag,
   ArrowRight,
-  ShieldCheck,
   Edit3,
 } from 'lucide-react'
 import { formatCurrency, formatRelative } from '@/lib/utils/format'
 import {
   PROJECT_CATEGORY_LABELS,
   type InventoryItemWithRelations,
-  type InventoryStatusHistory,
 } from '@/types/inventory'
 import { InventoryStatusBadge } from './InventoryStatusBadge'
 import { InventoryStatusDialog } from './InventoryStatusDialog'
+
+interface InventoryHistoryRecord {
+  id: string
+  previous_status: string | null
+  new_status: string
+  reason?: string | null
+  created_at: string
+  changer?: { full_name: string } | null
+  actor?: { full_name: string } | null
+}
 
 interface InventoryDetailDrawerProps {
   item: InventoryItemWithRelations
@@ -34,7 +39,7 @@ export function InventoryDetailDrawer({
   onClose,
   onUpdateSuccess,
 }: InventoryDetailDrawerProps) {
-  const [history, setHistory] = useState<any[]>([])
+  const [history, setHistory] = useState<InventoryHistoryRecord[]>([])
   const [loadingHistory, setLoadingHistory] = useState(true)
   const [showStatusModal, setShowStatusModal] = useState(false)
 
@@ -269,7 +274,7 @@ export function InventoryDetailDrawer({
               </div>
             ) : history.length > 0 ? (
               <div className="border border-[var(--border)] rounded-lg divide-y divide-[var(--border)] text-xs">
-                {history.map((h: any) => (
+                {history.map((h) => (
                   <div key={h.id} className="p-3 space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">

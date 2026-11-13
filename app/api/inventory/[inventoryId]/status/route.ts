@@ -1,8 +1,10 @@
 // app/api/inventory/[inventoryId]/status/route.ts
+// Secure Inventory status transitions: Enforces state machine, audit logging, and RBAC.
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { InventoryStatusChangeSchema } from '@/lib/validations/inventory'
 import { transitionInventoryStatus } from '@/lib/dal/inventory'
+import { authorizeInventoryAccess } from '@/lib/auth/tenant'
+import type { MemberRole } from '@/types/database'
 
 export async function POST(
   request: NextRequest,
@@ -10,18 +12,7 @@ export async function POST(
 ) {
   try {
     const { inventoryId } = await params
-    const supabase = await createClient()
 
-    // 1. Auth check
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
-    }
-
-    // 2. Validate payload
     const body = await request.json()
     const parsed = InventoryStatusChangeSchema.safeParse(body)
     if (!parsed.success) {
@@ -31,52 +22,20 @@ export async function POST(
       )
     }
 
-    // 3. User profile
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single()
+    // Role check: Minimum role required
+    const requiredRoles: MemberRole[] = ['booked', 'sold', 'blocked'].includes(parsed.data.new_status)
+      ? ['owner', 'admin', 'manager']
+      : ['owner', 'admin', 'manager', 'sales_exec']
 
-    if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 403 })
-
-    // 4. Verify item exists & caller belongs to same org
-    const { data: item } = await supabase
-      .from('inventory_items')
-      .select('id, org_id, status')
-      .eq('id', inventoryId)
-      .single()
-
-    if (!item) return NextResponse.json({ error: 'Inventory item not found' }, { status: 404 })
-
-    const { data: membership } = await supabase
-      .from('org_members')
-      .select('role')
-      .eq('org_id', item.org_id)
-      .eq('profile_id', profile.id)
-      .single()
-
-    if (!membership || membership.role === 'readonly') {
-      return NextResponse.json(
-        { error: 'Readonly accounts cannot alter inventory status' },
-        { status: 403 }
-      )
-    }
-
-    // Note: Booked or Sold changes require manager or admin
-    if (['booked', 'sold', 'blocked'].includes(parsed.data.new_status)) {
-      if (!['owner', 'admin', 'manager'].includes(membership.role)) {
-        return NextResponse.json(
-          { error: `Manager authorization required to mark unit as '${parsed.data.new_status}'` },
-          { status: 403 }
-        )
-      }
+    const authResult = await authorizeInventoryAccess(inventoryId, requiredRoles)
+    if (!authResult.success) {
+      return authResult.response
     }
 
     const result = await transitionInventoryStatus(
       inventoryId,
       parsed.data,
-      profile.id
+      authResult.context.user.id
     )
 
     if (result.error) {

@@ -1,6 +1,6 @@
 'use client'
 // components/projects/ProjectDetailTabs.tsx
-import { useState } from 'react'
+import { useState, type ComponentProps } from 'react'
 import {
   Building2,
   Users,
@@ -46,7 +46,7 @@ interface ProjectDetailTabsProps {
     org_id: string
   }
   inventoryItems: InventoryItemWithRelations[]
-  leads: any[]
+  leads: ComponentProps<typeof LeadsTable>['leads']
   orgSlug: string
   viewerRole: MemberRole
   isManager: boolean

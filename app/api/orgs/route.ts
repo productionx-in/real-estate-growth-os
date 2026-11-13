@@ -3,7 +3,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { slugify } from '@/lib/utils/slugify'
+import { slugify, isReservedSlug } from '@/lib/utils/slugify'
 import { seedWorkspaceDemoData } from '@/lib/demo/seed'
 import { z } from 'zod'
 
@@ -44,8 +44,13 @@ export async function POST(request: NextRequest) {
     // Use service role for workspace bootstrap
     const service = createServiceClient()
 
-    // Check slug uniqueness — append random suffix on collision
+    // Check reserved slug and slug uniqueness — append random suffix on collision
     let slug = baseSlug
+    if (isReservedSlug(slug)) {
+      const suffix = Math.random().toString(36).slice(2, 6)
+      slug = `${baseSlug}-${suffix}`
+    }
+
     const { data: existing } = await service
       .from('organisations')
       .select('id')

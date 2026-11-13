@@ -8,8 +8,30 @@ export function slugify(input: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
+export const RESERVED_SLUGS = new Set([
+  'api',
+  'auth',
+  'login',
+  'register',
+  'select-org',
+  'create-org',
+  'my',
+  'settings',
+  'favicon.ico',
+  'robots.txt',
+  'sitemap.xml',
+  '_next',
+])
+
+export function isReservedSlug(slug: string): boolean {
+  return RESERVED_SLUGS.has(slug.toLowerCase().trim())
+}
+
 export function generateUniqueSlug(base: string, suffix?: string): string {
-  const baseSlug = slugify(base)
+  let baseSlug = slugify(base)
+  if (isReservedSlug(baseSlug)) {
+    baseSlug = `${baseSlug}-ws`
+  }
   if (suffix) return `${baseSlug}-${suffix}`
   return baseSlug
 }

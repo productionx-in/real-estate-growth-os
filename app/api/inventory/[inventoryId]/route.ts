@@ -1,8 +1,10 @@
 // app/api/inventory/[inventoryId]/route.ts
+// Secure Inventory item detail routes: Enforces authentication, tenant isolation, and RBAC.
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { getInventoryById, getInventoryStatusHistory } from '@/lib/dal/inventory'
 import { InventoryItemSchema } from '@/lib/validations/inventory'
+import { authorizeInventoryAccess } from '@/lib/auth/tenant'
+import { createServiceClient } from '@/lib/supabase/server'
 
 export async function GET(
   _request: NextRequest,
@@ -10,6 +12,13 @@ export async function GET(
 ) {
   try {
     const { inventoryId } = await params
+
+    // Verify authentication and tenant access
+    const authResult = await authorizeInventoryAccess(inventoryId)
+    if (!authResult.success) {
+      return authResult.response
+    }
+
     const item = await getInventoryById(inventoryId)
     if (!item) return NextResponse.json({ error: 'Item not found' }, { status: 404 })
 
@@ -26,39 +35,44 @@ export async function PUT(
 ) {
   try {
     const { inventoryId } = await params
-    const supabase = await createClient()
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-    if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+    // Require manager, admin, or owner in this item's organisation
+    const authResult = await authorizeInventoryAccess(inventoryId, ['owner', 'admin', 'manager'])
+    if (!authResult.success) {
+      return authResult.response
+    }
 
     const body = await request.json()
     const parsed = InventoryItemSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Validation failed', details: parsed.error.flatten() }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Validation failed', details: parsed.error.flatten() },
+        { status: 400 }
+      )
     }
 
-    const { data: profile } = await supabase
-      .from('profiles').select('id').eq('auth_user_id', user.id).single()
-    if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 403 })
+    const service = createServiceClient()
 
-    const { data: current } = await supabase
-      .from('inventory_items').select('org_id').eq('id', inventoryId).single()
-    if (!current) return NextResponse.json({ error: 'Item not found' }, { status: 404 })
+    // Tenant consistency: Verify hierarchy node belongs to this project if provided
+    if (parsed.data.hierarchy_node_id) {
+      const { data: node } = await service
+        .from('project_hierarchy_nodes')
+        .select('id, project_id, org_id')
+        .eq('id', parsed.data.hierarchy_node_id)
+        .maybeSingle()
 
-    const { data: membership } = await supabase
-      .from('org_members').select('role').eq('org_id', current.org_id).eq('profile_id', profile.id).single()
-
-    if (!membership || !['owner', 'admin', 'manager'].includes(membership.role)) {
-      return NextResponse.json({ error: 'Manager or above required' }, { status: 403 })
+      if (!node || node.project_id !== authResult.context.item.project_id || node.org_id !== authResult.context.orgId) {
+        return NextResponse.json(
+          { error: 'Invalid hierarchy node for this project and organisation.' },
+          { status: 400 }
+        )
+      }
     }
 
-    const { data: updated, error: updateError } = await supabase
+    const { data: updated, error: updateError } = await service
       .from('inventory_items')
       .update({
-        unit_number: parsed.data.unit_number.trim(),
+        unit_number: parsed.data.unit_number,
         category: parsed.data.category,
         area_value: parsed.data.area_value,
         area_unit: parsed.data.area_unit,
@@ -81,9 +95,12 @@ export async function PUT(
         furnishing_status: parsed.data.furnishing_status,
         base_rate: parsed.data.base_rate ?? null,
         total_price: parsed.data.total_price ?? null,
+        pricing_breakup: parsed.data.pricing_breakup,
         internal_notes: parsed.data.internal_notes || null,
+        hierarchy_node_id: parsed.data.hierarchy_node_id || null,
       })
       .eq('id', inventoryId)
+      .eq('org_id', authResult.context.orgId)
       .select()
       .single()
 
@@ -103,30 +120,20 @@ export async function DELETE(
 ) {
   try {
     const { inventoryId } = await params
-    const supabase = await createClient()
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-    if (authError || !user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
-
-    const { data: profile } = await supabase
-      .from('profiles').select('id').eq('auth_user_id', user.id).single()
-    if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 403 })
-
-    const { data: item } = await supabase
-      .from('inventory_items').select('org_id').eq('id', inventoryId).single()
-    if (!item) return NextResponse.json({ error: 'Item not found' }, { status: 404 })
-
-    const { data: membership } = await supabase
-      .from('org_members').select('role').eq('org_id', item.org_id).eq('profile_id', profile.id).single()
-
-    if (!membership || !['owner', 'admin'].includes(membership.role)) {
-      return NextResponse.json({ error: 'Admin authorization required' }, { status: 403 })
+    // Require admin or owner in this item's organisation
+    const authResult = await authorizeInventoryAccess(inventoryId, ['owner', 'admin'])
+    if (!authResult.success) {
+      return authResult.response
     }
 
-    const { error: delError } = await supabase.from('inventory_items').delete().eq('id', inventoryId)
+    const service = createServiceClient()
+    const { error: delError } = await service
+      .from('inventory_items')
+      .delete()
+      .eq('id', inventoryId)
+      .eq('org_id', authResult.context.orgId)
+
     if (delError) return NextResponse.json({ error: delError.message }, { status: 500 })
 
     return NextResponse.json({ success: true })

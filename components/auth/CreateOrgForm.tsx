@@ -2,13 +2,14 @@
 // components/auth/CreateOrgForm.tsx
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import type { LucideIcon } from 'lucide-react'
 import { Building2, Users2, Check, Loader2, Sparkles } from 'lucide-react'
 import { slugify } from '@/lib/utils/slugify'
 import { cn } from '@/lib/utils/cn'
 
 type OrgType = 'developer' | 'channel_partner'
 
-const ORG_TYPES: { value: OrgType; label: string; description: string; icon: any }[] = [
+const ORG_TYPES: { value: OrgType; label: string; description: string; icon: LucideIcon }[] = [
   {
     value: 'developer',
     label: 'Property Developer / Builder',
@@ -66,8 +67,8 @@ export function CreateOrgForm() {
       // Successfully created workspace — redirect into the new org dashboard!
       router.push(`/${data.org.slug}`)
       router.refresh()
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong. Please try again.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
       setLoading(false)
     }
   }

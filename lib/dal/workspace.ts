@@ -46,7 +46,7 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
   const service = createServiceClient()
 
   // 2. Fetch organisation by slug
-  const { data: org, error: orgError } = await service
+  const { data: org } = await service
     .from('organisations')
     .select('id, name, slug, type, plan, created_at')
     .eq('slug', orgSlug)
@@ -86,42 +86,21 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
     redirect('/select-org')
   }
 
-  // 4. Verify membership in this organisation
-  let { data: membership } = await service
+  // 4. Verify membership in this organisation (Strict security: never auto-assign ownership)
+  const { data: membership } = await service
     .from('org_members')
     .select('role')
     .eq('org_id', org.id)
     .eq('profile_id', profile.id)
     .maybeSingle()
 
-  // Auto-heal: If this user has no membership in this org, check if they are the creator or if it's their only org
   if (!membership) {
-    // Check if the user is a member of any other org
-    const { data: otherMemberships } = await service
-      .from('org_members')
-      .select('id')
-      .eq('profile_id', profile.id)
-      .limit(1)
-
-    // If user has zero org memberships at all, add them as owner to this newly created org
-    if (!otherMemberships || otherMemberships.length === 0) {
-      const { data: newMember } = await service
-        .from('org_members')
-        .insert({
-          org_id: org.id,
-          profile_id: profile.id,
-          role: 'owner',
-        })
-        .select('role')
-        .single()
-      membership = newMember
-    } else {
-      // User is authenticated but not allowed in this specific organisation
-      redirect('/select-org')
-    }
+    // User is authenticated but is NOT a member of this organisation.
+    // Strictly redirect to their own org selector. Never grant membership or ownership.
+    redirect('/select-org')
   }
 
-  const role = (membership?.role ?? 'readonly') as MemberRole
+  const role = (membership.role ?? 'readonly') as MemberRole
   const isManager = ['owner', 'admin', 'manager'].includes(role)
   const isAdmin = ['owner', 'admin'].includes(role)
 
@@ -132,7 +111,7 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
       id: org.id,
       name: org.name,
       slug: org.slug,
-      type: org.type as any,
+      type: org.type as 'developer' | 'channel_partner',
       plan: org.plan,
       created_at: org.created_at,
     },

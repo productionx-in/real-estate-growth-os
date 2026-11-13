@@ -1,8 +1,10 @@
 // app/api/inventory/route.ts
+// Secure Inventory collection routes: Enforces authentication, project scoping, and RBAC.
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { InventoryItemSchema } from '@/lib/validations/inventory'
 import { createInventoryItem, getInventoryByProject } from '@/lib/dal/inventory'
+import { authorizeProjectAccess } from '@/lib/auth/tenant'
+import { createServiceClient } from '@/lib/supabase/server'
 import type { InventoryStatus, ProjectCategory } from '@/types/database'
 
 export async function GET(request: NextRequest) {
@@ -12,6 +14,12 @@ export async function GET(request: NextRequest) {
 
     if (!projectId) {
       return NextResponse.json({ error: 'projectId is required' }, { status: 400 })
+    }
+
+    // Tenant isolation: Authenticate caller and verify membership in project's organisation
+    const authResult = await authorizeProjectAccess(projectId)
+    if (!authResult.success) {
+      return authResult.response
     }
 
     const filters = {
@@ -31,18 +39,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-
-    // 1. Auth check
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
-    }
-
-    // 2. Validate body
     const body = await request.json()
     const parsed = InventoryItemSchema.safeParse(body)
     if (!parsed.success) {
@@ -52,40 +48,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 3. User profile
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single()
+    // Tenant isolation: Verify caller is manager, admin, or owner in this project's organisation
+    const authResult = await authorizeProjectAccess(parsed.data.project_id, [
+      'owner',
+      'admin',
+      'manager',
+    ])
+    if (!authResult.success) {
+      return authResult.response
+    }
 
-    if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 403 })
+    const service = createServiceClient()
 
-    // 4. Verify project ownership & manager permissions
-    const { data: project } = await supabase
-      .from('projects')
-      .select('id, org_id')
-      .eq('id', parsed.data.project_id)
-      .single()
+    // Hierarchy consistency: If hierarchy_node_id provided, verify it belongs to this project & org
+    if (parsed.data.hierarchy_node_id) {
+      const { data: node } = await service
+        .from('project_hierarchy_nodes')
+        .select('id, project_id, org_id')
+        .eq('id', parsed.data.hierarchy_node_id)
+        .maybeSingle()
 
-    if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 })
-
-    const { data: membership } = await supabase
-      .from('org_members')
-      .select('role')
-      .eq('org_id', project.org_id)
-      .eq('profile_id', profile.id)
-      .single()
-
-    if (!membership || !['owner', 'admin', 'manager'].includes(membership.role)) {
-      return NextResponse.json(
-        { error: 'Only managers, admins, and owners can add inventory' },
-        { status: 403 }
-      )
+      if (!node || node.project_id !== parsed.data.project_id || node.org_id !== authResult.context.orgId) {
+        return NextResponse.json(
+          { error: 'Hierarchy node does not belong to this project and organisation.' },
+          { status: 400 }
+        )
+      }
     }
 
     const { item, error } = await createInventoryItem(
-      project.org_id,
+      authResult.context.orgId,
       parsed.data
     )
 

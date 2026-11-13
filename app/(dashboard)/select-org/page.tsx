@@ -5,6 +5,16 @@ import Link from 'next/link'
 import { Building2, ArrowRight, Plus } from 'lucide-react'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 
+interface OrgMembershipItem {
+  role: string | null
+  organisation: {
+    id: string
+    name: string
+    slug: string
+    type: string
+  } | null
+}
+
 export const dynamic = 'force-dynamic'
 
 export default async function SelectOrgPage() {
@@ -57,9 +67,11 @@ export default async function SelectOrgPage() {
     redirect('/create-org')
   }
 
+  const typedMemberships = (memberships ?? []) as unknown as OrgMembershipItem[]
+
   // If user belongs to only 1 organisation, send them directly into that workspace
-  if (memberships.length === 1) {
-    const org = memberships[0].organisation as any
+  if (typedMemberships.length === 1) {
+    const org = typedMemberships[0].organisation
     if (org?.slug) {
       redirect(`/${org.slug}`)
     }
@@ -86,7 +98,7 @@ export default async function SelectOrgPage() {
           </p>
 
           <div className="space-y-2.5">
-            {memberships.map((m: any) => {
+            {typedMemberships.map((m) => {
               const org = m.organisation
               if (!org) return null
 
