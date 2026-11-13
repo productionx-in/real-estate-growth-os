@@ -26,6 +26,22 @@ CREATE TRIGGER integration_connections_updated_at
   BEFORE UPDATE ON public.integration_connections
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+-- Enforce Organisation Ownership Immutability on integration_connections
+CREATE OR REPLACE FUNCTION public.check_connection_org_immutable()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF OLD.org_id <> NEW.org_id THEN
+    RAISE EXCEPTION 'Organisation ownership of an integration connection is immutable (from % to %)', OLD.org_id, NEW.org_id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_connection_org_immutable ON public.integration_connections;
+CREATE TRIGGER trg_connection_org_immutable
+  BEFORE UPDATE OF org_id ON public.integration_connections
+  FOR EACH ROW EXECUTE FUNCTION public.check_connection_org_immutable();
+
 -- Enable RLS on integration_connections
 ALTER TABLE public.integration_connections ENABLE ROW LEVEL SECURITY;
 
@@ -60,21 +76,25 @@ CREATE TRIGGER integration_project_mappings_updated_at
   BEFORE UPDATE ON public.integration_project_mappings
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Cross-Tenant Project Mapping Integrity Trigger
+-- Enforce Organisation Ownership Immutability and Cross-Tenant Integrity on integration_project_mappings
 CREATE OR REPLACE FUNCTION public.check_mapping_same_org()
 RETURNS TRIGGER AS $$
 DECLARE
   v_conn_org UUID;
   v_proj_org UUID;
 BEGIN
+  IF TG_OP = 'UPDATE' AND OLD.org_id <> NEW.org_id THEN
+    RAISE EXCEPTION 'Organisation ownership of a project mapping is immutable (from % to %)', OLD.org_id, NEW.org_id;
+  END IF;
+
   SELECT org_id INTO v_conn_org FROM public.integration_connections WHERE id = NEW.connection_id;
   IF v_conn_org IS NULL OR v_conn_org <> NEW.org_id THEN
-    RAISE EXCEPTION 'Mapping connection must belong to the same organisation';
+    RAISE EXCEPTION 'Mapping connection must belong to the same organisation (mapping %, connection %)', NEW.org_id, v_conn_org;
   END IF;
 
   SELECT org_id INTO v_proj_org FROM public.projects WHERE id = NEW.project_id;
   IF v_proj_org IS NULL OR v_proj_org <> NEW.org_id THEN
-    RAISE EXCEPTION 'Mapping project must belong to the same organisation';
+    RAISE EXCEPTION 'Mapping project must belong to the same organisation (mapping %, project %)', NEW.org_id, v_proj_org;
   END IF;
 
   RETURN NEW;
@@ -161,42 +181,64 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_leads_connection_external_lead_id
   ON public.leads(connection_id, external_lead_id)
   WHERE connection_id IS NOT NULL AND external_lead_id IS NOT NULL;
 
--- Cross-Tenant Integrity Triggers on leads
-CREATE OR REPLACE FUNCTION public.check_lead_duplicate_same_org()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF NEW.duplicate_of_id IS NOT NULL THEN
-    IF NOT EXISTS (
-      SELECT 1 FROM public.leads WHERE id = NEW.duplicate_of_id AND org_id = NEW.org_id
-    ) THEN
-      RAISE EXCEPTION 'Cross-organisation duplicate link rejected: duplicate_of_id must belong to the same organisation';
-    END IF;
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS trg_check_lead_duplicate_same_org ON public.leads;
-CREATE TRIGGER trg_check_lead_duplicate_same_org
-  BEFORE INSERT OR UPDATE OF duplicate_of_id, org_id ON public.leads
-  FOR EACH ROW EXECUTE FUNCTION public.check_lead_duplicate_same_org();
-
-CREATE OR REPLACE FUNCTION public.check_lead_integration_same_org()
+-- Cross-Tenant Integrity Triggers on leads (Project, Connection, Duplicate & Org Immutability)
+CREATE OR REPLACE FUNCTION public.check_lead_tenant_integrity()
 RETURNS TRIGGER AS $$
 DECLARE
+  v_proj_org UUID;
   v_conn_org UUID;
+  v_dup_org  UUID;
 BEGIN
+  -- 1. Enforce lead organisation immutability
+  IF TG_OP = 'UPDATE' AND OLD.org_id <> NEW.org_id THEN
+    RAISE EXCEPTION 'Lead organisation ownership is immutable (from % to %)', OLD.org_id, NEW.org_id;
+  END IF;
+
+  -- 2. Enforce Lead-to-Project Organisation Integrity (null project_id allowed for unmapped leads)
+  IF NEW.project_id IS NOT NULL THEN
+    SELECT org_id INTO v_proj_org FROM public.projects WHERE id = NEW.project_id;
+    IF v_proj_org IS NULL OR v_proj_org <> NEW.org_id THEN
+      RAISE EXCEPTION 'Lead project must belong to the same organisation (lead.org_id %, project.org_id %)', NEW.org_id, v_proj_org;
+    END IF;
+  END IF;
+
+  -- 3. Enforce Lead-to-Connection Organisation Integrity
   IF NEW.connection_id IS NOT NULL THEN
     SELECT org_id INTO v_conn_org FROM public.integration_connections WHERE id = NEW.connection_id;
     IF v_conn_org IS NULL OR v_conn_org <> NEW.org_id THEN
-      RAISE EXCEPTION 'Lead connection must belong to the same organisation';
+      RAISE EXCEPTION 'Lead connection must belong to the same organisation (lead.org_id %, connection.org_id %)', NEW.org_id, v_conn_org;
     END IF;
+  END IF;
+
+  -- 4. Enforce Duplicate Reference Organisation Integrity
+  IF NEW.duplicate_of_id IS NOT NULL THEN
+    SELECT org_id INTO v_dup_org FROM public.leads WHERE id = NEW.duplicate_of_id;
+    IF v_dup_org IS NULL OR v_dup_org <> NEW.org_id THEN
+      RAISE EXCEPTION 'Cross-organisation duplicate link rejected: duplicate_of_id must belong to the same organisation (lead.org_id %, duplicate_of.org_id %)', NEW.org_id, v_dup_org;
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_check_lead_tenant_integrity ON public.leads;
+CREATE TRIGGER trg_check_lead_tenant_integrity
+  BEFORE INSERT OR UPDATE OF org_id, project_id, connection_id, duplicate_of_id ON public.leads
+  FOR EACH ROW EXECUTE FUNCTION public.check_lead_tenant_integrity();
+
+-- Enforce Organisation Ownership Immutability on projects
+CREATE OR REPLACE FUNCTION public.check_project_org_immutable()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF OLD.org_id <> NEW.org_id THEN
+    RAISE EXCEPTION 'Project organisation ownership is immutable (from % to %)', OLD.org_id, NEW.org_id;
   END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS trg_check_lead_integration_same_org ON public.leads;
-CREATE TRIGGER trg_check_lead_integration_same_org
-  BEFORE INSERT OR UPDATE OF org_id, connection_id ON public.leads
-  FOR EACH ROW EXECUTE FUNCTION public.check_lead_integration_same_org();
+DROP TRIGGER IF EXISTS trg_project_org_immutable ON public.projects;
+CREATE TRIGGER trg_project_org_immutable
+  BEFORE UPDATE OF org_id ON public.projects
+  FOR EACH ROW EXECUTE FUNCTION public.check_project_org_immutable();

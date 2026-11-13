@@ -207,6 +207,33 @@ class MockDatabase {
     return { connection, error: null }
   }
 
+  // Update connection with organisation immutability check
+  updateConnection(connectionId, orgId, updates) {
+    const conn = this.connections.find((c) => c.id === connectionId)
+    if (!conn) return { error: 'Connection not found' }
+
+    if (updates.org_id !== undefined && updates.org_id !== conn.org_id) {
+      return { error: 'Organisation ownership of an integration connection is immutable' }
+    }
+
+    Object.assign(conn, updates)
+    conn.updated_at = new Date().toISOString()
+    return { connection: conn, error: null }
+  }
+
+  // Update project with organisation immutability check
+  updateProject(projectId, updates) {
+    const proj = this.projects.find((p) => p.id === projectId)
+    if (!proj) return { error: 'Project not found' }
+
+    if (updates.org_id !== undefined && updates.org_id !== proj.org_id) {
+      return { error: 'Project organisation ownership is immutable' }
+    }
+
+    Object.assign(proj, updates)
+    return { project: proj, error: null }
+  }
+
   createMapping(orgId, callerProfileId, data) {
     const member = this.orgMembers.find(
       (m) => m.org_id === orgId && m.profile_id === callerProfileId
@@ -241,7 +268,8 @@ class MockDatabase {
     return { mapping, error: null }
   }
 
-  processInbound(orgId, payload) {
+  // Process inbound lead with Lead-to-Project Org Integrity Enforcement
+  processInbound(orgId, payload, simulatedDbError = null) {
     const normPhone = normalizePhone(payload.phone)
     const normEmail = normalizeEmail(payload.email)
 
@@ -260,7 +288,7 @@ class MockDatabase {
     })
 
     // Check exact idempotency replay (Case A)
-    if (idempotencyKey) {
+    if (!simulatedDbError && idempotencyKey) {
       const existingByKey = this.leads.find(
         (l) => l.org_id === orgId && l.idempotency_key === idempotencyKey
       )
@@ -338,6 +366,22 @@ class MockDatabase {
       } else {
         routingStatus = 'unmapped'
       }
+    } else if (payload.projectId) {
+      // Manual/direct project assignment
+      resolvedProjectId = payload.projectId
+      routingStatus = 'mapped'
+    }
+
+    // LEAD-TO-PROJECT ORGANISATION INTEGRITY CHECK (Database-level trigger check_lead_tenant_integrity simulation)
+    if (resolvedProjectId) {
+      const targetProj = this.projects.find((p) => p.id === resolvedProjectId)
+      if (!targetProj || targetProj.org_id !== orgId) {
+        return {
+          success: false,
+          action: 'error',
+          errorMessage: `Lead project must belong to the same organisation (lead.org_id ${orgId}, project.org_id ${targetProj?.org_id})`,
+        }
+      }
     }
 
     // Multi-category deduplication check (A, B, C)
@@ -350,7 +394,7 @@ class MockDatabase {
       existingLeads: orgLeads,
     })
 
-    if (dedupResult.classification === 'duplicate_external_event' && dedupResult.duplicateOfId) {
+    if (!simulatedDbError && dedupResult.classification === 'duplicate_external_event' && dedupResult.duplicateOfId) {
       return {
         success: true,
         leadId: dedupResult.duplicateOfId,
@@ -364,23 +408,55 @@ class MockDatabase {
       }
     }
 
-    // Enforce DB-level Unique Index Simulation on (org_id, idempotency_key)
-    if (idempotencyKey) {
-      const dbCollision = this.leads.find(
-        (l) => l.org_id === orgId && l.idempotency_key === idempotencyKey
-      )
-      if (dbCollision) {
-        // Concurrency conflict caught by DB constraint
+    // Simulate Database Unique Constraint Failure & Concurrency Handling (Section 4)
+    if (simulatedDbError) {
+      const rawMsg = simulatedDbError.message || ''
+      const isIdempotencyKeyConflict =
+        simulatedDbError.code === '23505' &&
+        Boolean(idempotencyKey) &&
+        rawMsg.includes('uq_leads_org_idempotency_key')
+
+      const isExternalLeadIdConflict =
+        simulatedDbError.code === '23505' &&
+        Boolean(payload.externalLeadId) &&
+        Boolean(payload.connectionId) &&
+        rawMsg.includes('uq_leads_connection_external_lead_id')
+
+      if (isIdempotencyKeyConflict || isExternalLeadIdConflict) {
+        // Safe idempotent replay resolution with verification of org and connection
+        const existingLead = isIdempotencyKeyConflict
+          ? this.leads.find((l) => l.org_id === orgId && l.idempotency_key === idempotencyKey)
+          : this.leads.find((l) => l.org_id === orgId && l.external_lead_id === payload.externalLeadId)
+        if (
+          isExternalLeadIdConflict &&
+          payload.connectionId &&
+          existingLead?.connection_id &&
+          existingLead.connection_id !== payload.connectionId
+        ) {
+          return {
+            success: false,
+            action: 'error',
+            errorMessage: 'Conflict resolution mismatch: winning lead does not match expected connection',
+          }
+        }
+
         return {
           success: true,
-          leadId: dbCollision.id,
-          isDuplicate: dbCollision.is_duplicate,
-          duplicateOfId: dbCollision.duplicate_of_id,
-          projectId: dbCollision.project_id,
-          routingStatus: dbCollision.project_id ? 'mapped' : 'unmapped',
+          leadId: existingLead?.id,
+          isDuplicate: existingLead?.is_duplicate ?? false,
+          duplicateOfId: existingLead?.duplicate_of_id ?? null,
+          projectId: existingLead?.project_id ?? null,
+          routingStatus: existingLead?.project_id ? 'mapped' : 'unmapped',
           idempotencyKey,
           action: 'idempotent_replay',
           classification: 'duplicate_external_event',
+        }
+      } else {
+        // Genuine unrelated database failure: DO NOT report as replay!
+        return {
+          success: false,
+          action: 'error',
+          errorMessage: simulatedDbError.message,
         }
       }
     }
@@ -448,10 +524,25 @@ class MockDatabase {
     }
   }
 
-  updateLead(leadId, orgId, updates) {
-    const lead = this.leads.find((l) => l.id === leadId && l.org_id === orgId)
-    if (!lead) return { error: 'Lead not found' }
+  // Update lead with Lead-to-Project Org Integrity & Org Immutability checks
+  updateLead(leadId, callerOrgId, updates) {
+    const lead = this.leads.find((l) => l.id === leadId)
+    if (!lead || lead.org_id !== callerOrgId) return { error: 'Lead not found in this organisation' }
 
+    // Immutability of lead org_id
+    if (updates.org_id !== undefined && updates.org_id !== lead.org_id) {
+      return { error: 'Lead organisation ownership is immutable' }
+    }
+
+    // Lead-to-project integrity on update/reassignment
+    if (updates.project_id !== undefined && updates.project_id !== null) {
+      const proj = this.projects.find((p) => p.id === updates.project_id)
+      if (!proj || proj.org_id !== callerOrgId) {
+        return { error: `Cross-tenant project assignment rejected: project belongs to another organisation` }
+      }
+    }
+
+    lead.project_id = updates.project_id !== undefined ? updates.project_id : lead.project_id
     lead.status = updates.status !== undefined ? updates.status : lead.status
     lead.priority = updates.priority !== undefined ? updates.priority : lead.priority
     lead.notes = updates.notes !== undefined ? updates.notes : lead.notes
@@ -584,7 +675,6 @@ class MockDatabase {
     description: 'General Account Fallback',
   })
 
-  // Case A: Payload has matching campaign_id -> resolves to proj_tower_a
   const resA = db.processInbound(orgId, {
     connectionId: connId,
     provider: 'meta_ads',
@@ -596,7 +686,6 @@ class MockDatabase {
   assert.equal(resA.projectId, 'proj_tower_a')
   assert.equal(resA.routingStatus, 'mapped')
 
-  // Case B: No campaignId, matching form_id -> resolves to proj_tower_b
   const resB = db.processInbound(orgId, {
     connectionId: connId,
     provider: 'meta_ads',
@@ -607,7 +696,6 @@ class MockDatabase {
   assert.equal(resB.projectId, 'proj_tower_b')
   assert.equal(resB.routingStatus, 'mapped')
 
-  // Case C: No campaign/form, matching landing page -> resolves to proj_tower_c
   const resC = db.processInbound(orgId, {
     connectionId: connId,
     provider: 'meta_ads',
@@ -618,7 +706,6 @@ class MockDatabase {
   assert.equal(resC.projectId, 'proj_tower_c')
   assert.equal(resC.routingStatus, 'mapped')
 
-  // Case D: Unknown campaign and form -> falls back to account_default
   const resD = db.processInbound(orgId, {
     connectionId: connId,
     provider: 'meta_ads',
@@ -800,7 +887,6 @@ class MockDatabase {
   })
   assert.equal(lead1.classification, 'new_customer_enquiry')
 
-  // Re-delivery of exact same event
   const replay = db.processInbound(orgId, {
     provider: 'meta_ads',
     externalLeadId: 'meta_evt_777888',
@@ -835,7 +921,6 @@ class MockDatabase {
     external_identifier_value: 'camp_promont',
   })
 
-  // 1. Initial enquiry for Promont
   const lead1 = db.processInbound(orgId, {
     connectionId: connId,
     provider: 'meta_ads',
@@ -846,14 +931,13 @@ class MockDatabase {
     notes: 'Initial inquiry for 3BHK',
   })
 
-  // 2. Same customer submits another form 2 days later for the SAME project
   const lead2 = db.processInbound(orgId, {
     connectionId: connId,
     provider: 'meta_ads',
-    externalLeadId: 'ext_event_2', // different event ID
+    externalLeadId: 'ext_event_2',
     name: 'Pooja S (Duplicate Submission)',
-    phone: '+91 98200 11223', // same normalized phone
-    campaignId: 'camp_promont', // same project
+    phone: '+91 98200 11223',
+    campaignId: 'camp_promont',
     notes: 'Follow-up enquiry',
   })
 
@@ -862,13 +946,11 @@ class MockDatabase {
   assert.equal(lead2.action, 'flagged_duplicate_created')
   assert.equal(lead2.classification, 'possible_duplicate_customer_enquiry')
 
-  // Original lead is 100% UNTOUCHED
   const originalAfter = db.leads.find((l) => l.id === lead1.leadId)
   assert.equal(originalAfter.name, 'Pooja Sharma')
   assert.equal(originalAfter.notes, 'Initial inquiry for 3BHK')
   assert.equal(originalAfter.is_duplicate, false)
 
-  // Duplicate lead is recorded with reference to original
   const dupRecord = db.leads.find((l) => l.id === lead2.leadId)
   assert.equal(dupRecord.is_duplicate, true)
   assert.equal(dupRecord.duplicate_of_id, lead1.leadId)
@@ -904,7 +986,6 @@ class MockDatabase {
     external_identifier_value: 'camp_avenue',
   })
 
-  // 1. Customer enquires about Residential Luxury Project
   const leadResidential = db.processInbound(orgId, {
     connectionId: connId,
     provider: 'website_webhook',
@@ -917,7 +998,6 @@ class MockDatabase {
   assert.equal(leadResidential.projectId, 'proj_promont_luxury')
   assert.equal(leadResidential.isDuplicate, false)
 
-  // 2. SAME customer later enquires about a completely DIFFERENT project (Commercial Retail)
   const leadCommercial = db.processInbound(orgId, {
     connectionId: connId,
     provider: 'website_webhook',
@@ -928,14 +1008,12 @@ class MockDatabase {
     notes: 'Interested in ground floor retail shop for investment',
   })
 
-  // CRITICAL REQUIREMENT: This is a genuinely separate enquiry! It must NOT be flagged as duplicate or discarded!
   assert.equal(leadCommercial.projectId, 'proj_avenue_commercial')
   assert.equal(leadCommercial.isDuplicate, false, 'Separate project enquiry must NOT be marked duplicate')
   assert.equal(leadCommercial.duplicateOfId, null)
   assert.equal(leadCommercial.classification, 'separate_customer_enquiry')
   assert.equal(leadCommercial.action, 'separate_enquiry_created')
 
-  // Both distinct project enquiries exist in database
   const rajeshLeads = db.leads.filter((l) => l.org_id === orgId && l.phone === '+919844011223')
   assert.equal(rajeshLeads.length, 2, 'Both legitimate project enquiries must exist')
   assert.equal(rajeshLeads[0].project_id, 'proj_promont_luxury')
@@ -1022,7 +1100,6 @@ class MockDatabase {
   })
   assert.equal(validConn.error, null)
 
-  // Verify client-facing query redacts the raw reference
   const connsForClient = db.getConnectionsForOrg(orgId, 'admin_sec')
   assert.equal(connsForClient[0].credential_ref, 'CONFIGURED_SECURE_REFERENCE')
 
@@ -1070,67 +1147,210 @@ class MockDatabase {
 }
 
 // ---------------------------------------------------------------------------
-// TEST 12: Cross-Tenant Project Mapping Attempt Blocked
+// TEST 12: Lead-to-Project Organisation Integrity (Database Trigger check_lead_tenant_integrity)
 // ---------------------------------------------------------------------------
 {
   const db = new MockDatabase()
   db.organisations = [
-    { id: 'org_alpha', name: 'Alpha Builders' },
-    { id: 'org_beta', name: 'Beta Realty' },
+    { id: 'org_omega', name: 'Omega Realty' },
+    { id: 'org_theta', name: 'Theta Properties' },
   ]
   db.projects = [
-    { id: 'proj_alpha', org_id: 'org_alpha', name: 'Alpha Heights' },
-    { id: 'proj_beta', org_id: 'org_beta', name: 'Beta Residency' },
-  ]
-  db.connections = [
-    { id: 'conn_alpha', org_id: 'org_alpha', name: 'Alpha Ads' },
+    { id: 'proj_omega_tower', org_id: 'org_omega', name: 'Omega Tower' },
+    { id: 'proj_theta_villas', org_id: 'org_theta', name: 'Theta Villas' },
   ]
   db.orgMembers = [
-    { org_id: 'org_alpha', profile_id: 'alpha_admin', role: 'admin' },
+    { org_id: 'org_omega', profile_id: 'omega_admin', role: 'admin' },
   ]
 
-  // Attempt to map Alpha's connection to Beta's project
-  const crossMapRes = db.createMapping('org_alpha', 'alpha_admin', {
-    connection_id: 'conn_alpha',
-    project_id: 'proj_beta', // Belongs to Org Beta!
-    external_identifier_type: 'campaign_id',
-    external_identifier_value: 'camp_illicit',
+  // Case 1: Valid lead created referencing project in same org
+  const validLead = db.processInbound('org_omega', {
+    provider: 'website_webhook',
+    name: 'Valid Buyer',
+    phone: '9900112233',
+    projectId: 'proj_omega_tower',
   })
+  assert.equal(validLead.success, true)
+  assert.equal(validLead.projectId, 'proj_omega_tower')
 
-  assert.match(crossMapRes.error, /Cross-tenant mapping rejected/i)
-  assert.equal(db.mappings.length, 0, 'Cross-tenant mapping must never be inserted')
+  // Case 2: Unmapped lead created with null project_id (MUST BE ALLOWED)
+  const unmappedLead = db.processInbound('org_omega', {
+    provider: 'website_webhook',
+    name: 'Unmapped Buyer',
+    phone: '9900112234',
+  })
+  assert.equal(unmappedLead.success, true)
+  assert.equal(unmappedLead.projectId, null)
+  assert.equal(unmappedLead.routingStatus, 'unmapped')
 
-  console.log('✓ Test 12 Passed: Cross-tenant project mapping strictly rejected')
+  // Case 3: Attempting to assign lead from Org Omega to project belonging to Org Theta
+  const crossTenantAttempt = db.processInbound('org_omega', {
+    provider: 'website_webhook',
+    name: 'Malicious Buyer',
+    phone: '9900112235',
+    projectId: 'proj_theta_villas', // Belongs to Theta, not Omega!
+  })
+  assert.equal(crossTenantAttempt.success, false)
+  assert.match(crossTenantAttempt.errorMessage, /Lead project must belong to the same organisation/i)
+
+  // Case 4: Lead update/reassignment attempting cross-tenant project linking
+  const updateCrossAttempt = db.updateLead(validLead.leadId, 'org_omega', {
+    project_id: 'proj_theta_villas', // Cross-tenant!
+  })
+  assert.match(updateCrossAttempt.error, /Cross-tenant project assignment rejected/i)
+
+  console.log('✓ Test 12 Passed: Lead-to-project organisation integrity strictly enforced')
 }
 
 // ---------------------------------------------------------------------------
-// TEST 13: Database-Level Concurrent Idempotency Race Interception
+// TEST 13: Parent Organisation Ownership Immutability
 // ---------------------------------------------------------------------------
 {
   const db = new MockDatabase()
-  const orgId = 'org_concurrency_test'
-  db.orgMembers = [{ org_id: orgId, profile_id: 'admin_test', role: 'admin' }]
+  db.organisations = [
+    { id: 'org_primary', name: 'Primary Builders' },
+    { id: 'org_hostile', name: 'Hostile Takeover' },
+  ]
+  db.projects = [{ id: 'proj_1', org_id: 'org_primary', name: 'Tower A' }]
+  db.connections = [{ id: 'conn_1', org_id: 'org_primary', name: 'Meta Connection' }]
+  db.leads = [{ id: 'lead_1', org_id: 'org_primary', name: 'Valued Client', phone: '+919988776655' }]
 
-  const payload = {
-    provider: 'meta_ads',
-    externalLeadId: 'concurrent_event_9999',
-    name: 'Suresh Raina',
-    phone: '9812345678',
-  }
+  // 1. Attempting to change project org_id
+  const projUpdate = db.updateProject('proj_1', { org_id: 'org_hostile' })
+  assert.match(projUpdate.error, /Project organisation ownership is immutable/i)
+  assert.equal(db.projects[0].org_id, 'org_primary')
 
-  // Pre-seed an existing lead with this external lead ID
-  const firstDelivery = db.processInbound(orgId, payload)
-  assert.equal(firstDelivery.success, true)
-  assert.equal(firstDelivery.action, 'created')
+  // 2. Attempting to change connection org_id
+  const connUpdate = db.updateConnection('conn_1', 'org_primary', { org_id: 'org_hostile' })
+  assert.match(connUpdate.error, /Organisation ownership of an integration connection is immutable/i)
+  assert.equal(db.connections[0].org_id, 'org_primary')
 
-  // Simulate a concurrent second request arriving with the exact same payload
-  const concurrentDelivery = db.processInbound(orgId, payload)
-  assert.equal(concurrentDelivery.success, true)
-  assert.equal(concurrentDelivery.action, 'idempotent_replay')
-  assert.equal(concurrentDelivery.leadId, firstDelivery.leadId)
-  assert.equal(db.leads.filter((l) => l.org_id === orgId).length, 1)
+  // 3. Attempting to change lead org_id
+  const leadUpdate = db.updateLead('lead_1', 'org_primary', { org_id: 'org_hostile' })
+  assert.match(leadUpdate.error, /Lead organisation ownership is immutable/i)
+  assert.equal(db.leads[0].org_id, 'org_primary')
 
-  console.log('✓ Test 13 Passed: Concurrent idempotency collision intercepted safely')
+  console.log('✓ Test 13 Passed: Organisation ownership immutability strictly enforced across projects, connections and leads')
 }
 
-console.log('\n--- ALL 13 CRM INTEGRATION READINESS (STAGE 3G) TESTS PASSED ---\n')
+// ---------------------------------------------------------------------------
+// TEST 14: Concurrent Processing Review — Idempotency vs Unrelated 23505 DB Error
+// ---------------------------------------------------------------------------
+{
+  const db = new MockDatabase()
+  const orgId = 'org_race_test'
+  db.orgMembers = [{ org_id: orgId, profile_id: 'admin_race', role: 'admin' }]
+
+  // Pre-seed an existing lead
+  const initialLead = db.processInbound(orgId, {
+    provider: 'meta_ads',
+    externalLeadId: 'ext_fb_lead_4455',
+    name: 'Suresh Raina',
+    phone: '9812345678',
+  })
+  assert.equal(initialLead.success, true)
+
+  // Case 1: Genuine idempotency key conflict with exact constraint name (uq_leads_org_idempotency_key)
+  const trueIdempotencyConflict = {
+    code: '23505',
+    message: 'duplicate key value violates unique constraint "uq_leads_org_idempotency_key"',
+    details: 'Key (org_id, idempotency_key)=(...) already exists.',
+  }
+  const replayResult = db.processInbound(
+    orgId,
+    {
+      provider: 'meta_ads',
+      externalLeadId: 'ext_fb_lead_4455',
+      name: 'Suresh Raina',
+      phone: '9812345678',
+    },
+    trueIdempotencyConflict
+  )
+  assert.equal(replayResult.success, true)
+  assert.equal(replayResult.action, 'idempotent_replay')
+  assert.equal(replayResult.leadId, initialLead.leadId)
+
+  // Case 2: Generic substring match without exact constraint name (must be rejected!)
+  const genericSubstringError = {
+    code: '23505',
+    message: 'duplicate key value violates some generic table mentioning idempotency_key in comments',
+    details: 'Some other column duplicate.',
+  }
+  const genericResult = db.processInbound(
+    orgId,
+    {
+      provider: 'meta_ads',
+      externalLeadId: 'ext_fb_new_8888',
+      name: 'Generic Test',
+      phone: '9812345679',
+    },
+    genericSubstringError
+  )
+  assert.equal(genericResult.success, false)
+  assert.equal(genericResult.action, 'error')
+
+  // Case 3: Exact external lead id conflict with connection verification
+  const connId = 'conn_race_1'
+  db.connections.push({ id: connId, org_id: orgId })
+  const storedLead = db.leads.find((l) => l.id === initialLead.leadId)
+  if (storedLead) storedLead.connection_id = connId
+
+  const trueExtLeadConflict = {
+    code: '23505',
+    message: 'duplicate key value violates unique constraint "uq_leads_connection_external_lead_id"',
+    details: 'Key (connection_id, external_lead_id)=(...) already exists.',
+  }
+  const extLeadReplay = db.processInbound(
+    orgId,
+    {
+      connectionId: connId,
+      provider: 'meta_ads',
+      externalLeadId: 'ext_fb_lead_4455',
+      name: 'Suresh Raina',
+      phone: '9812345678',
+    },
+    trueExtLeadConflict
+  )
+  assert.equal(extLeadReplay.success, true)
+  assert.equal(extLeadReplay.action, 'idempotent_replay')
+
+  // Case 4: Connection mismatch on replay lookup (tampered / wrong connection)
+  const extLeadMismatch = db.processInbound(
+    orgId,
+    {
+      connectionId: 'conn_other_tampered',
+      provider: 'meta_ads',
+      externalLeadId: 'ext_fb_lead_4455',
+      name: 'Suresh Raina',
+      phone: '9812345678',
+    },
+    trueExtLeadConflict
+  )
+  assert.equal(extLeadMismatch.success, false)
+  assert.equal(extLeadMismatch.action, 'error')
+  assert.match(extLeadMismatch.errorMessage, /Conflict resolution mismatch/i)
+
+  // Case 5: Unrelated 23505 unique constraint failure (e.g. inventory unit conflict)
+  const unrelatedDbError = {
+    code: '23505',
+    message: 'duplicate key value violates unique constraint "idx_inventory_project_unit_ci"',
+    details: 'Key (project_id, unit)=(101) already exists.',
+  }
+  const failureResult = db.processInbound(
+    orgId,
+    {
+      provider: 'meta_ads',
+      externalLeadId: 'ext_fb_new_9999',
+      name: 'New Client',
+      phone: '9812345679',
+    },
+    unrelatedDbError
+  )
+  assert.equal(failureResult.success, false)
+  assert.equal(failureResult.action, 'error')
+  assert.match(failureResult.errorMessage, /idx_inventory_project_unit_ci/i)
+
+  console.log('✓ Test 14 Passed: Concurrent processing strictly discriminates exact constraints and verifies connection matching')
+}
+
+console.log('\n--- ALL 14 CRM INTEGRATION READINESS (STAGE 3G) TESTS PASSED ---\n')

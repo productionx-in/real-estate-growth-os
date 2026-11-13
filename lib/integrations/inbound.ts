@@ -54,12 +54,12 @@ export async function processInboundLead(
   if (idempotencyKey) {
     const { data: existingByKey } = await service
       .from('leads')
-      .select('id, project_id, is_duplicate, duplicate_of_id')
+      .select('id, org_id, project_id, is_duplicate, duplicate_of_id')
       .eq('org_id', orgId)
       .eq('idempotency_key', idempotencyKey)
       .maybeSingle()
 
-    if (existingByKey) {
+    if (existingByKey && existingByKey.org_id === orgId) {
       await safeLogEvent(service, {
         org_id: orgId,
         connection_id: payload.connectionId ?? null,
@@ -165,7 +165,7 @@ export async function processInboundLead(
     existingLeads: candidates ?? [],
   })
 
-  // If exact external event match was identified in existing leads
+  // If exact external event match was identified in existing leads (Case A)
   if (dedupResult.classification === 'duplicate_external_event' && dedupResult.duplicateOfId) {
     return {
       success: true,
@@ -230,22 +230,66 @@ export async function processInboundLead(
     .select()
     .single()
 
-  // Handle Race Condition on Concurrent Inserts
+  // 6. Handle Database Errors & Race Conditions With Strict Exact-Constraint Discrimination
   if (insertError) {
-    // If PostgreSQL unique index caught a concurrent insert race
-    if (
+    const rawMsg = insertError.message ?? ''
+
+    // Exact Constraint A: uq_leads_org_idempotency_key
+    const isIdempotencyKeyConflict =
       insertError.code === '23505' &&
-      (idempotencyKey || payload.externalLeadId)
-    ) {
-      let winningQuery = service.from('leads').select('id, project_id, is_duplicate, duplicate_of_id').eq('org_id', orgId)
-      if (idempotencyKey) {
+      Boolean(idempotencyKey) &&
+      rawMsg.includes('uq_leads_org_idempotency_key')
+
+    // Exact Constraint B: uq_leads_connection_external_lead_id
+    const isExternalLeadIdConflict =
+      insertError.code === '23505' &&
+      Boolean(payload.externalLeadId) &&
+      Boolean(payload.connectionId) &&
+      rawMsg.includes('uq_leads_connection_external_lead_id')
+
+    if (isIdempotencyKeyConflict || isExternalLeadIdConflict) {
+      let winningQuery = service
+        .from('leads')
+        .select('id, org_id, connection_id, project_id, is_duplicate, duplicate_of_id')
+        .eq('org_id', orgId)
+
+      if (isIdempotencyKeyConflict && idempotencyKey) {
         winningQuery = winningQuery.eq('idempotency_key', idempotencyKey)
-      } else if (payload.externalLeadId && payload.connectionId) {
-        winningQuery = winningQuery.eq('connection_id', payload.connectionId).eq('external_lead_id', payload.externalLeadId)
+      } else if (isExternalLeadIdConflict && payload.externalLeadId) {
+        winningQuery = winningQuery.eq('external_lead_id', payload.externalLeadId)
       }
 
       const { data: winningLead } = await winningQuery.maybeSingle()
-      if (winningLead) {
+
+      // Verify that the retrieved winning lead strictly belongs to the expected organisation and connection
+      if (winningLead && winningLead.org_id === orgId) {
+        if (
+          isExternalLeadIdConflict &&
+          payload.connectionId &&
+          winningLead.connection_id !== payload.connectionId
+        ) {
+          await safeLogEvent(service, {
+            org_id: orgId,
+            connection_id: payload.connectionId ?? null,
+            provider: payload.provider,
+            event_type: 'lead_ingest_failed',
+            processing_status: 'failed',
+            external_event_id: payload.externalLeadId ?? null,
+            error_message: 'Conflict resolution mismatch: winning lead does not match expected connection',
+          })
+
+          return {
+            success: false,
+            isDuplicate: dedupResult.isDuplicate,
+            duplicateOfId: dedupResult.duplicateOfId,
+            projectId: resolvedProjectId,
+            routingStatus,
+            idempotencyKey,
+            action: 'error',
+            errorMessage: 'Conflict resolution mismatch: winning lead does not match expected connection',
+          }
+        }
+
         return {
           success: true,
           leadId: winningLead.id,
@@ -260,6 +304,8 @@ export async function processInboundLead(
       }
     }
 
+    // Unrelated Database Failure (check constraint, tenant violation, FK failure, or other unique constraint)
+    // NEVER silently report an unrelated error as an idempotent replay!
     await safeLogEvent(service, {
       org_id: orgId,
       connection_id: payload.connectionId ?? null,
@@ -267,7 +313,7 @@ export async function processInboundLead(
       event_type: 'lead_ingest_failed',
       processing_status: 'failed',
       external_event_id: payload.externalLeadId ?? null,
-      error_message: insertError.message,
+      error_message: `Database constraint failure [${insertError.code}]: ${insertError.message}`,
     })
 
     return {
@@ -282,7 +328,7 @@ export async function processInboundLead(
     }
   }
 
-  // 6. Resilient Audit Event Logging (Does NOT fail the lead if event log fails)
+  // 7. Resilient Audit Event Logging (Does NOT fail the lead if event log fails)
   await safeLogEvent(service, {
     org_id: orgId,
     connection_id: payload.connectionId ?? null,
@@ -293,7 +339,7 @@ export async function processInboundLead(
     lead_id: insertedLead.id,
   })
 
-  // 7. Log Lead Activity if an actor profile is available
+  // 8. Log Lead Activity if an actor profile is available
   let actorId = options?.actorProfileId
   if (!actorId && payload.connectionId) {
     const { data: conn } = await service
