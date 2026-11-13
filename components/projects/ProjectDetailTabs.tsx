@@ -10,6 +10,7 @@ import {
   MapPin,
   ExternalLink,
   Sparkles,
+  FolderTree,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import {
@@ -19,6 +20,7 @@ import {
 } from '@/types/inventory'
 import type { MemberRole } from '@/types/database'
 import { InventoryViewManager } from '@/components/inventory/InventoryViewManager'
+import { HierarchyManager } from '@/components/projects/HierarchyManager'
 import { LeadsTable } from '@/components/leads/LeadsTable'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { formatDate } from '@/lib/utils/format'
@@ -54,7 +56,7 @@ interface ProjectDetailTabsProps {
   isManager: boolean
 }
 
-type TabType = 'inventory' | 'leads' | 'overview'
+type TabType = 'inventory' | 'hierarchy' | 'leads' | 'overview'
 
 export function ProjectDetailTabs({
   project,
@@ -82,6 +84,19 @@ export function ProjectDetailTabs({
           >
             <Building2 className="w-4 h-4" />
             Inventory ({inventoryItems.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('hierarchy')}
+            className={cn(
+              'pb-3 text-[13px] font-medium border-b-2 flex items-center gap-2 transition-colors',
+              activeTab === 'hierarchy'
+                ? 'border-[var(--brand)] text-[var(--brand)] font-semibold'
+                : 'border-transparent text-[var(--foreground-muted)] hover:text-[var(--foreground)]'
+            )}
+          >
+            <FolderTree className="w-4 h-4" />
+            Structure & Hierarchy
           </button>
 
           <button
@@ -124,7 +139,22 @@ export function ProjectDetailTabs({
         </div>
       )}
 
-      {/* Tab 2: Leads View */}
+      {/* Tab 2: Hierarchy Management View */}
+      {activeTab === 'hierarchy' && (
+        <div>
+          <HierarchyManager
+            projectId={project.id}
+            orgSlug={orgSlug}
+            projectCategory={project.category}
+            isManager={isManager}
+            onSelectNodeForInventory={() => {
+              setActiveTab('inventory')
+            }}
+          />
+        </div>
+      )}
+
+      {/* Tab 3: Leads View */}
       {activeTab === 'leads' && (
         <div className="space-y-4">
           {leads && leads.length > 0 ? (
