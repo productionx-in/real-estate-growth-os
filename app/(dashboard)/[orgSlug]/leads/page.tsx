@@ -5,12 +5,11 @@ import { Plus, Upload, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { LeadsTable } from '@/components/leads/LeadsTable'
+import { ExportLeadsButton } from '@/components/leads/ExportLeadsButton'
 import { EmptyState } from '@/components/shared/EmptyState'
 import type { LeadStatus, LeadSource, MemberRole } from '@/types/database'
 
 export const metadata: Metadata = { title: 'Leads' }
-
-;
 
 interface PageProps {
   params: Promise<{ orgSlug: string }>
@@ -74,6 +73,13 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
 
   const actions = (
     <>
+      {viewerRole !== 'readonly' && leads && leads.length > 0 && (
+        <ExportLeadsButton
+          orgSlug={orgSlug}
+          currentStatus={status}
+          currentSource={source}
+        />
+      )}
       {isManager && (
         <Link
           href={`/${orgSlug}/leads/import`}

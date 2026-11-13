@@ -14,8 +14,6 @@ import type { LeadStatus, MemberRole } from '@/types/database'
 
 export const metadata: Metadata = { title: 'My Dashboard' }
 
-
-
 type LeadRow = {
   id: string
   name: string

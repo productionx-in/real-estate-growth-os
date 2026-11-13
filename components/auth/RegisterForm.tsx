@@ -47,14 +47,15 @@ export function RegisterForm() {
     setStep('org')
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+async function handleSubmit(e: React.FormEvent) {
+  e.preventDefault()
+  setError(null)
+  setLoading(true)
 
-    try {
-      // 1. Create auth user
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+  try {
+    // 1. Create auth user
+    const { data: authData, error: signUpError } =
+      await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -63,32 +64,52 @@ export function RegisterForm() {
         },
       })
 
-      if (signUpError) throw signUpError
-      if (!authData.user) throw new Error('User creation failed')
+    if (signUpError) throw signUpError
+    if (!authData.user) throw new Error('User creation failed')
 
-      // 2. Create org via API (service role, bypasses RLS on first insert)
-      const response = await fetch('/api/orgs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: orgName.trim(),
-          slug: slugify(orgName.trim()),
-          type: orgType,
-        }),
-      })
+    // 2. Create organisation
+    const response = await fetch('/api/orgs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: orgName.trim(),
+        slug: slugify(orgName.trim()),
+        type: orgType,
+      }),
+    })
 
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error ?? 'Failed to create organisation')
-      }
+    // Safely read the response
+    const responseText = await response.text()
 
-      router.push('/login?message=Check+your+email+to+confirm+your+account')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
-    } finally {
-      setLoading(false)
+    let result: { error?: string; org?: unknown }
+
+    try {
+      result = responseText
+        ? JSON.parse(responseText)
+        : {}
+    } catch {
+      throw new Error(
+        `Server returned an invalid response (HTTP ${response.status}).`
+      )
     }
+
+    if (!response.ok) {
+      throw new Error(
+        result.error ?? `Workspace creation failed (HTTP ${response.status}).`
+      )
+    }
+
+    if (!result.org) {
+      throw new Error('Organisation was not returned by the server.')
+    }
+
+    router.push('/login?message=Check+your+email+to+confirm+your+account')
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'Something went wrong')
+  } finally {
+    setLoading(false)
   }
+}
 
   // Step indicator
   const steps: { key: Step; label: string }[] = [
