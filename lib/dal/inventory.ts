@@ -271,52 +271,41 @@ export async function transitionInventoryStatus(
     return { success: false, error: 'Profile not found' }
   }
 
-  // 4. Update inventory item status with optimistic concurrency guard
-  const { data: updated, error: updateErr } = await service
-    .from('inventory_items')
-    .update({ status: targetStatus, updated_at: new Date().toISOString() })
-    .eq('id', inventoryId)
-    .eq('status', currentStatus)
-    .select('id, org_id, project_id, status')
-    .maybeSingle()
+  // 4. ATOMIC DATABASE TRANSACTION: execute status change and audit history via PostgreSQL RPC
+  // Enforces row locking (FOR UPDATE), state machine validation, optimistic concurrency, and audit logging in a single ACID transaction.
+  const { data: rawRpcData, error: rpcErr } = await service.rpc(
+    'transition_inventory_status_atomic' as never,
+    {
+      p_inventory_id: inventoryId,
+      p_expected_status: currentStatus,
+      p_new_status: targetStatus,
+      p_changed_by: profile.id,
+      p_reason: values.reason,
+    } as never
+  )
 
-  if (updateErr) {
-    return { success: false, error: updateErr.message }
-  }
-
-  if (!updated) {
-    return {
-      success: false,
-      error: `Status conflict: The unit was concurrently modified (current status is no longer '${currentStatus}'). Please refresh and try again.`,
-      isConflict: true,
-    }
-  }
-
-  // 5. Append immutable audit history with error verification and atomic rollback
-  const { error: historyErr } = await service.from('inventory_status_history').insert({
-    org_id: item.org_id,
-    inventory_id: item.id,
-    previous_status: currentStatus,
-    new_status: targetStatus,
-    reason: values.reason,
-    changed_by: profile.id,
-  })
-
-  if (historyErr) {
-    console.error('Failed to append status audit history, rolling back inventory status:', historyErr)
-    // Roll back status update to maintain atomicity!
-    await service
-      .from('inventory_items')
-      .update({ status: currentStatus })
-      .eq('id', inventoryId)
+  if (rpcErr) {
+    const isConflict =
+      rpcErr.message.includes('Concurrent modification conflict') ||
+      rpcErr.code === 'P0001'
 
     return {
       success: false,
-      error: 'Failed to record audit history. Status transition rolled back for data integrity.',
+      error: rpcErr.message,
+      isConflict,
     }
   }
 
-  return { success: true, item: { ...item, status: targetStatus } }
+  const rpcRows = rawRpcData as unknown as { id: string; status: InventoryStatus }[] | null
+  const updatedItem = Array.isArray(rpcRows) && rpcRows.length > 0 ? rpcRows[0] : null
+
+  return {
+    success: true,
+    item: {
+      ...item,
+      status: (updatedItem?.status as InventoryStatus) ?? targetStatus,
+    },
+  }
 }
 
 export async function createHierarchyNode(

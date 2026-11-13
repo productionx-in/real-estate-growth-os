@@ -4,24 +4,38 @@
 
 -- 1. Helper function: checks if authenticated user is a member of a given org
 CREATE OR REPLACE FUNCTION auth_is_member_of_org(check_org_id uuid)
-RETURNS BOOLEAN AS $$
+RETURNS BOOLEAN
+SET search_path = public, pg_temp
+SECURITY DEFINER
+STABLE
+AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.org_members
     WHERE org_id = check_org_id
       AND profile_id = auth_profile_id()
   );
-$$ LANGUAGE SQL SECURITY DEFINER STABLE;
+$$ LANGUAGE SQL;
+
+REVOKE ALL ON FUNCTION auth_is_member_of_org(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION auth_is_member_of_org(uuid) TO authenticated, service_role;
 
 -- 2. Helper function: checks if authenticated user has a specific minimum role in an org
 CREATE OR REPLACE FUNCTION auth_has_role_in_org(check_org_id uuid, allowed_roles text[])
-RETURNS BOOLEAN AS $$
+RETURNS BOOLEAN
+SET search_path = public, pg_temp
+SECURITY DEFINER
+STABLE
+AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.org_members
     WHERE org_id = check_org_id
       AND profile_id = auth_profile_id()
       AND role::text = ANY(allowed_roles)
   );
-$$ LANGUAGE SQL SECURITY DEFINER STABLE;
+$$ LANGUAGE SQL;
+
+REVOKE ALL ON FUNCTION auth_has_role_in_org(uuid, text[]) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION auth_has_role_in_org(uuid, text[]) TO authenticated, service_role;
 
 -- 3. Update organisations RLS
 DROP POLICY IF EXISTS "org_members_can_read_their_org" ON organisations;

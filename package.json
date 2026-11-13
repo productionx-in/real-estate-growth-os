@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node tests/inventory-rules.test.mjs && node tests/security-isolation.test.mjs && node tests/inventory-integrity.test.mjs"
+    "test": "node tests/inventory-rules.test.mjs && node tests/security-isolation.test.mjs && node tests/inventory-integrity.test.mjs && node tests/atomic-rpc-contract.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^7.0.5",
