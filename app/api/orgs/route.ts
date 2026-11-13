@@ -1,26 +1,31 @@
 // app/api/orgs/route.ts
-// Creates a new organisation and assigns the creator as owner.
-// Uses service role to bypass RLS (the user has no org yet, so RLS would block insert).
+// Creates a new organisation, assigns the creator as owner, and seeds optional starter data.
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { slugify } from '@/lib/utils/slugify'
+import { seedWorkspaceDemoData } from '@/lib/demo/seed'
 import { z } from 'zod'
 
 const CreateOrgSchema = z.object({
   name: z.string().min(2).max(100),
-  slug: z.string().min(2).max(60).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase letters, numbers and hyphens'),
+  slug: z.string().min(2).max(60).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase letters, numbers and hyphens').optional(),
   type: z.enum(['developer', 'channel_partner']),
+  city: z.string().optional(),
+  seedDemoData: z.boolean().optional().default(true),
 })
 
 export async function POST(request: NextRequest) {
   try {
     // Authenticate the requesting user
     const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorised. Please log in first.' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -33,10 +38,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { name, type } = parsed.data
-    const baseSlug = slugify(name)
+    const { name, type, seedDemoData } = parsed.data
+    const baseSlug = parsed.data.slug || slugify(name)
 
-    // Use service role for the actual inserts (user has no org claims yet)
+    // Use service role for workspace bootstrap
     const service = createServiceClient()
 
     // Check slug uniqueness — append random suffix on collision
@@ -45,7 +50,7 @@ export async function POST(request: NextRequest) {
       .from('organisations')
       .select('id')
       .eq('slug', slug)
-      .single()
+      .maybeSingle()
 
     if (existing) {
       const suffix = Math.random().toString(36).slice(2, 6)
@@ -60,33 +65,60 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (orgError || !org) {
-      return NextResponse.json({ error: 'Failed to create organisation' }, { status: 500 })
+      console.error('Error creating organisation:', orgError)
+      return NextResponse.json({ error: orgError?.message ?? 'Failed to create organisation' }, { status: 500 })
     }
 
-    // Find or confirm the user's profile (created by DB trigger)
-    const { data: profile } = await service
+    // Ensure user profile exists
+    let { data: profile } = await service
       .from('profiles')
       .select('id')
       .eq('auth_user_id', user.id)
-      .single()
+      .maybeSingle()
 
     if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 500 })
+      const fullName =
+        (user.user_metadata?.full_name as string) ||
+        user.email?.split('@')[0] ||
+        'Workspace Owner'
+
+      const { data: newProfile, error: profileErr } = await service
+        .from('profiles')
+        .insert({
+          auth_user_id: user.id,
+          full_name: fullName,
+        })
+        .select('id')
+        .single()
+
+      if (profileErr) {
+        console.error('Error creating profile:', profileErr)
+      }
+      profile = newProfile
     }
 
     // Create owner membership
-    const { error: memberError } = await service.from('org_members').insert({
-      org_id: org.id,
-      profile_id: profile.id,
-      role: 'owner',
-    })
+    if (profile) {
+      const { error: memberError } = await service.from('org_members').insert({
+        org_id: org.id,
+        profile_id: profile.id,
+        role: 'owner',
+      })
 
-    if (memberError) {
-      return NextResponse.json({ error: 'Failed to create membership' }, { status: 500 })
+      if (memberError) {
+        console.error('Failed to create membership:', memberError)
+        return NextResponse.json({ error: 'Failed to assign workspace owner' }, { status: 500 })
+      }
+    }
+
+    // Seed starter demo data so workspace is never empty
+    if (seedDemoData !== false) {
+      await seedWorkspaceDemoData(org.id, profile?.id)
     }
 
     return NextResponse.json({ org }, { status: 201 })
-  } catch {
+  } catch (err) {
+    console.error('Error in POST /api/orgs:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

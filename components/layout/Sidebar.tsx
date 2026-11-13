@@ -56,17 +56,24 @@ function useNavItems(orgSlug: string): NavItem[] {
   ]
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  orgName?: string
+  orgSlug?: string
+}
+
+export function Sidebar({ orgName, orgSlug: propOrgSlug }: SidebarProps = {}) {
   const params = useParams()
   const pathname = usePathname()
-  const orgSlug = params?.orgSlug as string
+  const orgSlug = propOrgSlug || (params?.orgSlug as string) || ''
 
-  const navItems = useNavItems(orgSlug ?? '')
+  const navItems = useNavItems(orgSlug)
 
   function isActive(item: NavItem): boolean {
     if (item.exact) return pathname === item.href
     return pathname.startsWith(item.href)
   }
+
+  const displayName = orgName || (orgSlug ? orgSlug.replace(/-/g, ' ') : 'Workspace')
 
   return (
     <aside
@@ -79,18 +86,16 @@ export function Sidebar() {
         className="flex items-center px-4 border-b border-[var(--border)] flex-shrink-0"
       >
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-md bg-[var(--brand)] flex items-center justify-center flex-shrink-0">
+          <div className="w-7 h-7 rounded-md bg-[var(--brand)] flex items-center justify-center flex-shrink-0 shadow-2xs">
             <Building2 className="w-4 h-4 text-white" />
           </div>
           <div className="min-w-0">
             <p className="text-[13px] font-semibold text-[var(--foreground)] truncate leading-tight">
               Growth OS
             </p>
-            {orgSlug && (
-              <p className="text-[11px] text-[var(--foreground-muted)] truncate leading-tight capitalize">
-                {orgSlug.replace(/-/g, ' ')}
-              </p>
-            )}
+            <p className="text-[11px] text-[var(--foreground-muted)] truncate leading-tight capitalize">
+              {displayName}
+            </p>
           </div>
         </div>
       </div>
