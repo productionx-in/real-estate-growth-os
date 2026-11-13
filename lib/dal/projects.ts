@@ -1,5 +1,5 @@
 // lib/dal/projects.ts
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { slugify } from '@/lib/utils/slugify'
 import type { ProjectFormValues } from '@/lib/validations/project'
 import type { Database } from '@/types/database'
@@ -7,8 +7,8 @@ import type { Database } from '@/types/database'
 type ProjectUpdate = Database['public']['Tables']['projects']['Update']
 
 export async function getProjectsByOrg(orgId: string) {
-  const supabase = await createClient()
-  const { data } = await supabase
+  const service = createServiceClient()
+  const { data } = await service
     .from('projects')
     .select('id, name, slug, code, category, type, status, city, location, rera_number, total_units_count, created_at')
     .eq('org_id', orgId)
@@ -17,8 +17,8 @@ export async function getProjectsByOrg(orgId: string) {
 }
 
 export async function getProjectById(projectId: string) {
-  const supabase = await createClient()
-  const { data } = await supabase
+  const service = createServiceClient()
+  const { data } = await service
     .from('projects')
     .select('*')
     .eq('id', projectId)
@@ -27,12 +27,12 @@ export async function getProjectById(projectId: string) {
 }
 
 export async function createProject(orgId: string, values: ProjectFormValues) {
-  const supabase = await createClient()
+  const service = createServiceClient()
   const baseSlug = slugify(values.name)
 
   // Ensure slug unique within org
   let slug = baseSlug
-  const { data: existing } = await supabase
+  const { data: existing } = await service
     .from('projects')
     .select('id')
     .eq('org_id', orgId)
@@ -45,7 +45,7 @@ export async function createProject(orgId: string, values: ProjectFormValues) {
 
   const generatedCode = values.code?.trim() || `${slug.slice(0, 4).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`
 
-  const { data, error } = await supabase
+  const { data, error } = await service
     .from('projects')
     .insert({
       org_id: orgId,
@@ -73,7 +73,7 @@ export async function createProject(orgId: string, values: ProjectFormValues) {
 }
 
 export async function updateProject(projectId: string, values: Partial<ProjectFormValues>) {
-  const supabase = await createClient()
+  const service = createServiceClient()
 
   const payload: ProjectUpdate = {}
   if (values.name !== undefined) payload.name = values.name
@@ -92,7 +92,7 @@ export async function updateProject(projectId: string, values: Partial<ProjectFo
   if (values.launch_date !== undefined) payload.launch_date = values.launch_date || null
   if (values.completion_date !== undefined) payload.completion_date = values.completion_date || null
 
-  const { data, error } = await supabase
+  const { data, error } = await service
     .from('projects')
     .update(payload)
     .eq('id', projectId)

@@ -2,13 +2,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Building2, MapPin, Tag } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { ArrowLeft, Building2, MapPin } from 'lucide-react'
+import { createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { ProjectDetailTabs } from '@/components/projects/ProjectDetailTabs'
-import { getInventoryByProject } from '@/lib/dal/inventory'
+import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { PROJECT_CATEGORY_LABELS, type ProjectCategory } from '@/types/inventory'
-import type { MemberRole } from '@/types/database'
 
 export const metadata: Metadata = { title: 'Project Details' }
 export const dynamic = 'force-dynamic'
@@ -35,54 +34,41 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default async function ProjectDetailPage({ params }: PageProps) {
   const { orgSlug, projectId } = await params
-  const supabase = await createClient()
+  const { org, role, isManager } = await getVerifiedWorkspace(orgSlug)
+  const service = createServiceClient()
 
   // Fetch project
-  const { data: project } = await supabase
+  const { data: project } = await service
     .from('projects')
     .select('*')
     .eq('id', projectId)
-    .single()
+    .eq('org_id', org.id)
+    .maybeSingle()
 
   if (!project) notFound()
 
-  // Viewer role
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  let viewerRole: MemberRole = 'readonly'
-
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single()
-    if (profile) {
-      const { data: m } = await supabase
-        .from('org_members')
-        .select('role')
-        .eq('org_id', project.org_id)
-        .eq('profile_id', profile.id)
-        .single()
-      viewerRole = (m?.role ?? 'readonly') as MemberRole
-    }
-  }
-
-  const isManager = ['owner', 'admin', 'manager'].includes(viewerRole)
-
   // Fetch project inventory items
-  const inventoryItems = await getInventoryByProject(projectId)
+  const { data: inventoryData } = await service
+    .from('inventory_items')
+    .select(`
+      *,
+      project:projects(id, name, slug, code, category),
+      hierarchy_node:project_hierarchy_nodes(id, name, node_type)
+    `)
+    .eq('project_id', projectId)
+    .order('unit_number', { ascending: true })
+
+  const inventoryItems = inventoryData ?? []
 
   // Fetch project leads
-  const { data: leads } = await supabase
+  const { data: leads } = await service
     .from('leads')
     .select(`
       id, name, phone, email, status, priority, source, created_at,
       project:projects(id, name),
       assignee:profiles!leads_assigned_to_fkey(id, full_name)
     `)
-    .eq('org_id', project.org_id)
+    .eq('org_id', org.id)
     .eq('project_id', projectId)
     .order('created_at', { ascending: false })
 
@@ -140,7 +126,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         inventoryItems={inventoryItems}
         leads={leads ?? []}
         orgSlug={orgSlug}
-        viewerRole={viewerRole}
+        viewerRole={role}
         isManager={isManager}
       />
     </PageShell>

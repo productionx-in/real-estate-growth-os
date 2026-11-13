@@ -86,8 +86,7 @@ export async function POST(request: NextRequest) {
 
     const { item, error } = await createInventoryItem(
       project.org_id,
-      parsed.data,
-      profile.id
+      parsed.data
     )
 
     if (error || !item) {

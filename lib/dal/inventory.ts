@@ -1,6 +1,6 @@
 // lib/dal/inventory.ts
 // Data Access Layer for Inventory Items, Hierarchy Nodes, and Status Audit History
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import type {
   InventoryItemFormValues,
   InventoryStatusChangeValues,
@@ -24,9 +24,9 @@ export async function getInventoryByProject(
   projectId: string,
   filters: InventoryFilterParams = {}
 ) {
-  const supabase = await createClient()
+  const service = createServiceClient()
 
-  let query = supabase
+  let query = service
     .from('inventory_items')
     .select(`
       *,
@@ -77,8 +77,8 @@ export async function getInventoryByProject(
 }
 
 export async function getInventoryById(inventoryId: string) {
-  const supabase = await createClient()
-  const { data, error } = await supabase
+  const service = createServiceClient()
+  const { data, error } = await service
     .from('inventory_items')
     .select(`
       *,
@@ -86,15 +86,15 @@ export async function getInventoryById(inventoryId: string) {
       hierarchy_node:project_hierarchy_nodes(id, name, node_type)
     `)
     .eq('id', inventoryId)
-    .single()
+    .maybeSingle()
 
   if (error) return null
   return data
 }
 
 export async function getInventoryStatusHistory(inventoryId: string) {
-  const supabase = await createClient()
-  const { data, error } = await supabase
+  const service = createServiceClient()
+  const { data, error } = await service
     .from('inventory_status_history')
     .select(`
       *,
@@ -112,143 +112,157 @@ export async function getInventoryStatusHistory(inventoryId: string) {
 
 export async function createInventoryItem(
   orgId: string,
-  values: InventoryItemFormValues,
-  actorProfileId: string
+  values: InventoryItemFormValues
 ) {
-  const supabase = await createClient()
+  const service = createServiceClient()
 
-  const { data: item, error: insertError } = await supabase
+  const payload: any = {
+    org_id: orgId,
+    project_id: values.project_id,
+    unit_number: values.unit_number,
+    category: values.category,
+    status: values.status,
+    area_value: values.area_value,
+    area_unit: values.area_unit,
+    base_rate: values.base_rate ?? null,
+    total_price: values.total_price ?? null,
+    facing: values.facing || null,
+    internal_notes: values.internal_notes || null,
+    hierarchy_node_id: values.hierarchy_node_id || null,
+  }
+
+  if (values.category === 'apartments') {
+    payload.bhk_config = values.bhk_config || null
+    payload.carpet_area = values.carpet_area ?? null
+    payload.built_up_area = values.built_up_area ?? null
+    payload.floor_number = values.floor_number ?? null
+    payload.tower_name = values.tower_name || null
+    payload.balconies = values.balconies ?? null
+    payload.parking_spaces = values.parking_spaces ?? null
+  } else if (values.category === 'plotted_developments') {
+    payload.plot_area = values.plot_area ?? values.area_value
+    payload.plot_dimensions = values.plot_dimensions || null
+    payload.road_width_ft = values.road_width_ft ?? null
+    payload.is_corner_plot = values.is_corner_plot ?? false
+  } else if (values.category === 'commercial_sale') {
+    payload.commercial_asset_type = values.commercial_asset_type || null
+    payload.floor_number = values.floor_number ?? null
+    payload.tower_name = values.tower_name || null
+  } else if (values.category === 'villas_gated_communities') {
+    payload.bedrooms = values.bedrooms ?? null
+    payload.built_up_area = values.built_up_area ?? null
+    payload.plot_area = values.plot_area ?? null
+    payload.floor_number = values.floor_number ?? null
+    payload.parking_spaces = values.parking_spaces ?? null
+  }
+
+  const { data, error } = await service
     .from('inventory_items')
-    .insert({
-      org_id: orgId,
-      project_id: values.project_id,
-      hierarchy_node_id: values.hierarchy_node_id || null,
-      unit_number: values.unit_number.trim(),
-      category: values.category,
-      status: values.status || 'available',
-      area_value: values.area_value,
-      area_unit: values.area_unit || 'sqft',
-      carpet_area: values.carpet_area ?? null,
-      built_up_area: values.built_up_area ?? null,
-      super_built_up_area: values.super_built_up_area ?? null,
-      plot_area: values.plot_area ?? null,
-      plot_dimensions: values.plot_dimensions || null,
-      road_width_ft: values.road_width_ft ?? null,
-      is_corner_plot: values.is_corner_plot || false,
-      facing: values.facing || null,
-      bhk_config: values.bhk_config || null,
-      floor_number: values.floor_number ?? null,
-      tower_name: values.tower_name || null,
-      commercial_asset_type: values.commercial_asset_type || null,
-      bedrooms: values.bedrooms ?? null,
-      bathrooms: values.bathrooms ?? null,
-      balconies: values.balconies ?? null,
-      parking_spaces: values.parking_spaces ?? 0,
-      furnishing_status: values.furnishing_status || 'unfurnished',
-      base_rate: values.base_rate ?? null,
-      total_price: values.total_price ?? null,
-      pricing_breakup: values.pricing_breakup || {},
-      internal_notes: values.internal_notes || null,
-      custom_attributes: values.custom_attributes || {},
-      images: [],
-      documents: [],
-    })
+    .insert(payload)
     .select()
     .single()
 
-  if (insertError || !item) {
-    return { item: null, error: insertError?.message ?? 'Failed to create inventory item' }
-  }
-
-  // Record initial status creation in audit history
-  await supabase.from('inventory_status_history').insert({
-    inventory_id: item.id,
-    org_id: orgId,
-    previous_status: null,
-    new_status: item.status,
-    changed_by: actorProfileId,
-    reason: 'Initial creation',
-    metadata: {},
-  })
-
-  return { item, error: null }
+  return { item: data, error: error?.message ?? null }
 }
 
 export async function transitionInventoryStatus(
   inventoryId: string,
-  payload: InventoryStatusChangeValues,
-  actorProfileId: string
+  values: InventoryStatusChangeValues,
+  userId: string
 ) {
-  const supabase = await createClient()
+  const service = createServiceClient()
 
-  // 1. Fetch current status
-  const { data: current, error: fetchErr } = await supabase
+  // 1. Fetch current item
+  const { data: item, error: fetchErr } = await service
     .from('inventory_items')
-    .select('id, org_id, status, unit_number')
+    .select('id, org_id, project_id, status')
     .eq('id', inventoryId)
     .single()
 
-  if (fetchErr || !current) {
-    return { error: 'Inventory item not found' }
+  if (fetchErr || !item) {
+    return { success: false, error: 'Inventory unit not found' }
   }
 
+  const currentStatus = item.status as InventoryStatus
+  const targetStatus = values.new_status
+
   // 2. Validate state machine transition
-  if (!canTransitionStatus(current.status, payload.new_status)) {
+  if (!canTransitionStatus(currentStatus, targetStatus)) {
     return {
-      error: `Invalid transition from '${current.status}' to '${payload.new_status}'.`,
+      success: false,
+      error: `Illegal status transition: cannot move from ${currentStatus} to ${targetStatus}`,
     }
   }
 
-  // 3. Update status
-  const { data: updated, error: updateErr } = await supabase
-    .from('inventory_items')
-    .update({ status: payload.new_status })
-    .eq('id', inventoryId)
-    .select()
-    .single()
+  // 3. Resolve user's profile ID
+  const { data: profile } = await service
+    .from('profiles')
+    .select('id')
+    .eq('auth_user_id', userId)
+    .maybeSingle()
 
-  if (updateErr || !updated) {
-    return { error: updateErr?.message ?? 'Status update failed' }
+  if (!profile) {
+    return { success: false, error: 'Profile not found' }
   }
 
-  // 4. Record mandatory audit log
-  await supabase.from('inventory_status_history').insert({
-    inventory_id: inventoryId,
-    org_id: current.org_id,
-    previous_status: current.status,
-    new_status: payload.new_status,
-    changed_by: actorProfileId,
-    reason: payload.reason,
-    metadata: {
-      note: payload.note || null,
-      timestamp: new Date().toISOString(),
-    },
+  // 4. Update inventory item status
+  const { error: updateErr } = await service
+    .from('inventory_items')
+    .update({ status: targetStatus })
+    .eq('id', inventoryId)
+
+  if (updateErr) {
+    return { success: false, error: updateErr.message }
+  }
+
+  // 5. Append immutable audit history
+  await service.from('inventory_status_history').insert({
+    org_id: item.org_id,
+    inventory_id: item.id,
+    previous_status: currentStatus,
+    new_status: targetStatus,
+    reason: values.reason,
+    changed_by: profile.id,
   })
 
-  return { item: updated, error: null }
+  return { success: true, item: { ...item, status: targetStatus } }
 }
 
 export async function getHierarchyByProject(projectId: string) {
-  const supabase = await createClient()
-  const { data, error } = await supabase
+  const service = createServiceClient()
+  const { data, error } = await service
     .from('project_hierarchy_nodes')
     .select('*')
     .eq('project_id', projectId)
     .order('sequence_order', { ascending: true })
 
-  if (error) return []
+  if (error) {
+    console.error('Failed to fetch hierarchy:', error)
+    return []
+  }
   return data ?? []
 }
 
 export async function getInventoryMetrics(projectId: string) {
-  const supabase = await createClient()
-
-  const { data: items } = await supabase
+  const service = createServiceClient()
+  const { data, error } = await service
     .from('inventory_items')
-    .select('status, total_price, area_value')
+    .select('status')
     .eq('project_id', projectId)
 
-  const counts: Record<InventoryStatus, number> = {
+  if (error || !data) {
+    return {
+      total: 0,
+      available: 0,
+      on_hold: 0,
+      booked: 0,
+      sold: 0,
+      blocked: 0,
+    }
+  }
+
+  const counts = {
+    total: data.length,
     available: 0,
     on_hold: 0,
     booked: 0,
@@ -256,20 +270,12 @@ export async function getInventoryMetrics(projectId: string) {
     blocked: 0,
   }
 
-  let totalValue = 0
-
-  ;(items ?? []).forEach((item) => {
-    if (counts[item.status] !== undefined) {
-      counts[item.status]++
-    }
-    if (item.total_price) {
-      totalValue += Number(item.total_price)
+  data.forEach((row) => {
+    const s = row.status as InventoryStatus
+    if (counts[s] !== undefined) {
+      counts[s]++
     }
   })
 
-  return {
-    totalUnits: (items ?? []).length,
-    counts,
-    totalValue,
-  }
+  return counts
 }

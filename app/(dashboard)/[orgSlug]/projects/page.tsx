@@ -1,11 +1,12 @@
 // app/(dashboard)/[orgSlug]/projects/page.tsx
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Plus, FolderOpen, Building2, MapPin, Hash } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { Plus, FolderOpen, Building2, MapPin } from 'lucide-react'
+import { createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { formatDate } from '@/lib/utils/format'
+import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { PROJECT_CATEGORY_LABELS, type ProjectCategory } from '@/types/inventory'
 
 export const metadata: Metadata = { title: 'Projects' }
@@ -33,23 +34,16 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default async function ProjectsPage({ params }: PageProps) {
   const { orgSlug } = await params
-  const supabase = await createClient()
+  const { org, isManager } = await getVerifiedWorkspace(orgSlug)
+  const service = createServiceClient()
 
-  const { data: org } = await supabase
-    .from('organisations')
-    .select('id')
-    .eq('slug', orgSlug)
-    .single()
-
-  if (!org) return null
-
-  const { data: projects } = await supabase
+  const { data: projects } = await service
     .from('projects')
     .select('id, name, slug, code, category, type, status, city, location, rera_number, total_units_count, created_at')
     .eq('org_id', org.id)
     .order('created_at', { ascending: false })
 
-  const actions = (
+  const actions = isManager ? (
     <Link
       href={`/${orgSlug}/projects/new`}
       className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
@@ -57,7 +51,7 @@ export default async function ProjectsPage({ params }: PageProps) {
       <Plus className="w-3.5 h-3.5" />
       New project
     </Link>
-  )
+  ) : null
 
   return (
     <PageShell
@@ -119,7 +113,7 @@ export default async function ProjectsPage({ params }: PageProps) {
                 <div className="mt-4 pt-3 border-t border-[var(--border)] flex items-center justify-between text-[11px] text-[var(--foreground-subtle)]">
                   <span>Created {formatDate(project.created_at)}</span>
                   <span className="text-[var(--brand)] font-medium group-hover:underline">
-                    View Inventory →
+                    View Tower Matrix →
                   </span>
                 </div>
               </Link>
@@ -130,15 +124,17 @@ export default async function ProjectsPage({ params }: PageProps) {
         <EmptyState
           icon={FolderOpen}
           title="No projects yet"
-          description="Create your first project to start tracking towers, plots, and inventory records."
+          description="Create your first property project to configure towers, blocks, plots, and inventory records."
           action={
-            <Link
-              href={`/${orgSlug}/projects/new`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Create project
-            </Link>
+            isManager ? (
+              <Link
+                href={`/${orgSlug}/projects/new`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Create project
+              </Link>
+            ) : undefined
           }
         />
       )}

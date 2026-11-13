@@ -1,11 +1,9 @@
 // app/(dashboard)/[orgSlug]/inventory/page.tsx
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import { Layers } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { OrgInventoryExplorer } from '@/components/inventory/OrgInventoryExplorer'
-import type { MemberRole } from '@/types/database'
+import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import type { ProjectCategory } from '@/types/inventory'
 
 export const metadata: Metadata = { title: 'Inventory Explorer' }
@@ -17,46 +15,11 @@ interface PageProps {
 
 export default async function OrgInventoryPage({ params }: PageProps) {
   const { orgSlug } = await params
-  const supabase = await createClient()
-
-  // Find org
-  const { data: org } = await supabase
-    .from('organisations')
-    .select('id, name')
-    .eq('slug', orgSlug)
-    .single()
-
-  if (!org) notFound()
-
-  // Viewer role
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  let viewerRole: MemberRole = 'readonly'
-
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single()
-
-    if (profile) {
-      const { data: membership } = await supabase
-        .from('org_members')
-        .select('role')
-        .eq('org_id', org.id)
-        .eq('profile_id', profile.id)
-        .single()
-
-      viewerRole = (membership?.role ?? 'readonly') as MemberRole
-    }
-  }
-
-  const isManager = ['owner', 'admin', 'manager'].includes(viewerRole)
+  const { org, isManager } = await getVerifiedWorkspace(orgSlug)
+  const service = createServiceClient()
 
   // Fetch all projects for this org
-  const { data: projectsData } = await supabase
+  const { data: projectsData } = await service
     .from('projects')
     .select('id, name, slug, code, category')
     .eq('org_id', org.id)
@@ -71,7 +34,7 @@ export default async function OrgInventoryPage({ params }: PageProps) {
   }))
 
   // Fetch all inventory items across all projects in the org
-  const { data: inventoryData, error } = await supabase
+  const { data: inventoryData, error } = await service
     .from('inventory_items')
     .select(`
       *,

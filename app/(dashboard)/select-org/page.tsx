@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Building2, ArrowRight, Plus } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,8 +15,10 @@ export default async function SelectOrgPage() {
 
   if (!user) redirect('/login')
 
+  const service = createServiceClient()
+
   // Find or create profile
-  let { data: profile } = await supabase
+  let { data: profile } = await service
     .from('profiles')
     .select('id')
     .eq('auth_user_id', user.id)
@@ -28,7 +30,7 @@ export default async function SelectOrgPage() {
       user.email?.split('@')[0] ||
       'User'
 
-    const { data: newProfile } = await supabase
+    const { data: newProfile } = await service
       .from('profiles')
       .insert({ auth_user_id: user.id, full_name: fullName })
       .select('id')
@@ -42,7 +44,7 @@ export default async function SelectOrgPage() {
   }
 
   // Find user's organisations
-  const { data: memberships } = await supabase
+  const { data: memberships } = await service
     .from('org_members')
     .select(`
       role,
