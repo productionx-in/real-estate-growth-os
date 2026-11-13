@@ -1,7 +1,7 @@
 // components/layout/PageShell.tsx
 // Consistent page wrapper with title, description, and optional actions.
 interface PageShellProps {
-  title: string
+  title: React.ReactNode
   description?: React.ReactNode
   actions?: React.ReactNode
   children: React.ReactNode

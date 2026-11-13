@@ -1,5 +1,5 @@
 // types/database.ts
-// Hand-authored until: npx supabase gen types typescript --project-id <ref> > types/database.ts
+// Supabase database types for Real Estate Growth OS
 
 export type Json =
   | string
@@ -12,8 +12,26 @@ export type Json =
 export type OrgType = 'developer' | 'channel_partner'
 export type OrgPlan = 'free' | 'growth' | 'enterprise'
 export type MemberRole = 'owner' | 'admin' | 'manager' | 'sales_exec' | 'readonly'
+
+// Standard 5 Project Categories
+export type ProjectCategory =
+  | 'apartments'
+  | 'plotted_developments'
+  | 'commercial_sale'
+  | 'villas_gated_communities'
+  | 'mixed_use'
+
 export type ProjectType = 'residential' | 'commercial' | 'mixed_use' | 'plots'
 export type ProjectStatus = 'planning' | 'pre_launch' | 'launched' | 'ongoing' | 'completed'
+
+// Standard 5 Inventory Availability Statuses
+export type InventoryStatus =
+  | 'available'
+  | 'on_hold'
+  | 'booked'
+  | 'sold'
+  | 'blocked'
+
 export type LeadSource =
   | 'website'
   | 'meta_ads'
@@ -26,6 +44,7 @@ export type LeadSource =
   | 'walk_in'
   | 'csv_import'
   | 'other'
+
 export type LeadStatus =
   | 'new'
   | 'contacted'
@@ -36,6 +55,7 @@ export type LeadStatus =
   | 'booked'
   | 'lost'
   | 'junk'
+
 export type LeadPriority = 'low' | 'medium' | 'high'
 export type ActivityType =
   | 'created'
@@ -163,12 +183,23 @@ export interface Database {
           org_id: string
           name: string
           slug: string
+          code: string | null
           type: ProjectType
+          category: ProjectCategory
           status: ProjectStatus
           location: string | null
           city: string | null
           description: string | null
           brochure_url: string | null
+          rera_number: string | null
+          total_area_value: number | null
+          total_area_unit: string | null
+          total_units_count: number | null
+          approval_authority: string | null
+          launch_date: string | null
+          completion_date: string | null
+          amenities: Json
+          specifications: Json
           created_at: string
           updated_at: string
         }
@@ -177,12 +208,23 @@ export interface Database {
           org_id: string
           name: string
           slug: string
+          code?: string | null
           type?: ProjectType
+          category?: ProjectCategory
           status?: ProjectStatus
           location?: string | null
           city?: string | null
           description?: string | null
           brochure_url?: string | null
+          rera_number?: string | null
+          total_area_value?: number | null
+          total_area_unit?: string | null
+          total_units_count?: number | null
+          approval_authority?: string | null
+          launch_date?: string | null
+          completion_date?: string | null
+          amenities?: Json
+          specifications?: Json
           created_at?: string
           updated_at?: string
         }
@@ -191,12 +233,23 @@ export interface Database {
           org_id?: string
           name?: string
           slug?: string
+          code?: string | null
           type?: ProjectType
+          category?: ProjectCategory
           status?: ProjectStatus
           location?: string | null
           city?: string | null
           description?: string | null
           brochure_url?: string | null
+          rera_number?: string | null
+          total_area_value?: number | null
+          total_area_unit?: string | null
+          total_units_count?: number | null
+          approval_authority?: string | null
+          launch_date?: string | null
+          completion_date?: string | null
+          amenities?: Json
+          specifications?: Json
           created_at?: string
           updated_at?: string
         }
@@ -206,6 +259,226 @@ export interface Database {
             columns: ['org_id']
             isOneToOne: false
             referencedRelation: 'organisations'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      project_hierarchy_nodes: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          parent_id: string | null
+          node_type: string
+          name: string
+          code: string | null
+          sequence_order: number
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          parent_id?: string | null
+          node_type: string
+          name: string
+          code?: string | null
+          sequence_order?: number
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          project_id?: string
+          parent_id?: string | null
+          node_type?: string
+          name?: string
+          code?: string | null
+          sequence_order?: number
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'project_hierarchy_nodes_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      inventory_items: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          hierarchy_node_id: string | null
+          unit_number: string
+          category: ProjectCategory
+          status: InventoryStatus
+          area_value: number
+          area_unit: string
+          carpet_area: number | null
+          built_up_area: number | null
+          super_built_up_area: number | null
+          plot_area: number | null
+          plot_dimensions: string | null
+          road_width_ft: number | null
+          is_corner_plot: boolean
+          facing: string | null
+          bhk_config: string | null
+          floor_number: number | null
+          tower_name: string | null
+          commercial_asset_type: string | null
+          bedrooms: number | null
+          bathrooms: number | null
+          balconies: number | null
+          parking_spaces: number | null
+          furnishing_status: string | null
+          base_rate: number | null
+          total_price: number | null
+          pricing_breakup: Json
+          images: Json
+          documents: Json
+          internal_notes: string | null
+          custom_attributes: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          hierarchy_node_id?: string | null
+          unit_number: string
+          category: ProjectCategory
+          status?: InventoryStatus
+          area_value: number
+          area_unit?: string
+          carpet_area?: number | null
+          built_up_area?: number | null
+          super_built_up_area?: number | null
+          plot_area?: number | null
+          plot_dimensions?: string | null
+          road_width_ft?: number | null
+          is_corner_plot?: boolean
+          facing?: string | null
+          bhk_config?: string | null
+          floor_number?: number | null
+          tower_name?: string | null
+          commercial_asset_type?: string | null
+          bedrooms?: number | null
+          bathrooms?: number | null
+          balconies?: number | null
+          parking_spaces?: number | null
+          furnishing_status?: string | null
+          base_rate?: number | null
+          total_price?: number | null
+          pricing_breakup?: Json
+          images?: Json
+          documents?: Json
+          internal_notes?: string | null
+          custom_attributes?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          project_id?: string
+          hierarchy_node_id?: string | null
+          unit_number?: string
+          category?: ProjectCategory
+          status?: InventoryStatus
+          area_value?: number
+          area_unit?: string
+          carpet_area?: number | null
+          built_up_area?: number | null
+          super_built_up_area?: number | null
+          plot_area?: number | null
+          plot_dimensions?: string | null
+          road_width_ft?: number | null
+          is_corner_plot?: boolean
+          facing?: string | null
+          bhk_config?: string | null
+          floor_number?: number | null
+          tower_name?: string | null
+          commercial_asset_type?: string | null
+          bedrooms?: number | null
+          bathrooms?: number | null
+          balconies?: number | null
+          parking_spaces?: number | null
+          furnishing_status?: string | null
+          base_rate?: number | null
+          total_price?: number | null
+          pricing_breakup?: Json
+          images?: Json
+          documents?: Json
+          internal_notes?: string | null
+          custom_attributes?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'inventory_items_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'inventory_items_hierarchy_node_id_fkey'
+            columns: ['hierarchy_node_id']
+            isOneToOne: false
+            referencedRelation: 'project_hierarchy_nodes'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      inventory_status_history: {
+        Row: {
+          id: string
+          inventory_id: string
+          org_id: string
+          previous_status: InventoryStatus | null
+          new_status: InventoryStatus
+          changed_by: string
+          reason: string | null
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          inventory_id: string
+          org_id: string
+          previous_status?: InventoryStatus | null
+          new_status: InventoryStatus
+          changed_by: string
+          reason?: string | null
+          metadata?: Json
+          created_at?: string
+        }
+        Update: never
+        Relationships: [
+          {
+            foreignKeyName: 'inventory_status_history_inventory_id_fkey'
+            columns: ['inventory_id']
+            isOneToOne: false
+            referencedRelation: 'inventory_items'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'inventory_status_history_changed_by_fkey'
+            columns: ['changed_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
             referencedColumns: ['id']
           }
         ]
@@ -356,8 +629,10 @@ export interface Database {
       org_type: OrgType
       org_plan: OrgPlan
       member_role: MemberRole
+      project_category: ProjectCategory
       project_type: ProjectType
       project_status: ProjectStatus
+      inventory_status: InventoryStatus
       lead_source: LeadSource
       lead_status: LeadStatus
       lead_priority: LeadPriority
@@ -369,7 +644,6 @@ export interface Database {
   }
 }
 
-// Convenience type for Supabase table access
 type PublicSchema = Database['public']
 
 export type Tables<T extends keyof PublicSchema['Tables']> =
