@@ -23,6 +23,14 @@ export async function GET(
     const item = await getInventoryById(inventoryId)
     if (!item) return NextResponse.json({ error: 'Item not found' }, { status: 404 })
 
+    // Security: Only internal team roles can view internal notes
+    const isInternalUser = ['owner', 'admin', 'manager', 'sales_agent'].includes(
+      authResult.context.role
+    )
+    if (!isInternalUser) {
+      item.internal_notes = null
+    }
+
     const history = await getInventoryStatusHistory(inventoryId)
     return NextResponse.json({ item, history })
   } catch {

@@ -2,7 +2,7 @@
 // Secure Inventory collection routes: Enforces authentication, project scoping, and RBAC.
 import { NextResponse, type NextRequest } from 'next/server'
 import { InventoryItemSchema } from '@/lib/validations/inventory'
-import { createInventoryItem, getInventoryByProject } from '@/lib/dal/inventory'
+import { createInventoryItem, getPaginatedInventoryByProject, type InventoryFilterParams } from '@/lib/dal/inventory'
 import { authorizeProjectAccess } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import type { InventoryStatus, ProjectCategory } from '@/types/database'
@@ -22,16 +22,54 @@ export async function GET(request: NextRequest) {
       return authResult.response
     }
 
-    const filters = {
+    const minPriceParam = searchParams.get('minPrice')
+    const maxPriceParam = searchParams.get('maxPrice')
+    const minAreaParam = searchParams.get('minArea')
+    const maxAreaParam = searchParams.get('maxArea')
+    const floorParam = searchParams.get('floor')
+    const pageParam = searchParams.get('page')
+    const pageSizeParam = searchParams.get('pageSize')
+    const sortByParam = searchParams.get('sortBy')
+    const sortOrderParam = searchParams.get('sortOrder')
+
+    const filters: InventoryFilterParams = {
       status: (searchParams.get('status') as InventoryStatus) || undefined,
       category: (searchParams.get('category') as ProjectCategory) || undefined,
       bhk: searchParams.get('bhk') || undefined,
       search: searchParams.get('search') || undefined,
       tower: searchParams.get('tower') || undefined,
+      floor: floorParam ? parseInt(floorParam, 10) : undefined,
+      hierarchyNodeId: searchParams.get('hierarchyNodeId') || undefined,
+      facing: searchParams.get('facing') || undefined,
+      minPrice: minPriceParam ? parseFloat(minPriceParam) : undefined,
+      maxPrice: maxPriceParam ? parseFloat(maxPriceParam) : undefined,
+      minArea: minAreaParam ? parseFloat(minAreaParam) : undefined,
+      maxArea: maxAreaParam ? parseFloat(maxAreaParam) : undefined,
+      sortBy: (sortByParam as InventoryFilterParams['sortBy']) || undefined,
+      sortOrder: (sortOrderParam as 'asc' | 'desc') || undefined,
+      page: pageParam ? parseInt(pageParam, 10) : undefined,
+      pageSize: pageSizeParam ? parseInt(pageSizeParam) : undefined,
     }
 
-    const items = await getInventoryByProject(projectId, filters)
-    return NextResponse.json({ items })
+    const result = await getPaginatedInventoryByProject(projectId, filters)
+
+    // Security: Only internal team roles can view internal notes
+    const isInternalUser = ['owner', 'admin', 'manager', 'sales_agent'].includes(
+      authResult.context.role
+    )
+    if (!isInternalUser) {
+      for (const item of result.items) {
+        item.internal_notes = null
+      }
+    }
+
+    return NextResponse.json({
+      items: result.items,
+      total: result.total,
+      page: result.page,
+      pageSize: result.pageSize,
+      totalPages: result.totalPages,
+    })
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

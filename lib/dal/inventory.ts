@@ -7,7 +7,7 @@ import type {
   HierarchyNodeFormValues,
 } from '@/lib/validations/inventory'
 import type { InventoryStatus, ProjectCategory, Database } from '@/types/database'
-import { canTransitionStatus } from '@/types/inventory'
+import { canTransitionStatus, type InventoryItemWithRelations } from '@/types/inventory'
 
 export interface InventoryFilterParams {
   status?: InventoryStatus
@@ -16,25 +16,84 @@ export interface InventoryFilterParams {
   search?: string
   tower?: string
   floor?: number
+  hierarchyNodeId?: string
+  facing?: string
   minPrice?: number
   maxPrice?: number
+  minArea?: number
+  maxArea?: number
+  sortBy?: 'unit_number' | 'total_price' | 'area_value' | 'status' | 'updated_at'
+  sortOrder?: 'asc' | 'desc'
+  page?: number
+  pageSize?: number
+}
+
+export interface PaginatedInventoryResult {
+  items: (InventoryItemWithRelations & { hierarchy_path?: string })[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}
+
+export async function getInventoryBreadcrumb(
+  hierarchyNodeId: string,
+  projectId: string
+): Promise<string> {
+  const service = createServiceClient()
+  const { data: nodes } = await service
+    .from('project_hierarchy_nodes')
+    .select('id, name, parent_id')
+    .eq('project_id', projectId)
+
+  if (!nodes) return ''
+
+  const nodeMap = new Map<string, { name: string; parent_id: string | null }>()
+  for (const n of nodes) {
+    nodeMap.set(n.id, { name: n.name, parent_id: n.parent_id })
+  }
+
+  const parts: string[] = []
+  let curr: string | null | undefined = hierarchyNodeId
+  const visited = new Set<string>()
+
+  while (curr && !visited.has(curr)) {
+    visited.add(curr)
+    const node = nodeMap.get(curr)
+    if (!node) break
+    parts.unshift(node.name)
+    curr = node.parent_id
+  }
+
+  return parts.join(' › ')
 }
 
 export async function getInventoryByProject(
   projectId: string,
   filters: InventoryFilterParams = {}
 ) {
+  const result = await getPaginatedInventoryByProject(projectId, filters)
+  return result.items
+}
+
+export async function getPaginatedInventoryByProject(
+  projectId: string,
+  filters: InventoryFilterParams = {}
+): Promise<PaginatedInventoryResult> {
   const service = createServiceClient()
 
+  // Base query with count
   let query = service
     .from('inventory_items')
-    .select(`
+    .select(
+      `
       *,
       project:projects(id, name, slug, code, category),
-      hierarchy_node:project_hierarchy_nodes(id, name, node_type)
-    `)
+      hierarchy_node:project_hierarchy_nodes(id, name, node_type, code)
+    `,
+      { count: 'exact' }
+    )
     .eq('project_id', projectId)
-    .order('unit_number', { ascending: true })
 
   if (filters.status) {
     query = query.eq('status', filters.status)
@@ -45,11 +104,17 @@ export async function getInventoryByProject(
   if (filters.bhk) {
     query = query.eq('bhk_config', filters.bhk)
   }
+  if (filters.facing) {
+    query = query.eq('facing', filters.facing)
+  }
   if (filters.tower) {
     query = query.eq('tower_name', filters.tower)
   }
   if (filters.floor !== undefined) {
     query = query.eq('floor_number', filters.floor)
+  }
+  if (filters.hierarchyNodeId) {
+    query = query.eq('hierarchy_node_id', filters.hierarchyNodeId)
   }
   if (filters.minPrice !== undefined) {
     query = query.gte('total_price', filters.minPrice)
@@ -57,23 +122,99 @@ export async function getInventoryByProject(
   if (filters.maxPrice !== undefined) {
     query = query.lte('total_price', filters.maxPrice)
   }
+  if (filters.minArea !== undefined) {
+    query = query.gte('area_value', filters.minArea)
+  }
+  if (filters.maxArea !== undefined) {
+    query = query.lte('area_value', filters.maxArea)
+  }
+
+  // Sorting
+  const sortCol = filters.sortBy || 'unit_number'
+  const isAsc = filters.sortOrder !== 'desc'
+  query = query.order(sortCol, { ascending: isAsc }).order('id', { ascending: true })
 
   const { data, error } = await query
 
   if (error) {
     console.error('Failed to fetch inventory:', error)
-    return []
+    return {
+      items: [],
+      total: 0,
+      page: filters.page || 1,
+      pageSize: filters.pageSize || 25,
+      totalPages: 0,
+    }
+  }
+
+  let items = (data ?? []) as (InventoryItemWithRelations & { hierarchy_path?: string })[]
+
+  // Populate hierarchy breadcrumb paths if items have hierarchy_node_id
+  const hasHierarchyNodes = items.some((i) => i.hierarchy_node_id)
+  if (hasHierarchyNodes) {
+    const { data: nodes } = await service
+      .from('project_hierarchy_nodes')
+      .select('id, name, parent_id')
+      .eq('project_id', projectId)
+
+    if (nodes && nodes.length > 0) {
+      const nodeMap = new Map<string, { name: string; parent_id: string | null }>()
+      for (const n of nodes) {
+        nodeMap.set(n.id, { name: n.name, parent_id: n.parent_id })
+      }
+
+      for (const item of items) {
+        if (item.hierarchy_node_id) {
+          const parts: string[] = []
+          let curr: string | null | undefined = item.hierarchy_node_id
+          const visited = new Set<string>()
+          while (curr && !visited.has(curr)) {
+            visited.add(curr)
+            const node = nodeMap.get(curr)
+            if (!node) break
+            parts.unshift(node.name)
+            curr = node.parent_id
+          }
+          item.hierarchy_path = parts.join(' › ')
+        }
+      }
+    }
   }
 
   // Client-side text filter on unit_number if search provided
-  if (filters.search) {
-    const q = filters.search.toLowerCase()
-    return (data ?? []).filter((item) =>
-      item.unit_number.toLowerCase().includes(q)
+  if (filters.search && filters.search.trim()) {
+    const q = filters.search.trim().toLowerCase()
+    items = items.filter(
+      (item) =>
+        item.unit_number.toLowerCase().includes(q) ||
+        (item.tower_name && item.tower_name.toLowerCase().includes(q))
     )
   }
 
-  return data ?? []
+  const total = items.length
+
+  // Pagination
+  if (filters.page && filters.pageSize) {
+    const p = Math.max(1, filters.page)
+    const ps = Math.max(1, filters.pageSize)
+    const from = (p - 1) * ps
+    const paginatedItems = items.slice(from, from + ps)
+    return {
+      items: paginatedItems,
+      total,
+      page: p,
+      pageSize: ps,
+      totalPages: Math.ceil(total / ps),
+    }
+  }
+
+  return {
+    items,
+    total,
+    page: 1,
+    pageSize: total || 25,
+    totalPages: 1,
+  }
 }
 
 export async function getInventoryById(inventoryId: string) {
@@ -88,8 +229,12 @@ export async function getInventoryById(inventoryId: string) {
     .eq('id', inventoryId)
     .maybeSingle()
 
-  if (error) return null
-  return data
+  if (error || !data) return null
+  const item = data as (InventoryItemWithRelations & { hierarchy_path?: string })
+  if (item.hierarchy_node_id && item.project_id) {
+    item.hierarchy_path = await getInventoryBreadcrumb(item.hierarchy_node_id, item.project_id)
+  }
+  return item
 }
 
 export async function getInventoryStatusHistory(inventoryId: string) {

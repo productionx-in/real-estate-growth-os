@@ -618,6 +618,69 @@ export interface Database {
           }
         ]
       }
+      inventory_import_history: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          reference_id: string
+          file_name: string
+          file_type: 'csv' | 'xlsx'
+          initiated_by: string | null
+          total_rows: number
+          successful_rows: number
+          failed_rows: number
+          status: 'pending' | 'processing' | 'completed' | 'partial' | 'failed'
+          error_summary: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          reference_id: string
+          file_name: string
+          file_type: 'csv' | 'xlsx'
+          initiated_by?: string | null
+          total_rows?: number
+          successful_rows?: number
+          failed_rows?: number
+          status?: 'pending' | 'processing' | 'completed' | 'partial' | 'failed'
+          error_summary?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          project_id?: string
+          reference_id?: string
+          file_name?: string
+          file_type?: 'csv' | 'xlsx'
+          initiated_by?: string | null
+          total_rows?: number
+          successful_rows?: number
+          failed_rows?: number
+          status?: 'pending' | 'processing' | 'completed' | 'partial' | 'failed'
+          error_summary?: Json
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'inventory_import_history_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'organisations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'inventory_import_history_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

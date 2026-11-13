@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node tests/inventory-rules.test.mjs && node tests/security-isolation.test.mjs && node tests/inventory-integrity.test.mjs && node tests/atomic-rpc-contract.test.mjs && node tests/multi-org-projects-and-team.test.mjs && node tests/project-management.test.mjs && node tests/project-hierarchy.test.mjs && node tests/category-inventory.test.mjs"
+    "test": "node tests/inventory-rules.test.mjs && node tests/security-isolation.test.mjs && node tests/inventory-integrity.test.mjs && node tests/atomic-rpc-contract.test.mjs && node tests/multi-org-projects-and-team.test.mjs && node tests/project-management.test.mjs && node tests/project-hierarchy.test.mjs && node tests/category-inventory.test.mjs && node tests/inventory-table-and-detail.test.mjs && node tests/visual-inventory.test.mjs && node tests/bulk-inventory-import.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^7.0.5",
@@ -23,6 +23,7 @@
     "react-dom": "19.3.0",
     "react-hook-form": "^7.91.0",
     "tailwind-merge": "^3.7.0",
+    "xlsx": "^0.18.5",
     "zod": "^4.6.7"
   },
   "devDependencies": {
