@@ -17,9 +17,6 @@ import {
 import { FacebookIcon } from '@/components/icons/FacebookIcon'
 import type { MetaPageAsset, MetaLeadFormAsset } from '@/lib/integrations/types'
 
-const PREVIEW_EXTERNAL_ACCOUNT_ID = 'act_8291039481'
-const PREVIEW_TOKEN_EXPIRY = '2027-01-01T00:00:00.000Z'
-
 interface ProjectOption {
   id: string
   name: string
@@ -35,45 +32,37 @@ interface MetaConnectWizardModalProps {
   onConnectionCreated: () => void
 }
 
-// Sample detected Facebook Pages for staging / design validation
-const PREVIEW_DETECTED_PAGES: MetaPageAsset[] = [
+// Illustrative preview templates to demonstrate form discovery and project mapping in Stage 4A.
+// NOTE: These are NOT real customer assets and are explicitly labeled as illustrative examples.
+const ILLUSTRATIVE_PREVIEW_PAGES: MetaPageAsset[] = [
   {
-    id: 'page_fb_001',
-    name: 'Prestige Living & Residences',
+    id: 'preview_template_page_1',
+    name: 'Sample Residential Project Page (Illustrative Preview)',
     category: 'Real Estate Developer',
     accessStatus: 'active',
     forms: [
       {
-        id: 'form_meta_101',
-        name: 'Tower A — 3BHK Premium Brochure Enquiry',
+        id: 'preview_form_3bhk_brochure',
+        name: '3BHK Premium Brochure Download (Example Form)',
         status: 'ACTIVE',
-        leadsCount: 142,
       },
       {
-        id: 'form_meta_102',
-        name: 'Weekend Site Visit Registration',
+        id: 'preview_form_site_visit',
+        name: 'Weekend Site Visit Registration (Example Form)',
         status: 'ACTIVE',
-        leadsCount: 88,
       },
     ],
   },
   {
-    id: 'page_fb_002',
-    name: 'Emerald Bay Luxury Villas',
+    id: 'preview_template_page_2',
+    name: 'Sample Villa Community Page (Illustrative Preview)',
     category: 'Property Development',
     accessStatus: 'active',
     forms: [
       {
-        id: 'form_meta_201',
-        name: 'Waterfront Villa E-Brochure Request',
+        id: 'preview_form_villa_enquiry',
+        name: 'Waterfront Villa E-Brochure Request (Example Form)',
         status: 'ACTIVE',
-        leadsCount: 65,
-      },
-      {
-        id: 'form_meta_202',
-        name: 'Exclusive VIP Launch Invitation Form',
-        status: 'ACTIVE',
-        leadsCount: 34,
       },
     ],
   },
@@ -88,8 +77,8 @@ export function MetaConnectWizardModal({
   onConnectionCreated,
 }: MetaConnectWizardModalProps) {
   const [currentStep, setCurrentStep] = useState<number>(1)
-  const [connectionName, setConnectionName] = useState('Meta Advertising Account')
-  const [selectedPages, setSelectedPages] = useState<string[]>([PREVIEW_DETECTED_PAGES[0].id])
+  const [connectionName, setConnectionName] = useState('Meta Advertising Account (Planned)')
+  const [selectedPages, setSelectedPages] = useState<string[]>([ILLUSTRATIVE_PREVIEW_PAGES[0].id])
   const [formMappings, setFormMappings] = useState<Record<string, string>>({})
   const [defaultProjectId, setDefaultProjectId] = useState<string>(projects[0]?.id || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -112,8 +101,8 @@ export function MetaConnectWizardModal({
     }))
   }
 
-  // Active pages with their forms
-  const activePages = PREVIEW_DETECTED_PAGES.filter((p) => selectedPages.includes(p.id))
+  // Active pages with their forms (from illustrative preview template)
+  const activePages = ILLUSTRATIVE_PREVIEW_PAGES.filter((p) => selectedPages.includes(p.id))
   const allDetectedForms: Array<{ page: MetaPageAsset; form: MetaLeadFormAsset }> = []
   for (const p of activePages) {
     for (const f of p.forms || []) {
@@ -153,18 +142,21 @@ export function MetaConnectWizardModal({
         }
       }
 
+      // STRICT SAFETY: Do NOT save as 'connected' or invent fake account IDs.
+      // Connection is saved in 'not_connected' status representing an intended routing plan.
       const payload = {
         orgId,
         orgSlug,
         provider: 'meta_ads',
-        name: connectionName.trim() || 'Meta Lead Ads Connection',
-        externalAccountId: PREVIEW_EXTERNAL_ACCOUNT_ID,
-        status: 'connected',
+        name: connectionName.trim() || 'Meta Lead Ads (Planned Configuration)',
+        externalAccountId: null,
+        status: 'not_connected',
         metadata: {
           pages: activePages,
-          authorizedUserName: 'Marketing Administrator',
-          healthStatus: 'healthy',
-          tokenExpiry: PREVIEW_TOKEN_EXPIRY,
+          authorization_status: 'pending_oauth',
+          is_preview_configuration: true,
+          healthStatus: 'pending',
+          tokenExpiry: null,
           scopes: [
             'pages_show_list',
             'leads_retrieval',
@@ -410,17 +402,34 @@ export function MetaConnectWizardModal({
           {currentStep === 3 && (
             <div className="space-y-4">
               <div>
-                <h3 className="text-[14px] font-bold text-gray-900 mb-1">
-                  Select Facebook Pages to Connect
-                </h3>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-[14px] font-bold text-gray-900">
+                    Select Facebook Pages to Connect
+                  </h3>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                    Illustrative Preview Template
+                  </span>
+                </div>
                 <p className="text-[12px] text-gray-600">
                   Select which Facebook Pages belong to your property projects. You can connect
                   multiple Pages to one account.
                 </p>
               </div>
 
+              <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-900 text-[12px] flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-700" />
+                <div>
+                  <p className="font-semibold text-amber-950">No Live Meta Authorisation Exists Yet</p>
+                  <p className="text-amber-800 text-[11px] mt-0.5 leading-relaxed">
+                    Live Meta OAuth integration will be registered in Stage 4B. The Pages and forms
+                    below are illustrative templates to demonstrate how your actual business Pages will
+                    be discovered and mapped once you log in through Meta.
+                  </p>
+                </div>
+              </div>
+
               <div className="space-y-3">
-                {PREVIEW_DETECTED_PAGES.map((page) => {
+                {ILLUSTRATIVE_PREVIEW_PAGES.map((page) => {
                   const isChecked = selectedPages.includes(page.id)
                   return (
                     <div
@@ -444,12 +453,12 @@ export function MetaConnectWizardModal({
                           <div>
                             <p className="text-[13px] font-semibold text-gray-900">{page.name}</p>
                             <p className="text-[11px] text-gray-500">
-                              {page.category} • {page.forms?.length ?? 0} Lead Forms Detected
+                              {page.category} • {page.forms?.length ?? 0} Example Forms
                             </p>
                           </div>
                         </div>
-                        <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          Ready to Link
+                        <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                          Preview Template
                         </span>
                       </div>
 
@@ -578,30 +587,37 @@ export function MetaConnectWizardModal({
           {/* STEP 5: Final Review & Confirmation */}
           {currentStep === 5 && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 text-emerald-950 text-[13px]">
-                <p className="font-semibold flex items-center gap-1.5 text-emerald-900 mb-1">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  Connection Summary
+              <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200 text-blue-950 text-[13px]">
+                <p className="font-semibold flex items-center gap-1.5 text-blue-900 mb-1">
+                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                  Planned Routing Configuration (Not Connected)
                 </p>
-                Please verify the configuration below. Once activated, incoming Meta lead form submissions
-                will automatically stream into your CRM.
+                This saves your form-to-project routing plan in <strong>Not Connected</strong> state.
+                When official Meta OAuth is activated in Stage 4B, your real Facebook Pages will link
+                directly to these designated CRM projects.
               </div>
 
               <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100 text-[12px]">
                 <div className="p-3.5 flex justify-between">
-                  <span className="text-gray-500 font-medium">Connection Name</span>
+                  <span className="text-gray-500 font-medium">Connection Plan</span>
                   <span className="font-semibold text-gray-900">{connectionName}</span>
                 </div>
                 <div className="p-3.5 flex justify-between">
-                  <span className="text-gray-500 font-medium">Connected Facebook Pages</span>
+                  <span className="text-gray-500 font-medium">Status</span>
+                  <span className="font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                    Not Connected (Awaiting Meta OAuth)
+                  </span>
+                </div>
+                <div className="p-3.5 flex justify-between">
+                  <span className="text-gray-500 font-medium">Illustrative Preview Pages</span>
                   <span className="font-semibold text-gray-900">
-                    {activePages.map((p) => p.name).join(', ')} ({activePages.length} Pages)
+                    {activePages.map((p) => p.name).join(', ')} ({activePages.length} Pages Planned)
                   </span>
                 </div>
                 <div className="p-3.5 flex justify-between">
                   <span className="text-gray-500 font-medium">Configured Form Mappings</span>
                   <span className="font-semibold text-gray-900">
-                    {allDetectedForms.length} Forms Configured
+                    {allDetectedForms.length} Forms Mapped
                   </span>
                 </div>
                 <div className="p-3.5 flex justify-between">
@@ -620,9 +636,8 @@ export function MetaConnectWizardModal({
               </div>
 
               <p className="text-[11px] text-gray-500 leading-relaxed">
-                Note: In this readiness release, saving this connection establishes the complete
-                connection foundation and form mappings in your workspace. You can update project
-                mappings or disconnect at any time without losing historical leads.
+                Note: Saving this plan establishes your project routing preferences. It does not connect
+                live Facebook accounts or claim verified provider status.
               </p>
             </div>
           )}
@@ -665,17 +680,17 @@ export function MetaConnectWizardModal({
             <button
               onClick={handleSaveConnection}
               disabled={isSubmitting}
-              className="px-5 py-2 text-[13px] font-medium text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 disabled:opacity-50 transition-colors flex items-center gap-1.5 shadow-2xs"
+              className="px-5 py-2 text-[13px] font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-1.5 shadow-2xs"
             >
               {isSubmitting ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  Saving Connection...
+                  Saving Routing Plan...
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  Activate Connection & Mappings
+                  Save Routing Plan (Draft — Not Connected)
                 </>
               )}
             </button>

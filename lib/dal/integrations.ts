@@ -16,9 +16,21 @@ import type { Json, TablesUpdate } from '@/types/database'
 
 // ── Connections ─────────────────────────────────────────────────────────────
 
+export interface ConnectionsQueryResult {
+  connections: IntegrationConnectionRecord[]
+  schemaAvailable: boolean
+  error: string | null
+}
+
+export interface MappingsQueryResult {
+  mappings: IntegrationProjectMappingRecord[]
+  schemaAvailable: boolean
+  error: string | null
+}
+
 export async function getIntegrationConnections(
   orgId: string
-): Promise<IntegrationConnectionRecord[]> {
+): Promise<ConnectionsQueryResult> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('integration_connections')
@@ -27,17 +39,33 @@ export async function getIntegrationConnections(
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Error fetching integration connections:', error)
-    return []
+    const isMissingTable =
+      error.code === '42P01' ||
+      error.message?.includes('does not exist') ||
+      error.message?.includes('relation "integration_connections"')
+
+    console.error('Error fetching integration connections:', error.message)
+    return {
+      connections: [],
+      schemaAvailable: !isMissingTable,
+      error: isMissingTable
+        ? 'Integration database schema is not initialized (Migration 20260015 has not been applied).'
+        : error.message,
+    }
   }
 
-  // Redact credential_ref before returning to any client-facing caller
+  // Redact credential_ref: NEVER return secret tokens or misleading placeholder strings
   const sanitized = (data ?? []).map((conn) => ({
     ...conn,
-    credential_ref: conn.credential_ref ? 'CONFIGURED_SECURE_REFERENCE' : null,
+    credential_ref: null,
+    has_credentials: Boolean(conn.credential_ref),
   }))
 
-  return sanitized as unknown as IntegrationConnectionRecord[]
+  return {
+    connections: sanitized as unknown as IntegrationConnectionRecord[],
+    schemaAvailable: true,
+    error: null,
+  }
 }
 
 export async function getIntegrationConnectionById(
@@ -53,13 +81,14 @@ export async function getIntegrationConnectionById(
     .maybeSingle()
 
   if (error || !data) {
-    if (error) console.error('Error fetching integration connection by ID:', error)
+    if (error) console.error('Error fetching integration connection by ID:', error.message)
     return null
   }
 
   return {
     ...data,
-    credential_ref: data.credential_ref ? 'CONFIGURED_SECURE_REFERENCE' : null,
+    credential_ref: null,
+    has_credentials: Boolean(data.credential_ref),
   } as unknown as IntegrationConnectionRecord
 }
 
@@ -107,13 +136,23 @@ export async function createIntegrationConnection(
     .single()
 
   if (error || !data) {
-    return { connection: null, error: error?.message ?? 'Failed to create connection' }
+    const isMissingTable =
+      error?.code === '42P01' ||
+      error?.message?.includes('does not exist') ||
+      error?.message?.includes('relation "integration_connections"')
+    return {
+      connection: null,
+      error: isMissingTable
+        ? 'Database schema for integrations is not initialized (Migration 20260015 has not been applied).'
+        : error?.message ?? 'Failed to create connection',
+    }
   }
 
   return {
     connection: {
       ...data,
-      credential_ref: data.credential_ref ? 'CONFIGURED_SECURE_REFERENCE' : null,
+      credential_ref: null,
+      has_credentials: Boolean(data.credential_ref),
     } as unknown as IntegrationConnectionRecord,
     error: null,
   }
@@ -156,7 +195,8 @@ export async function updateIntegrationConnection(
   return {
     connection: {
       ...data,
-      credential_ref: data.credential_ref ? 'CONFIGURED_SECURE_REFERENCE' : null,
+      credential_ref: null,
+      has_credentials: Boolean(data.credential_ref),
     } as unknown as IntegrationConnectionRecord,
     error: null,
   }
@@ -192,22 +232,36 @@ export async function disconnectIntegrationConnection(
 }
 
 /**
- * Reconnects an integration connection, resetting error state to readiness.
+ * Reconnects an integration connection.
+ * STRICT SAFETY RULE: Cannot report success or set active status without verified live provider OAuth.
  */
 export async function reconnectIntegrationConnection(
   connectionId: string,
   orgId: string,
-  metadata?: Record<string, unknown>
-): Promise<{ connection: IntegrationConnectionRecord | null; error: string | null }> {
+  params?: {
+    verifiedOAuthToken?: string
+    metadata?: Record<string, unknown>
+  }
+): Promise<{ connection: IntegrationConnectionRecord | null; error: string | null; reconnectAvailable: boolean }> {
+  // Live provider re-authorisation requires verified OAuth (Stage 4B)
+  if (!params?.verifiedOAuthToken) {
+    return {
+      connection: null,
+      error:
+        'Live provider re-authorisation is not yet available. Reconnecting requires official Meta OAuth verification, which is scheduled for Stage 4B. Connections cannot be transitioned to active state without verified provider authorization.',
+      reconnectAvailable: false,
+    }
+  }
+
   const result = await updateIntegrationConnection(connectionId, orgId, {
     status: 'connected',
     last_error: null,
     last_sync_at: new Date().toISOString(),
-    ...(metadata ? { metadata } : {}),
+    ...(params.metadata ? { metadata: params.metadata } : {}),
   })
 
   if (!result.connection || result.error) {
-    return { connection: null, error: result.error ?? 'Failed to reconnect integration' }
+    return { connection: null, error: result.error ?? 'Failed to reconnect integration', reconnectAvailable: true }
   }
 
   // Safely record reconnect in event logs
@@ -218,7 +272,7 @@ export async function reconnectIntegrationConnection(
     processing_status: 'processed',
   })
 
-  return result
+  return { ...result, reconnectAvailable: true }
 }
 
 // ── Project Mappings ────────────────────────────────────────────────────────
@@ -226,7 +280,7 @@ export async function reconnectIntegrationConnection(
 export async function getProjectMappings(
   orgId: string,
   connectionId?: string
-): Promise<IntegrationProjectMappingRecord[]> {
+): Promise<MappingsQueryResult> {
   const supabase = await createClient()
   let query = supabase
     .from('integration_project_mappings')
@@ -243,10 +297,25 @@ export async function getProjectMappings(
   const { data, error } = await query.order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Error fetching project mappings:', error)
-    return []
+    const isMissingTable =
+      error.code === '42P01' ||
+      error.message?.includes('does not exist') ||
+      error.message?.includes('relation "integration_project_mappings"')
+
+    console.error('Error fetching project mappings:', error.message)
+    return {
+      mappings: [],
+      schemaAvailable: !isMissingTable,
+      error: isMissingTable
+        ? 'Integration project mappings schema is not initialized (Migration 20260015 has not been applied).'
+        : error.message,
+    }
   }
-  return (data as unknown as IntegrationProjectMappingRecord[]) ?? []
+  return {
+    mappings: (data as unknown as IntegrationProjectMappingRecord[]) ?? [],
+    schemaAvailable: true,
+    error: null,
+  }
 }
 
 export async function createProjectMapping(

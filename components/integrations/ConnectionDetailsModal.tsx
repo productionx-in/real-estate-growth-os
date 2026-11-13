@@ -63,6 +63,7 @@ export function ConnectionDetailsModal({
   const pages = (metadata.pages || []) as MetaPageAsset[]
   const isConnected = connection.status === 'connected'
   const isError = connection.status === 'error'
+  const isDisabled = connection.status === 'disabled'
 
   // Format date helper
   const formatDate = (isoString?: string | null) => {
@@ -235,14 +236,22 @@ export function ConnectionDetailsModal({
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       : isError
                       ? 'bg-red-50 text-red-700 border-red-200'
-                      : 'bg-gray-100 text-gray-700 border-gray-200'
+                      : isDisabled
+                      ? 'bg-gray-100 text-gray-700 border-gray-200'
+                      : 'bg-amber-50 text-amber-700 border-amber-200'
                   }`}
                 >
-                  {isConnected ? 'Active & Healthy' : isError ? 'Action Required' : 'Disconnected'}
+                  {isConnected
+                    ? 'Active & Healthy'
+                    : isError
+                    ? 'Action Required'
+                    : isDisabled
+                    ? 'Disabled'
+                    : 'Not Connected (Awaiting Meta OAuth in Stage 4B)'}
                 </span>
               </div>
               <p className="text-[12px] text-[var(--foreground-muted)]">
-                External Account: {connection.external_account_id || 'Connected Business Profile'} •
+                Status: {connection.status} • Planned Forms: {connection.mappings?.length || 0} •
                 Last Sync: {formatDate(connection.last_sync_at)}
               </p>
             </div>
@@ -568,14 +577,14 @@ export function ConnectionDetailsModal({
                   </div>
                   <div>
                     <span className="text-gray-500 block">Credential Storage</span>
-                    <span className="font-semibold text-emerald-700">
-                      Secure Vault Reference (Redacted)
+                    <span className="font-semibold text-gray-700">
+                      OAuth Handshake Pending (Stage 4B)
                     </span>
                   </div>
                   <div>
                     <span className="text-gray-500 block">Lead Data Privacy</span>
                     <span className="font-semibold text-emerald-700">
-                      Private to this Organisation
+                      Strict Multi-Tenant Isolation
                     </span>
                   </div>
                 </div>

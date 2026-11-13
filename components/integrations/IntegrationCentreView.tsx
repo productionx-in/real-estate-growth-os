@@ -43,6 +43,8 @@ interface IntegrationCentreViewProps {
   initialMappings: IntegrationProjectMappingRecord[]
   projects: ProjectOption[]
   canManage: boolean
+  schemaAvailable?: boolean
+  schemaError?: string | null
 }
 
 export function IntegrationCentreView({
@@ -51,6 +53,8 @@ export function IntegrationCentreView({
   initialMappings,
   projects,
   canManage,
+  schemaAvailable = true,
+  schemaError = null,
 }: IntegrationCentreViewProps) {
   const [connections, setConnections] = useState(initialConnections)
   const [mappings, setMappings] = useState(initialMappings)
@@ -114,6 +118,29 @@ export function IntegrationCentreView({
 
   return (
     <div className="max-w-6xl space-y-8 pb-12">
+      {/* Schema / Migration Readiness Notice */}
+      {!schemaAvailable && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-[13px] flex items-start gap-3 shadow-2xs">
+          <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0 font-bold">
+            !
+          </div>
+          <div>
+            <h4 className="font-bold text-amber-950">Database Schema Notice: Migration 20260015 Pending</h4>
+            <p className="text-amber-800 text-[12px] mt-0.5 leading-relaxed">
+              The CRM integration tables (`integration_connections` and `integration_project_mappings`)
+              have not been applied to this database environment. The Integration Centre is currently
+              running in safe architectural preview mode. Database writes will remain deferred until
+              Migration 20260015 is officially applied.
+              {schemaError && (
+                <span className="block mt-1 text-[11px] font-mono text-amber-900 bg-amber-100/60 p-1.5 rounded border border-amber-300">
+                  {schemaError}
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Top Banner: Central Meta App Architecture & Tenant Privacy Guarantee */}
       <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-transparent border border-blue-200/80 rounded-2xl p-6 relative overflow-hidden">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">

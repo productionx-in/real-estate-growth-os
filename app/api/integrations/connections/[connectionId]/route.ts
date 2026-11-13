@@ -91,7 +91,8 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ error: 'Connection not found' }, { status: 404 })
     }
 
-    const mappings = await getProjectMappings(access.orgId, connectionId)
+    const mappingsRes = await getProjectMappings(access.orgId, connectionId)
+    const mappings = mappingsRes.mappings
 
     return NextResponse.json({
       connection: {
@@ -139,7 +140,8 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ error: error ?? 'Failed to update connection' }, { status: 400 })
     }
 
-    const mappings = await getProjectMappings(access.orgId, connectionId)
+    const mappingsRes = await getProjectMappings(access.orgId, connectionId)
+    const mappings = mappingsRes.mappings
 
     return NextResponse.json({
       connection: {

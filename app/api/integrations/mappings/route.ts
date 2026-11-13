@@ -43,8 +43,20 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const mappings = await getProjectMappings(orgId, connectionId)
-    return NextResponse.json({ mappings })
+    const mappingsRes = await getProjectMappings(orgId, connectionId)
+    if (!mappingsRes.schemaAvailable) {
+      return NextResponse.json(
+        {
+          mappings: [],
+          schemaAvailable: false,
+          error:
+            mappingsRes.error ||
+            'Integration project mappings schema is not initialized (Migration 20260015 pending).',
+        },
+        { status: 503 }
+      )
+    }
+    return NextResponse.json({ mappings: mappingsRes.mappings, schemaAvailable: true })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Internal Server Error'
     return NextResponse.json({ error: message }, { status: 500 })

@@ -3,7 +3,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
-import { reconnectIntegrationConnection, getProjectMappings } from '@/lib/dal/integrations'
 
 interface RouteContext {
   params: Promise<{ connectionId: string }>
@@ -41,40 +40,17 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    let bodyData: { metadata?: Record<string, unknown> } = {}
-    try {
-      bodyData = (await request.json()) as { metadata?: Record<string, unknown> }
-    } catch {
-      // Body is optional
-    }
-
-    const updatedMetadata = {
-      ...((conn.metadata as Record<string, unknown>) || {}),
-      ...(bodyData?.metadata || {}),
-      healthStatus: 'healthy',
-      lastReconnectedAt: new Date().toISOString(),
-    }
-
-    const { connection, error } = await reconnectIntegrationConnection(
-      connectionId,
-      conn.org_id,
-      updatedMetadata
-    )
-
-    if (error || !connection) {
-      return NextResponse.json({ error: error ?? 'Failed to reconnect integration' }, { status: 400 })
-    }
-
-    const mappings = await getProjectMappings(conn.org_id, connectionId)
-
-    return NextResponse.json({
-      connection: {
-        ...connection,
-        mappingsCount: mappings.length,
-        mappings,
+    // STRICT SAFETY RULE: Reconnect must NOT report success simply by clearing an error
+    // or changing a status. Until live Meta OAuth is implemented in Stage 4B,
+    // re-authorisation is not available and disabled connections cannot be falsely marked active.
+    return NextResponse.json(
+      {
+        error:
+          'Live provider re-authorisation is not yet available. Reconnecting requires official Meta OAuth verification, which is scheduled for Stage 4B. The connection cannot be marked active without verified provider authorization.',
+        reconnectAvailable: false,
       },
-      message: 'Integration reconnected successfully. Incoming enquiries will sync as normal.',
-    })
+      { status: 400 }
+    )
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Internal Server Error'
     return NextResponse.json({ error: message }, { status: 500 })

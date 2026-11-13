@@ -17,11 +17,16 @@ export default async function IntegrationsPage({ params }: PageProps) {
   const { orgSlug } = await params
   const { org, isManager, isAdmin } = await getVerifiedWorkspace(orgSlug)
 
-  const [rawConnections, rawMappings, rawProjects] = await Promise.all([
+  const [connectionsRes, mappingsRes, rawProjects] = await Promise.all([
     getIntegrationConnections(org.id),
     getProjectMappings(org.id),
     getProjectsByOrg(org.id),
   ])
+
+  const schemaAvailable = connectionsRes.schemaAvailable && mappingsRes.schemaAvailable
+  const schemaError = connectionsRes.error || mappingsRes.error
+  const rawConnections = connectionsRes.connections
+  const rawMappings = mappingsRes.mappings
 
   // Enrich connections with their mappings
   const enrichedConnections = rawConnections.map((conn) => {
@@ -56,6 +61,8 @@ export default async function IntegrationsPage({ params }: PageProps) {
         initialMappings={rawMappings}
         projects={projects}
         canManage={canManage}
+        schemaAvailable={schemaAvailable}
+        schemaError={schemaError}
       />
     </PageShell>
   )

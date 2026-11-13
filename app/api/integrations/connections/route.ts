@@ -104,13 +104,27 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const providerFilter = searchParams.get('provider')
 
-    const connections = await getIntegrationConnections(tenant.orgId)
-    const mappings = await getProjectMappings(tenant.orgId)
+    const connectionsRes = await getIntegrationConnections(tenant.orgId)
+    if (!connectionsRes.schemaAvailable) {
+      return NextResponse.json(
+        {
+          connections: [],
+          schemaAvailable: false,
+          error:
+            connectionsRes.error ||
+            'Integration database schema is not initialized (Migration 20260015 has not been applied).',
+        },
+        { status: 503 }
+      )
+    }
+
+    const mappingsRes = await getProjectMappings(tenant.orgId)
+    const mappings = mappingsRes.mappings
 
     // Filter by provider if specified
     const filtered = providerFilter
-      ? connections.filter((c) => c.provider === providerFilter)
-      : connections
+      ? connectionsRes.connections.filter((c) => c.provider === providerFilter)
+      : connectionsRes.connections
 
     // Attach mapping summaries to connections for client convenience
     const enriched = filtered.map((conn) => {
@@ -122,7 +136,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({ connections: enriched, orgId: tenant.orgId })
+    return NextResponse.json({ connections: enriched, orgId: tenant.orgId, schemaAvailable: true })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Internal Server Error'
     return NextResponse.json({ error: message }, { status: 500 })
@@ -163,18 +177,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // STRICT SAFETY RULE: Do NOT allow users to save a connection as genuinely 'connected'
+    // without verified live provider authorisation. Third-party integrations in Stage 4A
+    // must always remain in 'not_connected' status until live OAuth is completed in Stage 4B.
+    let resolvedStatus: 'not_connected' | 'disabled' = 'not_connected'
+    if (parsed.data.status === 'disabled') {
+      resolvedStatus = 'disabled'
+    }
+
+    const enrichedMetadata = {
+      ...(parsed.data.metadata ?? {}),
+      authorization_status: 'pending_oauth',
+      is_preview_configuration: true,
+      stage: '4A',
+    }
+
     // Create the connection
     const { connection, error: createError } = await createIntegrationConnection(tenant.orgId, {
       provider: parsed.data.provider,
       name: parsed.data.name,
-      external_account_id: parsed.data.externalAccountId ?? null,
-      status: parsed.data.status ?? 'not_connected',
+      external_account_id: null, // Do not store fake account IDs
+      status: resolvedStatus,
       connected_by: authResult.auth.profile.id,
-      metadata: parsed.data.metadata ?? {},
+      metadata: enrichedMetadata,
     })
 
     if (createError || !connection) {
-      return NextResponse.json({ error: createError ?? 'Failed to create connection' }, { status: 400 })
+      const isSchemaError = createError?.includes('schema') || createError?.includes('Migration')
+      return NextResponse.json(
+        { error: createError ?? 'Failed to create connection' },
+        { status: isSchemaError ? 503 : 400 }
+      )
     }
 
     // Process initial mappings if provided
