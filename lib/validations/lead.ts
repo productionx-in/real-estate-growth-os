@@ -22,6 +22,21 @@ export const LeadSchema = z.object({
   budget_min: z.coerce.number().min(0).optional().nullable(),
   budget_max: z.coerce.number().min(0).optional().nullable(),
   notes: z.string().max(2000).optional().or(z.literal('')),
+
+  // CRM Integration Readiness & Attribution Fields (Stage 3G)
+  source_platform: z.string().max(50).optional().nullable(),
+  campaign_name: z.string().max(255).optional().nullable(),
+  campaign_id: z.string().max(100).optional().nullable(),
+  ad_name: z.string().max(255).optional().nullable(),
+  ad_id: z.string().max(100).optional().nullable(),
+  form_name: z.string().max(255).optional().nullable(),
+  form_id: z.string().max(100).optional().nullable(),
+  external_lead_id: z.string().max(100).optional().nullable(),
+  source_url: z.string().url('Invalid URL').max(1000).optional().or(z.literal('')).nullable(),
+  connection_id: z.string().uuid().optional().nullable(),
+  source_metadata: z.record(z.string(), z.unknown()).optional().nullable(),
+  is_duplicate: z.boolean().optional(),
+  duplicate_of_id: z.string().uuid().optional().nullable(),
 })
 
 export type LeadFormValues = z.infer<typeof LeadSchema>

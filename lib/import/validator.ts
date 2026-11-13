@@ -162,6 +162,21 @@ export function validateImportRows({
         'commercial_sale',
         'villas_gated_communities',
       ]
+      
+      // Normalize aliases to canonical database category enums
+      let normalizedCat: ProjectCategory | null = null
+      if (validMixedCategories.includes(rawCat as ProjectCategory)) {
+        normalizedCat = rawCat as ProjectCategory
+      } else if (rawCat === 'apartment' || rawCat === 'residential') {
+        normalizedCat = 'apartments'
+      } else if (rawCat === 'commercial' || rawCat === 'office' || rawCat === 'retail') {
+        normalizedCat = 'commercial_sale'
+      } else if (rawCat === 'plots' || rawCat === 'plot') {
+        normalizedCat = 'plotted_developments'
+      } else if (rawCat === 'villas' || rawCat === 'villa') {
+        normalizedCat = 'villas_gated_communities'
+      }
+
       if (!rawCat) {
         errors.push({
           rowNumber,
@@ -170,7 +185,7 @@ export function validateImportRows({
           message:
             'Mixed-use projects require component category: apartments, plotted_developments, commercial_sale, or villas_gated_communities.',
         })
-      } else if (!validMixedCategories.includes(rawCat as ProjectCategory)) {
+      } else if (!normalizedCat) {
         errors.push({
           rowNumber,
           unitNumber: rawUnit,
@@ -178,7 +193,7 @@ export function validateImportRows({
           message: `Invalid category '${rawCat}'. Allowed: ${validMixedCategories.join(', ')}.`,
         })
       } else {
-        rowCategory = rawCat as ProjectCategory
+        rowCategory = normalizedCat
       }
     } else {
       if (mapped.category) {
@@ -266,12 +281,27 @@ export function validateImportRows({
       return n
     }
 
+    const parseOptionalFloor = (val: unknown): number | undefined => {
+      if (val === undefined || val === null || String(val).trim() === '') return undefined
+      const n = parseInt(String(val).trim(), 10)
+      if (isNaN(n) || n < -10 || n > 300) {
+        errors.push({
+          rowNumber,
+          unitNumber: rawUnit,
+          field: 'floor_number',
+          message: 'floor_number must be a valid integer between -10 and 300.',
+        })
+        return undefined
+      }
+      return n
+    }
+
     const carpetArea = parseOptionalNumber(mapped.carpet_area, 'carpet_area')
     const builtUpArea = parseOptionalNumber(mapped.built_up_area, 'built_up_area')
     const superBuiltUpArea = parseOptionalNumber(mapped.super_built_up_area, 'super_built_up_area')
     const plotArea = parseOptionalNumber(mapped.plot_area, 'plot_area')
     const roadWidthFt = parseOptionalNumber(mapped.road_width_ft, 'road_width_ft')
-    const floorNumber = parseOptionalInt(mapped.floor_number, 'floor_number')
+    const floorNumber = parseOptionalFloor(mapped.floor_number)
     const bedrooms = parseOptionalInt(mapped.bedrooms, 'bedrooms')
     const bathrooms = parseOptionalInt(mapped.bathrooms, 'bathrooms')
     const balconies = parseOptionalInt(mapped.balconies, 'balconies')

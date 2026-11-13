@@ -255,6 +255,10 @@ export async function getInventoryStatusHistory(inventoryId: string) {
   return data ?? []
 }
 
+export function escapePostgrestPattern(val: string): string {
+  return val.trim().replace(/([%_\\])/g, '\\$1')
+}
+
 export async function createInventoryItem(
   orgId: string,
   values: InventoryItemFormValues
@@ -300,15 +304,16 @@ export async function createInventoryItem(
     }
   }
 
-  // 4. Duplicate identifier check: prevent duplicate unit numbers within the project
+  // 4. Duplicate identifier check: prevent duplicate unit numbers within the project (literal case-insensitive & trimmed)
+  const safePattern = escapePostgrestPattern(values.unit_number)
   const { data: existingUnit } = await service
     .from('inventory_items')
-    .select('id')
+    .select('id, unit_number')
     .eq('project_id', values.project_id)
-    .eq('unit_number', values.unit_number.trim())
+    .ilike('unit_number', safePattern)
     .maybeSingle()
 
-  if (existingUnit) {
+  if (existingUnit && existingUnit.unit_number.trim().toLowerCase() === values.unit_number.trim().toLowerCase()) {
     return {
       item: null,
       error: `Unit or Plot number '${values.unit_number}' already exists in this project.`,

@@ -2,6 +2,7 @@
 import type { Metadata } from 'next'
 import { PageShell } from '@/components/layout/PageShell'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
+import { IntegrationReadinessPanel } from '@/components/integrations/IntegrationReadinessPanel'
 
 export const metadata: Metadata = { title: 'Settings' }
 export const dynamic = 'force-dynamic'
@@ -21,7 +22,7 @@ export default async function SettingsPage({ params }: PageProps) {
 
   return (
     <PageShell title="Settings" description="Manage your workspace configuration and user profile">
-      <div className="max-w-2xl space-y-6">
+      <div className="max-w-4xl space-y-6">
         {/* Organisation info */}
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 shadow-2xs">
           <h2 className="text-[13px] font-semibold text-[var(--foreground)] mb-4">
@@ -57,6 +58,9 @@ export default async function SettingsPage({ params }: PageProps) {
             </p>
           )}
         </div>
+
+        {/* CRM Integration Readiness & Lead Source Architecture (Stage 3G) */}
+        <IntegrationReadinessPanel />
 
         {/* Profile info */}
         {profile && (

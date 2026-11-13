@@ -76,6 +76,17 @@ export async function createImportJob({
 }) {
   const service = createServiceClient()
 
+  // 1. Check if job with this referenceId already exists (for retry support)
+  const { data: existingJob } = await service
+    .from('inventory_import_history')
+    .select('*')
+    .eq('reference_id', referenceId)
+    .maybeSingle()
+
+  if (existingJob) {
+    return existingJob
+  }
+
   const { data, error } = await service
     .from('inventory_import_history')
     .insert({
@@ -142,11 +153,13 @@ export async function updateImportJob({
 export async function executeBatchInventoryImport({
   orgId,
   projectId,
+  referenceId,
   rows,
   batchSize = 100,
 }: {
   orgId: string
   projectId: string
+  referenceId?: string
   rows: InventoryItemFormValues[]
   batchSize?: number
 }): Promise<{
@@ -166,6 +179,7 @@ export async function executeBatchInventoryImport({
     const insertPayload = chunk.map((item) => ({
       org_id: orgId,
       project_id: projectId,
+      import_reference_id: referenceId || null,
       unit_number: item.unit_number.trim(),
       category: item.category,
       area_value: item.area_value,

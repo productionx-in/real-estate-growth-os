@@ -53,13 +53,14 @@ export function BulkImportModal({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Uploaded file & parsed data
+  const [importReferenceId, setImportReferenceId] = useState<string | null>(null)
   const [parsedData, setParsedData] = useState<ParsedSpreadsheet | null>(null)
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({})
   const [validationResult, setValidationResult] = useState<ValidationSummary | null>(null)
 
   // Execution state
   const [isImporting, setIsImporting] = useState(false)
-  const [importProgress, setImportProgress] = useState(0)
+  const [importStageMessage, setImportStageMessage] = useState<string>('Submitting import request...')
   const [importResult, setImportResult] = useState<{
     referenceId: string
     successfulCount: number
@@ -126,6 +127,8 @@ export function BulkImportModal({
       }
 
       setParsedData(parsed)
+      const newRef = `IMP-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`
+      setImportReferenceId(newRef)
 
       // Initialize automatic column mapping
       const initialMapping: Record<string, string> = {}
@@ -180,7 +183,7 @@ export function BulkImportModal({
     setIsImporting(true)
     setGeneralError(null)
     setStep('importing')
-    setImportProgress(20)
+    setImportStageMessage('Sending payload to server...')
 
     try {
       const validRows = validationResult.rows.filter((r) => r.isValid).map((r) => r.data)
@@ -192,13 +195,14 @@ export function BulkImportModal({
           error: r.errors.map((e) => e.message).join('; '),
         }))
 
-      setImportProgress(40)
+      setImportStageMessage(`Processing ${validRows.length} units in database chunks (100 units/chunk)...`)
 
       const res = await fetch('/api/inventory/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           projectId,
+          referenceId: importReferenceId || undefined,
           fileName: parsedData.fileName,
           fileType: parsedData.fileType,
           rows: validRows,
@@ -206,14 +210,12 @@ export function BulkImportModal({
         }),
       })
 
-      setImportProgress(90)
       const data = await res.json()
 
       if (!res.ok) {
         throw new Error(data.error || 'Failed to execute import')
       }
 
-      setImportProgress(100)
       setImportResult({
         referenceId: data.referenceId,
         successfulCount: data.successfulCount,
@@ -421,7 +423,10 @@ export function BulkImportModal({
 
                     <button
                       type="button"
-                      onClick={() => setStep('upload')}
+                      onClick={() => {
+                        setStep('upload')
+                        setImportReferenceId(null)
+                      }}
                       className="text-xs font-semibold text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
                     >
                       Change File
@@ -477,7 +482,10 @@ export function BulkImportModal({
                   <div className="flex items-center justify-end gap-2 pt-2">
                     <button
                       type="button"
-                      onClick={() => setStep('upload')}
+                      onClick={() => {
+                        setStep('upload')
+                        setImportReferenceId(null)
+                      }}
                       className="px-4 py-2 text-xs font-semibold text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-lg hover:bg-[var(--surface-hover)]"
                     >
                       Back
@@ -618,11 +626,14 @@ export function BulkImportModal({
                 <div className="py-12 text-center space-y-4">
                   <Loader2 className="w-10 h-10 animate-spin text-[var(--brand)] mx-auto" />
                   <h3 className="text-base font-bold text-[var(--foreground)]">Importing inventory in progress...</h3>
-                  <p className="text-xs text-[var(--foreground-muted)] max-w-sm mx-auto">
-                    Inserting validated units into the database in safe batches. Please do not close this window.
+                  <p className="text-xs text-[var(--brand)] font-medium max-w-sm mx-auto">
+                    {importStageMessage}
+                  </p>
+                  <p className="text-xs text-[var(--foreground-muted)] max-w-md mx-auto">
+                    Inserting validated units into the database in atomic chunks (100 units / chunk) with constraint verification. Please do not close this window.
                   </p>
                   <div className="max-w-md mx-auto bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                    <div className="bg-[var(--brand)] h-2.5 rounded-full transition-all duration-300" style={{ width: `${importProgress}%` }} />
+                    <div className="bg-[var(--brand)] h-2.5 rounded-full animate-pulse w-full" />
                   </div>
                 </div>
               )}

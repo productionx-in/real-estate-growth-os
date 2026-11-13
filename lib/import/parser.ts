@@ -21,6 +21,12 @@ export interface ParsedSpreadsheet {
  */
 export function sanitizeFormulaInjection(value: unknown): unknown {
   if (typeof value !== 'string') return value
+  const trimmed = value.trim()
+  if (trimmed === '') return value
+  // Legitimate negative numeric values (e.g. basement floor "-1", "-2.5") are safe numbers, not formulas
+  if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+    return value
+  }
   const dangerousPrefixes = ['=', '+', '-', '@', '\t', '\r']
   if (dangerousPrefixes.some((p) => value.startsWith(p))) {
     return `'${value}`

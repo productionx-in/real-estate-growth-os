@@ -3,7 +3,7 @@
 // All queries run through the authenticated Supabase client so RLS applies.
 import { createClient } from '@/lib/supabase/server'
 import type { LeadFormValues } from '@/lib/validations/lead'
-import type { LeadStatus } from '@/types/database'
+import type { LeadStatus, Json } from '@/types/database'
 
 export async function getLeadById(leadId: string) {
   const supabase = await createClient()
@@ -53,6 +53,20 @@ export async function createLead(orgId: string, values: LeadFormValues, actorPro
       budget_max: values.budget_max ?? null,
       notes: values.notes || null,
       custom_fields: {},
+      // Attribution fields (Stage 3G)
+      source_platform: values.source_platform ?? null,
+      campaign_name: values.campaign_name ?? null,
+      campaign_id: values.campaign_id ?? null,
+      ad_name: values.ad_name ?? null,
+      ad_id: values.ad_id ?? null,
+      form_name: values.form_name ?? null,
+      form_id: values.form_id ?? null,
+      external_lead_id: values.external_lead_id ?? null,
+      source_url: values.source_url || null,
+      connection_id: values.connection_id ?? null,
+      source_metadata: (values.source_metadata ?? {}) as Json,
+      is_duplicate: values.is_duplicate ?? false,
+      duplicate_of_id: values.duplicate_of_id ?? null,
     })
     .select()
     .single()

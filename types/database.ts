@@ -319,6 +319,7 @@ export interface Database {
           org_id: string
           project_id: string
           hierarchy_node_id: string | null
+          import_reference_id: string | null
           unit_number: string
           category: ProjectCategory
           status: InventoryStatus
@@ -356,6 +357,7 @@ export interface Database {
           org_id: string
           project_id: string
           hierarchy_node_id?: string | null
+          import_reference_id?: string | null
           unit_number: string
           category: ProjectCategory
           status?: InventoryStatus
@@ -393,6 +395,7 @@ export interface Database {
           org_id?: string
           project_id?: string
           hierarchy_node_id?: string | null
+          import_reference_id?: string | null
           unit_number?: string
           category?: ProjectCategory
           status?: InventoryStatus
@@ -499,6 +502,20 @@ export interface Database {
           budget_max: number | null
           notes: string | null
           custom_fields: Json
+          source_platform: string | null
+          campaign_name: string | null
+          campaign_id: string | null
+          ad_name: string | null
+          ad_id: string | null
+          form_name: string | null
+          form_id: string | null
+          external_lead_id: string | null
+          source_url: string | null
+          connection_id: string | null
+          source_metadata: Json
+          idempotency_key: string | null
+          is_duplicate: boolean
+          duplicate_of_id: string | null
           created_at: string
           updated_at: string
         }
@@ -517,6 +534,20 @@ export interface Database {
           budget_max?: number | null
           notes?: string | null
           custom_fields?: Json
+          source_platform?: string | null
+          campaign_name?: string | null
+          campaign_id?: string | null
+          ad_name?: string | null
+          ad_id?: string | null
+          form_name?: string | null
+          form_id?: string | null
+          external_lead_id?: string | null
+          source_url?: string | null
+          connection_id?: string | null
+          source_metadata?: Json
+          idempotency_key?: string | null
+          is_duplicate?: boolean
+          duplicate_of_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -535,6 +566,20 @@ export interface Database {
           budget_max?: number | null
           notes?: string | null
           custom_fields?: Json
+          source_platform?: string | null
+          campaign_name?: string | null
+          campaign_id?: string | null
+          ad_name?: string | null
+          ad_id?: string | null
+          form_name?: string | null
+          form_id?: string | null
+          external_lead_id?: string | null
+          source_url?: string | null
+          connection_id?: string | null
+          source_metadata?: Json
+          idempotency_key?: string | null
+          is_duplicate?: boolean
+          duplicate_of_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -677,6 +722,163 @@ export interface Database {
             columns: ['project_id']
             isOneToOne: false
             referencedRelation: 'projects'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      integration_connections: {
+        Row: {
+          id: string
+          org_id: string
+          provider: 'meta_ads' | 'google_ads' | 'website_webhook' | 'whatsapp_cloud' | 'property_portal_99acres' | 'property_portal_magicbricks' | 'property_portal_housing' | 'manual' | 'other'
+          name: string
+          external_account_id: string | null
+          status: 'not_connected' | 'connected' | 'error' | 'disabled'
+          connected_by: string | null
+          last_sync_at: string | null
+          last_error: string | null
+          credential_ref: string | null
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          provider: 'meta_ads' | 'google_ads' | 'website_webhook' | 'whatsapp_cloud' | 'property_portal_99acres' | 'property_portal_magicbricks' | 'property_portal_housing' | 'manual' | 'other'
+          name: string
+          external_account_id?: string | null
+          status?: 'not_connected' | 'connected' | 'error' | 'disabled'
+          connected_by?: string | null
+          last_sync_at?: string | null
+          last_error?: string | null
+          credential_ref?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          provider?: 'meta_ads' | 'google_ads' | 'website_webhook' | 'whatsapp_cloud' | 'property_portal_99acres' | 'property_portal_magicbricks' | 'property_portal_housing' | 'manual' | 'other'
+          name?: string
+          external_account_id?: string | null
+          status?: 'not_connected' | 'connected' | 'error' | 'disabled'
+          connected_by?: string | null
+          last_sync_at?: string | null
+          last_error?: string | null
+          credential_ref?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'integration_connections_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'organisations'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      integration_project_mappings: {
+        Row: {
+          id: string
+          org_id: string
+          connection_id: string
+          project_id: string
+          external_identifier_type: 'campaign_id' | 'form_id' | 'page_id' | 'account_default'
+          external_identifier_value: string
+          description: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          connection_id: string
+          project_id: string
+          external_identifier_type: 'campaign_id' | 'form_id' | 'page_id' | 'account_default'
+          external_identifier_value: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          connection_id?: string
+          project_id?: string
+          external_identifier_type?: 'campaign_id' | 'form_id' | 'page_id' | 'account_default'
+          external_identifier_value?: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'integration_project_mappings_connection_id_fkey'
+            columns: ['connection_id']
+            isOneToOne: false
+            referencedRelation: 'integration_connections'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'integration_project_mappings_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      integration_event_logs: {
+        Row: {
+          id: string
+          org_id: string
+          connection_id: string | null
+          provider: string
+          event_type: string
+          external_event_id: string | null
+          processing_status: 'received' | 'processed' | 'duplicate' | 'unmapped' | 'failed'
+          error_message: string | null
+          lead_id: string | null
+          received_at: string
+          processed_at: string | null
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          connection_id?: string | null
+          provider: string
+          event_type: string
+          external_event_id?: string | null
+          processing_status: 'received' | 'processed' | 'duplicate' | 'unmapped' | 'failed'
+          error_message?: string | null
+          lead_id?: string | null
+          received_at?: string
+          processed_at?: string | null
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          connection_id?: string | null
+          provider?: string
+          event_type?: string
+          external_event_id?: string | null
+          processing_status?: 'received' | 'processed' | 'duplicate' | 'unmapped' | 'failed'
+          error_message?: string | null
+          lead_id?: string | null
+          received_at?: string
+          processed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'integration_event_logs_connection_id_fkey'
+            columns: ['connection_id']
+            isOneToOne: false
+            referencedRelation: 'integration_connections'
             referencedColumns: ['id']
           }
         ]

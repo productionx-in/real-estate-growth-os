@@ -1,7 +1,7 @@
 // app/api/inventory/[inventoryId]/route.ts
 // Secure Inventory item detail routes: Enforces authentication, tenant isolation, and RBAC.
 import { NextResponse, type NextRequest } from 'next/server'
-import { getInventoryById, getInventoryStatusHistory } from '@/lib/dal/inventory'
+import { getInventoryById, getInventoryStatusHistory, escapePostgrestPattern } from '@/lib/dal/inventory'
 import { InventoryItemSchema } from '@/lib/validations/inventory'
 import { authorizeInventoryAccess } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -76,17 +76,18 @@ export async function PUT(
       )
     }
 
-    // Duplicate check: if unit_number changed, verify no conflict
-    if (parsed.data.unit_number.trim() !== authResult.context.item.unit_number) {
+    // Duplicate check: if unit_number changed, verify no conflict (literal case-insensitive & trimmed)
+    if (parsed.data.unit_number.trim().toLowerCase() !== authResult.context.item.unit_number.trim().toLowerCase()) {
+      const safePattern = escapePostgrestPattern(parsed.data.unit_number)
       const { data: duplicate } = await service
         .from('inventory_items')
-        .select('id')
+        .select('id, unit_number')
         .eq('project_id', authResult.context.item.project_id)
-        .eq('unit_number', parsed.data.unit_number.trim())
+        .ilike('unit_number', safePattern)
         .neq('id', inventoryId)
         .maybeSingle()
 
-      if (duplicate) {
+      if (duplicate && duplicate.unit_number.trim().toLowerCase() === parsed.data.unit_number.trim().toLowerCase()) {
         return NextResponse.json(
           { error: `Unit number '${parsed.data.unit_number}' already exists in this project.` },
           { status: 409 }

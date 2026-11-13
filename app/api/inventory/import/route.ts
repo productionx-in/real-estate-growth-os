@@ -9,6 +9,7 @@ import { z } from 'zod'
 
 const ImportRequestSchema = z.object({
   projectId: z.string().uuid(),
+  referenceId: z.string().optional(),
   fileName: z.string().min(1).max(255),
   fileType: z.enum(['csv', 'xlsx']),
   rows: z.array(z.any()).min(1, 'At least one valid row is required').max(5000, 'Maximum 5,000 rows per batch'),
@@ -58,17 +59,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 
+    const referenceId =
+      parsed.data.referenceId ||
+      `IMP-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`
+
     // 2. Cross-check rows for category consistency and check DB for existing duplicate unit numbers
     const validRowsToInsert: InventoryItemFormValues[] = []
-    const duplicateErrors: Array<{ row: number; unit: string; error: string }> = []
+    const validationErrors: Array<{ row: number; unit: string; error: string }> = []
+    const previouslyCompletedUnits: string[] = []
+    const preExistingUnits: string[] = []
 
-    // Fetch existing units for this project
+    // Fetch existing units for this project including import_reference_id to distinguish:
+    // A: Previously completed by this import reference
+    // B: Pre-existing before this import began
     const { data: existingUnits } = await service
       .from('inventory_items')
-      .select('unit_number')
+      .select('unit_number, import_reference_id')
       .eq('project_id', projectId)
 
-    const existingSet = new Set((existingUnits || []).map((u) => u.unit_number.toLowerCase()))
+    const existingUnitMap = new Map<string, string | null>()
+    for (const u of existingUnits || []) {
+      existingUnitMap.set(u.unit_number.trim().toLowerCase(), u.import_reference_id || null)
+    }
+
     const fileSeenSet = new Set<string>()
 
     rows.forEach((r, idx) => {
@@ -77,7 +90,7 @@ export async function POST(request: NextRequest) {
       const uLower = uNum.toLowerCase()
 
       if (!uNum) {
-        duplicateErrors.push({
+        validationErrors.push({
           row: idx + 1,
           unit: '—',
           error: 'Missing unit number',
@@ -86,7 +99,7 @@ export async function POST(request: NextRequest) {
       }
 
       if (fileSeenSet.has(uLower)) {
-        duplicateErrors.push({
+        validationErrors.push({
           row: idx + 1,
           unit: uNum,
           error: 'Duplicate unit number in file',
@@ -95,18 +108,23 @@ export async function POST(request: NextRequest) {
       }
       fileSeenSet.add(uLower)
 
-      if (existingSet.has(uLower)) {
-        duplicateErrors.push({
-          row: idx + 1,
-          unit: uNum,
-          error: `Unit '${uNum}' already exists in this project`,
-        })
-        return
+      // Accurate accounting for retries:
+      if (existingUnitMap.has(uLower)) {
+        const itemImportRef = existingUnitMap.get(uLower)
+        if (itemImportRef && itemImportRef === referenceId) {
+          // A: Unit created by this same import reference (previously completed)
+          previouslyCompletedUnits.push(uNum)
+          return
+        } else {
+          // B: Unit existed before this import began (pre-existing, skipped without failure)
+          preExistingUnits.push(uNum)
+          return
+        }
       }
 
       // Check category mismatch if not mixed-use
       if (project.category !== 'mixed_use' && rowItem.category !== project.category) {
-        duplicateErrors.push({
+        validationErrors.push({
           row: idx + 1,
           unit: uNum,
           error: `Category '${rowItem.category}' does not match project category '${project.category}'`,
@@ -117,8 +135,12 @@ export async function POST(request: NextRequest) {
       validRowsToInsert.push(rowItem)
     })
 
-    const referenceId = `IMP-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`
-    const totalInitialRows = validRowsToInsert.length + duplicateErrors.length + failedRows.length
+    const totalInitialRows =
+      validRowsToInsert.length +
+      previouslyCompletedUnits.length +
+      preExistingUnits.length +
+      validationErrors.length +
+      failedRows.length
 
     // 3. Create initial import job in history
     const job = await createImportJob({
@@ -135,36 +157,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to initialize import record' }, { status: 500 })
     }
 
-    // 4. Execute batch import of validated rows
+    // 4. Execute batch import of validated pending rows
     const { successfulCount, failedCount, errors: batchErrors } = await executeBatchInventoryImport({
       orgId,
       projectId,
+      referenceId,
       rows: validRowsToInsert,
       batchSize: 100,
     })
 
-    // Combine all errors
-    const allErrors = [
+    // Combine genuine error lists (validation + database insertion failures)
+    const genuineErrors = [
       ...failedRows,
-      ...duplicateErrors,
+      ...validationErrors,
       ...batchErrors.map((b) => ({ row: 0, unit: b.unit, error: b.message })),
     ]
 
-    const finalFailedTotal = duplicateErrors.length + failedRows.length + failedCount
+    const genuineFailedTotal = validationErrors.length + failedRows.length + failedCount
     const finalStatus =
-      successfulCount === 0 && finalFailedTotal > 0
+      successfulCount === 0 && previouslyCompletedUnits.length === 0 && genuineFailedTotal > 0
         ? 'failed'
-        : finalFailedTotal > 0
+        : genuineFailedTotal > 0
         ? 'partial'
         : 'completed'
 
-    // 5. Update job status and audit metrics
+    // 5. Update job status and audit metrics with full retry accounting
     await updateImportJob({
       jobId: job.id,
       status: finalStatus,
-      successfulRows: successfulCount,
-      failedRows: finalFailedTotal,
-      errorSummary: allErrors,
+      successfulRows: successfulCount + previouslyCompletedUnits.length,
+      failedRows: genuineFailedTotal,
+      errorSummary: [
+        {
+          row: 0,
+          unit: 'METRICS',
+          error: JSON.stringify({
+            newly_inserted: successfulCount,
+            previously_completed: previouslyCompletedUnits.length,
+            pre_existing_skipped: preExistingUnits.length,
+            validation_failures: validationErrors.length + failedRows.length,
+            database_failures: failedCount,
+            total_failed: genuineFailedTotal,
+            pending: 0,
+          }),
+        },
+        ...genuineErrors,
+      ],
     })
 
     return NextResponse.json({
@@ -172,9 +210,12 @@ export async function POST(request: NextRequest) {
       referenceId,
       totalRows: totalInitialRows,
       successfulCount,
-      failedCount: finalFailedTotal,
+      newlyInsertedCount: successfulCount,
+      previouslyCompletedCount: previouslyCompletedUnits.length,
+      preExistingSkippedCount: preExistingUnits.length,
+      failedCount: genuineFailedTotal,
       status: finalStatus,
-      errors: allErrors,
+      errors: genuineErrors,
     })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Internal server error'
