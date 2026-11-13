@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import type {
   InventoryItemFormValues,
   InventoryStatusChangeValues,
+  HierarchyNodeFormValues,
 } from '@/lib/validations/inventory'
 import type { InventoryStatus, ProjectCategory, Database } from '@/types/database'
 import { canTransitionStatus } from '@/types/inventory'
@@ -115,10 +116,65 @@ export async function createInventoryItem(
 ) {
   const service = createServiceClient()
 
+  // 1. Verify project exists and belongs to this organisation
+  const { data: project, error: projErr } = await service
+    .from('projects')
+    .select('id, org_id, category')
+    .eq('id', values.project_id)
+    .maybeSingle()
+
+  if (projErr || !project) {
+    return { item: null, error: 'Project not found.' }
+  }
+
+  if (project.org_id !== orgId) {
+    return { item: null, error: 'Inventory item organisation does not match project organisation.' }
+  }
+
+  // 2. Validate category consistency: single-category projects cannot have mismatching unit categories
+  if (project.category !== 'mixed_use' && values.category !== project.category) {
+    return {
+      item: null,
+      error: `Inventory category '${values.category}' does not match project category '${project.category}'.`,
+    }
+  }
+
+  // 3. Hierarchy node consistency: verify node belongs to this project & organisation
+  if (values.hierarchy_node_id) {
+    const { data: node } = await service
+      .from('project_hierarchy_nodes')
+      .select('id, project_id, org_id')
+      .eq('id', values.hierarchy_node_id)
+      .maybeSingle()
+
+    if (!node || node.project_id !== values.project_id || node.org_id !== orgId) {
+      return {
+        item: null,
+        error: 'Hierarchy node does not belong to this project and organisation.',
+      }
+    }
+  }
+
+  // 4. Duplicate identifier check: prevent duplicate unit numbers within the project
+  const { data: existingUnit } = await service
+    .from('inventory_items')
+    .select('id')
+    .eq('project_id', values.project_id)
+    .eq('unit_number', values.unit_number.trim())
+    .maybeSingle()
+
+  if (existingUnit) {
+    return {
+      item: null,
+      error: `Unit or Plot number '${values.unit_number}' already exists in this project.`,
+      isDuplicate: true,
+    }
+  }
+
   const payload: Database['public']['Tables']['inventory_items']['Insert'] = {
     org_id: orgId,
     project_id: values.project_id,
-    unit_number: values.unit_number,
+    unit_number: values.unit_number.trim(),
     category: values.category,
     status: values.status,
     area_value: values.area_value,
@@ -161,7 +217,18 @@ export async function createInventoryItem(
     .select()
     .single()
 
-  return { item: data, error: error?.message ?? null }
+  if (error) {
+    if (error.code === '23505') {
+      return {
+        item: null,
+        error: `Unit or Plot number '${values.unit_number}' already exists in this project.`,
+        isDuplicate: true,
+      }
+    }
+    return { item: null, error: error.message }
+  }
+
+  return { item: data, error: null }
 }
 
 export async function transitionInventoryStatus(
@@ -204,18 +271,29 @@ export async function transitionInventoryStatus(
     return { success: false, error: 'Profile not found' }
   }
 
-  // 4. Update inventory item status
-  const { error: updateErr } = await service
+  // 4. Update inventory item status with optimistic concurrency guard
+  const { data: updated, error: updateErr } = await service
     .from('inventory_items')
-    .update({ status: targetStatus })
+    .update({ status: targetStatus, updated_at: new Date().toISOString() })
     .eq('id', inventoryId)
+    .eq('status', currentStatus)
+    .select('id, org_id, project_id, status')
+    .maybeSingle()
 
   if (updateErr) {
     return { success: false, error: updateErr.message }
   }
 
-  // 5. Append immutable audit history
-  await service.from('inventory_status_history').insert({
+  if (!updated) {
+    return {
+      success: false,
+      error: `Status conflict: The unit was concurrently modified (current status is no longer '${currentStatus}'). Please refresh and try again.`,
+      isConflict: true,
+    }
+  }
+
+  // 5. Append immutable audit history with error verification and atomic rollback
+  const { error: historyErr } = await service.from('inventory_status_history').insert({
     org_id: item.org_id,
     inventory_id: item.id,
     previous_status: currentStatus,
@@ -224,7 +302,71 @@ export async function transitionInventoryStatus(
     changed_by: profile.id,
   })
 
+  if (historyErr) {
+    console.error('Failed to append status audit history, rolling back inventory status:', historyErr)
+    // Roll back status update to maintain atomicity!
+    await service
+      .from('inventory_items')
+      .update({ status: currentStatus })
+      .eq('id', inventoryId)
+
+    return {
+      success: false,
+      error: 'Failed to record audit history. Status transition rolled back for data integrity.',
+    }
+  }
+
   return { success: true, item: { ...item, status: targetStatus } }
+}
+
+export async function createHierarchyNode(
+  orgId: string,
+  values: HierarchyNodeFormValues
+) {
+  const service = createServiceClient()
+
+  // Verify project belongs to org
+  const { data: project } = await service
+    .from('projects')
+    .select('id, org_id')
+    .eq('id', values.project_id)
+    .maybeSingle()
+
+  if (!project || project.org_id !== orgId) {
+    return { node: null, error: 'Project not found or organisation mismatch' }
+  }
+
+  // If parent_id provided, verify parent belongs to same project & org and is not self
+  if (values.parent_id) {
+    const { data: parent } = await service
+      .from('project_hierarchy_nodes')
+      .select('id, project_id, org_id')
+      .eq('id', values.parent_id)
+      .maybeSingle()
+
+    if (!parent || parent.project_id !== values.project_id || parent.org_id !== orgId) {
+      return {
+        node: null,
+        error: 'Parent hierarchy node must belong to the same project and organisation.',
+      }
+    }
+  }
+
+  const { data: node, error } = await service
+    .from('project_hierarchy_nodes')
+    .insert({
+      org_id: orgId,
+      project_id: values.project_id,
+      parent_id: values.parent_id || null,
+      node_type: values.node_type,
+      name: values.name.trim(),
+      code: values.code?.trim() || null,
+      sequence_order: values.sequence_order,
+    })
+    .select()
+    .single()
+
+  return { node, error: error?.message ?? null }
 }
 
 export async function getHierarchyByProject(projectId: string) {

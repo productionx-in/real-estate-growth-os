@@ -76,13 +76,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { item, error } = await createInventoryItem(
+    const { item, error, isDuplicate } = await createInventoryItem(
       authResult.context.orgId,
       parsed.data
     )
 
     if (error || !item) {
-      return NextResponse.json({ error: error ?? 'Failed to create inventory' }, { status: 500 })
+      const status = isDuplicate ? 409 : 400
+      return NextResponse.json({ error: error ?? 'Failed to create inventory' }, { status })
     }
 
     return NextResponse.json({ item }, { status: 201 })

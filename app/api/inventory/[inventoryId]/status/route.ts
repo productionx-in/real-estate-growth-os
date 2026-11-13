@@ -38,8 +38,9 @@ export async function POST(
       authResult.context.user.id
     )
 
-    if (result.error) {
-      return NextResponse.json({ error: result.error }, { status: 400 })
+    if (result.error || !result.success) {
+      const status = 'isConflict' in result && result.isConflict ? 409 : 400
+      return NextResponse.json({ error: result.error }, { status })
     }
 
     return NextResponse.json({ success: true, item: result.item })

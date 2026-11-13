@@ -40,10 +40,10 @@ export const InventoryItemSchema = z.object({
   // Modular pricing
   base_rate: z.coerce.number().min(0).optional().nullable(),
   total_price: z.coerce.number().min(0).optional().nullable(),
-  pricing_breakup: z.record(z.string(), z.any()).default({}),
+  pricing_breakup: z.record(z.string(), z.unknown()).default({}),
 
   internal_notes: z.string().max(2000).optional().nullable(),
-  custom_attributes: z.record(z.string(), z.any()).default({}),
+  custom_attributes: z.record(z.string(), z.unknown()).default({}),
 })
 
 export type InventoryItemFormValues = z.infer<typeof InventoryItemSchema>

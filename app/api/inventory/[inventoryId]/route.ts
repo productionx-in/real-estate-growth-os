@@ -5,6 +5,7 @@ import { getInventoryById, getInventoryStatusHistory } from '@/lib/dal/inventory
 import { InventoryItemSchema } from '@/lib/validations/inventory'
 import { authorizeInventoryAccess } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
+import type { Json } from '@/types/database'
 
 export async function GET(
   _request: NextRequest,
@@ -53,6 +54,38 @@ export async function PUT(
 
     const service = createServiceClient()
 
+    // Category consistency: Verify project category
+    const { data: project } = await service
+      .from('projects')
+      .select('category')
+      .eq('id', authResult.context.item.project_id)
+      .maybeSingle()
+
+    if (project && project.category !== 'mixed_use' && parsed.data.category !== project.category) {
+      return NextResponse.json(
+        { error: `Inventory category '${parsed.data.category}' does not match project category '${project.category}'.` },
+        { status: 400 }
+      )
+    }
+
+    // Duplicate check: if unit_number changed, verify no conflict
+    if (parsed.data.unit_number.trim() !== authResult.context.item.unit_number) {
+      const { data: duplicate } = await service
+        .from('inventory_items')
+        .select('id')
+        .eq('project_id', authResult.context.item.project_id)
+        .eq('unit_number', parsed.data.unit_number.trim())
+        .neq('id', inventoryId)
+        .maybeSingle()
+
+      if (duplicate) {
+        return NextResponse.json(
+          { error: `Unit number '${parsed.data.unit_number}' already exists in this project.` },
+          { status: 409 }
+        )
+      }
+    }
+
     // Tenant consistency: Verify hierarchy node belongs to this project if provided
     if (parsed.data.hierarchy_node_id) {
       const { data: node } = await service
@@ -95,7 +128,7 @@ export async function PUT(
         furnishing_status: parsed.data.furnishing_status,
         base_rate: parsed.data.base_rate ?? null,
         total_price: parsed.data.total_price ?? null,
-        pricing_breakup: parsed.data.pricing_breakup,
+        pricing_breakup: (parsed.data.pricing_breakup ?? {}) as unknown as Json,
         internal_notes: parsed.data.internal_notes || null,
         hierarchy_node_id: parsed.data.hierarchy_node_id || null,
       })
