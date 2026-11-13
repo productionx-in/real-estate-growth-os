@@ -1,19 +1,13 @@
 'use client'
 // components/inventory/InventoryTable.tsx
 import { useState } from 'react'
-import {
-  formatCurrency,
-  formatDate,
-} from '@/lib/utils/format'
-import {
-  PROJECT_CATEGORY_LABELS,
-  type InventoryItemWithRelations,
-  type InventoryStatus,
-} from '@/types/inventory'
+import { formatCurrency } from '@/lib/utils/format'
+import type { InventoryItemWithRelations } from '@/types/inventory'
 import { InventoryStatusBadge } from './InventoryStatusBadge'
 import { InventoryStatusDialog } from './InventoryStatusDialog'
 import { InventoryDetailDrawer } from './InventoryDetailDrawer'
-import { Edit3, Eye, MoreHorizontal } from 'lucide-react'
+import { InventoryForm } from './InventoryForm'
+import { Edit3, Eye, Pencil } from 'lucide-react'
 
 interface InventoryTableProps {
   items: InventoryItemWithRelations[]
@@ -23,6 +17,7 @@ interface InventoryTableProps {
 export function InventoryTable({ items, onItemUpdated }: InventoryTableProps) {
   const [selectedItem, setSelectedItem] = useState<InventoryItemWithRelations | null>(null)
   const [statusItem, setStatusItem] = useState<InventoryItemWithRelations | null>(null)
+  const [editItem, setEditItem] = useState<InventoryItemWithRelations | null>(null)
 
   return (
     <>
@@ -113,6 +108,14 @@ export function InventoryTable({ items, onItemUpdated }: InventoryTableProps) {
                       </button>
                       <button
                         type="button"
+                        onClick={() => setEditItem(item)}
+                        className="p-1.5 rounded-md text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-gray-100 transition-colors"
+                        title="Edit unit details"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => setStatusItem(item)}
                         className="p-1.5 rounded-md text-[var(--brand)] hover:bg-blue-50 transition-colors"
                         title="Change status"
@@ -142,6 +145,17 @@ export function InventoryTable({ items, onItemUpdated }: InventoryTableProps) {
         <InventoryStatusDialog
           item={statusItem}
           onClose={() => setStatusItem(null)}
+          onSuccess={onItemUpdated}
+        />
+      )}
+
+      {/* Edit Details Dialog */}
+      {editItem && (
+        <InventoryForm
+          projectId={editItem.project_id}
+          defaultCategory={editItem.category}
+          initialItem={editItem}
+          onClose={() => setEditItem(null)}
           onSuccess={onItemUpdated}
         />
       )}

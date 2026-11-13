@@ -16,7 +16,7 @@ export const InventoryItemSchema = z.object({
   
   // Area & measurements
   area_value: z.coerce.number().positive('Area must be a positive number'),
-  area_unit: z.enum(['sqft', 'sqyd', 'acres']).default('sqft'),
+  area_unit: z.enum(['sqft', 'sqyd', 'acres', 'guntas', 'cents']).default('sqft'),
   carpet_area: z.coerce.number().min(0).optional().nullable(),
   built_up_area: z.coerce.number().min(0).optional().nullable(),
   super_built_up_area: z.coerce.number().min(0).optional().nullable(),

@@ -9,6 +9,7 @@ import {
   Tag,
   ArrowRight,
   Edit3,
+  Pencil,
 } from 'lucide-react'
 import { formatCurrency, formatRelative } from '@/lib/utils/format'
 import {
@@ -17,6 +18,7 @@ import {
 } from '@/types/inventory'
 import { InventoryStatusBadge } from './InventoryStatusBadge'
 import { InventoryStatusDialog } from './InventoryStatusDialog'
+import { InventoryForm } from './InventoryForm'
 
 interface InventoryHistoryRecord {
   id: string
@@ -42,6 +44,7 @@ export function InventoryDetailDrawer({
   const [history, setHistory] = useState<InventoryHistoryRecord[]>([])
   const [loadingHistory, setLoadingHistory] = useState(true)
   const [showStatusModal, setShowStatusModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
 
   useEffect(() => {
     fetch(`/api/inventory/${item.id}`)
@@ -105,14 +108,25 @@ export function InventoryDetailDrawer({
               <InventoryStatusBadge status={item.status} className="text-sm px-3 py-1" />
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowStatusModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--brand)] bg-[var(--brand-light)] border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-            >
-              <Edit3 className="w-3.5 h-3.5" />
-              Change Status
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowEditModal(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-lg hover:bg-[var(--surface-muted)] transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5 text-[var(--foreground-muted)]" />
+                Edit Details
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowStatusModal(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--brand)] bg-[var(--brand-light)] border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                Change Status
+              </button>
+            </div>
           </div>
 
           {/* Pricing Section (Modular) */}
@@ -318,6 +332,20 @@ export function InventoryDetailDrawer({
         <InventoryStatusDialog
           item={item}
           onClose={() => setShowStatusModal(false)}
+          onSuccess={() => {
+            if (onUpdateSuccess) onUpdateSuccess()
+            onClose()
+          }}
+        />
+      )}
+
+      {/* Edit Details Modal */}
+      {showEditModal && (
+        <InventoryForm
+          projectId={item.project_id}
+          defaultCategory={item.category}
+          initialItem={item}
+          onClose={() => setShowEditModal(false)}
           onSuccess={() => {
             if (onUpdateSuccess) onUpdateSuccess()
             onClose()
