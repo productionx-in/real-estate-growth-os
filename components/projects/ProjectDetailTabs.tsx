@@ -8,9 +8,8 @@ import {
   Calendar,
   ShieldCheck,
   MapPin,
-  Maximize2,
-  Tag,
-  Hash,
+  ExternalLink,
+  Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import {
@@ -44,6 +43,9 @@ interface ProjectDetailTabsProps {
     completion_date: string | null
     created_at: string
     org_id: string
+    brochure_url?: string | null
+    amenities?: string[] | null
+    specifications?: Record<string, unknown> | null
   }
   inventoryItems: InventoryItemWithRelations[]
   leads: ComponentProps<typeof LeadsTable>['leads']
@@ -276,7 +278,41 @@ export function ProjectDetailTabs({
                 No description provided for this project.
               </p>
             )}
+
+            {project.brochure_url && (
+              <div className="pt-2 border-t border-[var(--border)]">
+                <a
+                  href={project.brochure_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[var(--brand)] hover:underline"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  View Project Brochure / Collateral
+                </a>
+              </div>
+            )}
           </div>
+
+          {/* Card 4: Amenities (if present) */}
+          {Array.isArray(project.amenities) && project.amenities.length > 0 && (
+            <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 space-y-4 md:col-span-2 lg:col-span-3">
+              <h3 className="text-[14px] font-semibold text-[var(--foreground)] flex items-center gap-2 border-b border-[var(--border)] pb-2.5">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                Featured Amenities & Highlights
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {project.amenities.map((amenity, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200"
+                  >
+                    ✓ {amenity}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

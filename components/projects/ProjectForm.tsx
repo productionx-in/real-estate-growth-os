@@ -2,7 +2,18 @@
 // components/projects/ProjectForm.tsx
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import {
+  Building2,
+  MapPin,
+  Calendar,
+  Layers,
+  Sparkles,
+  Link2,
+  Loader2,
+  Check,
+  ArrowLeft,
+} from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import type { ProjectFormValues } from '@/lib/validations/project'
 import { PROJECT_CATEGORY_LABELS, type ProjectCategory } from '@/types/inventory'
@@ -21,27 +32,27 @@ const CATEGORY_OPTIONS: { value: ProjectCategory; label: string; desc: string }[
   {
     value: 'apartments',
     label: 'Apartments',
-    desc: 'Towers, floors, and residential flats/apartments',
+    desc: 'High-rise & mid-rise towers with residential units',
   },
   {
     value: 'plotted_developments',
     label: 'Plotted Developments',
-    desc: 'Phases, sectors/blocks, and open residential/commercial plots',
+    desc: 'Open plotted layouts, phases, blocks & residential plots',
   },
   {
     value: 'commercial_sale',
     label: 'Commercial Sale',
-    desc: 'Retail shops, offices, and commercial corporate units',
+    desc: 'Office spaces, retail shops & commercial suites for outright sale',
   },
   {
     value: 'villas_gated_communities',
     label: 'Villas & Gated Communities',
-    desc: 'Clusters, streets, independent villas and row houses',
+    desc: 'Independent villas, row houses & gated luxury clusters',
   },
   {
     value: 'mixed_use',
     label: 'Mixed-Use Developments',
-    desc: 'Integrated residential, commercial, and retail components',
+    desc: 'Integrated townships combining residential, commercial & retail',
   },
 ]
 
@@ -53,10 +64,26 @@ const PROJECT_STATUSES = [
   { value: 'completed', label: 'Completed' },
 ] as const
 
+const STANDARD_AMENITIES = [
+  'Clubhouse',
+  'Swimming Pool',
+  'Gymnasium',
+  '24/7 Security & CCTV',
+  'Landscaped Gardens',
+  'Children’s Play Area',
+  'Jogging / Walking Track',
+  '100% Power Backup',
+  'Rainwater Harvesting',
+  'Indoor Games Room',
+  'Tennis / Badminton Court',
+  'Solar Street Lighting',
+]
+
 export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: ProjectFormProps) {
   const router = useRouter()
   const isEditing = !!projectId
 
+  // Form State
   const [form, setForm] = useState<ProjectFormValues>({
     name: defaultValues?.name ?? '',
     code: defaultValues?.code ?? '',
@@ -73,7 +100,42 @@ export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: Projec
     approval_authority: defaultValues?.approval_authority ?? '',
     launch_date: defaultValues?.launch_date ?? '',
     completion_date: defaultValues?.completion_date ?? '',
+    brochure_url: defaultValues?.brochure_url ?? '',
+    amenities: (defaultValues?.amenities as string[]) ?? [],
+    specifications: (defaultValues?.specifications as Record<string, unknown>) ?? {},
   })
+
+  // Category specifications helpers
+  type SpecValue = string | number | string[] | null | undefined
+  const specs = (form.specifications ?? {}) as Record<string, SpecValue>
+  function setSpec(key: string, value: SpecValue) {
+    setForm((prev) => ({
+      ...prev,
+      specifications: {
+        ...(prev.specifications ?? {}),
+        [key]: value,
+      },
+    }))
+  }
+
+  const getStr = (key: string, fallback = ''): string => {
+    const val = specs[key]
+    if (val === undefined || val === null) return fallback
+    if (Array.isArray(val)) return val.join(', ')
+    return String(val)
+  }
+  const getNum = (key: string): number | '' => {
+    const val = specs[key]
+    return typeof val === 'number' ? val : ''
+  }
+
+  function toggleAmenity(amenity: string) {
+    const current = (form.amenities ?? []) as string[]
+    const next = current.includes(amenity)
+      ? current.filter((a) => a !== amenity)
+      : [...current, amenity]
+    setForm((prev) => ({ ...prev, amenities: next }))
+  }
 
   const [errors, setErrors] = useState<Partial<Record<keyof ProjectFormValues, string>>>({})
   const [loading, setLoading] = useState(false)
@@ -133,285 +195,545 @@ export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: Projec
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-5xl">
-        <div className="lg:col-span-2 space-y-5">
-          {/* Main Info */}
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
-            <h2 className="text-[13px] font-semibold text-[var(--foreground)] mb-4">
-              Project Details
-            </h2>
+    <form onSubmit={handleSubmit} noValidate className="max-w-5xl space-y-6">
+      {serverError && (
+        <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center justify-between">
+          <span>{serverError}</span>
+          <button
+            type="button"
+            onClick={() => setServerError(null)}
+            className="text-red-500 hover:text-red-700 font-bold"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
-            {serverError && (
-              <div className="p-3 mb-4 rounded bg-red-50 border border-red-200 text-[13px] text-red-700">
-                {serverError}
-              </div>
-            )}
+      {/* SECTION A: Basic Information */}
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 space-y-4 shadow-2xs">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)] flex items-center gap-1.5 pb-2 border-b border-[var(--border)]">
+          <Building2 className="w-3.5 h-3.5 text-[var(--brand)]" />
+          A. Basic Information
+        </h2>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="md:col-span-2">
-                  <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
-                    Project name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={(e) => set('name', e.target.value)}
-                    placeholder="e.g. Apex Heights, Cyber Residency"
-                    className={cn(inputClass, errors.name && 'border-red-400')}
-                  />
-                  {errors.name && <p className="text-[11px] text-red-500 mt-1">{errors.name}</p>}
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2 space-y-1">
+            <label className="block text-[13px] font-medium text-[var(--foreground)]">
+              Project Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={form.name}
+              onChange={(e) => set('name', e.target.value)}
+              className={cn(inputClass, errors.name && 'border-red-400')}
+              placeholder="e.g. Otho Greenview Heights, Palm County"
+            />
+            {errors.name && <p className="text-[11px] text-red-500">{errors.name}</p>}
+          </div>
 
-                <div>
-                  <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
-                    Project Code
-                  </label>
-                  <input
-                    type="text"
-                    value={form.code ?? ''}
-                    onChange={(e) => set('code', e.target.value.toUpperCase())}
-                    placeholder="e.g. APX-H"
-                    className={inputClass}
-                  />
-                </div>
-              </div>
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[var(--foreground)]">
+              Project Code
+            </label>
+            <input
+              type="text"
+              value={form.code ?? ''}
+              onChange={(e) => set('code', e.target.value.toUpperCase())}
+              className={inputClass}
+              placeholder="e.g. OTHO-01"
+            />
+            <p className="text-[11px] text-[var(--foreground-subtle)]">Short identifier for inventory & leads</p>
+          </div>
+        </div>
 
-              {/* Category Selector */}
-              <div>
-                <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1.5">
-                  Project Category <span className="text-red-500">*</span>
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {CATEGORY_OPTIONS.map((opt) => (
-                    <label
-                      key={opt.value}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[var(--foreground)]">
+              Lifecycle Status
+            </label>
+            <select
+              value={form.status}
+              onChange={(e) => set('status', e.target.value as ProjectFormValues['status'])}
+              className={inputClass}
+            >
+              {PROJECT_STATUSES.map((st) => (
+                <option key={st.value} value={st.value}>
+                  {st.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[var(--foreground)]">
+              Total Planned Units / Plots
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={form.total_units_count ?? 0}
+              onChange={(e) => set('total_units_count', Number(e.target.value))}
+              className={inputClass}
+              placeholder="e.g. 180"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[var(--foreground)]">
+              Total Land Extent
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={form.total_area_value ?? ''}
+                onChange={(e) => set('total_area_value', e.target.value ? Number(e.target.value) : null)}
+                className={inputClass}
+                placeholder="e.g. 12.5"
+              />
+              <select
+                value={form.total_area_unit ?? 'acres'}
+                onChange={(e) => set('total_area_unit', e.target.value)}
+                className="w-28 px-2 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none"
+              >
+                <option value="acres">Acres</option>
+                <option value="sqyd">Sq. Yds</option>
+                <option value="sqft">Sq. Ft</option>
+                <option value="cents">Cents</option>
+                <option value="guntas">Guntas</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-1 pt-1">
+          <label className="block text-[13px] font-medium text-[var(--foreground)]">
+            Description
+          </label>
+          <textarea
+            rows={3}
+            value={form.description ?? ''}
+            onChange={(e) => set('description', e.target.value)}
+            className={inputClass}
+            placeholder="Key selling points, project highlights, and positioning narrative..."
+          />
+        </div>
+      </div>
+
+      {/* SECTION B: Project Category & Category-Specific Specifications */}
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 space-y-5 shadow-2xs">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)] flex items-center gap-1.5 pb-2 border-b border-[var(--border)]">
+          <Layers className="w-3.5 h-3.5 text-[var(--brand)]" />
+          B. Project Category & Tailored Specifications
+        </h2>
+
+        {/* Category Selector Cards */}
+        <div className="space-y-2">
+          <label className="block text-[13px] font-medium text-[var(--foreground)]">
+            Select Project Category
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {CATEGORY_OPTIONS.map((cat) => {
+              const selected = form.category === cat.value
+              return (
+                <button
+                  key={cat.value}
+                  type="button"
+                  onClick={() => {
+                    set('category', cat.value)
+                    // Auto-sync type for legacy compatibility
+                    if (cat.value === 'plotted_developments') set('type', 'plots')
+                    else if (cat.value === 'commercial_sale') set('type', 'commercial')
+                    else if (cat.value === 'mixed_use') set('type', 'mixed_use')
+                    else set('type', 'residential')
+                  }}
+                  className={cn(
+                    'text-left p-3 rounded-xl border transition-all flex flex-col justify-between',
+                    selected
+                      ? 'border-[var(--brand)] bg-blue-50/50 shadow-2xs'
+                      : 'border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)]'
+                  )}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span
                       className={cn(
-                        'flex flex-col p-3 rounded-lg border cursor-pointer transition-all text-left',
-                        form.category === opt.value
-                          ? 'border-[var(--brand)] bg-blue-50/40 text-[var(--brand)] ring-1 ring-[var(--brand)]'
-                          : 'border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-muted)] text-[var(--foreground)]'
+                        'text-xs font-semibold',
+                        selected ? 'text-[var(--brand)]' : 'text-[var(--foreground)]'
                       )}
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[13px] font-semibold">{opt.label}</span>
-                        <input
-                          type="radio"
-                          name="category"
-                          value={opt.value}
-                          checked={form.category === opt.value}
-                          onChange={() => set('category', opt.value)}
-                          className="w-3.5 h-3.5 text-[var(--brand)]"
-                        />
-                      </div>
-                      <span className="text-[11px] text-[var(--foreground-muted)] leading-tight">
-                        {opt.desc}
-                      </span>
-                    </label>
-                  ))}
-                </div>
+                      {cat.label}
+                    </span>
+                    {selected && <Check className="w-3.5 h-3.5 text-[var(--brand)]" />}
+                  </div>
+                  <p className="text-[11px] text-[var(--foreground-muted)] leading-snug">
+                    {cat.desc}
+                  </p>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Category-Specific Form Fields */}
+        <div className="p-4 rounded-xl bg-[var(--surface-muted)] border border-[var(--border)] space-y-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[var(--brand)]" />
+            <h3 className="text-xs font-semibold text-[var(--foreground)]">
+              {PROJECT_CATEGORY_LABELS[form.category]} Specifications
+            </h3>
+          </div>
+
+          {/* 1. Apartments Dynamic Fields */}
+          {form.category === 'apartments' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="space-y-1">
+                <label className="font-medium text-[var(--foreground)]">Total Towers Planned</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={getNum('towers_count')}
+                  onChange={(e) => setSpec('towers_count', e.target.value ? Number(e.target.value) : null)}
+                  className={inputClass}
+                  placeholder="e.g. 4 Towers"
+                />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    value={form.city ?? ''}
-                    onChange={(e) => set('city', e.target.value)}
-                    placeholder="e.g. Hyderabad"
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
-                    Location / Micro-market
-                  </label>
-                  <input
-                    type="text"
-                    value={form.location ?? ''}
-                    onChange={(e) => set('location', e.target.value)}
-                    placeholder="e.g. Gachibowli, Kokapet, Financial District"
-                    className={inputClass}
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="font-medium text-[var(--foreground)]">Typical Floors per Tower</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={getNum('floors_count')}
+                  onChange={(e) => setSpec('floors_count', e.target.value ? Number(e.target.value) : null)}
+                  className={inputClass}
+                  placeholder="e.g. 14 Floors"
+                />
               </div>
 
-              <div>
-                <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={form.description ?? ''}
-                  onChange={(e) => set('description', e.target.value)}
-                  rows={3}
-                  placeholder="Overview, highlights, key connectivity..."
-                  className={cn(inputClass, 'resize-none')}
+              <div className="space-y-1">
+                <label className="font-medium text-[var(--foreground)]">Clubhouse Area (Sq. Ft)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={getNum('clubhouse_sqft')}
+                  onChange={(e) => setSpec('clubhouse_sqft', e.target.value ? Number(e.target.value) : null)}
+                  className={inputClass}
+                  placeholder="e.g. 25000"
                 />
               </div>
             </div>
-          </div>
+          )}
 
-          {/* RERA and Approvals Section */}
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
-            <h2 className="text-[13px] font-semibold text-[var(--foreground)] mb-4">
-              Approvals & Timeline
-            </h2>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
-                    RERA Number
-                  </label>
-                  <input
-                    type="text"
-                    value={form.rera_number ?? ''}
-                    onChange={(e) => set('rera_number', e.target.value)}
-                    placeholder="e.g. P02400005432"
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
-                    Approval Authority
-                  </label>
-                  <input
-                    type="text"
-                    value={form.approval_authority ?? ''}
-                    onChange={(e) => set('approval_authority', e.target.value)}
-                    placeholder="e.g. HMDA, GHMC, DTCP"
-                    className={inputClass}
-                  />
-                </div>
+          {/* 2. Plotted Developments Dynamic Fields */}
+          {form.category === 'plotted_developments' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="space-y-1">
+                <label className="font-medium text-[var(--foreground)]">Plot Size Range</label>
+                <input
+                  type="text"
+                  value={getStr('plot_size_range')}
+                  onChange={(e) => setSpec('plot_size_range', e.target.value)}
+                  className={inputClass}
+                  placeholder="e.g. 165 sqyd – 450 sqyd"
+                />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
-                    Total Units / Plots Planned
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={form.total_units_count ?? 0}
-                    onChange={(e) => set('total_units_count', parseInt(e.target.value) || 0)}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
-                    Total Project Extent
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min={0}
-                    value={form.total_area_value ?? ''}
-                    onChange={(e) =>
-                      set('total_area_value', e.target.value ? parseFloat(e.target.value) : null)
-                    }
-                    placeholder="e.g. 5.5"
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
-                    Area Unit
-                  </label>
-                  <select
-                    value={form.total_area_unit ?? 'acres'}
-                    onChange={(e) => set('total_area_unit', e.target.value)}
-                    className={inputClass}
-                  >
-                    <option value="acres">Acres</option>
-                    <option value="guntas">Guntas</option>
-                    <option value="sq_yards">Sq. Yards</option>
-                    <option value="sq_ft">Sq. Ft.</option>
-                  </select>
-                </div>
+              <div className="space-y-1">
+                <label className="font-medium text-[var(--foreground)]">Internal Road Widths</label>
+                <input
+                  type="text"
+                  value={getStr('road_widths')}
+                  onChange={(e) => setSpec('road_widths', e.target.value)}
+                  className={inputClass}
+                  placeholder="e.g. 40ft & 60ft BT Roads"
+                />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
-                    Launch Date
-                  </label>
-                  <input
-                    type="date"
-                    value={form.launch_date ?? ''}
-                    onChange={(e) => set('launch_date', e.target.value)}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
-                    Expected Completion Date
-                  </label>
-                  <input
-                    type="date"
-                    value={form.completion_date ?? ''}
-                    onChange={(e) => set('completion_date', e.target.value)}
-                    className={inputClass}
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="font-medium text-[var(--foreground)]">Open Space / Park Allocation</label>
+                <input
+                  type="text"
+                  value={getStr('open_space_pct')}
+                  onChange={(e) => setSpec('open_space_pct', e.target.value)}
+                  className={inputClass}
+                  placeholder="e.g. 10% Open Green Space"
+                />
               </div>
             </div>
-          </div>
+          )}
+
+          {/* 3. Commercial Sale Dynamic Fields */}
+          {form.category === 'commercial_sale' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="space-y-1">
+                <label className="font-medium text-[var(--foreground)]">Commercial Asset Type</label>
+                <input
+                  type="text"
+                  value={getStr('asset_types')}
+                  onChange={(e) => setSpec('asset_types', e.target.value)}
+                  className={inputClass}
+                  placeholder="e.g. Grade A Offices, Retail Shops"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-medium text-[var(--foreground)]">Typical Floor Plate (Sq. Ft)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={getNum('floor_plate_sqft')}
+                  onChange={(e) => setSpec('floor_plate_sqft', e.target.value ? Number(e.target.value) : null)}
+                  className={inputClass}
+                  placeholder="e.g. 18000"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-medium text-[var(--foreground)]">Power Backup Infrastructure</label>
+                <input
+                  type="text"
+                  value={getStr('power_backup', '100% DG Power Backup')}
+                  onChange={(e) => setSpec('power_backup', e.target.value)}
+                  className={inputClass}
+                  placeholder="e.g. 100% DG Backup"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* 4. Villas Dynamic Fields */}
+          {form.category === 'villas_gated_communities' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="space-y-1">
+                <label className="font-medium text-[var(--foreground)]">Villa Typologies</label>
+                <input
+                  type="text"
+                  value={getStr('villa_types')}
+                  onChange={(e) => setSpec('villa_types', e.target.value)}
+                  className={inputClass}
+                  placeholder="e.g. East & West Facing 4BHKs"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-medium text-[var(--foreground)]">Plot Size Range</label>
+                <input
+                  type="text"
+                  value={getStr('plot_size_range')}
+                  onChange={(e) => setSpec('plot_size_range', e.target.value)}
+                  className={inputClass}
+                  placeholder="e.g. 250 – 500 sqyd"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-medium text-[var(--foreground)]">Built-up Area Range</label>
+                <input
+                  type="text"
+                  value={getStr('built_up_range')}
+                  onChange={(e) => setSpec('built_up_range', e.target.value)}
+                  className={inputClass}
+                  placeholder="e.g. 3200 – 4800 sqft"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* 5. Mixed-Use Dynamic Fields */}
+          {form.category === 'mixed_use' && (
+            <div className="space-y-2 text-xs">
+              <label className="font-medium text-[var(--foreground)]">Integrated Project Components</label>
+              <input
+                type="text"
+                value={getStr('components')}
+                onChange={(e) => setSpec('components', e.target.value)}
+                className={inputClass}
+                placeholder="e.g. Residential Towers, Retail Arcade, Commercial Office Block"
+              />
+              <p className="text-[11px] text-[var(--foreground-muted)]">
+                Mixed-use projects support multiple inventory categories simultaneously.
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Right Sidebar: Status & Actions */}
-        <div className="space-y-5">
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
-            <h3 className="text-[13px] font-semibold text-[var(--foreground)] mb-3">
-              Lifecycle Status
-            </h3>
-            <div className="space-y-2">
-              {PROJECT_STATUSES.map((s) => (
-                <label
-                  key={s.value}
+        {/* Project Amenities Tags */}
+        <div className="space-y-2 pt-2">
+          <label className="block text-[13px] font-medium text-[var(--foreground)]">
+            Project Amenities & Features
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {STANDARD_AMENITIES.map((am) => {
+              const active = ((form.amenities ?? []) as string[]).includes(am)
+              return (
+                <button
+                  key={am}
+                  type="button"
+                  onClick={() => toggleAmenity(am)}
                   className={cn(
-                    'flex items-center gap-2.5 p-2 rounded-md cursor-pointer transition-colors text-[13px]',
-                    form.status === s.value
-                      ? 'bg-blue-50 text-[var(--brand)] font-medium'
-                      : 'hover:bg-[var(--surface-muted)] text-[var(--foreground-muted)]'
+                    'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5',
+                    active
+                      ? 'bg-blue-50 text-[var(--brand)] border-blue-200 shadow-2xs'
+                      : 'bg-[var(--surface)] text-[var(--foreground-muted)] border-[var(--border)] hover:bg-[var(--surface-hover)]'
                   )}
                 >
-                  <input
-                    type="radio"
-                    name="status"
-                    value={s.value}
-                    checked={form.status === s.value}
-                    onChange={() => set('status', s.value)}
-                    className="w-3.5 h-3.5 text-[var(--brand)]"
-                  />
-                  {s.label}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 space-y-3">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white text-[13px] font-medium rounded-md transition-colors disabled:opacity-50"
-            >
-              {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              {isEditing ? 'Save changes' : 'Create project'}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="w-full py-2 px-4 border border-[var(--border)] hover:bg-[var(--surface-muted)] text-[var(--foreground-muted)] text-[13px] font-medium rounded-md transition-colors"
-            >
-              Cancel
-            </button>
+                  <span className={cn('w-1.5 h-1.5 rounded-full', active ? 'bg-[var(--brand)]' : 'bg-gray-300')} />
+                  {am}
+                </button>
+              )
+            })}
           </div>
         </div>
+      </div>
+
+      {/* SECTION C: Location & Address */}
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 space-y-4 shadow-2xs">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)] flex items-center gap-1.5 pb-2 border-b border-[var(--border)]">
+          <MapPin className="w-3.5 h-3.5 text-[var(--brand)]" />
+          C. Location & Address
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[var(--foreground)]">City</label>
+            <input
+              type="text"
+              value={form.city ?? 'Hyderabad'}
+              onChange={(e) => set('city', e.target.value)}
+              className={inputClass}
+              placeholder="Hyderabad"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[var(--foreground)]">
+              Locality / Micro-market
+            </label>
+            <input
+              type="text"
+              value={form.location ?? ''}
+              onChange={(e) => set('location', e.target.value)}
+              className={inputClass}
+              placeholder="e.g. Kokapet, Gachibowli, Mokila, Tellapur"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION D: Project Media & Documents */}
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 space-y-4 shadow-2xs">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)] flex items-center gap-1.5 pb-2 border-b border-[var(--border)]">
+          <Link2 className="w-3.5 h-3.5 text-[var(--brand)]" />
+          D. Project Media & Digital Collateral
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[var(--foreground)]">
+              Digital Brochure URL
+            </label>
+            <input
+              type="url"
+              value={form.brochure_url ?? ''}
+              onChange={(e) => set('brochure_url', e.target.value)}
+              className={inputClass}
+              placeholder="https://example.com/brochure.pdf"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[var(--foreground)]">
+              Video Walkthrough / Tour URL
+            </label>
+            <input
+              type="url"
+              value={getStr('video_url')}
+              onChange={(e) => setSpec('video_url', e.target.value)}
+              className={inputClass}
+              placeholder="https://youtube.com/watch?v=..."
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION E: Regulatory, Compliance & Timeline */}
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 space-y-4 shadow-2xs">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)] flex items-center gap-1.5 pb-2 border-b border-[var(--border)]">
+          <Calendar className="w-3.5 h-3.5 text-[var(--brand)]" />
+          E. Regulatory Approvals & Timeline
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[var(--foreground)]">
+              RERA Registration Number
+            </label>
+            <input
+              type="text"
+              value={form.rera_number ?? ''}
+              onChange={(e) => set('rera_number', e.target.value)}
+              className={inputClass}
+              placeholder="e.g. P0240000XXXX"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[var(--foreground)]">
+              Sanctioning / Approval Authority
+            </label>
+            <input
+              type="text"
+              value={form.approval_authority ?? ''}
+              onChange={(e) => set('approval_authority', e.target.value)}
+              className={inputClass}
+              placeholder="e.g. HMDA, GHMC, DTCP"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[var(--foreground)]">Launch Date</label>
+            <input
+              type="date"
+              value={form.launch_date ?? ''}
+              onChange={(e) => set('launch_date', e.target.value)}
+              className={inputClass}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-[13px] font-medium text-[var(--foreground)]">
+              Target Completion Date
+            </label>
+            <input
+              type="date"
+              value={form.completion_date ?? ''}
+              onChange={(e) => set('completion_date', e.target.value)}
+              className={inputClass}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* FORM ACTIONS */}
+      <div className="flex items-center justify-between pt-3 pb-8">
+        <Link
+          href={isEditing ? `/${orgSlug}/projects/${projectId}` : `/${orgSlug}/projects`}
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Cancel
+        </Link>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-[var(--brand)] hover:opacity-90 rounded-md shadow-xs transition-all disabled:opacity-50"
+        >
+          {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+          {isEditing ? 'Save Changes' : 'Create Project'}
+        </button>
       </div>
     </form>
   )

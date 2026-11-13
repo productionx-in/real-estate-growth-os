@@ -2,7 +2,7 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { slugify } from '@/lib/utils/slugify'
 import type { ProjectFormValues } from '@/lib/validations/project'
-import type { Database } from '@/types/database'
+import type { Database, Json } from '@/types/database'
 
 type ProjectUpdate = Database['public']['Tables']['projects']['Update']
 
@@ -65,6 +65,9 @@ export async function createProject(orgId: string, values: ProjectFormValues) {
       approval_authority: values.approval_authority || null,
       launch_date: values.launch_date || null,
       completion_date: values.completion_date || null,
+      brochure_url: values.brochure_url || null,
+      amenities: (values.amenities ?? []) as unknown as Json,
+      specifications: (values.specifications ?? {}) as unknown as Json,
     })
     .select()
     .single()
@@ -91,6 +94,9 @@ export async function updateProject(projectId: string, values: Partial<ProjectFo
   if (values.approval_authority !== undefined) payload.approval_authority = values.approval_authority || null
   if (values.launch_date !== undefined) payload.launch_date = values.launch_date || null
   if (values.completion_date !== undefined) payload.completion_date = values.completion_date || null
+  if (values.brochure_url !== undefined) payload.brochure_url = values.brochure_url || null
+  if (values.amenities !== undefined) payload.amenities = values.amenities as unknown as Json
+  if (values.specifications !== undefined) payload.specifications = values.specifications as unknown as Json
 
   const { data, error } = await service
     .from('projects')

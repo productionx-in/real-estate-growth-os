@@ -2,7 +2,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Building2, MapPin } from 'lucide-react'
+import { ArrowLeft, Building2, MapPin, Pencil } from 'lucide-react'
 import { createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { ProjectDetailTabs } from '@/components/projects/ProjectDetailTabs'
@@ -107,6 +107,17 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           )}
         </div>
       }
+      actions={
+        isManager ? (
+          <Link
+            href={`/${orgSlug}/projects/${projectId}/edit`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-muted)] transition-colors shadow-sm"
+          >
+            <Pencil className="w-3.5 h-3.5 text-[var(--foreground-muted)]" />
+            Edit Project
+          </Link>
+        ) : undefined
+      }
     >
       <div className="mb-4">
         <Link
@@ -122,6 +133,13 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         project={{
           ...project,
           category,
+          amenities: Array.isArray(project.amenities) ? (project.amenities as string[]) : [],
+          specifications:
+            project.specifications &&
+            typeof project.specifications === 'object' &&
+            !Array.isArray(project.specifications)
+              ? (project.specifications as Record<string, unknown>)
+              : {},
         }}
         inventoryItems={inventoryItems}
         leads={leads ?? []}

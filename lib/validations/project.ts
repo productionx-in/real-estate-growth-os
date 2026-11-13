@@ -25,6 +25,9 @@ export const ProjectSchema = z.object({
   approval_authority: z.string().max(100).optional().or(z.literal('')),
   launch_date: z.string().optional().or(z.literal('')),
   completion_date: z.string().optional().or(z.literal('')),
+  brochure_url: z.string().optional().or(z.literal('')),
+  amenities: z.array(z.string()).optional().default([]),
+  specifications: z.record(z.string(), z.unknown()).optional().default({}),
 })
 
 export type ProjectFormValues = z.infer<typeof ProjectSchema>

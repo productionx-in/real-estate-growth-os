@@ -127,7 +127,6 @@ function testTeamPageMemberResolution() {
   assert.equal(othoMembers.some((m) => m.name === 'Multi-Org Manager'), true, 'Logged-in owner appears on Team page')
   
   // Verify Acme member does NOT leak into Otho
-  const acmeOnlyMembers = DB.org_members.filter((m) => m.org_id === 'org-acme')
   assert.equal(othoMembers.some((m) => m.id === 'mem-2'), false, 'Acme membership must not appear in Otho')
   console.log('✓ Test 5: Team page displays all active members for active organisation without cross-tenant leakage')
 }
