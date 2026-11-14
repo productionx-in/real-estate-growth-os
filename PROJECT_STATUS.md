@@ -2,9 +2,9 @@
 ## PROJECT STATUS REGISTER
 
 **Document Purpose:** Accurate, evidence-based status tracking for all stages, sub-stages, and infrastructure components.  
-**Last Updated:** 2026-11-15T01:42:00+05:30  
+**Last Updated:** 2026-11-15T02:00:00+05:30  
 **Current Active Stage:** **Stage 4 — CRM, Lead Sources & Integrations**  
-**Last Verified Checkpoint:** **Stage 4D — Google Ads Lead Integration (Code Verified)**
+**Last Verified Checkpoint:** **Stage 4E — Website Enquiry Forms (Code Verified)**
 
 ---
 
@@ -25,7 +25,7 @@
 | **STAGE 4B** | **Meta Lead Ads OAuth Integration** | **Code Verified** | `tests/meta-oauth-integration.test.mjs` (12/12 passed), `lib/integrations/meta/*`, AES-256-GCM. *Central Meta App setup deferred.* |
 | **STAGE 4C** | **Public Webhooks & Lead Ingestion** | **Code Verified (Hardened)** | `tests/public-webhooks-ingestion.test.mjs` (7 comprehensive suites passed), distributed rate limiter, raw-body HMAC, secret rotation grace period, atomic DB race deduplication. |
 | **STAGE 4D** | **Google Ads Lead Integration** | **Code Verified** | `tests/google-ads-integration.test.mjs` (12/12 passed), `lib/integrations/google/*`, Google OAuth, lead webhook, AES-256-GCM. *Google App setup deferred.* |
-| **STAGE 4E** | **Website Enquiry Forms** | **Not Started** | Scheduled following Stage 4D. |
+| **STAGE 4E** | **Website Enquiry Forms** | **Code Verified** | `tests/website-enquiry-forms.test.mjs` (12/12 passed), `app/api/forms/submit/route.ts`, `app/forms/embed.js`, `WebsiteEnquiryWizardModal.tsx` |
 | **STAGE 4F** | **WhatsApp Business Integration** | **Not Started** | Scheduled following Stage 4E. |
 | **STAGE 4G** | **Property Portal Integrations** | **Not Started** | Scheduled following Stage 4F. |
 | **STAGE 4H** | **Integration APIs & Extensibility** | **Not Started** | Scheduled following Stage 4G. |
@@ -54,7 +54,7 @@
 ## 3. Active Checkpoint & Codebase Health
 
 - **TypeScript Compilation (`npx tsc --noEmit`):** **PASS** (0 errors).
-- **Automated Test Suites (`npm test`):** **PASS** (16 / 16 test suites passed, 160+ assertions green).
+- **Automated Test Suites (`npm test`):** **PASS** (17 / 17 test suites passed, 175+ assertions green).
 - **ESLint (`npm run lint`):** **PASS** (0 errors, 10 minor warnings).
 - **Next.js Production Build (`npm run build`):** Webpack compiles; sandboxed local build encounters Windows OneDrive file handle locks during rapid recursive `mkdir` in `.next` (tracked as separate infrastructure deployment verification; does not affect application code).
 

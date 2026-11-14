@@ -23,6 +23,7 @@ import type {
 } from '@/lib/integrations/types'
 import { MetaConnectWizardModal } from '@/components/integrations/MetaConnectWizardModal'
 import { ConnectionDetailsModal } from '@/components/integrations/ConnectionDetailsModal'
+import { WebsiteEnquiryWizardModal } from '@/components/integrations/WebsiteEnquiryWizardModal'
 
 interface ProjectOption {
   id: string
@@ -59,26 +60,17 @@ export function IntegrationCentreView({
   const [connections, setConnections] = useState(initialConnections)
   const [mappings, setMappings] = useState(initialMappings)
   const [isWizardOpen, setIsWizardOpen] = useState(false)
+  const [isWebsiteWizardOpen, setIsWebsiteWizardOpen] = useState(false)
   const [selectedConnection, setSelectedConnection] = useState<
     (IntegrationConnectionRecord & { mappings?: IntegrationProjectMappingRecord[] }) | null
   >(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  // Filter connections by provider
+  // Filter connections by provider and active verified state
   const metaConnections = connections.filter((c) => c.provider === 'meta_ads')
   const activeMetaConnections = metaConnections.filter((c) => c.status === 'connected')
-
-  // Calculate connected pages and forms summary across all Meta connections
-  let totalConnectedPages = 0
-  let totalConnectedForms = 0
-  for (const conn of activeMetaConnections) {
-    const meta = (conn.metadata || {}) as Record<string, unknown>
-    const pages = (meta.pages || []) as MetaPageAsset[]
-    totalConnectedPages += pages.length
-    for (const p of pages) {
-      totalConnectedForms += p.forms?.length || 0
-    }
-  }
+  const websiteConnection = connections.find((c) => c.provider === 'website_webhook')
+  const activeVerifiedConnections = connections.filter((c) => c.status === 'connected')
 
   // Refresh data from API
   const refreshData = async () => {
@@ -141,7 +133,7 @@ export function IntegrationCentreView({
         </div>
       )}
 
-      {/* Top Banner: Central Meta App Architecture & Tenant Privacy Guarantee */}
+      {/* Top Banner: Central Provider Architecture & Tenant Privacy Guarantee */}
       <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-transparent border border-blue-200/80 rounded-2xl p-6 relative overflow-hidden">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1.5 max-w-3xl">
@@ -151,25 +143,25 @@ export function IntegrationCentreView({
                 Verified Multi-Tenant Lead Pipeline
               </span>
               <span className="text-[12px] text-gray-500">•</span>
-              <span className="text-[12px] text-gray-600 font-medium">Single Central Meta App Architecture</span>
+              <span className="text-[12px] text-gray-600 font-medium">Central Developer App Architecture</span>
             </div>
             <h2 className="text-[18px] font-bold text-gray-900">
               Welcome to the Real Estate Integration Centre
             </h2>
             <p className="text-[13px] text-gray-600 leading-relaxed">
-              Connect your advertising channels directly to your CRM. Production X operates one central,
-              officially verified Meta application. Your business accounts, Facebook Pages, and customer
-              leads remain completely private and isolated to <strong>{org.name}</strong>.
+              Connect your advertising channels directly to your CRM. Production X operates a central,
+              multi-tenant application architecture (external app registration deferred per DEC-004 &amp; DEC-011).
+              Customer leads remain completely private and isolated to <strong>{org.name}</strong>.
             </p>
           </div>
 
           {canManage && (
             <button
               onClick={() => setIsWizardOpen(true)}
-              className="px-4 py-2.5 text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-sm flex items-center gap-2 flex-shrink-0"
+              className="px-4 py-2.5 text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-sm flex items-center gap-2 flex-shrink-0 cursor-pointer"
             >
               <FacebookIcon className="w-4 h-4" />
-              Connect Meta Account
+              Preview Meta Wizard (App Pending)
             </button>
           )}
         </div>
@@ -187,7 +179,7 @@ export function IntegrationCentreView({
           <button
             onClick={refreshData}
             disabled={isRefreshing}
-            className="px-3 py-1.5 text-[12px] font-medium text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5 shadow-2xs"
+            className="px-3 py-1.5 text-[12px] font-medium text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh Status
@@ -206,7 +198,7 @@ export function IntegrationCentreView({
                   className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
                     activeMetaConnections.length > 0
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      : 'bg-amber-50 text-amber-700 border-amber-200'
+                      : 'bg-gray-100 text-gray-700 border-gray-200'
                   }`}
                 >
                   {activeMetaConnections.length > 0
@@ -219,35 +211,35 @@ export function IntegrationCentreView({
 
               <div>
                 <h4 className="text-[14px] font-bold text-gray-900">Meta Lead Ads</h4>
-                <p className="text-[11px] text-gray-500">Facebook & Instagram Lead Generation</p>
+                <p className="text-[11px] text-gray-500">Facebook &amp; Instagram Lead Generation</p>
               </div>
 
               <p className="text-[12px] text-gray-600 leading-relaxed">
-                Stream buyer submissions instantly from Facebook & Instagram lead forms directly into
+                Stream buyer submissions instantly from Facebook &amp; Instagram lead forms directly into
                 your development projects.
               </p>
 
               <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
                 <div className="flex justify-between">
-                  <span>Connected Assets:</span>
-                  <span className="font-semibold text-gray-900">
+                  <span>Implementation:</span>
+                  <span className="font-semibold text-gray-900">Code Verified (Stage 4B)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Provider Setup:</span>
+                  <span className="text-amber-700 font-medium">Central Meta App Deferred (DEC-004)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Connection Status:</span>
+                  <span
+                    className={
+                      activeMetaConnections.length > 0
+                        ? 'text-emerald-700 font-medium'
+                        : 'text-gray-700 font-medium'
+                    }
+                  >
                     {activeMetaConnections.length > 0
-                      ? `${totalConnectedPages} Pages • ${totalConnectedForms} Forms`
-                      : '0 Assets'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Last Sync:</span>
-                  <span className="text-gray-700">
-                    {activeMetaConnections[0]?.last_sync_at
-                      ? formatDate(activeMetaConnections[0].last_sync_at)
-                      : 'Never'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Health:</span>
-                  <span className="text-emerald-700 font-medium">
-                    {activeMetaConnections.length > 0 ? 'Active & Ready' : 'Ready to Connect'}
+                      ? `${activeMetaConnections.length} Active Account(s)`
+                      : 'Not Connected (OAuth Required)'}
                   </span>
                 </div>
               </div>
@@ -257,18 +249,18 @@ export function IntegrationCentreView({
               {activeMetaConnections.length > 0 ? (
                 <button
                   onClick={() => setSelectedConnection(activeMetaConnections[0])}
-                  className="w-full py-2 px-3 text-[12px] font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                  className="w-full py-2 px-3 text-[12px] font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Sliders className="w-3.5 h-3.5" />
-                  Manage Connection & Mappings
+                  Manage Connection &amp; Mappings
                 </button>
               ) : canManage ? (
                 <button
                   onClick={() => setIsWizardOpen(true)}
-                  className="w-full py-2 px-3 text-[12px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-2xs"
+                  className="w-full py-2 px-3 text-[12px] font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  Connect Meta Account
+                  Preview Connection Wizard (App Pending)
                 </button>
               ) : (
                 <div className="text-[11px] text-center text-gray-400 py-1.5">
@@ -285,14 +277,14 @@ export function IntegrationCentreView({
                 <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-2xs">
                   <Search className="w-5 h-5" />
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
-                  Coming Soon (Stage 4B)
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                  Not Connected
                 </span>
               </div>
 
               <div>
                 <h4 className="text-[14px] font-bold text-gray-900">Google Ads</h4>
-                <p className="text-[11px] text-gray-500">Search, Display & YouTube Lead Forms</p>
+                <p className="text-[11px] text-gray-500">Search, Display &amp; YouTube Lead Forms</p>
               </div>
 
               <p className="text-[12px] text-gray-600 leading-relaxed">
@@ -302,16 +294,16 @@ export function IntegrationCentreView({
 
               <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
                 <div className="flex justify-between">
-                  <span>Connected Assets:</span>
-                  <span className="text-gray-400">None</span>
+                  <span>Implementation:</span>
+                  <span className="font-semibold text-gray-900">Code Verified (Stage 4D)</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Last Sync:</span>
-                  <span className="text-gray-400">Never</span>
+                  <span>Provider Setup:</span>
+                  <span className="text-amber-700 font-medium">Google Cloud Project Pending (DEC-011)</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Architecture:</span>
-                  <span className="text-amber-700 font-medium">Readiness Validated</span>
+                  <span>Connection Status:</span>
+                  <span className="text-gray-700 font-medium">Not Connected • Credentials Pending</span>
                 </div>
               </div>
             </div>
@@ -321,55 +313,70 @@ export function IntegrationCentreView({
                 disabled
                 className="w-full py-2 px-3 text-[12px] font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-xl cursor-not-allowed text-center"
               >
-                Available in Next Stage
+                Developer App Registration Pending (Stage 4D)
               </button>
             </div>
           </div>
 
-          {/* 3. Website Enquiry Webhooks */}
+          {/* 3. Website Enquiry Forms */}
           <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4 hover:border-gray-300 transition-all shadow-2xs flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
                 <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-2xs">
                   <Globe className="w-5 h-5" />
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                  Readiness Mode
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
+                    websiteConnection?.status === 'connected'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-gray-100 text-gray-700 border-gray-200'
+                  }`}
+                >
+                  {websiteConnection?.status === 'connected' ? 'Connected' : 'Not Connected'}
                 </span>
               </div>
 
               <div>
                 <h4 className="text-[14px] font-bold text-gray-900">Website Enquiries</h4>
-                <p className="text-[11px] text-gray-500">Project Microsites & Interactive Floorplans</p>
+                <p className="text-[11px] text-gray-500">Project Microsites &amp; Interactive Floorplans</p>
               </div>
 
               <p className="text-[12px] text-gray-600 leading-relaxed">
                 Connect official developer websites, project landing pages, and interactive floorplan
-                widgets to receive enquiries.
+                widgets with built-in anti-spam &amp; honeypot traps.
               </p>
 
               <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
                 <div className="flex justify-between">
-                  <span>Inbound Format:</span>
-                  <span className="text-gray-900 font-medium">REST Lead API</span>
+                  <span>Implementation:</span>
+                  <span className="font-semibold text-gray-900">Next Stage (Stage 4E Staged)</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Routing:</span>
-                  <span className="text-gray-700">Project Slug / URL</span>
+                  <span>Provider Setup:</span>
+                  <span className="text-emerald-700 font-medium">SaaS Native REST &amp; Embed Runtime</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Health:</span>
-                  <span className="text-emerald-700 font-medium">Ready for Ingestion</span>
+                  <span>Connection Status:</span>
+                  <span
+                    className={
+                      websiteConnection?.status === 'connected'
+                        ? 'text-emerald-700 font-medium'
+                        : 'text-gray-700 font-medium'
+                    }
+                  >
+                    {websiteConnection?.status === 'connected' ? 'Active & Receiving' : 'Not Connected'}
+                  </span>
                 </div>
               </div>
             </div>
 
             <div className="pt-3">
               <button
-                disabled
-                className="w-full py-2 px-3 text-[12px] font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-xl cursor-not-allowed text-center"
+                onClick={() => setIsWebsiteWizardOpen(true)}
+                disabled={!canManage}
+                className="w-full py-2 px-3 text-[12px] font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl transition cursor-pointer text-center"
               >
-                Endpoint Ready in Stage 4B
+                Configure &amp; Embed Forms
               </button>
             </div>
           </div>
@@ -381,14 +388,14 @@ export function IntegrationCentreView({
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-2xs">
                   <MessageCircle className="w-5 h-5" />
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
-                  Coming Soon
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                  Not Connected
                 </span>
               </div>
 
               <div>
                 <h4 className="text-[14px] font-bold text-gray-900">WhatsApp Business</h4>
-                <p className="text-[11px] text-gray-500">Click-to-WhatsApp Ads & Catalogues</p>
+                <p className="text-[11px] text-gray-500">Click-to-WhatsApp Ads &amp; Catalogues</p>
               </div>
 
               <p className="text-[12px] text-gray-600 leading-relaxed">
@@ -398,16 +405,16 @@ export function IntegrationCentreView({
 
               <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
                 <div className="flex justify-between">
-                  <span>Connected Numbers:</span>
-                  <span className="text-gray-400">None</span>
+                  <span>Implementation:</span>
+                  <span className="font-semibold text-gray-900">Schema Ready (Stage 4F Planned)</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Last Sync:</span>
-                  <span className="text-gray-400">Never</span>
+                  <span>Provider Setup:</span>
+                  <span className="text-amber-700 font-medium">Meta Cloud API &amp; Phone Verification Pending</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Architecture:</span>
-                  <span className="text-gray-700 font-medium">Cloud API Schema Ready</span>
+                  <span>Connection Status:</span>
+                  <span className="text-gray-700 font-medium">Not Connected (API Connectivity Pending)</span>
                 </div>
               </div>
             </div>
@@ -417,7 +424,7 @@ export function IntegrationCentreView({
                 disabled
                 className="w-full py-2 px-3 text-[12px] font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-xl cursor-not-allowed text-center"
               >
-                Available in Next Stage
+                Scheduled for Stage 4F
               </button>
             </div>
           </div>
@@ -429,14 +436,14 @@ export function IntegrationCentreView({
                 <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-2xs">
                   <Building className="w-5 h-5" />
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
-                  Enterprise Ready
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                  Not Connected
                 </span>
               </div>
 
               <div>
                 <h4 className="text-[14px] font-bold text-gray-900">Property Portals</h4>
-                <p className="text-[11px] text-gray-500">99acres, Magicbricks & Housing.com</p>
+                <p className="text-[11px] text-gray-500">99acres, Magicbricks &amp; Housing.com</p>
               </div>
 
               <p className="text-[12px] text-gray-600 leading-relaxed">
@@ -446,16 +453,16 @@ export function IntegrationCentreView({
 
               <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
                 <div className="flex justify-between">
-                  <span>Feeds Supported:</span>
-                  <span className="text-gray-700 font-medium">3 Portals</span>
+                  <span>Implementation:</span>
+                  <span className="font-semibold text-gray-900">Planned (Stage 4G)</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Last Sync:</span>
-                  <span className="text-gray-400">Never</span>
+                  <span>Provider Setup:</span>
+                  <span className="text-amber-700 font-medium">Developer Syndication Agreements Pending</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Status:</span>
-                  <span className="text-gray-700 font-medium">Enterprise Agreement Pending</span>
+                  <span>Connection Status:</span>
+                  <span className="text-gray-700 font-medium">0 Active Feeds • Access Pending</span>
                 </div>
               </div>
             </div>
@@ -465,7 +472,7 @@ export function IntegrationCentreView({
                 disabled
                 className="w-full py-2 px-3 text-[12px] font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-xl cursor-not-allowed text-center"
               >
-                Subject to Portal API
+                Portal API Agreements Required (Stage 4G)
               </button>
             </div>
           </div>
@@ -476,30 +483,33 @@ export function IntegrationCentreView({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-[16px] font-bold text-gray-900">Connected Accounts & Assets</h3>
+            <h3 className="text-[16px] font-bold text-gray-900">Connected Accounts &amp; Assets</h3>
             <p className="text-[12px] text-gray-500">
-              Active external connections authorized for {org.name}. Multiple advertising accounts and
-              Pages are fully supported.
+              Active external connections authorized for {org.name}. Only real, verified connections are
+              displayed here.
             </p>
           </div>
-          {canManage && connections.length > 0 && (
-            <button
-              onClick={() => setIsWizardOpen(true)}
-              className="px-3 py-1.5 text-[12px] font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-1.5"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Add Another Account
-            </button>
-          )}
         </div>
 
-        {connections.length > 0 ? (
+        {activeVerifiedConnections.length > 0 ? (
           <div className="grid grid-cols-1 gap-4">
-            {connections.map((conn) => {
+            {activeVerifiedConnections.map((conn) => {
               const meta = (conn.metadata || {}) as Record<string, unknown>
               const pages = (meta.pages || []) as MetaPageAsset[]
-              const isConnActive = conn.status === 'connected'
-              const isConnError = conn.status === 'error'
+
+              const ProviderIcon =
+                conn.provider === 'meta_ads'
+                  ? FacebookIcon
+                  : conn.provider === 'google_ads'
+                  ? Search
+                  : Globe
+
+              const providerLabel =
+                conn.provider === 'meta_ads'
+                  ? 'Meta Lead Ads'
+                  : conn.provider === 'google_ads'
+                  ? 'Google Ads'
+                  : 'Website Enquiry Form'
 
               return (
                 <div
@@ -509,25 +519,17 @@ export function IntegrationCentreView({
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-2xs">
-                        <FacebookIcon className="w-5 h-5" />
+                        <ProviderIcon className="w-5 h-5" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="text-[15px] font-bold text-gray-900">{conn.name}</h4>
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
-                              isConnActive
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : isConnError
-                                ? 'bg-red-50 text-red-700 border-red-200'
-                                : 'bg-gray-100 text-gray-600 border-gray-200'
-                            }`}
-                          >
-                            {isConnActive ? 'Active' : isConnError ? 'Attention Needed' : 'Disabled'}
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Active &amp; Verified
                           </span>
                         </div>
                         <p className="text-[12px] text-gray-500">
-                          External ID: {conn.external_account_id || 'Primary Profile'} • Last
+                          {providerLabel} • External ID: {conn.external_account_id || 'Primary Account'} • Last
                           Synchronized: {formatDate(conn.last_sync_at)}
                         </p>
                       </div>
@@ -536,7 +538,7 @@ export function IntegrationCentreView({
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setSelectedConnection(conn)}
-                        className="px-3 py-1.5 text-[12px] font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-1.5 shadow-2xs"
+                        className="px-3 py-1.5 text-[12px] font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
                       >
                         <Sliders className="w-3.5 h-3.5" />
                         Manage Mappings ({conn.mappingsCount || 0})
@@ -570,25 +572,16 @@ export function IntegrationCentreView({
           </div>
         ) : (
           <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-8 text-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 mx-auto flex items-center justify-center shadow-2xs">
+            <div className="w-12 h-12 rounded-2xl bg-gray-50 text-gray-400 mx-auto flex items-center justify-center shadow-2xs">
               <Plug className="w-6 h-6" />
             </div>
             <div className="max-w-md mx-auto space-y-1">
-              <h4 className="text-[15px] font-bold text-gray-900">No External Accounts Connected Yet</h4>
+              <h4 className="text-[15px] font-bold text-gray-900">No Verified Accounts Connected Yet</h4>
               <p className="text-[12px] text-gray-500">
-                Connect your business Meta accounts to receive Facebook and Instagram lead form
-                submissions directly into your development projects.
+                Live marketing accounts will appear here once external OAuth authorisation or form setup
+                succeeds. Unconnected, draft, or mock integrations are never shown as active.
               </p>
             </div>
-            {canManage && (
-              <button
-                onClick={() => setIsWizardOpen(true)}
-                className="px-4 py-2 text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-2xs inline-flex items-center gap-2"
-              >
-                <FacebookIcon className="w-4 h-4" />
-                Start Meta Connection
-              </button>
-            )}
           </div>
         )}
       </div>
@@ -670,6 +663,16 @@ export function IntegrationCentreView({
         connection={selectedConnection}
         projects={projects}
         onRefreshNeeded={refreshData}
+      />
+
+      {/* WEBSITE ENQUIRY WIZARD MODAL */}
+      <WebsiteEnquiryWizardModal
+        isOpen={isWebsiteWizardOpen}
+        onClose={() => setIsWebsiteWizardOpen(false)}
+        orgId={org.id}
+        projects={projects}
+        existingConnection={websiteConnection}
+        onConnectionCreated={refreshData}
       />
     </div>
   )

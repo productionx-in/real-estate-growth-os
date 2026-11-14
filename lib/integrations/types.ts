@@ -93,6 +93,31 @@ export interface GoogleConnectionMetadata {
   [key: string]: unknown
 }
 
+// ── Website Enquiry Form Types (Stage 4E) ───────────────────────────────────
+
+export interface WebsiteFormConfig {
+  id?: string
+  projectId: string
+  formTitle: string
+  subtitle?: string
+  buttonText?: string
+  themeColor?: string
+  allowedDomains?: string[]
+  unitTypeOptions?: string[]
+  enableSiteVisitCheckbox?: boolean
+  successMessage?: string
+}
+
+export interface WebsiteConnectionMetadata {
+  forms?: WebsiteFormConfig[]
+  defaultProjectId?: string
+  allowedDomains?: string[]
+  honeypotEnabled?: boolean
+  rateLimitPerIp?: number
+  healthStatus?: 'healthy' | 'warning' | 'error' | 'pending'
+  [key: string]: unknown
+}
+
 export interface IntegrationConnectionRecord {
   id: string
   org_id: string

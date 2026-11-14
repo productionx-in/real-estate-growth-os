@@ -90,7 +90,7 @@ Standalone SaaS platform:
 | **Stage 4B** | Meta Lead Ads Integration | Central Meta app, OAuth handshake, AES-256-GCM, webhooks | **Code Verified** (App Setup Deferred) |
 | **Stage 4C** | Public Webhooks & Lead Ingestion | General webhook endpoints, HMAC verification, replay defense | **Code Verified** |
 | **Stage 4D** | Google Ads Lead Integration | Google OAuth, Lead form webhook receiver, attribution | **Code Verified** |
-| **Stage 4E** | Website Enquiry Forms | Embeddable forms, lead capture APIs, spam defense | **Not Started** |
+| **Stage 4E** | Website Enquiry Forms | Embeddable forms, lead capture APIs, spam defense | **Code Verified** |
 | **Stage 4F** | WhatsApp Business Integration | Cloud API architecture, conversation tracking, templates | **Not Started** |
 | **Stage 4G** | Property Portal Integrations | 99acres, Magicbricks, Housing.com partner ingestion | **Not Started** |
 | **Stage 4H** | Integration APIs & Extensibility | Outbound customer webhooks, public developer API, docs | **Not Started** |

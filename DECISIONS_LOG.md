@@ -21,6 +21,7 @@
 | **DEC-009** | 2026-11-14 | Testing | Strict separation between in-memory unit tests and real PostgreSQL / provider staging tests | **Approved / Active** |
 | **DEC-010** | 2026-11-14 | Build / Infra | Webpack bundling mode retained for Next.js build due to Turbopack PostCSS child-process restrictions on Windows | **Approved / Active** |
 | **DEC-011** | 2026-11-15 | Integrations | Central Google Ads OAuth & Lead Form Webhook architecture with deferred app setup | **Approved / Active** |
+| **DEC-012** | 2026-11-15 | Integrations | Website Enquiry Forms: Multi-layer anti-spam (honeypot + speed), allowed origin CORS, and unified CRM lead ingestion | **Approved / Active** |
 
 ---
 
@@ -56,3 +57,13 @@
 ### DEC-011: Central Google Ads OAuth & Lead Form Webhook Architecture
 - **Context:** Google Ads Lead Form extensions deliver real-time leads via webhook with `google_key` verification, and Google Ads API accesses customer accounts and lead form assets via OAuth (`https://www.googleapis.com/auth/adwords`).
 - **Decision:** Reuses the multi-tenant central app architecture established in DEC-003 and DEC-004. Actual Google Cloud project OAuth credentials and Developer Token registration are deferred until platform completion. Tokens are encrypted using AES-256-GCM vault storage (`vault://aes256gcm:...`). Real-time leads are received via both connection-specific (`/api/webhooks/google/[connectionId]`) and central (`/api/webhooks/google`) endpoints, verified using timing-safe comparison on `google_key`, and ingested through `processInboundLead`. No live connections or tokens are simulated.
+
+### DEC-012: Website Enquiry Forms, Anti-Spam & CRM Ingestion Architecture
+- **Context:** Developers require embeddable enquiry widgets and custom REST API integration for official developer websites, project microsites, and landing pages, while preventing bot scraping, spam submissions, and cross-tenant tampering without imposing human CAPTCHA friction.
+- **Decision:**
+  - *Public REST Submission Endpoint (`/api/forms/submit`):* Accepts JSON enquiries with CORS support (`OPTIONS` preflight and origin verification).
+  - *Multi-Layer Anti-Spam Defense:* Employs invisible honeypot field traps (`hpConfirm`, `website_url_hp`, `_hp_field`), submission speed thresholds (flagging automated bots filling forms in <1200ms), and regex patterns for script/link injection without friction for human home buyers. Detected bot submissions are silently sunk (HTTP 200 returned) to prevent bots from testing or adapting.
+  - *Distributed Rate Limiting:* Enforces dual-layer atomic distributed rate limiting (15 submissions / 5 min per client IP; 120 submissions / 1 min per connection).
+  - *Origin Domain Whitelisting:* Connections optionally configure `allowedDomains` to restrict form submissions strictly to authorized customer web domains.
+  - *Unified CRM Ingestion:* Integrates directly into `processInboundLead`, ensuring deterministic SHA-256 idempotency (`uq_leads_org_idempotency_key`), project mapping resolution via connection mappings (`form_id` and `account_default`), and 3-case non-destructive deduplication.
+  - *Privacy Guarantee:* Public responses never leak internal lead IDs, organization IDs, or infrastructure details. Restricted caller-injected keys (`org_id`, `role`, `user_id`) are stripped before normalization.

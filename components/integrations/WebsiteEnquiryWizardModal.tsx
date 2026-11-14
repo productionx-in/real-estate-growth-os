@@ -1,0 +1,488 @@
+// components/integrations/WebsiteEnquiryWizardModal.tsx
+// Interactive modal for configuring website enquiry forms, generating embed codes, and live testing.
+'use client'
+
+import { useState } from 'react'
+import {
+  X,
+  Code2,
+  Copy,
+  Check,
+  Globe,
+  ShieldCheck,
+  Send,
+} from 'lucide-react'
+import type { IntegrationConnectionRecord } from '@/lib/integrations/types'
+import { generateFormEmbedSnippets } from '@/lib/integrations/forms/generator'
+
+interface ProjectOption {
+  id: string
+  name: string
+  category: string
+}
+
+interface WebsiteEnquiryWizardModalProps {
+  isOpen: boolean
+  onClose: () => void
+  orgId?: string
+  projects: ProjectOption[]
+  existingConnection?: IntegrationConnectionRecord | null
+  onConnectionCreated?: () => void
+}
+
+export function WebsiteEnquiryWizardModal({
+  isOpen,
+  onClose,
+  projects,
+  existingConnection,
+}: WebsiteEnquiryWizardModalProps) {
+  const [activeTab, setActiveTab] = useState<'snippets' | 'test' | 'settings'>('snippets')
+  const [snippetType, setSnippetType] = useState<'script' | 'iframe' | 'api'>('script')
+
+  // Form configuration state
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(projects[0]?.id || '')
+  const [formTitle, setFormTitle] = useState('Enquire Now')
+  const [buttonText, setButtonText] = useState('Schedule Site Visit')
+  const [allowedDomains, setAllowedDomains] = useState(() => {
+    const meta = existingConnection?.metadata as Record<string, unknown> | undefined
+    if (meta && Array.isArray(meta.allowedDomains)) {
+      return meta.allowedDomains.join(', ')
+    }
+    return ''
+  })
+  const [isCopied, setIsCopied] = useState(false)
+
+  // Live test submission state
+  const [testName, setTestName] = useState('John Developer')
+  const [testPhone, setTestPhone] = useState('+919876543210')
+  const [testEmail, setTestEmail] = useState('buyer@example.com')
+  const [testUnit, setTestUnit] = useState('3 BHK Apartment')
+  const [testLoading, setTestLoading] = useState(false)
+  const [testResponse, setTestResponse] = useState<Record<string, unknown> | null>(null)
+
+  // Connection ID resolution (use existing or fallback)
+  const connectionId = existingConnection?.id || 'conn_website_default'
+
+  const snippets = generateFormEmbedSnippets({
+    connectionId,
+    projectId: selectedProjectId || undefined,
+    projectName: projects.find((p) => p.id === selectedProjectId)?.name,
+    formTitle,
+    buttonText,
+  })
+
+  if (!isOpen) return null
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text)
+    setIsCopied(true)
+    setTimeout(() => setIsCopied(false), 2000)
+  }
+
+  const handleRunLiveTest = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setTestLoading(true)
+    setTestResponse(null)
+
+    try {
+      const res = await fetch('/api/forms/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          connectionId,
+          projectId: selectedProjectId || undefined,
+          name: testName,
+          phone: testPhone,
+          email: testEmail || undefined,
+          unitPreference: testUnit || undefined,
+          scheduleSiteVisit: true,
+          formLoadTime: Date.now() - 5000, // Simulates human fill duration (>1.2s)
+          submissionTime: Date.now(),
+          utmSource: 'website_test_console',
+          utmCampaign: 'stage_4e_verification',
+        }),
+      })
+
+      const data = await res.json()
+      setTestResponse({
+        httpStatus: res.status,
+        ...data,
+      })
+    } catch (err: unknown) {
+      setTestResponse({
+        httpStatus: 500,
+        success: false,
+        error: err instanceof Error ? err.message : 'Network request failed',
+      })
+    } finally {
+      setTestLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Header */}
+        <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+              <Globe className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Website Enquiry Form Integration</h2>
+              <p className="text-xs text-slate-500">
+                Embed responsive enquiry widgets on project websites with spam defense & CRM routing.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="px-6 pt-3 border-b border-slate-200 flex items-center gap-6 text-sm font-medium">
+          <button
+            onClick={() => setActiveTab('snippets')}
+            className={`pb-3 flex items-center gap-2 border-b-2 transition cursor-pointer ${
+              activeTab === 'snippets'
+                ? 'border-purple-600 text-purple-700 font-semibold'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <Code2 className="w-4 h-4" />
+            Embed Snippets
+          </button>
+
+          <button
+            onClick={() => setActiveTab('test')}
+            className={`pb-3 flex items-center gap-2 border-b-2 transition cursor-pointer ${
+              activeTab === 'test'
+                ? 'border-purple-600 text-purple-700 font-semibold'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <Send className="w-4 h-4" />
+            Live Test Console
+          </button>
+
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`pb-3 flex items-center gap-2 border-b-2 transition cursor-pointer ${
+              activeTab === 'settings'
+                ? 'border-purple-600 text-purple-700 font-semibold'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4" />
+            Protection & Settings
+          </button>
+        </div>
+
+        {/* Content Body */}
+        <div className="p-6 overflow-y-auto flex-1 space-y-6">
+          {/* TAB 1: Embed Snippets */}
+          {activeTab === 'snippets' && (
+            <div className="space-y-5">
+              {/* Configuration Controls */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Route to Project
+                  </label>
+                  <select
+                    value={selectedProjectId}
+                    onChange={(e) => setSelectedProjectId(e.target.value)}
+                    className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-800"
+                  >
+                    <option value="">Default (Unassigned)</option>
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Form Title
+                  </label>
+                  <input
+                    type="text"
+                    value={formTitle}
+                    onChange={(e) => setFormTitle(e.target.value)}
+                    className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Button Label
+                  </label>
+                  <input
+                    type="text"
+                    value={buttonText}
+                    onChange={(e) => setButtonText(e.target.value)}
+                    className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-800"
+                  />
+                </div>
+              </div>
+
+              {/* Sub-tab selection: Script vs iframe vs API */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSnippetType('script')}
+                  className={`px-3 py-1.5 text-xs rounded-lg font-medium transition cursor-pointer ${
+                    snippetType === 'script'
+                      ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Inline Widget (Script Tag)
+                </button>
+                <button
+                  onClick={() => setSnippetType('iframe')}
+                  className={`px-3 py-1.5 text-xs rounded-lg font-medium transition cursor-pointer ${
+                    snippetType === 'iframe'
+                      ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Sandbox (iframe)
+                </button>
+                <button
+                  onClick={() => setSnippetType('api')}
+                  className={`px-3 py-1.5 text-xs rounded-lg font-medium transition cursor-pointer ${
+                    snippetType === 'api'
+                      ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Custom REST API (JavaScript Fetch)
+                </button>
+              </div>
+
+              {/* Code Snippet Box */}
+              <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-900 text-slate-100 font-mono text-xs">
+                <div className="flex items-center justify-between px-4 py-2 bg-slate-800/80 border-b border-slate-700">
+                  <span className="text-[11px] text-slate-400">
+                    {snippetType === 'script'
+                      ? 'HTML + embed.js'
+                      : snippetType === 'iframe'
+                      ? 'HTML iframe'
+                      : 'JavaScript fetch'}
+                  </span>
+                  <button
+                    onClick={() =>
+                      handleCopy(
+                        snippetType === 'script'
+                          ? snippets.scriptTag
+                          : snippetType === 'iframe'
+                          ? snippets.iframe
+                          : snippets.apiFetch
+                      )
+                    }
+                    className="flex items-center gap-1 text-[11px] px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 transition cursor-pointer"
+                  >
+                    {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{isCopied ? 'Copied!' : 'Copy Code'}</span>
+                  </button>
+                </div>
+                <pre className="p-4 overflow-x-auto text-[11.5px] leading-relaxed text-slate-200">
+                  {snippetType === 'script' && snippets.scriptTag}
+                  {snippetType === 'iframe' && snippets.iframe}
+                  {snippetType === 'api' && snippets.apiFetch}
+                </pre>
+              </div>
+
+              <div className="text-xs text-slate-500 bg-purple-50/50 border border-purple-100 rounded-lg p-3">
+                <p className="font-semibold text-purple-900 mb-0.5">Automated Ingestion Features:</p>
+                <p>
+                  Includes automatic UTM parameter tracking, honeypot spam protection, submission
+                  speed verification, and central CRM deduplication.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: Live Test Console */}
+          {activeTab === 'test' && (
+            <div className="space-y-4">
+              <p className="text-xs text-slate-600">
+                Test the public submission endpoint directly from this console. This sends a real
+                payload to <code className="text-purple-700 bg-purple-50 px-1 py-0.5 rounded">/api/forms/submit</code>.
+              </p>
+
+              <form onSubmit={handleRunLiveTest} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Customer Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={testName}
+                    onChange={(e) => setTestName(e.target.value)}
+                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={testPhone}
+                    onChange={(e) => setTestPhone(e.target.value)}
+                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={testEmail}
+                    onChange={(e) => setTestEmail(e.target.value)}
+                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Unit Preference
+                  </label>
+                  <input
+                    type="text"
+                    value={testUnit}
+                    onChange={(e) => setTestUnit(e.target.value)}
+                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg"
+                  />
+                </div>
+
+                <div className="md:col-span-2 pt-2">
+                  <button
+                    type="submit"
+                    disabled={testLoading}
+                    className="w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg text-xs shadow-sm transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    {testLoading ? (
+                      'Submitting Enquiry...'
+                    ) : (
+                      <>
+                        <Send className="w-3.5 h-3.5" />
+                        Execute Live Submission
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {testResponse && (
+                <div className="mt-4 p-4 rounded-xl border border-slate-200 bg-slate-50 font-mono text-xs">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-slate-700">API Response:</span>
+                    <span
+                      className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
+                        testResponse.success
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-rose-100 text-rose-800'
+                      }`}
+                    >
+                      HTTP {String(testResponse.httpStatus || 200)}
+                    </span>
+                  </div>
+                  <pre className="text-slate-800 overflow-x-auto text-[11px]">
+                    {JSON.stringify(testResponse, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: Protection & Settings */}
+          {activeTab === 'settings' && (
+            <div className="space-y-4">
+              <div className="border border-slate-200 rounded-xl p-4 bg-white space-y-3">
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  Origin Domain Whitelist (CORS & Domain Protection)
+                </h4>
+                <p className="text-xs text-slate-500">
+                  Restrict enquiry submissions strictly to your approved developer domains. Leave
+                  blank to accept submissions from any domain.
+                </p>
+                <input
+                  type="text"
+                  placeholder="e.g. developer.com, *.projectsite.in"
+                  value={allowedDomains}
+                  onChange={(e) => setAllowedDomains(e.target.value)}
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg text-slate-800"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    Honeypot Trap
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Hidden inputs catch automated bot scrapers without human CAPTCHA friction.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                    <ShieldCheck className="w-4 h-4 text-blue-600" />
+                    Speed Check
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Submissions completed under 1.2s are rejected as automated bot scripts.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                    <ShieldCheck className="w-4 h-4 text-purple-600" />
+                    Distributed Rate Limit
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    15 submissions per 5 min per client IP; 120 per min per connection.
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                    <ShieldCheck className="w-4 h-4 text-amber-600" />
+                    Non-Destructive Deduplication
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Preserves duplicate enquiry history while keeping CRM contacts clean.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50/50 flex items-center justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
