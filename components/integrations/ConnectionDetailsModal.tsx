@@ -207,7 +207,12 @@ export function ConnectionDetailsModal({
         method: 'POST',
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to reconnect integration')
+      if (!res.ok) throw new Error(data.message || data.error || 'Failed to reconnect integration')
+
+      if (data.authorizationUrl) {
+        window.location.href = data.authorizationUrl
+        return
+      }
 
       setActionSuccess('Connection re-activated. Normal sync resumed.')
       onRefreshNeeded()

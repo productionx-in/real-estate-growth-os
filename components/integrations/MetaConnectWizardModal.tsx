@@ -82,7 +82,41 @@ export function MetaConnectWizardModal({
   const [formMappings, setFormMappings] = useState<Record<string, string>>({})
   const [defaultProjectId, setDefaultProjectId] = useState<string>(projects[0]?.id || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isInitiatingOAuth, setIsInitiatingOAuth] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const handleInitiateMetaOAuth = async () => {
+    setIsInitiatingOAuth(true)
+    setErrorMessage(null)
+    try {
+      const res = await fetch('/api/integrations/meta/oauth/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orgId,
+          returnUrl: window.location.href,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        if (data.error === 'meta_app_not_configured') {
+          setErrorMessage(
+            `Central Meta Developer App Setup Required: Server environment variables (${data.missing?.join(', ') || 'META_APP_ID, META_APP_SECRET'}) must be configured before live Meta OAuth can be completed. You can still save this planned routing template.`
+          )
+          return
+        }
+        throw new Error(data.message || data.error || 'Failed to initiate Meta OAuth')
+      }
+
+      if (data.authorizationUrl) {
+        window.location.href = data.authorizationUrl
+      }
+    } catch (err: unknown) {
+      setErrorMessage(err instanceof Error ? err.message : 'Failed to start OAuth')
+    } finally {
+      setIsInitiatingOAuth(false)
+    }
+  }
 
   if (!isOpen) return null
 
@@ -394,6 +428,21 @@ export function MetaConnectWizardModal({
                     exposed in the browser.
                   </li>
                 </ul>
+              </div>
+
+              <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={handleInitiateMetaOAuth}
+                  disabled={isInitiatingOAuth}
+                  className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[13px] flex items-center justify-center gap-2 shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  <FacebookIcon className="w-4 h-4" />
+                  {isInitiatingOAuth ? 'Initiating Meta Handshake...' : 'Authenticate with Meta OAuth'}
+                </button>
+                <p className="text-[11px] text-center text-gray-500">
+                  Redirects to facebook.com to approve official permissions. If central developer credentials are not yet configured on this server, you can continue to draft routing below.
+                </p>
               </div>
             </div>
           )}

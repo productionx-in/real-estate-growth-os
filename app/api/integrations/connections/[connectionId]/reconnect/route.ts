@@ -1,8 +1,13 @@
 // app/api/integrations/connections/[connectionId]/reconnect/route.ts
-// Customer-facing reconnect endpoint for refreshing expired or disabled connections
+// Initiates re-authentication for an expired, error, or disabled integration connection.
+// Returns a real Meta OAuth initiation URL linked to the specific connection record.
+
 import { NextResponse, type NextRequest } from 'next/server'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
+import { getMetaAppConfig, getMetaOAuthRedirectUri } from '@/lib/integrations/meta/config'
+import { createOAuthState, getMetaAuthorizationUrl } from '@/lib/integrations/meta/oauth'
+import type { Json } from '@/types/database'
 
 interface RouteContext {
   params: Promise<{ connectionId: string }>
@@ -18,7 +23,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     const { data: conn } = await service
       .from('integration_connections')
-      .select('id, org_id, metadata')
+      .select('id, org_id, provider, status, metadata')
       .eq('id', connectionId)
       .maybeSingle()
 
@@ -40,17 +45,52 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    // STRICT SAFETY RULE: Reconnect must NOT report success simply by clearing an error
-    // or changing a status. Until live Meta OAuth is implemented in Stage 4B,
-    // re-authorisation is not available and disabled connections cannot be falsely marked active.
-    return NextResponse.json(
-      {
-        error:
-          'Live provider re-authorisation is not yet available. Reconnecting requires official Meta OAuth verification, which is scheduled for Stage 4B. The connection cannot be marked active without verified provider authorization.',
-        reconnectAvailable: false,
-      },
-      { status: 400 }
-    )
+    // Check central Meta App configuration
+    const config = getMetaAppConfig()
+    if (!config.isConfigured) {
+      return NextResponse.json(
+        {
+          error: 'meta_app_not_configured',
+          reconnectAvailable: false,
+          message:
+            'Central Production X Meta Developer App credentials are not configured in environment variables (' +
+            config.missing.join(', ') +
+            '). The connection cannot be re-authorized until the developer app is set up.',
+          missing: config.missing,
+        },
+        { status: 400 }
+      )
+    }
+
+    // Generate signed HMAC CSRF state bound to this specific connectionId
+    const state = createOAuthState({
+      orgId: conn.org_id,
+      connectionId: conn.id,
+      userId: authResult.auth.profile.id,
+    })
+
+    const requestOrigin = request.nextUrl.origin
+    const redirectUri = getMetaOAuthRedirectUri(requestOrigin)
+    const authorizationUrl = getMetaAuthorizationUrl(state, redirectUri)
+
+    // Update metadata noting reconnection initiated
+    await service
+      .from('integration_connections')
+      .update({
+        metadata: {
+          ...((conn.metadata || {}) as Record<string, unknown>),
+          reconnect_initiated_at: new Date().toISOString(),
+          reconnect_initiated_by: authResult.auth.profile.id,
+        } as unknown as Json,
+      })
+      .eq('id', conn.id)
+
+    return NextResponse.json({
+      success: true,
+      reconnectAvailable: true,
+      authorizationUrl,
+      connectionId: conn.id,
+    })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Internal Server Error'
     return NextResponse.json({ error: message }, { status: 500 })
