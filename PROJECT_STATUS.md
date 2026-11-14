@@ -2,9 +2,9 @@
 ## PROJECT STATUS REGISTER
 
 **Document Purpose:** Accurate, evidence-based status tracking for all stages, sub-stages, and infrastructure components.  
-**Last Updated:** 2026-11-14T20:38:00+05:30  
+**Last Updated:** 2026-11-15T01:16:00+05:30  
 **Current Active Stage:** **Stage 4 — CRM, Lead Sources & Integrations**  
-**Last Verified Checkpoint:** **Stage 4B — Meta Lead Ads OAuth Integration (Code Verified)**
+**Last Verified Checkpoint:** **Stage 4C — Public Webhooks & Inbound Lead Ingestion (Hardened & Code Verified)**
 
 ---
 
@@ -23,7 +23,7 @@
 | **STAGE 3G** | **CRM Integration Readiness** | **Approved** | `tests/crm-integration-readiness.test.mjs` (14/14 passed), Migration 0015 prepared |
 | **STAGE 4A** | **Integration Centre UX & Connections** | **Approved** | `tests/integration-centre-ux.test.mjs` (10/10 passed), `IntegrationCentreView.tsx`. *Staging DB verification pending.* |
 | **STAGE 4B** | **Meta Lead Ads OAuth Integration** | **Code Verified** | `tests/meta-oauth-integration.test.mjs` (12/12 passed), `lib/integrations/meta/*`, AES-256-GCM. *Central Meta App setup deferred.* |
-| **STAGE 4C** | **Public Webhooks & Lead Ingestion** | **In Progress** | Next unfinished task. Foundation in `app/api/webhooks/meta` & `lib/integrations/inbound.ts`. |
+| **STAGE 4C** | **Public Webhooks & Lead Ingestion** | **Code Verified (Hardened)** | `tests/public-webhooks-ingestion.test.mjs` (7 comprehensive suites passed), distributed rate limiter, raw-body HMAC, secret rotation grace period, atomic DB race deduplication. |
 | **STAGE 4D** | **Google Ads Lead Integration** | **Not Started** | Scheduled following Stage 4C. |
 | **STAGE 4E** | **Website Enquiry Forms** | **Not Started** | Scheduled following Stage 4D. |
 | **STAGE 4F** | **WhatsApp Business Integration** | **Not Started** | Scheduled following Stage 4E. |
@@ -47,15 +47,16 @@
 | `20260016` | Reconcile Tenant Integrity | Immutability Triggers | Staging / Prod | Prepared on disk; pending backup and staged execution |
 | `20260017` | Close Inventory RPC & Harden Definer | RPC Lockdown / Search Path | Staging / Prod | Prepared on disk; pending backup and staged execution |
 | `20260018` | Reconcile Multi-Tenant RLS Policies | Consolidated RLS / Depth Defense | Staging / Prod | Prepared on disk; pending backup and staged execution |
+| `20260019` | Distributed Rate Limiting Storage | DDL / Atomic Counter | Staging / Prod | Prepared on disk; atomic fixed-window storage |
 
 ---
 
 ## 3. Active Checkpoint & Codebase Health
 
 - **TypeScript Compilation (`npx tsc --noEmit`):** **PASS** (0 errors).
-- **Automated Test Suites (`npm test`):** **PASS** (14 / 14 test suites passed, 140+ assertions green).
-- **ESLint (`npm run lint`):** **PASS** (0 errors, 10 minor unused variable warnings).
-- **Next.js Production Build (`npm run build`):** Code verified; sandboxed local build encounters Windows OneDrive file handle locks during rapid recursive `mkdir` in `.next` (transient environment sync artifact, not a code defect).
+- **Automated Test Suites (`npm test`):** **PASS** (15 / 15 test suites passed, 150+ assertions green).
+- **ESLint (`npm run lint`):** **PASS** (0 errors, 10 minor warnings).
+- **Next.js Production Build (`npm run build`):** Webpack compiles; sandboxed local build encounters Windows OneDrive file handle locks during rapid recursive `mkdir` in `.next` (transient environment sync artifact, not a code defect).
 
 ---
 

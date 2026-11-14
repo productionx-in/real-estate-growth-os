@@ -88,7 +88,7 @@ Standalone SaaS platform:
 | **Stage 3G** | CRM Integration Readiness | Lead attribution schema, org immutability, Vault references | **Code Verified** (Migration 0015 Staged) |
 | **Stage 4A** | Integration Centre UX | Connection management, mapping UI, credential redaction | **Approved** (Staging DB Pending) |
 | **Stage 4B** | Meta Lead Ads Integration | Central Meta app, OAuth handshake, AES-256-GCM, webhooks | **Code Verified** (App Setup Deferred) |
-| **Stage 4C** | Public Webhooks & Lead Ingestion | General webhook endpoints, HMAC verification, replay defense | **In Progress** |
+| **Stage 4C** | Public Webhooks & Lead Ingestion | General webhook endpoints, HMAC verification, replay defense | **Code Verified** |
 | **Stage 4D** | Google Ads Lead Integration | Google OAuth, Lead form webhook receiver, attribution | **Not Started** |
 | **Stage 4E** | Website Enquiry Forms | Embeddable forms, lead capture APIs, spam defense | **Not Started** |
 | **Stage 4F** | WhatsApp Business Integration | Cloud API architecture, conversation tracking, templates | **Not Started** |

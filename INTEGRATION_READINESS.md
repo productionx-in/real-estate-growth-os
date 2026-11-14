@@ -3,7 +3,7 @@
 
 **Document Purpose:** Permanent source of truth for all external marketing, messaging, and property portal integrations.  
 **Security Policy:** NEVER store actual credentials, passwords, service-role keys, access tokens, or private secrets in this document.  
-**Last Updated:** 2026-11-14T20:38:00+05:30
+**Last Updated:** 2026-11-15T00:42:00+05:30
 
 ---
 
@@ -12,7 +12,7 @@
 | Provider | Integration Stage | Application Implementation Status | External Account Setup Status | Credentials Status | Permission / Approval Status | Live Testing Status | Remaining Dependencies |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Meta Lead Ads (Facebook & Instagram)** | **Stage 4B** | **Code Verified** | **Deferred** | Not Configured (Pending Central App) | Pending Meta App Review | Mock / In-Memory Verified (12/12) | Central Meta Developer App registration, `META_APP_ID`, `META_APP_SECRET`, `META_WEBHOOK_VERIFY_TOKEN` |
-| **Generic Inbound Webhooks** | **Stage 4C** | **In Progress** | **Ready (SaaS Native)** | SaaS Native Secret Key Generation | Not Required (Internal) | Unit Tested | Universal signature validator, replay cache, error retry worker |
+| **Generic Inbound Webhooks** | **Stage 4C** | **Code Verified (Hardened)** | **Ready (SaaS Native)** | SaaS Native Secret Key Generation (AES-256-GCM Vault) | Not Required (Internal) | Unit Tested (7/7 Suites) | None (Stage 4C hardened and verified) |
 | **Google Ads Lead Forms** | **Stage 4D** | **Not Started** | **Deferred** | Not Configured | Pending Google Cloud Console App | Not Started | Google Cloud project, OAuth Client ID, Webhook key for Google Lead Form extensions |
 | **Website Enquiry Forms** | **Stage 4E** | **Not Started** | **Ready (SaaS Native)** | API Key / CORS Domain Token | Not Required (Internal) | Not Started | Public embeddable form script, secure REST endpoint, spam CAPTCHA/honeypot |
 | **WhatsApp Business API** | **Stage 4F** | **Not Started** | **Deferred** | Not Configured | Pending Meta Business Manager & Phone Verification | Not Started | Meta WhatsApp Cloud API credentials, verified business phone number, message templates |

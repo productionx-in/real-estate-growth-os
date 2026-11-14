@@ -342,6 +342,16 @@ export async function processInboundLead(
           }
         }
 
+        await safeLogEvent(service, {
+          org_id: orgId,
+          connection_id: payload.connectionId ?? null,
+          provider: payload.provider,
+          event_type: 'lead_idempotent_replay',
+          processing_status: 'duplicate',
+          external_event_id: payload.externalLeadId ?? null,
+          lead_id: winningLead.id,
+        })
+
         return {
           success: true,
           leadId: winningLead.id,

@@ -3,6 +3,8 @@
 // Server-only functions running through Supabase client with RLS enforcement.
 
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import crypto from 'node:crypto'
+import { encryptCredential } from '@/lib/integrations/crypto'
 import type {
   IntegrationConnectionRecord,
   IntegrationProjectMappingRecord,
@@ -273,6 +275,144 @@ export async function reconnectIntegrationConnection(
   })
 
   return { ...result, reconnectAvailable: true }
+}
+
+/**
+ * Generates or regenerates a cryptographically secure webhook secret for a connection.
+ * The secret is encrypted with AES-256-GCM and stored in credential_ref as 'vault://aes256gcm:...'.
+ * For secret rotation:
+ * - If immediateRevocation is false (default), the existing secret is preserved in metadata.previous_credential_ref
+ *   with an unexpired grace window (default 15 minutes) so in-flight requests are not dropped.
+ * - If immediateRevocation is true, previous secrets are immediately invalidated and purged.
+ * Returns the plaintext secret string once to the caller.
+ */
+export async function generateWebhookSecretForConnection(
+  connectionId: string,
+  orgId: string,
+  options?: {
+    immediateRevocation?: boolean
+    gracePeriodMinutes?: number
+  }
+): Promise<{ secret: string | null; error: string | null }> {
+  const supabase = await createClient()
+
+  // Verify connection belongs to this organisation and user has permission
+  const { data: conn, error: fetchErr } = await supabase
+    .from('integration_connections')
+    .select('id, org_id, provider, status, credential_ref, metadata')
+    .eq('id', connectionId)
+    .eq('org_id', orgId)
+    .maybeSingle()
+
+  if (fetchErr || !conn) {
+    return { secret: null, error: 'Connection not found or permission denied' }
+  }
+
+  // Generate secure random 32-byte secret (prefixed with whsec_)
+  const plaintextSecret = `whsec_${crypto.randomBytes(24).toString('hex')}`
+  const encryptedRef = encryptCredential(plaintextSecret)
+
+  const meta = (conn.metadata || {}) as Record<string, unknown>
+  const graceMinutes = options?.gracePeriodMinutes ?? 15
+  const isRotation = Boolean(conn.credential_ref)
+
+  let previousSecretMeta: Record<string, unknown> = {}
+  if (isRotation && !options?.immediateRevocation && conn.credential_ref) {
+    previousSecretMeta = {
+      previous_credential_ref: conn.credential_ref,
+      previous_secret_prefix: meta.secret_prefix || null,
+      previous_secret_expires_at: new Date(Date.now() + graceMinutes * 60 * 1000).toISOString(),
+    }
+  } else if (options?.immediateRevocation) {
+    previousSecretMeta = {
+      previous_credential_ref: null,
+      previous_secret_prefix: null,
+      previous_secret_expires_at: null,
+    }
+  }
+
+  const updatedMetadata = {
+    ...meta,
+    secret_prefix: plaintextSecret.slice(0, 10) + '...',
+    secret_generated_at: new Date().toISOString(),
+    ...previousSecretMeta,
+  }
+
+  // Update connection with encrypted secret and transition not_connected to connected
+  const { error: updateErr } = await supabase
+    .from('integration_connections')
+    .update({
+      credential_ref: encryptedRef,
+      status: conn.status === 'not_connected' ? 'connected' : conn.status,
+      metadata: updatedMetadata as unknown as Json,
+    })
+    .eq('id', connectionId)
+    .eq('org_id', orgId)
+
+  if (updateErr) {
+    return { secret: null, error: updateErr.message }
+  }
+
+  // Safely log the secret generation/rotation event
+  await logIntegrationEvent(orgId, {
+    connection_id: connectionId,
+    provider: conn.provider,
+    event_type: isRotation ? 'webhook_secret_rotated' : 'webhook_secret_generated',
+    processing_status: 'processed',
+  })
+
+  return { secret: plaintextSecret, error: null }
+}
+
+/**
+ * Immediately invalidates and purges any previous webhook secret active under rotation grace period.
+ */
+export async function invalidatePreviousWebhookSecret(
+  connectionId: string,
+  orgId: string
+): Promise<{ success: boolean; error: string | null }> {
+  const supabase = await createClient()
+
+  const { data: conn, error: fetchErr } = await supabase
+    .from('integration_connections')
+    .select('id, org_id, provider, metadata')
+    .eq('id', connectionId)
+    .eq('org_id', orgId)
+    .maybeSingle()
+
+  if (fetchErr || !conn) {
+    return { success: false, error: 'Connection not found or permission denied' }
+  }
+
+  const meta = (conn.metadata || {}) as Record<string, unknown>
+  const updatedMetadata = {
+    ...meta,
+    previous_credential_ref: null,
+    previous_secret_prefix: null,
+    previous_secret_expires_at: null,
+    previous_secret_invalidated_at: new Date().toISOString(),
+  }
+
+  const { error: updateErr } = await supabase
+    .from('integration_connections')
+    .update({
+      metadata: updatedMetadata as unknown as Json,
+    })
+    .eq('id', connectionId)
+    .eq('org_id', orgId)
+
+  if (updateErr) {
+    return { success: false, error: updateErr.message }
+  }
+
+  await logIntegrationEvent(orgId, {
+    connection_id: connectionId,
+    provider: conn.provider,
+    event_type: 'webhook_previous_secret_invalidated',
+    processing_status: 'processed',
+  })
+
+  return { success: true, error: null }
 }
 
 // ── Project Mappings ────────────────────────────────────────────────────────
