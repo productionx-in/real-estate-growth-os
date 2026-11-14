@@ -20,6 +20,7 @@
 | **DEC-008** | 2026-11-14 | Database | Production database remediation staged into Migrations 0016, 0017, and 0018 with fail-closed recursion | **Approved / Staged** |
 | **DEC-009** | 2026-11-14 | Testing | Strict separation between in-memory unit tests and real PostgreSQL / provider staging tests | **Approved / Active** |
 | **DEC-010** | 2026-11-14 | Build / Infra | Webpack bundling mode retained for Next.js build due to Turbopack PostCSS child-process restrictions on Windows | **Approved / Active** |
+| **DEC-011** | 2026-11-15 | Integrations | Central Google Ads OAuth & Lead Form Webhook architecture with deferred app setup | **Approved / Active** |
 
 ---
 
@@ -51,3 +52,7 @@
 ### DEC-007: Non-Destructive Disconnect Lifecycle
 - **Context:** When a customer disconnects a marketing channel, historical leads must not be orphaned or deleted.
 - **Decision:** Disconnecting sets `status = 'disabled'` and removes active decryption keys, but strictly retains all historical leads, project associations, and attribution logs.
+
+### DEC-011: Central Google Ads OAuth & Lead Form Webhook Architecture
+- **Context:** Google Ads Lead Form extensions deliver real-time leads via webhook with `google_key` verification, and Google Ads API accesses customer accounts and lead form assets via OAuth (`https://www.googleapis.com/auth/adwords`).
+- **Decision:** Reuses the multi-tenant central app architecture established in DEC-003 and DEC-004. Actual Google Cloud project OAuth credentials and Developer Token registration are deferred until platform completion. Tokens are encrypted using AES-256-GCM vault storage (`vault://aes256gcm:...`). Real-time leads are received via both connection-specific (`/api/webhooks/google/[connectionId]`) and central (`/api/webhooks/google`) endpoints, verified using timing-safe comparison on `google_key`, and ingested through `processInboundLead`. No live connections or tokens are simulated.

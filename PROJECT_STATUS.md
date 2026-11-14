@@ -2,9 +2,9 @@
 ## PROJECT STATUS REGISTER
 
 **Document Purpose:** Accurate, evidence-based status tracking for all stages, sub-stages, and infrastructure components.  
-**Last Updated:** 2026-11-15T01:16:00+05:30  
+**Last Updated:** 2026-11-15T01:42:00+05:30  
 **Current Active Stage:** **Stage 4 — CRM, Lead Sources & Integrations**  
-**Last Verified Checkpoint:** **Stage 4C — Public Webhooks & Inbound Lead Ingestion (Hardened & Code Verified)**
+**Last Verified Checkpoint:** **Stage 4D — Google Ads Lead Integration (Code Verified)**
 
 ---
 
@@ -24,7 +24,7 @@
 | **STAGE 4A** | **Integration Centre UX & Connections** | **Approved** | `tests/integration-centre-ux.test.mjs` (10/10 passed), `IntegrationCentreView.tsx`. *Staging DB verification pending.* |
 | **STAGE 4B** | **Meta Lead Ads OAuth Integration** | **Code Verified** | `tests/meta-oauth-integration.test.mjs` (12/12 passed), `lib/integrations/meta/*`, AES-256-GCM. *Central Meta App setup deferred.* |
 | **STAGE 4C** | **Public Webhooks & Lead Ingestion** | **Code Verified (Hardened)** | `tests/public-webhooks-ingestion.test.mjs` (7 comprehensive suites passed), distributed rate limiter, raw-body HMAC, secret rotation grace period, atomic DB race deduplication. |
-| **STAGE 4D** | **Google Ads Lead Integration** | **Not Started** | Scheduled following Stage 4C. |
+| **STAGE 4D** | **Google Ads Lead Integration** | **Code Verified** | `tests/google-ads-integration.test.mjs` (12/12 passed), `lib/integrations/google/*`, Google OAuth, lead webhook, AES-256-GCM. *Google App setup deferred.* |
 | **STAGE 4E** | **Website Enquiry Forms** | **Not Started** | Scheduled following Stage 4D. |
 | **STAGE 4F** | **WhatsApp Business Integration** | **Not Started** | Scheduled following Stage 4E. |
 | **STAGE 4G** | **Property Portal Integrations** | **Not Started** | Scheduled following Stage 4F. |
@@ -54,9 +54,9 @@
 ## 3. Active Checkpoint & Codebase Health
 
 - **TypeScript Compilation (`npx tsc --noEmit`):** **PASS** (0 errors).
-- **Automated Test Suites (`npm test`):** **PASS** (15 / 15 test suites passed, 150+ assertions green).
+- **Automated Test Suites (`npm test`):** **PASS** (16 / 16 test suites passed, 160+ assertions green).
 - **ESLint (`npm run lint`):** **PASS** (0 errors, 10 minor warnings).
-- **Next.js Production Build (`npm run build`):** Webpack compiles; sandboxed local build encounters Windows OneDrive file handle locks during rapid recursive `mkdir` in `.next` (transient environment sync artifact, not a code defect).
+- **Next.js Production Build (`npm run build`):** Webpack compiles; sandboxed local build encounters Windows OneDrive file handle locks during rapid recursive `mkdir` in `.next` (tracked as separate infrastructure deployment verification; does not affect application code).
 
 ---
 
@@ -64,9 +64,12 @@
 
 1. **Staging Database Environment:**  
    - `.env.local` contains placeholder values. Staging Supabase project URL and service credentials are not configured in local environment.  
-   - *Impact:* Migration 0015 staging execution and real PostgreSQL integration tests are paused at the safety gate.  
+   - *Impact:* Migration 0015 & 0019 staging execution and real PostgreSQL integration tests are paused at the safety gate.  
    - *Resolution:* Staging credentials and verified backup will be requested when live database testing is required.
-2. **Central Meta Developer App Registration:**  
-   - Meta App ID and App Secret are intentionally deferred per company policy.  
-   - *Impact:* Meta connection shows "Not Connected / Setup Required".  
-   - *Resolution:* Full OAuth architecture, encryption, HMAC state verification, and webhooks are implemented and tested in-memory. Central credentials will be added when Meta app is registered.
+2. **Central External Provider App Registrations (Meta & Google):**  
+   - Meta App ID/Secret and Google OAuth Client ID/Secret are intentionally deferred per company policy.  
+   - *Impact:* Meta and Google connections show "Not Connected / Setup Required".  
+   - *Resolution:* Full OAuth architecture, AES-256-GCM encryption, HMAC state verification, and webhooks are implemented and tested in-memory. Central credentials will be added when external developer apps are registered.
+3. **Deployment Tasks (Tracked Separately):**  
+   - Migration 0019 staging deployment.  
+   - Outstanding production-build verification on non-OneDrive CI/CD host.

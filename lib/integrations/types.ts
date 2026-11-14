@@ -61,6 +61,38 @@ export interface MetaConnectionMetadata {
   [key: string]: unknown
 }
 
+// ── Google Ads Asset Types (Stage 4D) ────────────────────────────────────────
+
+export interface GoogleAdsCustomerAccountAsset {
+  id: string
+  name: string
+  currencyCode?: string
+  timeZone?: string
+  isManager?: boolean
+}
+
+export interface GoogleLeadFormAsset {
+  id: string
+  name: string
+  businessName?: string
+  headline?: string
+  description?: string
+  fieldsCount?: number
+  campaignIds?: string[]
+}
+
+export interface GoogleConnectionMetadata {
+  customerAccounts?: GoogleAdsCustomerAccountAsset[]
+  selectedCustomerId?: string
+  authorizedEmail?: string
+  tokenExpiry?: string
+  scopes?: string[]
+  webhookKey?: string
+  webhookKeyPrefix?: string
+  healthStatus?: 'healthy' | 'warning' | 'error' | 'pending'
+  [key: string]: unknown
+}
+
 export interface IntegrationConnectionRecord {
   id: string
   org_id: string
