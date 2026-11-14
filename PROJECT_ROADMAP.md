@@ -92,10 +92,10 @@ Standalone SaaS platform:
 | **Stage 4D** | Google Ads Lead Integration | Google OAuth, Lead form webhook receiver, attribution | **Code Verified** |
 | **Stage 4E** | Website Enquiry Forms | Embeddable forms, lead capture APIs, spam defense | **Code Verified** |
 | **Stage 4F** | WhatsApp Business Integration | Cloud API architecture, conversation tracking, templates | **Code Verified** |
-| **Stage 4G** | Property Portal Integrations | 99acres, Magicbricks, Housing.com partner ingestion | **Not Started** |
-| **Stage 4H** | Integration APIs & Extensibility | Outbound customer webhooks, public developer API, docs | **Not Started** |
-| **Stage 5** | Sales & Channel Partner Operations | Site visits (5A), Bookings (5B), Channel Partners (5C), Attribution (5D), Pipelines (5E) | **Not Started** |
-| **Stage 6** | Digital Experience & Automation | Microsites (6A), Automated Follow-ups (6B), Attribution (6C), Analytics (6D) | **Not Started** |
+| **Stage 4G** | Property Portal Integrations | 99acres, Magicbricks, Housing.com partner ingestion | **Code Verified** |
+| **Stage 4H** | Integration APIs & Extensibility | Outbound customer webhooks, public developer API, docs | **Code Verified** |
+| **Stage 5** | Sales & Channel Partner Operations | Site visits (5A), Bookings (5B), Channel Partners (5C), Attribution (5D), Pipelines (5E) | **Code Verified** |
+| **Stage 6** | Digital Experience & Automation | Microsites (6A), Automated Follow-ups (6B), Attribution (6C), Analytics (6D) | **Code Verified** |
 
 ---
 

@@ -25,6 +25,7 @@ import { MetaConnectWizardModal } from '@/components/integrations/MetaConnectWiz
 import { ConnectionDetailsModal } from '@/components/integrations/ConnectionDetailsModal'
 import { WebsiteEnquiryWizardModal } from '@/components/integrations/WebsiteEnquiryWizardModal'
 import { WhatsAppWizardModal } from '@/components/integrations/WhatsAppWizardModal'
+import { PortalIntegrationModal } from '@/components/integrations/PortalIntegrationModal'
 
 interface ProjectOption {
   id: string
@@ -63,6 +64,7 @@ export function IntegrationCentreView({
   const [isWizardOpen, setIsWizardOpen] = useState(false)
   const [isWebsiteWizardOpen, setIsWebsiteWizardOpen] = useState(false)
   const [isWhatsAppWizardOpen, setIsWhatsAppWizardOpen] = useState(false)
+  const [isPortalModalOpen, setIsPortalModalOpen] = useState(false)
   const [selectedConnection, setSelectedConnection] = useState<
     (IntegrationConnectionRecord & { mappings?: IntegrationProjectMappingRecord[] }) | null
   >(null)
@@ -466,7 +468,7 @@ export function IntegrationCentreView({
               <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
                 <div className="flex justify-between">
                   <span>Implementation:</span>
-                  <span className="font-semibold text-gray-900">Planned (Stage 4G)</span>
+                  <span className="font-semibold text-emerald-700">Code Verified (Stage 4G)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Provider Setup:</span>
@@ -481,10 +483,11 @@ export function IntegrationCentreView({
 
             <div className="pt-3">
               <button
-                disabled
-                className="w-full py-2 px-3 text-[12px] font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-xl cursor-not-allowed text-center"
+                onClick={() => setIsPortalModalOpen(true)}
+                disabled={!canManage}
+                className="w-full py-2 px-3 text-[12px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition cursor-pointer text-center"
               >
-                Portal API Agreements Required (Stage 4G)
+                Configure &amp; Test Portals
               </button>
             </div>
           </div>
@@ -694,6 +697,15 @@ export function IntegrationCentreView({
         orgId={org.id}
         projects={projects}
         existingConnection={whatsappConnection}
+        onConnectionCreated={refreshData}
+      />
+
+      {/* PROPERTY PORTAL INTEGRATION MODAL */}
+      <PortalIntegrationModal
+        isOpen={isPortalModalOpen}
+        onClose={() => setIsPortalModalOpen(false)}
+        orgId={org.id}
+        projects={projects}
         onConnectionCreated={refreshData}
       />
     </div>

@@ -7,6 +7,8 @@ import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getMetaAppConfig, getMetaOAuthRedirectUri } from '@/lib/integrations/meta/config'
 import { createOAuthState, getMetaAuthorizationUrl } from '@/lib/integrations/meta/oauth'
+import { getGoogleAppConfig, getGoogleOAuthRedirectUri } from '@/lib/integrations/google/config'
+import { createGoogleOAuthState, getGoogleAuthorizationUrl } from '@/lib/integrations/google/oauth'
 import type { Json } from '@/types/database'
 
 interface RouteContext {
@@ -45,7 +47,67 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    // Check central Meta App configuration
+    // Provider: WhatsApp Business Cloud API
+    if (conn.provider === 'whatsapp_cloud') {
+      await service
+        .from('integration_connections')
+        .update({
+          metadata: {
+            ...((conn.metadata || {}) as Record<string, unknown>),
+            reconnect_initiated_at: new Date().toISOString(),
+            reconnect_initiated_by: authResult.auth.profile.id,
+          } as unknown as Json,
+        })
+        .eq('id', conn.id)
+
+      return NextResponse.json({
+        success: true,
+        provider: 'whatsapp_cloud',
+        reconnectAvailable: true,
+        connectionId: conn.id,
+        message:
+          'To re-authorize WhatsApp Business Cloud API, generate a new System User Access Token in Meta Business Manager and update the connection credentials in the WhatsApp Wizard.',
+      })
+    }
+
+    // Provider: Google Ads
+    if (conn.provider === 'google_ads') {
+      const gConfig = getGoogleAppConfig()
+      if (!gConfig.isConfigured) {
+        return NextResponse.json(
+          {
+            error: 'google_app_not_configured',
+            reconnectAvailable: false,
+            message:
+              'Central Google Cloud OAuth credentials are not configured in environment variables (' +
+              gConfig.missing.join(', ') +
+              '). Reconnection cannot be completed until the Google app is registered.',
+            missing: gConfig.missing,
+          },
+          { status: 400 }
+        )
+      }
+
+      const gState = createGoogleOAuthState({
+        orgId: conn.org_id,
+        connectionId: conn.id,
+        userId: authResult.auth.profile.id,
+      })
+
+      const requestOrigin = request.nextUrl.origin
+      const redirectUri = getGoogleOAuthRedirectUri(requestOrigin)
+      const authorizationUrl = getGoogleAuthorizationUrl(gState, redirectUri)
+
+      return NextResponse.json({
+        success: true,
+        provider: 'google_ads',
+        reconnectAvailable: true,
+        authorizationUrl,
+        connectionId: conn.id,
+      })
+    }
+
+    // Provider: Meta Lead Ads
     const config = getMetaAppConfig()
     if (!config.isConfigured) {
       return NextResponse.json(
@@ -87,6 +149,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json({
       success: true,
+      provider: 'meta_ads',
       reconnectAvailable: true,
       authorizationUrl,
       connectionId: conn.id,

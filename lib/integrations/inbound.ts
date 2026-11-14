@@ -190,6 +190,32 @@ export async function processInboundLead(
       if (match) resolvedProjectId = match.project_id
     }
 
+    // Priority 3.6: Match by portal_project_id or portal_listing_id (Property Portals)
+    if (
+      !resolvedProjectId &&
+      (payload.customFields?.portal_project_id ||
+        payload.customFields?.portal_listing_id ||
+        payload.formId ||
+        payload.campaignId)
+    ) {
+      const candidateIds = [
+        payload.customFields?.portal_project_id,
+        payload.customFields?.portal_listing_id,
+        payload.formId,
+        payload.campaignId,
+      ]
+        .filter(Boolean)
+        .map(String)
+
+      const match = activeMappings.find(
+        (m) =>
+          (m.external_identifier_type === 'portal_project_id' ||
+            m.external_identifier_type === 'portal_listing_id') &&
+          candidateIds.includes(m.external_identifier_value)
+      )
+      if (match) resolvedProjectId = match.project_id
+    }
+
     // Priority 4: Fallback to connection account_default
     if (!resolvedProjectId) {
       const match = activeMappings.find((m) => m.external_identifier_type === 'account_default')

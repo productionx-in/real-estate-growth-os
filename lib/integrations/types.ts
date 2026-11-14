@@ -11,6 +11,7 @@ export type IntegrationProvider =
   | 'property_portal_99acres'
   | 'property_portal_magicbricks'
   | 'property_portal_housing'
+  | 'developer_api'
   | 'manual'
   | 'other'
 
@@ -21,6 +22,8 @@ export type MappingIdentifierType =
   | 'form_id'
   | 'page_id'
   | 'phone_number_id'
+  | 'portal_project_id'
+  | 'portal_listing_id'
   | 'account_default'
 
 export type ProcessingStatus = 'received' | 'processed' | 'duplicate' | 'unmapped' | 'failed'

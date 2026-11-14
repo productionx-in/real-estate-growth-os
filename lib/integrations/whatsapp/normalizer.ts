@@ -85,6 +85,9 @@ export function normalizeWhatsAppInboundMessage(params: {
     referral_source_id: referral?.source_id || null,
     referral_source_type: referral?.source_type || null,
     referral_headline: referral?.headline || null,
+    referral_source_url: referral?.source_url || null,
+    referral_media_type: referral?.media_type || null,
+    referral_ctwa_clid: referral?.ctwa_clid || null,
     ingested_via: 'whatsapp_cloud_api',
   }
 

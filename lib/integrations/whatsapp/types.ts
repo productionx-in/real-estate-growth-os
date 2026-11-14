@@ -20,6 +20,7 @@ export interface WhatsAppReferral {
   image_url?: string
   video_url?: string
   thumbnail_url?: string
+  ctwa_clid?: string // Click-to-WhatsApp Click ID
 }
 
 export interface WhatsAppTextMessage {

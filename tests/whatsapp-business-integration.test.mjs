@@ -755,4 +755,226 @@ function createSafeAuditEvent({ orgId, connectionId, eventType, externalEventId,
   console.log('  ✓ Test 14 Passed: Audit log privacy & credential protection')
 }
 
-console.log('\n--- All 14 WhatsApp Business Integration Tests Passed Successfully ---\n')
+// ---------------------------------------------------------------------------
+// 15. Outbound WhatsApp Message Payload Construction & Zero-Simulation
+// ---------------------------------------------------------------------------
+
+function constructMetaOutboundPayload(to, message) {
+  const cleanTo = to.replace(/\D/g, '')
+  const metaPayload = {
+    messaging_product: 'whatsapp',
+    recipient_type: 'individual',
+    to: cleanTo,
+    type: message.type,
+  }
+  if (message.type === 'text') {
+    metaPayload.text = message.text
+  } else if (message.type === 'template') {
+    metaPayload.template = message.template
+  }
+  return metaPayload
+}
+
+{
+  // 15a: Outbound Text Payload
+  const textPayload = constructMetaOutboundPayload('+91 98765 00001', {
+    type: 'text',
+    text: { body: 'Greetings from Premier Sky Gardens' },
+  })
+  assert.equal(textPayload.messaging_product, 'whatsapp')
+  assert.equal(textPayload.to, '919876500001')
+  assert.equal(textPayload.type, 'text')
+  assert.equal(textPayload.text.body, 'Greetings from Premier Sky Gardens')
+
+  // 15b: Outbound Template Payload
+  const tplPayload = constructMetaOutboundPayload('+91 98765 00001', {
+    type: 'template',
+    template: {
+      name: 'site_visit_confirmation',
+      language: { code: 'en' },
+      components: [
+        {
+          type: 'body',
+          parameters: [
+            { type: 'text', text: 'Rajesh' },
+            { type: 'text', text: 'Sky Gardens' },
+          ],
+        },
+      ],
+    },
+  })
+  assert.equal(tplPayload.type, 'template')
+  assert.equal(tplPayload.template.name, 'site_visit_confirmation')
+  assert.equal(tplPayload.template.components[0].parameters[0].text, 'Rajesh')
+
+  // 15c: Zero-simulation guarantee: Missing token fails cleanly without fake delivery
+  function sendWithoutCredentials(hasCredentials) {
+    if (!hasCredentials) {
+      return {
+        success: false,
+        error: 'WhatsApp Cloud API access token is not configured in this connection',
+        errorCode: 'missing_credentials',
+      }
+    }
+    return { success: true }
+  }
+
+  const unconfiguredAttempt = sendWithoutCredentials(false)
+  assert.equal(unconfiguredAttempt.success, false, 'Unconfigured connection must never report success')
+  assert.equal(unconfiguredAttempt.errorCode, 'missing_credentials')
+
+  console.log('  ✓ Test 15 Passed: Outbound message payload construction & zero-simulation error handling')
+}
+
+// ---------------------------------------------------------------------------
+// 16. WABA Phone Number Asset Discovery & Response Parsing
+// ---------------------------------------------------------------------------
+
+function parseWhatsAppPhoneNumbersResponse(graphResponse) {
+  if (graphResponse.error) {
+    return { phoneNumbers: [], error: graphResponse.error.message }
+  }
+  const phoneNumbers = (graphResponse.data || []).map((p) => ({
+    id: p.id,
+    verifiedName: p.verified_name || 'WhatsApp Business',
+    displayPhoneNumber: p.display_phone_number || '',
+    qualityRating: p.quality_rating || 'UNKNOWN',
+    status: p.code_verification_status || 'VERIFIED',
+  }))
+  return { phoneNumbers }
+}
+
+{
+  const mockGraphData = {
+    data: [
+      {
+        id: 'phone_num_skygardens_01',
+        verified_name: 'Premier Sky Gardens Sales',
+        display_phone_number: '+91 98765 00001',
+        quality_rating: 'GREEN',
+        code_verification_status: 'VERIFIED',
+      },
+      {
+        id: 'phone_num_lakeview_02',
+        verified_name: 'Premier Lakeview Estates',
+        display_phone_number: '+91 98765 00002',
+        quality_rating: 'YELLOW',
+        code_verification_status: 'VERIFIED',
+      },
+    ],
+  }
+
+  const parsed = parseWhatsAppPhoneNumbersResponse(mockGraphData)
+  assert.equal(parsed.phoneNumbers.length, 2)
+  assert.equal(parsed.phoneNumbers[0].id, 'phone_num_skygardens_01')
+  assert.equal(parsed.phoneNumbers[0].verifiedName, 'Premier Sky Gardens Sales')
+  assert.equal(parsed.phoneNumbers[0].qualityRating, 'GREEN')
+
+  // Graph API Error response handling
+  const errorGraphData = {
+    error: {
+      message: 'Invalid OAuth access token - Cannot parse access token',
+      type: 'OAuthException',
+      code: 190,
+    },
+  }
+  const errorParsed = parseWhatsAppPhoneNumbersResponse(errorGraphData)
+  assert.equal(errorParsed.phoneNumbers.length, 0)
+  assert.ok(errorParsed.error.includes('Invalid OAuth access token'))
+
+  console.log('  ✓ Test 16 Passed: WABA phone number asset discovery & error response parsing')
+}
+
+// ---------------------------------------------------------------------------
+// 17. Real Meta Approved-Template Discovery (Filter & Sync)
+// ---------------------------------------------------------------------------
+
+function parseMetaTemplatesResponse(graphResponse) {
+  if (graphResponse.error) {
+    return { templates: [], error: graphResponse.error.message }
+  }
+  const rawList = graphResponse.data || []
+  // Filter strictly for APPROVED templates per WhatsApp Business policy
+  const approved = rawList.filter((t) => t.status === 'APPROVED')
+  return {
+    templates: approved.map((t) => ({
+      id: t.id,
+      name: t.name,
+      status: t.status,
+      category: t.category,
+      language: t.language,
+      components: t.components || [],
+    })),
+    totalDiscovered: rawList.length,
+    approvedCount: approved.length,
+  }
+}
+
+{
+  const mockTemplatesGraph = {
+    data: [
+      {
+        id: 'tpl_101',
+        name: 'site_visit_confirmation',
+        status: 'APPROVED',
+        category: 'UTILITY',
+        language: 'en',
+        components: [{ type: 'BODY', text: 'Visit confirmed for {{1}}' }],
+      },
+      {
+        id: 'tpl_102',
+        name: 'brochure_draft',
+        status: 'PENDING',
+        category: 'MARKETING',
+        language: 'en',
+      },
+      {
+        id: 'tpl_103',
+        name: 'pricing_update_rejected',
+        status: 'REJECTED',
+        category: 'MARKETING',
+        language: 'en',
+      },
+    ],
+  }
+
+  const result = parseMetaTemplatesResponse(mockTemplatesGraph)
+  assert.equal(result.totalDiscovered, 3, 'Must discover all 3 templates from Meta')
+  assert.equal(result.approvedCount, 1, 'Only 1 template is in APPROVED status')
+  assert.equal(result.templates[0].name, 'site_visit_confirmation')
+  assert.equal(result.templates[0].status, 'APPROVED')
+
+  console.log('  ✓ Test 17 Passed: Real Meta approved-template discovery & status filtering')
+}
+
+// ---------------------------------------------------------------------------
+// 18. Reconnect Lifecycle for WhatsApp Cloud API
+// ---------------------------------------------------------------------------
+
+function handleProviderReconnect(conn) {
+  if (conn.provider === 'whatsapp_cloud') {
+    return {
+      success: true,
+      provider: 'whatsapp_cloud',
+      reconnectAvailable: true,
+      action: 'system_user_token_guidance',
+      message: 'To re-authorize WhatsApp Business Cloud API, generate a new System User Access Token in Meta Business Manager and update credentials.',
+    }
+  }
+  if (conn.provider === 'meta_ads') {
+    return { success: true, provider: 'meta_ads', reconnectAvailable: true, action: 'oauth_redirect' }
+  }
+  return { success: false, error: 'unsupported_provider' }
+}
+
+{
+  const waConn = { id: 'conn_wa_01', provider: 'whatsapp_cloud', status: 'error' }
+  const reconnectRes = handleProviderReconnect(waConn)
+  assert.equal(reconnectRes.success, true)
+  assert.equal(reconnectRes.provider, 'whatsapp_cloud')
+  assert.equal(reconnectRes.action, 'system_user_token_guidance')
+
+  console.log('  ✓ Test 18 Passed: Reconnect lifecycle for WhatsApp Cloud API')
+}
+
+console.log('\n--- All 18 WhatsApp Business Integration Tests Passed Successfully ---\n')

@@ -730,7 +730,7 @@ export interface Database {
         Row: {
           id: string
           org_id: string
-          provider: 'meta_ads' | 'google_ads' | 'website_webhook' | 'whatsapp_cloud' | 'property_portal_99acres' | 'property_portal_magicbricks' | 'property_portal_housing' | 'manual' | 'other'
+          provider: 'meta_ads' | 'google_ads' | 'website_webhook' | 'whatsapp_cloud' | 'property_portal_99acres' | 'property_portal_magicbricks' | 'property_portal_housing' | 'developer_api' | 'manual' | 'other'
           name: string
           external_account_id: string | null
           status: 'not_connected' | 'connected' | 'error' | 'disabled'
@@ -745,7 +745,7 @@ export interface Database {
         Insert: {
           id?: string
           org_id: string
-          provider: 'meta_ads' | 'google_ads' | 'website_webhook' | 'whatsapp_cloud' | 'property_portal_99acres' | 'property_portal_magicbricks' | 'property_portal_housing' | 'manual' | 'other'
+          provider: 'meta_ads' | 'google_ads' | 'website_webhook' | 'whatsapp_cloud' | 'property_portal_99acres' | 'property_portal_magicbricks' | 'property_portal_housing' | 'developer_api' | 'manual' | 'other'
           name: string
           external_account_id?: string | null
           status?: 'not_connected' | 'connected' | 'error' | 'disabled'
@@ -760,7 +760,7 @@ export interface Database {
         Update: {
           id?: string
           org_id?: string
-          provider?: 'meta_ads' | 'google_ads' | 'website_webhook' | 'whatsapp_cloud' | 'property_portal_99acres' | 'property_portal_magicbricks' | 'property_portal_housing' | 'manual' | 'other'
+          provider?: 'meta_ads' | 'google_ads' | 'website_webhook' | 'whatsapp_cloud' | 'property_portal_99acres' | 'property_portal_magicbricks' | 'property_portal_housing' | 'developer_api' | 'manual' | 'other'
           name?: string
           external_account_id?: string | null
           status?: 'not_connected' | 'connected' | 'error' | 'disabled'
@@ -788,7 +788,14 @@ export interface Database {
           org_id: string
           connection_id: string
           project_id: string
-          external_identifier_type: 'campaign_id' | 'form_id' | 'page_id' | 'account_default' | 'phone_number_id'
+          external_identifier_type:
+            | 'campaign_id'
+            | 'form_id'
+            | 'page_id'
+            | 'account_default'
+            | 'phone_number_id'
+            | 'portal_project_id'
+            | 'portal_listing_id'
           external_identifier_value: string
           description: string | null
           created_at: string
@@ -799,7 +806,14 @@ export interface Database {
           org_id: string
           connection_id: string
           project_id: string
-          external_identifier_type: 'campaign_id' | 'form_id' | 'page_id' | 'account_default' | 'phone_number_id'
+          external_identifier_type:
+            | 'campaign_id'
+            | 'form_id'
+            | 'page_id'
+            | 'account_default'
+            | 'phone_number_id'
+            | 'portal_project_id'
+            | 'portal_listing_id'
           external_identifier_value: string
           description?: string | null
           created_at?: string
@@ -810,7 +824,14 @@ export interface Database {
           org_id?: string
           connection_id?: string
           project_id?: string
-          external_identifier_type?: 'campaign_id' | 'form_id' | 'page_id' | 'account_default' | 'phone_number_id'
+          external_identifier_type?:
+            | 'campaign_id'
+            | 'form_id'
+            | 'page_id'
+            | 'account_default'
+            | 'phone_number_id'
+            | 'portal_project_id'
+            | 'portal_listing_id'
           external_identifier_value?: string
           description?: string | null
           created_at?: string
@@ -879,6 +900,157 @@ export interface Database {
             columns: ['connection_id']
             isOneToOne: false
             referencedRelation: 'integration_connections'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      developer_api_keys: {
+        Row: {
+          id: string
+          org_id: string
+          name: string
+          key_hash: string
+          key_prefix: string
+          permissions: string[]
+          is_active: boolean
+          last_used_at: string | null
+          expires_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          name: string
+          key_hash: string
+          key_prefix: string
+          permissions?: string[]
+          is_active?: boolean
+          last_used_at?: string | null
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          name?: string
+          key_hash?: string
+          key_prefix?: string
+          permissions?: string[]
+          is_active?: boolean
+          last_used_at?: string | null
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'developer_api_keys_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'organisations'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      webhook_subscriptions: {
+        Row: {
+          id: string
+          org_id: string
+          url: string
+          event_types: string[]
+          secret_ref: string | null
+          is_active: boolean
+          description: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          url: string
+          event_types?: string[]
+          secret_ref?: string | null
+          is_active?: boolean
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          url?: string
+          event_types?: string[]
+          secret_ref?: string | null
+          is_active?: boolean
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'webhook_subscriptions_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'organisations'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      webhook_delivery_logs: {
+        Row: {
+          id: string
+          org_id: string
+          subscription_id: string
+          event_type: string
+          payload: Json
+          response_status: number | null
+          response_body: string | null
+          attempt: number
+          success: boolean
+          error_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          subscription_id: string
+          event_type: string
+          payload: Json
+          response_status?: number | null
+          response_body?: string | null
+          attempt?: number
+          success?: boolean
+          error_message?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          subscription_id?: string
+          event_type?: string
+          payload?: Json
+          response_status?: number | null
+          response_body?: string | null
+          attempt?: number
+          success?: boolean
+          error_message?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'webhook_delivery_logs_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'organisations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'webhook_delivery_logs_subscription_id_fkey'
+            columns: ['subscription_id']
+            isOneToOne: false
+            referencedRelation: 'webhook_subscriptions'
             referencedColumns: ['id']
           }
         ]
@@ -1073,6 +1245,582 @@ export interface Database {
             referencedColumns: ['id']
           }
         ]
+      }
+      site_visits: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          lead_id: string
+          assigned_to: string | null
+          scheduled_at: string
+          status: string
+          outcome: string | null
+          notes: string | null
+          rating: number | null
+          visitor_count: number
+          cab_required: boolean
+          cab_details: Json
+          checked_in_at: string | null
+          completed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          lead_id: string
+          assigned_to?: string | null
+          scheduled_at: string
+          status?: string
+          outcome?: string | null
+          notes?: string | null
+          rating?: number | null
+          visitor_count?: number
+          cab_required?: boolean
+          cab_details?: Json
+          checked_in_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          project_id?: string
+          lead_id?: string
+          assigned_to?: string | null
+          scheduled_at?: string
+          status?: string
+          outcome?: string | null
+          notes?: string | null
+          rating?: number | null
+          visitor_count?: number
+          cab_required?: boolean
+          cab_details?: Json
+          checked_in_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      channel_partners: {
+        Row: {
+          id: string
+          org_id: string
+          firm_name: string
+          rera_registration_number: string | null
+          contact_person: string
+          phone: string
+          email: string | null
+          pan_number: string | null
+          gst_number: string | null
+          tier: string
+          status: string
+          default_commission_rate: number
+          bank_details: Json
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          firm_name: string
+          rera_registration_number?: string | null
+          contact_person: string
+          phone: string
+          email?: string | null
+          pan_number?: string | null
+          gst_number?: string | null
+          tier?: string
+          status?: string
+          default_commission_rate?: number
+          bank_details?: Json
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          firm_name?: string
+          rera_registration_number?: string | null
+          contact_person?: string
+          phone?: string
+          email?: string | null
+          pan_number?: string | null
+          gst_number?: string | null
+          tier?: string
+          status?: string
+          default_commission_rate?: number
+          bank_details?: Json
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inventory_blockings: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          inventory_id: string
+          lead_id: string
+          blocked_by: string | null
+          status: string
+          token_amount: number
+          payment_reference: string | null
+          expires_at: string
+          remarks: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          inventory_id: string
+          lead_id: string
+          blocked_by?: string | null
+          status?: string
+          token_amount?: number
+          payment_reference?: string | null
+          expires_at: string
+          remarks?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          project_id?: string
+          inventory_id?: string
+          lead_id?: string
+          blocked_by?: string | null
+          status?: string
+          token_amount?: number
+          payment_reference?: string | null
+          expires_at?: string
+          remarks?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bookings: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          inventory_id: string
+          lead_id: string
+          blocking_id: string | null
+          channel_partner_id: string | null
+          booking_number: string
+          booking_date: string
+          status: string
+          base_price: number
+          additional_charges: number
+          total_amount: number
+          booking_amount_received: number
+          payment_plan: string
+          documents: Json
+          remarks: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          inventory_id: string
+          lead_id: string
+          blocking_id?: string | null
+          channel_partner_id?: string | null
+          booking_number: string
+          booking_date?: string
+          status?: string
+          base_price: number
+          additional_charges?: number
+          total_amount: number
+          booking_amount_received?: number
+          payment_plan?: string
+          documents?: Json
+          remarks?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          project_id?: string
+          inventory_id?: string
+          lead_id?: string
+          blocking_id?: string | null
+          channel_partner_id?: string | null
+          booking_number?: string
+          booking_date?: string
+          status?: string
+          base_price?: number
+          additional_charges?: number
+          total_amount?: number
+          booking_amount_received?: number
+          payment_plan?: string
+          documents?: Json
+          remarks?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      channel_partner_commissions: {
+        Row: {
+          id: string
+          org_id: string
+          booking_id: string
+          channel_partner_id: string
+          commission_type: string
+          commission_rate: number
+          gross_commission_amount: number
+          tds_percentage: number
+          net_commission_amount: number
+          status: string
+          milestones: Json
+          paid_amount: number
+          payment_notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          booking_id: string
+          channel_partner_id: string
+          commission_type?: string
+          commission_rate: number
+          gross_commission_amount: number
+          tds_percentage?: number
+          net_commission_amount: number
+          status?: string
+          milestones?: Json
+          paid_amount?: number
+          payment_notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          booking_id?: string
+          channel_partner_id?: string
+          commission_type?: string
+          commission_rate?: number
+          gross_commission_amount?: number
+          tds_percentage?: number
+          net_commission_amount?: number
+          status?: string
+          milestones?: Json
+          paid_amount?: number
+          payment_notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      deals: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          lead_id: string
+          inventory_id: string | null
+          channel_partner_id: string | null
+          assigned_to: string | null
+          stage: string
+          deal_value: number | null
+          probability: number
+          expected_close_date: string | null
+          loss_reason: string | null
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          lead_id: string
+          inventory_id?: string | null
+          channel_partner_id?: string | null
+          assigned_to?: string | null
+          stage?: string
+          deal_value?: number | null
+          probability?: number
+          expected_close_date?: string | null
+          loss_reason?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          project_id?: string
+          lead_id?: string
+          inventory_id?: string | null
+          channel_partner_id?: string | null
+          assigned_to?: string | null
+          stage?: string
+          deal_value?: number | null
+          probability?: number
+          expected_close_date?: string | null
+          loss_reason?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      project_microsites: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          slug: string
+          custom_domain: string | null
+          title: string
+          tagline: string | null
+          description: string | null
+          hero_image_url: string | null
+          virtual_tour_url: string | null
+          master_plan_url: string | null
+          brochure_url: string | null
+          video_url: string | null
+          accent_color: string | null
+          theme: string
+          features: Json
+          faqs: Json
+          is_published: boolean
+          published_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          slug: string
+          custom_domain?: string | null
+          title: string
+          tagline?: string | null
+          description?: string | null
+          hero_image_url?: string | null
+          virtual_tour_url?: string | null
+          master_plan_url?: string | null
+          brochure_url?: string | null
+          video_url?: string | null
+          accent_color?: string | null
+          theme?: string
+          features?: Json
+          faqs?: Json
+          is_published?: boolean
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          project_id?: string
+          slug?: string
+          custom_domain?: string | null
+          title?: string
+          tagline?: string | null
+          description?: string | null
+          hero_image_url?: string | null
+          virtual_tour_url?: string | null
+          master_plan_url?: string | null
+          brochure_url?: string | null
+          video_url?: string | null
+          accent_color?: string | null
+          theme?: string
+          features?: Json
+          faqs?: Json
+          is_published?: boolean
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      automation_workflows: {
+        Row: {
+          id: string
+          org_id: string
+          name: string
+          description: string | null
+          trigger_event: string
+          filter_conditions: Json
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          name: string
+          description?: string | null
+          trigger_event: string
+          filter_conditions?: Json
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          name?: string
+          description?: string | null
+          trigger_event?: string
+          filter_conditions?: Json
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      automation_workflow_steps: {
+        Row: {
+          id: string
+          workflow_id: string
+          step_order: number
+          action_type: string
+          action_config: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          workflow_id: string
+          step_order: number
+          action_type: string
+          action_config?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          workflow_id?: string
+          step_order?: number
+          action_type?: string
+          action_config?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
+      automation_executions: {
+        Row: {
+          id: string
+          org_id: string
+          workflow_id: string
+          target_id: string
+          target_type: string
+          status: string
+          current_step_order: number
+          execution_log: Json
+          error_message: string | null
+          started_at: string
+          completed_at: string | null
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          workflow_id: string
+          target_id: string
+          target_type?: string
+          status?: string
+          current_step_order?: number
+          execution_log?: Json
+          error_message?: string | null
+          started_at?: string
+          completed_at?: string | null
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          workflow_id?: string
+          target_id?: string
+          target_type?: string
+          status?: string
+          current_step_order?: number
+          execution_log?: Json
+          error_message?: string | null
+          started_at?: string
+          completed_at?: string | null
+        }
+        Relationships: []
+      }
+      lead_touchpoints: {
+        Row: {
+          id: string
+          org_id: string
+          lead_id: string
+          project_id: string | null
+          channel: string
+          touchpoint_type: string
+          campaign_name: string | null
+          campaign_id: string | null
+          ad_name: string | null
+          utm_source: string | null
+          utm_medium: string | null
+          utm_campaign: string | null
+          referrer_url: string | null
+          landing_page: string | null
+          channel_partner_id: string | null
+          metadata: Json
+          occurred_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          lead_id: string
+          project_id?: string | null
+          channel: string
+          touchpoint_type: string
+          campaign_name?: string | null
+          campaign_id?: string | null
+          ad_name?: string | null
+          utm_source?: string | null
+          utm_medium?: string | null
+          utm_campaign?: string | null
+          referrer_url?: string | null
+          landing_page?: string | null
+          channel_partner_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          lead_id?: string
+          project_id?: string | null
+          channel?: string
+          touchpoint_type?: string
+          campaign_name?: string | null
+          campaign_id?: string | null
+          ad_name?: string | null
+          utm_source?: string | null
+          utm_medium?: string | null
+          utm_campaign?: string | null
+          referrer_url?: string | null
+          landing_page?: string | null
+          channel_partner_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {

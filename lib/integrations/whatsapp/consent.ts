@@ -1,6 +1,8 @@
 // lib/integrations/whatsapp/consent.ts
 // Customer consent, opt-in and opt-out management for WhatsApp Business integration.
-// Enforces WhatsApp Messaging Policy, TRAI/DND guidelines, and outbound message gating.
+// Enforces Meta WhatsApp Business Messaging Policy and customer opt-out keywords.
+// NOTE: TRAI TCCCPR 2018 DLT/DND registries govern cellular carrier SMS/voice, not OTT WhatsApp messaging.
+// WhatsApp compliance is strictly governed by Meta's WhatsApp Business Messaging Policy & User Consent.
 
 import type { ConsentStatus } from './types'
 

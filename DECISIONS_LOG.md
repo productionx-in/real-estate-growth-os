@@ -23,6 +23,7 @@
 | **DEC-011** | 2026-11-15 | Integrations | Central Google Ads OAuth & Lead Form Webhook architecture with deferred app setup | **Approved / Active** |
 | **DEC-012** | 2026-11-15 | Integrations | Website Enquiry Forms: Multi-layer anti-spam (honeypot + speed), allowed origin CORS, and unified CRM lead ingestion | **Approved / Active** |
 | **DEC-013** | 2026-11-15 | Integrations | WhatsApp Business Cloud API: Webhook verification, Click-to-WhatsApp attribution, 24h care window, and consent enforcement | **Approved / Active** |
+| **DEC-014** | 2026-11-15 | Integrations | Indian Property Portals (99acres, Magicbricks, Housing.com): Webhook ingestion, timing-safe authentication, project routing, and 3-case deduplication | **Approved / Active** |
 
 ---
 
@@ -70,13 +71,58 @@
   - *Privacy Guarantee:* Public responses never leak internal lead IDs, organization IDs, or infrastructure details. Restricted caller-injected keys (`org_id`, `role`, `user_id`) are stripped before normalization.
 
 ### DEC-013: WhatsApp Business Cloud API Architecture, Consent Compliance & Attribution
-- **Context:** Real estate developers in Hyderabad and India rely heavily on WhatsApp as a primary buyer acquisition and engagement channel through Click-to-WhatsApp Meta Ads, digital brochures, and site-visit confirmations. Compliance with Meta Messaging Policy, TRAI DND rules, and multi-tenant isolation is mandatory.
+- **Context:** Real estate developers in Hyderabad and India rely heavily on WhatsApp as a primary buyer acquisition and engagement channel through Click-to-WhatsApp Meta Ads, digital brochures, and site-visit confirmations. Compliance with Meta WhatsApp Business Messaging Policy and multi-tenant isolation is mandatory.
 - **Decision:**
   - *Cloud API Connection Architecture:* Supports WhatsApp Business Cloud API connections (`whatsapp_cloud`) with Phone Number ID, WABA ID, and webhook subscription tokens. Real Meta WABA developer credentials and phone number verification remain deferred per policy; zero live connections are simulated.
+  - *Outbound Messaging Client & Discovery:* Implemented authentic Graph API v21.0 outbound messaging (`POST /{phone_number_id}/messages`), phone number asset discovery (`GET /{waba_id}/phone_numbers`), and template discovery (`GET /{waba_id}/message_templates`), which fail cleanly with authentic Meta error payloads when unconfigured and never simulate fake delivery.
   - *Cryptographic Webhook Verification:* Enforces timing-safe comparison on GET challenge parameters and validates POST HMAC-SHA256 signatures (`x-hub-signature-256`) against unparsed raw body bytes.
-  - *Click-to-WhatsApp Attribution:* Automatically extracts Meta `referral` objects (`source_id`, `headline`, `body`, `source_url`) from initial inbound messages, mapping them directly to CRM campaign and ad attribution fields.
+  - *Click-to-WhatsApp Attribution:* Automatically extracts Meta `referral` objects (`source_id`, `headline`, `body`, `source_url`, `ctwa_clid`, `media_type`) from initial inbound messages, mapping them directly to CRM campaign and ad attribution fields.
   - *24-Hour Customer Care Window & Outbound Guard:* Enforces Meta's 24-hour customer service window for session messages. Outside the window, only pre-approved WhatsApp templates (`status: 'APPROVED'`) with variable interpolation are permitted.
   - *Customer Opt-In & Opt-Out Gating:* Evaluates inbound keywords (`STOP`, `UNSUBSCRIBE`, `CANCEL`, `QUIT`, `OPT OUT`, `REVOKE`). Matching messages immediately set `is_opted_out = true` and unconditionally block all outbound communications.
+  - *TRAI DND vs. Meta Policy Scope Clarification:* TRAI TCCCPR 2018 regulations and National DLT scrubbing apply strictly to carrier SMS and voice telemarketing calls, not OTT IP messaging. WhatsApp compliance is strictly governed by Meta's WhatsApp Business Messaging Policy and Indian DPDPA 2023 consent requirements. Previous mentions of "TRAI DND compliance" are formally corrected to "Meta WhatsApp Business Messaging Policy & User Consent Compliance".
   - *Unified Lead Ingestion & Conversation Association:* Ingests leads through central `processInboundLead` using `phone_number_id` (Priority 3.5), `campaign_id` (Priority 2), or `account_default` (Priority 4), while tracking message and conversation history in staged multi-tenant tables (`whatsapp_conversations`, `whatsapp_messages`).
   - *Tenant Isolation & Audit Security:* Strips injected tenant keys (`org_id`, `role`, `user_id`) and guarantees zero credential or token leakage in `integration_event_logs`.
+
+### DEC-014: Indian Property Portals (99acres, Magicbricks, Housing.com) Integration Architecture
+- **Context:** Indian property developers generate significant buyer volume from 99acres (Info Edge), Magicbricks (Times Internet), and Housing.com (Elara / REA Group). Developers require real-time push ingestion into the central CRM with project routing and multi-tenant security without duplicate lead creation.
+- **Decision:**
+  - *Provider Architecture:* Dedicated providers `property_portal_99acres`, `property_portal_magicbricks`, and `property_portal_housing` registered under central integration architecture. Commercial developer agreements remain deferred; zero mock connections are simulated as active.
+  - *Timing-Safe Token Authentication:* Webhook push endpoints verify partner API keys / Bearer tokens using `crypto.timingSafeEqual` against secrets encrypted in AES-256-GCM vault storage (`vault://aes256gcm:...`).
+  - *Payload Normalization & E.164 Formatting:* Portal-specific normalizers transform diverse XML/JSON payloads into canonical `InboundLeadPayload`, cleaning phone numbers to Indian E.164 (`+91...`), formatting composite requirement/budget notes, and capturing portal metadata.
+  - *Portal Project & Listing Routing:* Added `portal_project_id` and `portal_listing_id` mapping identifier types (Priority 3.6 in `processInboundLead`), falling back to `account_default` (Priority 4).
+  - *Deterministic Idempotency & 3-Case Deduplication:* Uses portal external lead IDs as idempotency anchors, routing through central CRM 3-case deduplication (Case A Replay, Case B Same Project, Case C New Project).
+  - *Tenant Isolation & Privacy Guarantee:* Connection resolved strictly via internal database records. Restricted external keys (`org_id`, `role`, `user_id`) are stripped, and credentials are never exposed in responses or `integration_event_logs`.
+
+### DEC-015: Developer REST APIs, Outbound Webhook Subscriptions & HMAC Signing Architecture
+- **Context:** Enterprise property developers and technology partners require programmatic access to read projects and inventory, push custom leads, and subscribe to real-time CRM lifecycle events (e.g. `lead.created`, `lead.updated`, `site_visit.scheduled`, `inventory.status_changed`).
+- **Decision:**
+  - *Developer API Key Model:* API keys generated with prefix `px_live_<random_bytes>`. Plaintext keys are shown exactly once to the developer upon creation. Only SHA-256 key hashes and `key_prefix` are stored in `developer_api_keys`. Authenticating requests hashes incoming keys and verifies against active, non-expired database records.
+  - *Programmatic REST Endpoints (`/api/v1/*`):*
+    - `GET /api/v1/projects`: Scoped strictly to authenticated developer organisation with category and status filters.
+    - `GET /api/v1/inventory`: Scoped strictly to authenticated developer organisation with project, category, and status filters.
+    - `POST /api/v1/leads`: Ingests leads through central CRM pipeline with duplicate protection, project mapping, and automatic outbound webhook dispatch.
+    - `GET /api/v1/leads`: Scoped query of CRM leads with project and status filters.
+  - *Outbound Webhook Subscriptions & HMAC-SHA256 Signing:* Event subscriptions stored in `webhook_subscriptions` with event wildcard matching (`*` or specific event types). Payloads signed using HMAC-SHA256 over `${timestamp}.${raw_payload}` delivered in `x-px-signature-256` and `x-px-timestamp` with 300-second replay window tolerance.
+  - *Delivery Logging & Fault Tolerance:* Dispatches events asynchronously with configurable timeouts (default 5000ms). Delivery results logged to `webhook_delivery_logs` with HTTP status and retry counts, guaranteeing non-blocking operation for core CRM workflows.
+
+### DEC-016: Sales Operations, Inventory Blockings, Bookings & Channel Partner Architecture
+- **Context:** Developers require structured site-visit scheduling, temporary unit holds (blockings) with automated expiry to prevent inventory locking, formal sales booking agreements with payment schedules, and channel partner (broker) RERA verification and commission disbursement management.
+- **Decision:**
+  - *Site Visit Management (`site_visits`):* Tracks scheduling, executive assignments, visitor counts, VIP cab arrangements, check-in status, ratings, and outcomes (`interested`, `negotiation`, `booked`, `follow_up_needed`).
+  - *Atomic Inventory Blockings (`inventory_blockings`):* Enables temporary holds (default 48h) on `available` inventory units, transitioning unit status to `blocked`. Expired blockings are auto-released, restoring units to `available`. Double-blocking or blocking non-available units is strictly rejected.
+  - *Sales Booking Execution (`bookings`):* Converts active blockings or books directly from inventory. Assigns unique deterministic booking numbers (`BK-YYYYMMDD-XXXX`), transitions inventory status atomically to `booked`, and records base price, additional PLC/parking charges, total sale value, and payment plan milestones. Double-booking is strictly prevented.
+  - *Channel Partner (CP) Operations (`channel_partners`):* Tracks broker firm details, RERA registration numbers, PAN/GST credentials, and tiering (`silver`, `gold`, `platinum`).
+  - *Commission Engine (`channel_partner_commissions`):* Supports percentage-based, fixed per sqft, and lump sum commission models. Automatically calculates 5% TDS deduction and structures milestone-based payouts (e.g. 50% on booking advance, 50% on agreement signing).
+  - *Sales Pipeline Kanban (`deals`):* Complete lifecycle progression from `enquiry` through `site_visit_scheduled`, `negotiation`, `unit_blocked`, to `booked` / `won` with probability scoring.
+
+### DEC-017: Digital Experience Showrooms, Drip Automations & Multi-Touch Attribution Architecture
+- **Context:** Real estate buyers take 14 to 45 days across multiple digital and offline touchpoints before booking. Developers require interactive public project microsites (digital showrooms), automated follow-up drip workflows across WhatsApp and email, and accurate multi-touch attribution to evaluate marketing ROI.
+- **Decision:**
+  - *Public Digital Showrooms (`project_microsites`, `/p/[projectSlug]`):* Standalone, fast, responsive public project presentations featuring 3D virtual tour embeds, master layout plans, curated amenities, RERA disclosures, and direct CRM VIP site-visit enquiry capture.
+  - *Event-Driven Workflow Automation (`automation_workflows`, `automation_executions`):* Evaluates triggers (`lead_created`, `site_visit_scheduled`, `unit_blocked`, `booking_confirmed`) against filter conditions and executes ordered actions (`send_whatsapp_template`, `send_email`, `create_task`, `delay_hours`), logging step-by-step audit records with failure isolation.
+  - *Multi-Touch Attribution Engine (`lead_touchpoints`):* Registers every buyer touchpoint (`meta_ads`, `google_ads`, `website_form`, `99acres`, `magicbricks`, `housing`, `whatsapp`, `channel_partner`). Computes revenue attribution across 5 standard models: First Touch (100%), Last Touch (100%), Linear (equal split), Position-Based / U-Shaped (40% first, 20% middle, 40% last), and Time Decay (exponential half-life).
+  - *Developer Executive BI Dashboard (`/analytics`):* Aggregates real-time conversion funnels (Leads → Visits → Holds → Bookings), sales velocity (mean days to booking), channel sourcing ROI, and inventory absorption percentages.
+
+
+
 
