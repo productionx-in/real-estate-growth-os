@@ -3,10 +3,10 @@
 
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-export default function StandaloneEnquiryFormPage() {
+function EnquiryFormContent() {
   const searchParams = useSearchParams()
 
   const connectionId = searchParams.get('connectionId') || ''
@@ -68,7 +68,7 @@ export default function StandaloneEnquiryFormPage() {
           notes: notes || undefined,
           hpConfirm: hpConfirm || undefined,
           website_url_hp: websiteUrlHp || undefined,
-          formLoadTime: formLoadTimeRef.current,
+          formLoadTime: formLoadTimeRef.current || undefined,
           submissionTime: Date.now(),
           utmSource,
           utmMedium,
@@ -236,5 +236,21 @@ export default function StandaloneEnquiryFormPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function StandaloneEnquiryFormPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center text-slate-500 text-sm">
+            Loading enquiry form...
+          </div>
+        </div>
+      }
+    >
+      <EnquiryFormContent />
+    </Suspense>
   )
 }
