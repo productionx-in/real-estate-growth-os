@@ -70,13 +70,13 @@ create policy "whatsapp_conversations_tenant_isolation" on public.whatsapp_conve
     for all
     using (
         org_id in (
-            select m.org_id from public.organisation_members m
+            select m.org_id from public.org_members m
             where m.profile_id = auth.uid()
         )
     )
     with check (
         org_id in (
-            select m.org_id from public.organisation_members m
+            select m.org_id from public.org_members m
             where m.profile_id = auth.uid()
         )
     );
@@ -85,13 +85,13 @@ create policy "whatsapp_messages_tenant_isolation" on public.whatsapp_messages
     for all
     using (
         org_id in (
-            select m.org_id from public.organisation_members m
+            select m.org_id from public.org_members m
             where m.profile_id = auth.uid()
         )
     )
     with check (
         org_id in (
-            select m.org_id from public.organisation_members m
+            select m.org_id from public.org_members m
             where m.profile_id = auth.uid()
         )
     );
@@ -100,13 +100,13 @@ create policy "whatsapp_templates_tenant_isolation" on public.whatsapp_templates
     for all
     using (
         org_id in (
-            select m.org_id from public.organisation_members m
+            select m.org_id from public.org_members m
             where m.profile_id = auth.uid()
         )
     )
     with check (
         org_id in (
-            select m.org_id from public.organisation_members m
+            select m.org_id from public.org_members m
             where m.profile_id = auth.uid()
         )
     );

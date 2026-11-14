@@ -161,19 +161,19 @@ ALTER TABLE public.deals ENABLE ROW LEVEL SECURITY;
 
 -- Scoped Tenant Isolation Policies
 CREATE POLICY "site_visits_tenant_isolation" ON public.site_visits
-  USING (org_id IN (SELECT organisation_id FROM public.organisation_members WHERE profile_id = auth.uid()));
+  USING (org_id IN (SELECT org_id FROM public.org_members WHERE profile_id = auth.uid()));
 
 CREATE POLICY "channel_partners_tenant_isolation" ON public.channel_partners
-  USING (org_id IN (SELECT organisation_id FROM public.organisation_members WHERE profile_id = auth.uid()));
+  USING (org_id IN (SELECT org_id FROM public.org_members WHERE profile_id = auth.uid()));
 
 CREATE POLICY "inventory_blockings_tenant_isolation" ON public.inventory_blockings
-  USING (org_id IN (SELECT organisation_id FROM public.organisation_members WHERE profile_id = auth.uid()));
+  USING (org_id IN (SELECT org_id FROM public.org_members WHERE profile_id = auth.uid()));
 
 CREATE POLICY "bookings_tenant_isolation" ON public.bookings
-  USING (org_id IN (SELECT organisation_id FROM public.organisation_members WHERE profile_id = auth.uid()));
+  USING (org_id IN (SELECT org_id FROM public.org_members WHERE profile_id = auth.uid()));
 
 CREATE POLICY "channel_partner_commissions_tenant_isolation" ON public.channel_partner_commissions
-  USING (org_id IN (SELECT organisation_id FROM public.organisation_members WHERE profile_id = auth.uid()));
+  USING (org_id IN (SELECT org_id FROM public.org_members WHERE profile_id = auth.uid()));
 
 CREATE POLICY "deals_tenant_isolation" ON public.deals
-  USING (org_id IN (SELECT organisation_id FROM public.organisation_members WHERE profile_id = auth.uid()));
+  USING (org_id IN (SELECT org_id FROM public.org_members WHERE profile_id = auth.uid()));

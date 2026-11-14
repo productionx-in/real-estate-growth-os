@@ -4,9 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
   Search,
-  Filter,
   Building2,
-  ExternalLink,
   Layers,
   CheckCircle2,
   Clock,
@@ -18,8 +16,6 @@ import {
   type InventoryItemWithRelations,
   type InventoryStatus,
   type ProjectCategory,
-  PROJECT_CATEGORY_LABELS,
-  INVENTORY_STATUS_LABELS,
 } from '@/types/inventory'
 import { InventoryTable } from './InventoryTable'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -34,16 +30,15 @@ interface OrgInventoryExplorerProps {
   }[]
   initialItems: InventoryItemWithRelations[]
   orgSlug: string
-  isManager: boolean
+  isManager?: boolean
 }
 
 export function OrgInventoryExplorer({
   projects,
   initialItems,
   orgSlug,
-  isManager,
 }: OrgInventoryExplorerProps) {
-  const [items, setItems] = useState<InventoryItemWithRelations[]>(initialItems)
+  const [items] = useState<InventoryItemWithRelations[]>(initialItems)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedProject, setSelectedProject] = useState<string>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')

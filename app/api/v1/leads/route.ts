@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const service = createServiceClient()
     let query = service
       .from('leads')
-      .select('id, full_name, phone, email, status, priority, project_id, lead_source, created_at')
+      .select('id, name, phone, email, status, priority, project_id, source, created_at')
       .eq('org_id', auth.orgId)
       .order('created_at', { ascending: false })
       .limit(limit)

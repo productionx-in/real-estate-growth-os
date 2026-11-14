@@ -122,19 +122,19 @@ ALTER TABLE public.lead_touchpoints ENABLE ROW LEVEL SECURITY;
 
 -- Tenant Isolation Policies
 CREATE POLICY "project_microsites_tenant_isolation" ON public.project_microsites
-  USING (org_id IN (SELECT organisation_id FROM public.organisation_members WHERE profile_id = auth.uid()));
+  USING (org_id IN (SELECT org_id FROM public.org_members WHERE profile_id = auth.uid()));
 
 CREATE POLICY "automation_workflows_tenant_isolation" ON public.automation_workflows
-  USING (org_id IN (SELECT organisation_id FROM public.organisation_members WHERE profile_id = auth.uid()));
+  USING (org_id IN (SELECT org_id FROM public.org_members WHERE profile_id = auth.uid()));
 
 CREATE POLICY "automation_workflow_steps_tenant_isolation" ON public.automation_workflow_steps
-  USING (workflow_id IN (SELECT id FROM public.automation_workflows WHERE org_id IN (SELECT organisation_id FROM public.organisation_members WHERE profile_id = auth.uid())));
+  USING (workflow_id IN (SELECT id FROM public.automation_workflows WHERE org_id IN (SELECT org_id FROM public.org_members WHERE profile_id = auth.uid())));
 
 CREATE POLICY "automation_executions_tenant_isolation" ON public.automation_executions
-  USING (org_id IN (SELECT organisation_id FROM public.organisation_members WHERE profile_id = auth.uid()));
+  USING (org_id IN (SELECT org_id FROM public.org_members WHERE profile_id = auth.uid()));
 
 CREATE POLICY "lead_touchpoints_tenant_isolation" ON public.lead_touchpoints
-  USING (org_id IN (SELECT organisation_id FROM public.organisation_members WHERE profile_id = auth.uid()));
+  USING (org_id IN (SELECT org_id FROM public.org_members WHERE profile_id = auth.uid()));
 
 -- Public Read Policy for Published Microsites
 CREATE POLICY "public_microsite_read" ON public.project_microsites

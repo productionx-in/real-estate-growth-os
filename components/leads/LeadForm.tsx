@@ -14,7 +14,7 @@ interface Project {
 
 interface LeadFormProps {
   orgSlug: string
-  orgId: string
+  orgId?: string
   projects: Project[]
   /** Pre-fill values when editing an existing lead */
   defaultValues?: Partial<LeadFormValues>
@@ -68,7 +68,7 @@ function Label({ htmlFor, children, required }: { htmlFor: string; children: Rea
 
 const inputClass = "w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors placeholder:text-[var(--foreground-subtle)]"
 
-export function LeadForm({ orgSlug, orgId: _orgId, projects, defaultValues, leadId }: LeadFormProps) {
+export function LeadForm({ orgSlug, projects, defaultValues, leadId }: LeadFormProps) {
   const router = useRouter()
   const isEditing = !!leadId
 

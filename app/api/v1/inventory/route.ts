@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const service = createServiceClient()
     let query = service
       .from('inventory_items')
-      .select('id, unit_number, category, status, floor_number, base_price, total_price, super_built_up_area, project_id, created_at')
+      .select('id, unit_number, category, status, floor_number, base_rate, total_price, super_built_up_area, project_id, created_at')
       .eq('org_id', auth.orgId)
       .limit(limit)
 

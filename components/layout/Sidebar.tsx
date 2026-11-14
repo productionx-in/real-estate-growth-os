@@ -11,6 +11,8 @@ import {
   Building2,
   Layers,
   Plug,
+  TrendingUp,
+  Briefcase,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
@@ -35,6 +37,11 @@ function useNavItems(orgSlug: string): NavItem[] {
       icon: Users,
     },
     {
+      label: 'Sales & CPs',
+      href: `/${orgSlug}/sales`,
+      icon: Briefcase,
+    },
+    {
       label: 'Projects',
       href: `/${orgSlug}/projects`,
       icon: FolderOpen,
@@ -48,6 +55,11 @@ function useNavItems(orgSlug: string): NavItem[] {
       label: 'Integrations',
       href: `/${orgSlug}/integrations`,
       icon: Plug,
+    },
+    {
+      label: 'Analytics & BI',
+      href: `/${orgSlug}/analytics`,
+      icon: TrendingUp,
     },
     {
       label: 'Team',

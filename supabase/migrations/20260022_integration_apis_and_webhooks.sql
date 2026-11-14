@@ -62,13 +62,13 @@ create policy "developer_api_keys_tenant_isolation" on public.developer_api_keys
     for all
     using (
         org_id in (
-            select m.org_id from public.organisation_members m
+            select m.org_id from public.org_members m
             where m.profile_id = auth.uid()
         )
     )
     with check (
         org_id in (
-            select m.org_id from public.organisation_members m
+            select m.org_id from public.org_members m
             where m.profile_id = auth.uid()
         )
     );
@@ -77,13 +77,13 @@ create policy "webhook_subscriptions_tenant_isolation" on public.webhook_subscri
     for all
     using (
         org_id in (
-            select m.org_id from public.organisation_members m
+            select m.org_id from public.org_members m
             where m.profile_id = auth.uid()
         )
     )
     with check (
         org_id in (
-            select m.org_id from public.organisation_members m
+            select m.org_id from public.org_members m
             where m.profile_id = auth.uid()
         )
     );
@@ -92,13 +92,13 @@ create policy "webhook_delivery_logs_tenant_isolation" on public.webhook_deliver
     for all
     using (
         org_id in (
-            select m.org_id from public.organisation_members m
+            select m.org_id from public.org_members m
             where m.profile_id = auth.uid()
         )
     )
     with check (
         org_id in (
-            select m.org_id from public.organisation_members m
+            select m.org_id from public.org_members m
             where m.profile_id = auth.uid()
         )
     );

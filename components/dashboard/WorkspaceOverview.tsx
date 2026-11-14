@@ -1,7 +1,7 @@
 // components/dashboard/WorkspaceOverview.tsx
 // Server component — computes real stats from DB for the verified organisation
 import { createServiceClient } from '@/lib/supabase/server'
-import { Users, FolderOpen, TrendingUp, CheckCircle, Layers, ArrowRight } from 'lucide-react'
+import { Users, FolderOpen, CheckCircle, Layers, ArrowRight } from 'lucide-react'
 import { EmptyState } from '@/components/shared/EmptyState'
 import Link from 'next/link'
 
@@ -60,7 +60,7 @@ export async function WorkspaceOverview({ orgSlug, orgId }: WorkspaceOverviewPro
   }
 
   // Parallel stat fetches using service client
-  const [leadsResult, projectsResult, membersResult, bookedResult, inventoryResult] =
+  const [leadsResult, projectsResult, , bookedResult, inventoryResult] =
     await Promise.all([
       service.from('leads').select('id', { count: 'exact', head: true }).eq('org_id', resolvedOrgId),
       service.from('projects').select('id', { count: 'exact', head: true }).eq('org_id', resolvedOrgId),
