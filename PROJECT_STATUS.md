@@ -2,9 +2,9 @@
 ## PROJECT STATUS REGISTER
 
 **Document Purpose:** Accurate, evidence-based status tracking for all stages, sub-stages, and infrastructure components.  
-**Last Updated:** 2026-11-15T02:00:00+05:30  
+**Last Updated:** 2026-11-15T02:25:00+05:30  
 **Current Active Stage:** **Stage 4 — CRM, Lead Sources & Integrations**  
-**Last Verified Checkpoint:** **Stage 4E — Website Enquiry Forms (Code Verified)**
+**Last Verified Checkpoint:** **Stage 4F — WhatsApp Business Integration (Code Verified)**
 
 ---
 
@@ -26,7 +26,7 @@
 | **STAGE 4C** | **Public Webhooks & Lead Ingestion** | **Code Verified (Hardened)** | `tests/public-webhooks-ingestion.test.mjs` (7 comprehensive suites passed), distributed rate limiter, raw-body HMAC, secret rotation grace period, atomic DB race deduplication. |
 | **STAGE 4D** | **Google Ads Lead Integration** | **Code Verified** | `tests/google-ads-integration.test.mjs` (12/12 passed), `lib/integrations/google/*`, Google OAuth, lead webhook, AES-256-GCM. *Google App setup deferred.* |
 | **STAGE 4E** | **Website Enquiry Forms** | **Code Verified** | `tests/website-enquiry-forms.test.mjs` (12/12 passed), `app/api/forms/submit/route.ts`, `app/forms/embed.js`, `WebsiteEnquiryWizardModal.tsx` |
-| **STAGE 4F** | **WhatsApp Business Integration** | **Not Started** | Scheduled following Stage 4E. |
+| **STAGE 4F** | **WhatsApp Business Integration** | **Code Verified** | `tests/whatsapp-business-integration.test.mjs` (14/14 passed), `lib/integrations/whatsapp/*`, `WhatsAppWizardModal.tsx`, Migration 0020 staged. *Meta WABA setup deferred.* |
 | **STAGE 4G** | **Property Portal Integrations** | **Not Started** | Scheduled following Stage 4F. |
 | **STAGE 4H** | **Integration APIs & Extensibility** | **Not Started** | Scheduled following Stage 4G. |
 | **STAGE 5** | **Sales & Channel Partner Management** | **Not Started** | Sub-stages 5A, 5B, 5C, 5D, 5E planned. |
@@ -48,13 +48,14 @@
 | `20260017` | Close Inventory RPC & Harden Definer | RPC Lockdown / Search Path | Staging / Prod | Prepared on disk; pending backup and staged execution |
 | `20260018` | Reconcile Multi-Tenant RLS Policies | Consolidated RLS / Depth Defense | Staging / Prod | Prepared on disk; pending backup and staged execution |
 | `20260019` | Distributed Rate Limiting Storage | DDL / Atomic Counter | Staging / Prod | Prepared on disk; atomic fixed-window storage |
+| `20260020` | WhatsApp Business Integration | DDL / Conversations & Messages | Staging / Prod | Prepared on disk; multi-tenant conversations, messages, templates & consent |
 
 ---
 
 ## 3. Active Checkpoint & Codebase Health
 
 - **TypeScript Compilation (`npx tsc --noEmit`):** **PASS** (0 errors).
-- **Automated Test Suites (`npm test`):** **PASS** (17 / 17 test suites passed, 175+ assertions green).
+- **Automated Test Suites (`npm test`):** **PASS** (18 / 18 test suites passed, 189+ assertions green).
 - **ESLint (`npm run lint`):** **PASS** (0 errors, 10 minor warnings).
 - **Next.js Production Build (`npm run build`):** Webpack compiles; sandboxed local build encounters Windows OneDrive file handle locks during rapid recursive `mkdir` in `.next` (tracked as separate infrastructure deployment verification; does not affect application code).
 
@@ -64,12 +65,12 @@
 
 1. **Staging Database Environment:**  
    - `.env.local` contains placeholder values. Staging Supabase project URL and service credentials are not configured in local environment.  
-   - *Impact:* Migration 0015 & 0019 staging execution and real PostgreSQL integration tests are paused at the safety gate.  
+   - *Impact:* Migration 0015, 0019 & 0020 staging execution and real PostgreSQL integration tests are paused at the safety gate.  
    - *Resolution:* Staging credentials and verified backup will be requested when live database testing is required.
-2. **Central External Provider App Registrations (Meta & Google):**  
-   - Meta App ID/Secret and Google OAuth Client ID/Secret are intentionally deferred per company policy.  
-   - *Impact:* Meta and Google connections show "Not Connected / Setup Required".  
-   - *Resolution:* Full OAuth architecture, AES-256-GCM encryption, HMAC state verification, and webhooks are implemented and tested in-memory. Central credentials will be added when external developer apps are registered.
+2. **Central External Provider App Registrations (Meta, Google & WhatsApp):**  
+   - Meta App ID/Secret, Google OAuth Client ID/Secret, and WhatsApp Cloud API credentials are intentionally deferred per company policy.  
+   - *Impact:* Meta, Google, and WhatsApp connections show "Not Connected / Setup Required".  
+   - *Resolution:* Full OAuth/Cloud API architecture, AES-256-GCM encryption, HMAC signature verification, Click-to-WhatsApp ads attribution, and webhooks are implemented and tested in-memory. Central credentials will be added when external developer apps are registered.
 3. **Deployment Tasks (Tracked Separately):**  
-   - Migration 0019 staging deployment.  
+   - Migrations 0019 & 0020 staging deployment.  
    - Outstanding production-build verification on non-OneDrive CI/CD host.

@@ -22,6 +22,7 @@
 | **DEC-010** | 2026-11-14 | Build / Infra | Webpack bundling mode retained for Next.js build due to Turbopack PostCSS child-process restrictions on Windows | **Approved / Active** |
 | **DEC-011** | 2026-11-15 | Integrations | Central Google Ads OAuth & Lead Form Webhook architecture with deferred app setup | **Approved / Active** |
 | **DEC-012** | 2026-11-15 | Integrations | Website Enquiry Forms: Multi-layer anti-spam (honeypot + speed), allowed origin CORS, and unified CRM lead ingestion | **Approved / Active** |
+| **DEC-013** | 2026-11-15 | Integrations | WhatsApp Business Cloud API: Webhook verification, Click-to-WhatsApp attribution, 24h care window, and consent enforcement | **Approved / Active** |
 
 ---
 
@@ -67,3 +68,15 @@
   - *Origin Domain Whitelisting:* Connections optionally configure `allowedDomains` to restrict form submissions strictly to authorized customer web domains.
   - *Unified CRM Ingestion:* Integrates directly into `processInboundLead`, ensuring deterministic SHA-256 idempotency (`uq_leads_org_idempotency_key`), project mapping resolution via connection mappings (`form_id` and `account_default`), and 3-case non-destructive deduplication.
   - *Privacy Guarantee:* Public responses never leak internal lead IDs, organization IDs, or infrastructure details. Restricted caller-injected keys (`org_id`, `role`, `user_id`) are stripped before normalization.
+
+### DEC-013: WhatsApp Business Cloud API Architecture, Consent Compliance & Attribution
+- **Context:** Real estate developers in Hyderabad and India rely heavily on WhatsApp as a primary buyer acquisition and engagement channel through Click-to-WhatsApp Meta Ads, digital brochures, and site-visit confirmations. Compliance with Meta Messaging Policy, TRAI DND rules, and multi-tenant isolation is mandatory.
+- **Decision:**
+  - *Cloud API Connection Architecture:* Supports WhatsApp Business Cloud API connections (`whatsapp_cloud`) with Phone Number ID, WABA ID, and webhook subscription tokens. Real Meta WABA developer credentials and phone number verification remain deferred per policy; zero live connections are simulated.
+  - *Cryptographic Webhook Verification:* Enforces timing-safe comparison on GET challenge parameters and validates POST HMAC-SHA256 signatures (`x-hub-signature-256`) against unparsed raw body bytes.
+  - *Click-to-WhatsApp Attribution:* Automatically extracts Meta `referral` objects (`source_id`, `headline`, `body`, `source_url`) from initial inbound messages, mapping them directly to CRM campaign and ad attribution fields.
+  - *24-Hour Customer Care Window & Outbound Guard:* Enforces Meta's 24-hour customer service window for session messages. Outside the window, only pre-approved WhatsApp templates (`status: 'APPROVED'`) with variable interpolation are permitted.
+  - *Customer Opt-In & Opt-Out Gating:* Evaluates inbound keywords (`STOP`, `UNSUBSCRIBE`, `CANCEL`, `QUIT`, `OPT OUT`, `REVOKE`). Matching messages immediately set `is_opted_out = true` and unconditionally block all outbound communications.
+  - *Unified Lead Ingestion & Conversation Association:* Ingests leads through central `processInboundLead` using `phone_number_id` (Priority 3.5), `campaign_id` (Priority 2), or `account_default` (Priority 4), while tracking message and conversation history in staged multi-tenant tables (`whatsapp_conversations`, `whatsapp_messages`).
+  - *Tenant Isolation & Audit Security:* Strips injected tenant keys (`org_id`, `role`, `user_id`) and guarantees zero credential or token leakage in `integration_event_logs`.
+

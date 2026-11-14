@@ -24,6 +24,7 @@ import type {
 import { MetaConnectWizardModal } from '@/components/integrations/MetaConnectWizardModal'
 import { ConnectionDetailsModal } from '@/components/integrations/ConnectionDetailsModal'
 import { WebsiteEnquiryWizardModal } from '@/components/integrations/WebsiteEnquiryWizardModal'
+import { WhatsAppWizardModal } from '@/components/integrations/WhatsAppWizardModal'
 
 interface ProjectOption {
   id: string
@@ -61,6 +62,7 @@ export function IntegrationCentreView({
   const [mappings, setMappings] = useState(initialMappings)
   const [isWizardOpen, setIsWizardOpen] = useState(false)
   const [isWebsiteWizardOpen, setIsWebsiteWizardOpen] = useState(false)
+  const [isWhatsAppWizardOpen, setIsWhatsAppWizardOpen] = useState(false)
   const [selectedConnection, setSelectedConnection] = useState<
     (IntegrationConnectionRecord & { mappings?: IntegrationProjectMappingRecord[] }) | null
   >(null)
@@ -70,6 +72,7 @@ export function IntegrationCentreView({
   const metaConnections = connections.filter((c) => c.provider === 'meta_ads')
   const activeMetaConnections = metaConnections.filter((c) => c.status === 'connected')
   const websiteConnection = connections.find((c) => c.provider === 'website_webhook')
+  const whatsappConnection = connections.find((c) => c.provider === 'whatsapp_cloud')
   const activeVerifiedConnections = connections.filter((c) => c.status === 'connected')
 
   // Refresh data from API
@@ -388,8 +391,14 @@ export function IntegrationCentreView({
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-2xs">
                   <MessageCircle className="w-5 h-5" />
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-700 border border-gray-200">
-                  Not Connected
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                    whatsappConnection?.status === 'connected'
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                      : 'bg-gray-100 text-gray-700 border border-gray-200'
+                  }`}
+                >
+                  {whatsappConnection?.status === 'connected' ? 'Connected' : 'Not Connected'}
                 </span>
               </div>
 
@@ -406,7 +415,7 @@ export function IntegrationCentreView({
               <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
                 <div className="flex justify-between">
                   <span>Implementation:</span>
-                  <span className="font-semibold text-gray-900">Schema Ready (Stage 4F Planned)</span>
+                  <span className="font-semibold text-emerald-700">Code Verified (Stage 4F)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Provider Setup:</span>
@@ -414,17 +423,20 @@ export function IntegrationCentreView({
                 </div>
                 <div className="flex justify-between">
                   <span>Connection Status:</span>
-                  <span className="text-gray-700 font-medium">Not Connected (API Connectivity Pending)</span>
+                  <span className="text-gray-700 font-medium">
+                    {whatsappConnection?.status === 'connected' ? 'Connected (Live Routing)' : 'Not Connected (Meta App Pending)'}
+                  </span>
                 </div>
               </div>
             </div>
 
             <div className="pt-3">
               <button
-                disabled
-                className="w-full py-2 px-3 text-[12px] font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-xl cursor-not-allowed text-center"
+                onClick={() => setIsWhatsAppWizardOpen(true)}
+                disabled={!canManage}
+                className="w-full py-2 px-3 text-[12px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition cursor-pointer text-center"
               >
-                Scheduled for Stage 4F
+                Configure &amp; Test WhatsApp
               </button>
             </div>
           </div>
@@ -672,6 +684,16 @@ export function IntegrationCentreView({
         orgId={org.id}
         projects={projects}
         existingConnection={websiteConnection}
+        onConnectionCreated={refreshData}
+      />
+
+      {/* WHATSAPP WIZARD MODAL */}
+      <WhatsAppWizardModal
+        isOpen={isWhatsAppWizardOpen}
+        onClose={() => setIsWhatsAppWizardOpen(false)}
+        orgId={org.id}
+        projects={projects}
+        existingConnection={whatsappConnection}
         onConnectionCreated={refreshData}
       />
     </div>

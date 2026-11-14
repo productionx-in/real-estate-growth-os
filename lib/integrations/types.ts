@@ -16,7 +16,12 @@ export type IntegrationProvider =
 
 export type IntegrationConnectionStatus = 'not_connected' | 'connected' | 'error' | 'disabled'
 
-export type MappingIdentifierType = 'campaign_id' | 'form_id' | 'page_id' | 'account_default'
+export type MappingIdentifierType =
+  | 'campaign_id'
+  | 'form_id'
+  | 'page_id'
+  | 'phone_number_id'
+  | 'account_default'
 
 export type ProcessingStatus = 'received' | 'processed' | 'duplicate' | 'unmapped' | 'failed'
 
@@ -114,6 +119,49 @@ export interface WebsiteConnectionMetadata {
   allowedDomains?: string[]
   honeypotEnabled?: boolean
   rateLimitPerIp?: number
+  healthStatus?: 'healthy' | 'warning' | 'error' | 'pending'
+  [key: string]: unknown
+}
+
+// ── WhatsApp Business Cloud API Types (Stage 4F) ───────────────────────────
+
+export interface WhatsAppPhoneNumberAsset {
+  id: string // phone_number_id
+  displayPhoneNumber: string // formatted e.g. "+91 98765 00001"
+  verifiedName?: string
+  qualityRating?: 'GREEN' | 'YELLOW' | 'RED' | 'UNKNOWN'
+  codeVerificationStatus?: 'VERIFIED' | 'NOT_VERIFIED'
+  status?: string
+}
+
+export interface WhatsAppTemplateComponent {
+  type: 'HEADER' | 'BODY' | 'FOOTER' | 'BUTTONS'
+  format?: 'TEXT' | 'IMAGE' | 'DOCUMENT' | 'VIDEO'
+  text?: string
+  example?: {
+    header_text?: string[]
+    body_text?: string[][]
+  }
+}
+
+export interface WhatsAppTemplateAsset {
+  id: string
+  name: string
+  language: string
+  status: 'APPROVED' | 'PENDING' | 'REJECTED' | 'PAUSED' | string
+  category: 'MARKETING' | 'UTILITY' | 'AUTHENTICATION' | string
+  components: WhatsAppTemplateComponent[]
+}
+
+export interface WhatsAppConnectionMetadata {
+  wabaId?: string
+  businessName?: string
+  phoneNumbers?: WhatsAppPhoneNumberAsset[]
+  selectedPhoneNumberId?: string
+  templates?: WhatsAppTemplateAsset[]
+  webhookVerifyToken?: string
+  webhookVerifyTokenPrefix?: string
+  optOutKeywords?: string[]
   healthStatus?: 'healthy' | 'warning' | 'error' | 'pending'
   [key: string]: unknown
 }

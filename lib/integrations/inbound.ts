@@ -179,6 +179,17 @@ export async function processInboundLead(
       if (match) resolvedProjectId = match.project_id
     }
 
+    // Priority 3.5: Match by phone_number_id (WhatsApp Phone Routing)
+    if (!resolvedProjectId && (payload.customFields?.phone_number_id || payload.formId)) {
+      const targetPhoneId = String(payload.customFields?.phone_number_id || payload.formId)
+      const match = activeMappings.find(
+        (m) =>
+          m.external_identifier_type === 'phone_number_id' &&
+          m.external_identifier_value === targetPhoneId
+      )
+      if (match) resolvedProjectId = match.project_id
+    }
+
     // Priority 4: Fallback to connection account_default
     if (!resolvedProjectId) {
       const match = activeMappings.find((m) => m.external_identifier_type === 'account_default')
