@@ -37,7 +37,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_validate_hierarchy_node_consistency ON project_hierarchy_nodes;
 CREATE TRIGGER trg_validate_hierarchy_node_consistency
@@ -95,7 +95,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_validate_inventory_item_integrity ON inventory_items;
 CREATE TRIGGER trg_validate_inventory_item_integrity
@@ -213,7 +213,7 @@ BEGIN
   RETURN QUERY
   SELECT p_inventory_id, v_org_id, v_project_id, v_unit_number, p_new_status;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 -- Secure execution permissions
 REVOKE ALL ON FUNCTION transition_inventory_status_atomic(UUID, inventory_status, inventory_status, UUID, TEXT, JSONB) FROM PUBLIC;

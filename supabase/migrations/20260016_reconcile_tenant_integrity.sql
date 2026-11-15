@@ -38,11 +38,7 @@ BEGIN
 END;
 $$;
 
--- Fail safely: does NOT silently drop. Fails with 42710 if trigger already exists.
-CREATE TRIGGER trg_project_org_immutable
-  BEFORE UPDATE OF org_id ON public.projects
-  FOR EACH ROW 
-  EXECUTE FUNCTION public.check_project_org_immutable();
+-- Trigger trg_project_org_immutable is established in migration 20260015 and executes this updated function.
 
 -- ----------------------------------------------------------------------------
 -- 3. Integration Connection Organisation Immutability
@@ -61,11 +57,7 @@ BEGIN
 END;
 $$;
 
--- Fail safely: does NOT silently drop. Fails with 42710 if trigger already exists.
-CREATE TRIGGER trg_connection_org_immutable
-  BEFORE UPDATE OF org_id ON public.integration_connections
-  FOR EACH ROW 
-  EXECUTE FUNCTION public.check_connection_org_immutable();
+-- Trigger trg_connection_org_immutable is established in migration 20260015 and executes this updated function.
 
 -- ----------------------------------------------------------------------------
 -- 4. Lead Project and Organisation Integrity Trigger
