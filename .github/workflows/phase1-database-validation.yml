@@ -35,24 +35,27 @@ jobs:
       - name: Install project dependencies
         run: npm ci
 
-      # 4. Install Pinned Supabase CLI (v2 stable avoids legacy Issue #4746 parser bug)
+      # 4. Install Pinned Supabase CLI (exact 2.122.1 avoids legacy Issue #4746 parser bug)
       - name: Setup Pinned Supabase CLI
         uses: supabase/setup-cli@v3
         with:
-          version: ^2
+          version: 2.122.1
 
       # 5. Start Disposable Local Supabase Stack (Docker-backed)
       - name: Start Disposable Local Supabase Stack
         run: |
           echo "Starting disposable local Supabase environment on runner..."
-          supabase start
+          supabase start --debug
           echo "Disposable Supabase services started successfully."
           supabase status
 
-          # Export local credentials to GITHUB_ENV for test suites
-          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:54322/postgres" >> $GITHUB_ENV
-          echo "SUPABASE_URL=http://localhost:54321" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321" >> $GITHUB_ENV
+          # Create diagnostics directory early
+          mkdir -p diagnostics
+
+          # Export local credentials using 127.0.0.1 (IPv4 avoids Linux localhost ::1 ECONNREFUSED)
+          echo "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres" >> $GITHUB_ENV
+          echo "SUPABASE_URL=http://127.0.0.1:54321" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321" >> $GITHUB_ENV
 
           ANON_KEY=$(supabase status -o env | grep 'ANON_KEY=' | head -n1 | cut -d '=' -f2 | tr -d '"')
           SERVICE_KEY=$(supabase status -o env | grep 'SERVICE_ROLE_KEY=' | head -n1 | cut -d '=' -f2 | tr -d '"')
@@ -65,7 +68,7 @@ jobs:
       - name: Apply Complete Migration History (Clean DB Reset)
         run: |
           echo "Executing clean database reset to apply all 32 migrations in exact sequence..."
-          supabase db reset
+          supabase db reset --debug
           echo "All migrations applied successfully from clean state."
 
       # 7. Install Postgres Driver for Test Execution
@@ -76,31 +79,35 @@ jobs:
       - name: Execute Real Database Integration Tests (Phase 4)
         run: |
           echo "Running real database integration tests against disposable PostgreSQL instance..."
-          node tests/db-integration/phase1-real-db.test.mjs
+          node tests/db-integration/phase1-real-db.test.mjs 2>&1 | tee diagnostics/phase1-real-db.log
 
       # 9. Execute Real Multi-Connection Concurrency Tests (Phase 5)
       - name: Execute Multi-Connection Concurrency Tests (Phase 5)
         run: |
+          echo "Executing clean database reset for concurrency isolation..."
+          supabase db reset --debug
           echo "Running multi-connection concurrency tests against disposable PostgreSQL instance..."
-          node tests/db-integration/phase1-concurrency.test.mjs
+          node tests/db-integration/phase1-concurrency.test.mjs 2>&1 | tee diagnostics/phase1-concurrency.log
 
       # 10. Execute Real Supabase Auth Live AAL2 & Bootstrap CLI Tests
       - name: Execute Live Supabase Auth AAL2 & Bootstrap CLI Tests
         run: |
+          echo "Executing clean database reset for live bootstrap isolation..."
+          supabase db reset --debug
           echo "Running live Supabase Auth AAL2 and Bootstrap CLI test suite..."
-          node tests/db-integration/phase1-bootstrap-cli.test.mjs
+          node tests/db-integration/phase1-bootstrap-cli.test.mjs 2>&1 | tee diagnostics/phase1-bootstrap-cli.log
 
       # 11. Execute Application Regression Test Suite (Phase 6)
       - name: Execute Application Regression Test Suite (All 27 Tests)
         run: |
           echo "Running existing project test suite..."
-          npm test
+          npm test 2>&1 | tee diagnostics/npm-test.log
 
       # 12. Execute TypeScript Compiler Check
       - name: Execute TypeScript Compiler Check
         run: |
           echo "Validating TypeScript types..."
-          npx tsc --noEmit
+          npx tsc --noEmit 2>&1 | tee diagnostics/tsc-check.log
 
       # 13. Capture Diagnostic State & Catalog Information
       - name: Capture Database Catalog Diagnostics
@@ -108,7 +115,7 @@ jobs:
         run: |
           mkdir -p diagnostics
           echo "Dumping routine definitions and security types..."
-          psql postgresql://postgres:postgres@localhost:54322/postgres -c "
+          psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "
             SELECT routine_name, routine_type, security_type, specific_schema 
             FROM information_schema.routines 
             WHERE specific_schema = 'public' 
@@ -116,7 +123,7 @@ jobs:
           " > diagnostics/catalog_routines.txt 2>&1 || true
 
           echo "Dumping table RLS states..."
-          psql postgresql://postgres:postgres@localhost:54322/postgres -c "
+          psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "
             SELECT tablename, rowsecurity 
             FROM pg_tables 
             WHERE schemaname = 'public' 
@@ -124,9 +131,17 @@ jobs:
           " > diagnostics/catalog_tables.txt 2>&1 || true
 
           echo "Dumping platform bootstrap state..."
-          psql postgresql://postgres:postgres@localhost:54322/postgres -c "
+          psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "
             SELECT * FROM public.platform_bootstrap_state;
           " > diagnostics/bootstrap_state.txt 2>&1 || true
+
+          echo "=== Test Log Summaries ==="
+          for f in diagnostics/*.log; do
+            if [ -f "$f" ]; then
+              echo "--- $f (last 50 lines) ---"
+              tail -n 50 "$f"
+            fi
+          done
 
       # 14. Publish Diagnostic Artifacts
       - name: Publish Test Artifacts & Diagnostics

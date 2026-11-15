@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 const connectionString =
   process.env.DATABASE_URL ||
   process.env.SUPABASE_DB_URL ||
-  'postgresql://postgres:postgres@localhost:54322/postgres'
+  'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 
 async function runConcurrencyTests() {
   console.log('===================================================================')
@@ -51,24 +51,40 @@ async function runConcurrencyTests() {
     const testCustomerEmail = 'concurrency.test@prod-x.test'
 
     // Clean up
-    await client1.query(`
-      DELETE FROM public.platform_admins WHERE user_id IN ($1, $2);
-      DELETE FROM auth.users WHERE id IN ($1, $2);
-    `, [testAdminId1, testAdminId2])
+    await client1.query('DELETE FROM public.platform_users WHERE user_id IN ($1, $2);', [testAdminId1, testAdminId2])
+    await client1.query('DELETE FROM auth.users WHERE id IN ($1, $2);', [testAdminId1, testAdminId2])
+
+    // Check if auth.users has instance_id column
+    const colCheck = await client1.query(`
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_schema = 'auth' AND table_name = 'users' AND column_name = 'instance_id'
+      LIMIT 1;
+    `)
+    const hasInstanceId = colCheck.rowCount > 0
+
+    if (hasInstanceId) {
+      await client1.query(`
+        INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
+        VALUES 
+          ($1, '00000000-0000-0000-0000-000000000000', 'admin1.concurrent@prod-x.test', '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Admin 1"}', now(), now(), 'authenticated', 'authenticated'),
+          ($2, '00000000-0000-0000-0000-000000000000', 'admin2.concurrent@prod-x.test', '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Admin 2"}', now(), now(), 'authenticated', 'authenticated')
+        ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, updated_at = now();
+      `, [testAdminId1, testAdminId2])
+    } else {
+      await client1.query(`
+        INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
+        VALUES 
+          ($1, 'admin1.concurrent@prod-x.test', '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Admin 1"}', now(), now(), 'authenticated', 'authenticated'),
+          ($2, 'admin2.concurrent@prod-x.test', '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Admin 2"}', now(), now(), 'authenticated', 'authenticated')
+        ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, updated_at = now();
+      `, [testAdminId1, testAdminId2])
+    }
 
     await client1.query(`
-      INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
+      INSERT INTO public.platform_users (user_id, role, is_active, mfa_enforced)
       VALUES 
-        ($1, 'admin1.concurrent@prod-x.test', '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Admin 1"}', now(), now(), 'authenticated', 'authenticated'),
-        ($2, 'admin2.concurrent@prod-x.test', '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Admin 2"}', now(), now(), 'authenticated', 'authenticated')
-      ON CONFLICT (id) DO NOTHING;
-    `, [testAdminId1, testAdminId2])
-
-    await client1.query(`
-      INSERT INTO public.platform_admins (user_id, role, is_active, created_by)
-      VALUES 
-        ($1, 'super_admin', true, $1),
-        ($2, 'super_admin', true, $1)
+        ($1, 'super_admin'::public.platform_role, true, true),
+        ($2, 'super_admin'::public.platform_role, true, true)
       ON CONFLICT (user_id) DO NOTHING;
     `, [testAdminId1, testAdminId2])
 
@@ -82,9 +98,9 @@ async function runConcurrencyTests() {
     const orgSlug = 'conc-org-' + Date.now()
     const provRes = await client1.query(`
       SELECT public.provision_organisation_atomic(
-        $1, 'Conc Test Org', $2, 'developer',
+        $1, 'Conc Test Org', $2, 'developer'::public.org_type,
         'growth', 'annual', NULL,
-        $3, 'hash-token-conc', now() + INTERVAL '7 days',
+        $3, 'hash-token-conc-crypto-32-chars-long-0123456789', now() + INTERVAL '7 days',
         NULL, NULL, NULL, NULL
       ) AS res;
     `, [testAdminId1, orgSlug, testCustomerEmail])
@@ -187,8 +203,8 @@ async function runConcurrencyTests() {
     const invId = invRowRes.rows[0].id
     const prevAttempts = invRowRes.rows[0].delivery_attempts
 
-    const rotPromise1 = client1.query('SELECT public.rotate_invitation_token_atomic($1, $2, $3, now() + INTERVAL \'7 days\') AS res', [testAdminId1, invId, 'hash-conc-1'])
-    const rotPromise2 = client2.query('SELECT public.rotate_invitation_token_atomic($1, $2, $3, now() + INTERVAL \'7 days\') AS res', [testAdminId2, invId, 'hash-conc-2'])
+    const rotPromise1 = client1.query('SELECT public.rotate_invitation_token_atomic($1, $2, $3, now() + INTERVAL \'7 days\') AS res', [testAdminId1, invId, 'hash-conc-1-token-crypto-32-chars-long-0123456789'])
+    const rotPromise2 = client2.query('SELECT public.rotate_invitation_token_atomic($1, $2, $3, now() + INTERVAL \'7 days\') AS res', [testAdminId2, invId, 'hash-conc-2-token-crypto-32-chars-long-0123456789'])
 
     const [rot1, rot2] = await Promise.all([rotPromise1, rotPromise2])
     const att1 = rot1.rows[0].res.attempts
