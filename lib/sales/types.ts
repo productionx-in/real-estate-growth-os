@@ -56,6 +56,8 @@ export interface ChannelPartner {
   notes: string | null
   created_at: string
   updated_at: string
+  lead?: { id?: string; name: string; phone?: string; email?: string } | null
+  project?: { id?: string; name: string } | null
 }
 
 export type BlockingStatus = 'active' | 'expired' | 'converted_to_booking' | 'cancelled'
@@ -158,4 +160,6 @@ export interface Deal {
   notes: string | null
   created_at: string
   updated_at: string
+  lead?: { id?: string; name: string; phone?: string; email?: string } | null
+  project?: { id?: string; name: string } | null
 }

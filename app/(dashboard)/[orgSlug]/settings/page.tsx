@@ -1,6 +1,7 @@
 // app/(dashboard)/[orgSlug]/settings/page.tsx
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { Plug, ArrowRight } from 'lucide-react'
 import { PageShell } from '@/components/layout/PageShell'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
@@ -21,6 +22,11 @@ const ORG_TYPE_LABEL: Record<string, string> = {
 export default async function SettingsPage({ params }: PageProps) {
   const { orgSlug } = await params
   const { user, profile, org, role, isAdmin } = await getVerifiedWorkspace(orgSlug)
+
+  // Server-authoritative check: Only organisation administrators can access organisation settings
+  if (!isAdmin) {
+    redirect(`/${orgSlug}`)
+  }
 
   return (
     <PageShell title="Settings" description="Manage your workspace configuration and user profile">

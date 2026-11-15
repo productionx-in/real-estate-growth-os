@@ -1,13 +1,12 @@
 // app/(dashboard)/[orgSlug]/leads/new/page.tsx
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import { getVerifiedWorkspace } from '@/lib/dal/workspace'
+import { createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { LeadForm } from '@/components/leads/LeadForm'
-import { redirect } from 'next/navigation'
 
 export const metadata: Metadata = { title: 'Add Lead' }
-
-
 
 interface PageProps {
   params: Promise<{ orgSlug: string }>
@@ -15,45 +14,18 @@ interface PageProps {
 
 export default async function NewLeadPage({ params }: PageProps) {
   const { orgSlug } = await params
-  const supabase = await createClient()
+  const workspace = await getVerifiedWorkspace(orgSlug)
 
-  // Resolve org
-  const { data: org } = await supabase
-    .from('organisations')
-    .select('id')
-    .eq('slug', orgSlug)
-    .single()
-
-  if (!org) redirect(`/${orgSlug}`)
-
-  // Check user is not readonly
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('auth_user_id', user.id)
-    .single()
-
-  if (!profile) redirect('/login')
-
-  const { data: membership } = await supabase
-    .from('org_members')
-    .select('role')
-    .eq('org_id', org.id)
-    .eq('profile_id', profile.id)
-    .single()
-
-  if (membership?.role === 'readonly') {
+  if (workspace.role === 'readonly') {
     redirect(`/${orgSlug}/leads`)
   }
 
-  // Fetch projects for the selector
-  const { data: projects } = await supabase
+  // Fetch projects for the selector using service client for consistency
+  const service = createServiceClient()
+  const { data: projects } = await service
     .from('projects')
     .select('id, name')
-    .eq('org_id', org.id)
+    .eq('org_id', workspace.org.id)
     .eq('status', 'launched')
     .order('name')
 
@@ -64,7 +36,7 @@ export default async function NewLeadPage({ params }: PageProps) {
     >
       <LeadForm
         orgSlug={orgSlug}
-        orgId={org.id}
+        orgId={workspace.org.id}
         projects={projects ?? []}
       />
     </PageShell>

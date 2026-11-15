@@ -31,6 +31,7 @@
 | **STAGE 4H** | **Integration APIs & Extensibility** | **Code Verified** | `tests/integration-apis-and-extensibility.test.mjs` (10/10 passed), `app/api/v1/*`, `lib/integrations/outbound/*`, `DeveloperApiDocsModal.tsx`, Migration 0022 staged. |
 | **STAGE 5** | **Sales & Channel Partner Management** | **Code Verified** | `tests/sales-and-channel-partners.test.mjs` (10/10 passed), `lib/dal/sales.ts`, `app/api/sales/*`, `SalesOperationsView.tsx`, Migration 0023 staged. |
 | **STAGE 6** | **Digital Experience & Automation** | **Code Verified** | `tests/digital-experience-and-automation.test.mjs` (9/9 passed), `lib/automation/*`, `app/p/[projectSlug]`, `ExecutiveBiDashboardView.tsx`, Migration 0024 staged. |
+| **UX TRANSFORMATION PHASE 2** | **Navigation Shell, Workspace Switching & Role Foundations** | **Code Verified** | `tests/phase2-navigation-and-role-foundations.test.mjs` (12/12 passed), interactive workspace switcher, multi-org safe resolution, server-authoritative route defense, role-adaptive navigation, sales exec dashboard. |
 
 ---
 
@@ -59,7 +60,7 @@
 ## 3. Active Checkpoint & Codebase Health
 
 - **TypeScript Compilation (`npx tsc --noEmit`):** **PASS** (0 errors).
-- **Automated Test Suites (`npm test`):** **PASS** (22 / 22 test suites passed, 235+ assertions green).
+- **Automated Test Suites (`npm test`):** **PASS** (23 / 23 test suites passed, 247+ assertions green).
 - **ESLint (`npm run lint`):** **PASS** (0 errors, 0 warnings).
 - **Next.js Production Build (`npm run build`):** Webpack compiles; dynamic prerender routes protected via `force-dynamic`.
 - **Targeted UI & Lead Resolution Verification (Screenshots Addressed):**

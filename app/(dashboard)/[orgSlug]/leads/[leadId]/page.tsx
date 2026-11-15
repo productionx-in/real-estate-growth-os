@@ -3,8 +3,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, Pencil, AlertTriangle, ExternalLink, Layers, Radio } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
 import { getLeadById, getLeadActivities } from '@/lib/dal/leads'
+import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { PageShell } from '@/components/layout/PageShell'
 import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge'
 import { StatusTransitionPanel } from '@/components/leads/StatusTransitionPanel'
@@ -64,36 +64,18 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 
 export default async function LeadDetailPage({ params }: PageProps) {
   const { orgSlug, leadId } = await params
+  const { org, role, profile } = await getVerifiedWorkspace(orgSlug)
 
   const lead = await getLeadById(leadId)
-  if (!lead) notFound()
+  if (!lead || lead.org_id !== org.id) notFound()
 
-  const activities = await getLeadActivities(leadId)
-
-  // Resolve viewer role
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  let viewerRole: MemberRole = 'readonly'
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('auth_user_id', user.id)
-      .single()
-
-    if (profile) {
-      const { data: membership } = await supabase
-        .from('org_members')
-        .select('role')
-        .eq('profile_id', profile.id)
-        .eq('org_id', lead.org_id)
-        .single()
-
-      viewerRole = (membership?.role ?? 'readonly') as MemberRole
-    }
+  // Enforce server-authoritative role visibility:
+  if (role === 'sales_exec' && lead.assigned_to !== profile.id) {
+    notFound()
   }
 
+  const activities = await getLeadActivities(leadId)
+  const viewerRole: MemberRole = role
   const canEdit = viewerRole !== 'readonly'
   const priority = PRIORITY_CONFIG[lead.priority as keyof typeof PRIORITY_CONFIG]
   const assignee = lead.assignee as { id: string; full_name: string } | null

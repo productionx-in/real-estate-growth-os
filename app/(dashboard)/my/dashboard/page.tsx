@@ -1,18 +1,19 @@
 // app/(dashboard)/my/dashboard/page.tsx
 // Personal salesperson dashboard — shows only the viewer's assigned leads.
-// Accessible regardless of org slug — uses the user's JWT claims.
+// Multi-org safe: accepts optional ?orgSlug= query, handles 0, 1, and multiple memberships cleanly.
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { formatRelative } from '@/lib/utils/format'
-import { Users, Clock, TrendingUp, CheckCircle } from 'lucide-react'
+import { Users, Clock, TrendingUp, CheckCircle, Building2, ChevronsUpDown } from 'lucide-react'
 import type { LeadStatus, MemberRole } from '@/types/database'
 
 export const metadata: Metadata = { title: 'My Dashboard' }
+export const dynamic = 'force-dynamic'
 
 type LeadRow = {
   id: string
@@ -24,33 +25,99 @@ type LeadRow = {
   project: { id: string; name: string } | null
 }
 
-export default async function MyDashboardPage() {
+interface PageProps {
+  searchParams?: Promise<{ orgSlug?: string }>
+}
+
+export default async function MyDashboardPage({ searchParams }: PageProps) {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles').select('id, full_name').eq('auth_user_id', user.id).single()
-  if (!profile) redirect('/register')
+  const service = createServiceClient()
 
-  const { data: membership } = await supabase
-    .from('org_members').select('org_id, role, organisations(slug)')
-    .eq('profile_id', profile.id).single()
+  // 1. Resolve or create profile
+  let { data: profile } = await service
+    .from('profiles')
+    .select('id, full_name')
+    .eq('auth_user_id', user.id)
+    .maybeSingle()
 
-  if (!membership) redirect('/register')
+  if (!profile) {
+    const fullName =
+      (user.user_metadata?.full_name as string) ||
+      user.email?.split('@')[0] ||
+      'Workspace Member'
 
-  const orgSlug = (membership.organisations as { slug: string } | null)?.slug ?? ''
-  const role = membership.role as MemberRole
+    const { data: newProfile } = await service
+      .from('profiles')
+      .insert({ auth_user_id: user.id, full_name: fullName })
+      .select('id, full_name')
+      .single()
 
-  // Fetch my assigned leads
-  const { data: myLeads } = await supabase
+    profile = newProfile
+  }
+
+  if (!profile) redirect('/login')
+
+  // 2. Query all verified organisation memberships for this profile
+  const { data: allMemberships } = await service
+    .from('org_members')
+    .select(`
+      org_id,
+      role,
+      organisation:organisations(id, name, slug, type)
+    `)
+    .eq('profile_id', profile.id)
+    .order('joined_at', { ascending: true })
+
+  const memberships = (allMemberships ?? []) as unknown as Array<{
+    org_id: string
+    role: MemberRole
+    organisation: { id: string; name: string; slug: string; type: string } | null
+  }>
+
+  // 3. Handle zero memberships
+  if (memberships.length === 0) {
+    redirect('/create-org')
+  }
+
+  const resolvedParams = searchParams ? await searchParams : {}
+  const requestedSlug = resolvedParams?.orgSlug
+
+  // 4. Resolve active membership safely
+  let activeMembership = requestedSlug
+    ? memberships.find((m) => m.organisation?.slug === requestedSlug)
+    : null
+
+  if (!activeMembership) {
+    if (memberships.length === 1) {
+      activeMembership = memberships[0]
+    } else {
+      // Multiple organisations and no explicit active org specified:
+      redirect('/select-org?redirectTo=/my/dashboard')
+    }
+  }
+
+  const activeOrg = activeMembership.organisation
+  if (!activeOrg?.slug) {
+    redirect('/select-org')
+  }
+
+  const orgSlug = activeOrg.slug
+  const role = activeMembership.role
+
+  // Fetch my assigned leads in this verified organisation
+  const { data: myLeads } = await service
     .from('leads')
     .select(`
       id, name, phone, status, priority, updated_at,
       project:projects(id, name)
     `)
-    .eq('org_id', membership.org_id)
+    .eq('org_id', activeMembership.org_id)
     .eq('assigned_to', profile.id)
     .not('status', 'in', '("booked","lost","junk")')
     .order('updated_at', { ascending: false })
@@ -91,8 +158,27 @@ export default async function MyDashboardPage() {
 
   return (
     <PageShell
-      title={`Welcome back, ${profile.full_name.split(' ')[0]}`}
-      description={`${role === 'sales_exec' ? 'Sales Executive' : 'Manager'} · Your assigned pipeline`}
+      title={
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span>Welcome back, {profile.full_name.split(' ')[0]}</span>
+            <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+              {activeOrg.name} · {role === 'sales_exec' ? 'Sales Executive' : 'Manager'}
+            </span>
+          </div>
+          {memberships.length > 1 && (
+            <Link
+              href="/select-org?redirectTo=/my/dashboard"
+              className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 shadow-2xs"
+            >
+              <Building2 className="w-3.5 h-3.5 text-gray-500" />
+              <span>Switch Workspace</span>
+              <ChevronsUpDown className="w-3.5 h-3.5 text-gray-400" />
+            </Link>
+          )}
+        </div>
+      }
+      description={`${activeOrg.name} · Your assigned leads and active pipeline`}
     >
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

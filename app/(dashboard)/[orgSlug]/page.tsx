@@ -13,14 +13,25 @@ interface PageProps {
 
 export default async function WorkspacePage({ params }: PageProps) {
   const { orgSlug } = await params
-  const { org } = await getVerifiedWorkspace(orgSlug)
+  const { org, role, profile } = await getVerifiedWorkspace(orgSlug)
+
+  const isSalesExec = role === 'sales_exec'
 
   return (
     <PageShell
-      title="Overview"
-      description={`${org.name} · ${org.type === 'developer' ? 'Property Developer' : 'Channel Partner'} Workspace`}
+      title={isSalesExec ? 'Sales Pipeline' : 'Overview'}
+      description={
+        isSalesExec
+          ? `${profile.full_name.split(' ')[0]}'s active calling queue and assigned pipeline for ${org.name}`
+          : `${org.name} · ${org.type === 'developer' ? 'Property Developer' : 'Channel Partner'} Workspace`
+      }
     >
-      <WorkspaceOverview orgSlug={orgSlug} orgId={org.id} />
+      <WorkspaceOverview
+        orgSlug={orgSlug}
+        orgId={org.id}
+        role={role}
+        profileId={profile.id}
+      />
     </PageShell>
   )
 }

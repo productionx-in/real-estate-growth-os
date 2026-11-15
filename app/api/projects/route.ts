@@ -42,6 +42,26 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    if (!requestedOrgId) {
+      const referer = request.headers.get('referer')
+      if (referer) {
+        try {
+          const refPath = new URL(referer).pathname
+          const match = refPath.match(/^\/([^/]+)\/projects/)
+          if (match && match[1] && match[1] !== 'projects' && match[1] !== 'api') {
+            const { data: org } = await service
+              .from('organisations')
+              .select('id')
+              .eq('slug', match[1])
+              .maybeSingle()
+            if (org) requestedOrgId = org.id
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
     let targetOrgId: string
 
     if (requestedOrgId) {

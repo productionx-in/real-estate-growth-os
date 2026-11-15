@@ -114,7 +114,15 @@ export function LeadForm({ orgSlug, orgId, projects, defaultValues, leadId }: Le
     setServerError(null)
 
     try {
-      const url = isEditing ? `/api/leads/${leadId}` : '/api/leads'
+      const queryParams = new URLSearchParams()
+      if (orgSlug) queryParams.set('orgSlug', orgSlug)
+      if (orgId) {
+        queryParams.set('orgId', orgId)
+        queryParams.set('org_id', orgId)
+      }
+      const qs = queryParams.toString() ? `?${queryParams.toString()}` : ''
+
+      const url = isEditing ? `/api/leads/${leadId}${qs}` : `/api/leads${qs}`
       const method = isEditing ? 'PUT' : 'POST'
 
       const response = await fetch(url, {
@@ -123,6 +131,7 @@ export function LeadForm({ orgSlug, orgId, projects, defaultValues, leadId }: Le
         body: JSON.stringify({
           ...form,
           orgId,
+          org_id: orgId,
           orgSlug,
         }),
       })

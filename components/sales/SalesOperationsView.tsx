@@ -38,8 +38,8 @@ export function SalesOperationsView({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-            Stage 5 Active
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+            Pipeline Active
           </span>
         </div>
       </div>
@@ -102,11 +102,27 @@ export function SalesOperationsView({
                       stageDeals.map((deal) => (
                         <div
                           key={deal.id}
-                          className="bg-white p-3 rounded shadow-xs border border-gray-100 text-xs space-y-1"
+                          className="bg-white p-3 rounded shadow-xs border border-gray-100 text-xs space-y-1.5 hover:border-gray-300 transition-colors"
                         >
-                          <div className="font-medium text-gray-800">Lead ID: {deal.lead_id.slice(0, 8)}...</div>
-                          <div className="text-gray-500">Val: ₹{deal.deal_value ? deal.deal_value.toLocaleString('en-IN') : 'N/A'}</div>
-                          <div className="text-gray-400">Prob: {deal.probability}%</div>
+                          <div className="font-semibold text-gray-900 leading-tight">
+                            {deal.lead?.name || `Lead #${deal.lead_id.slice(0, 8)}`}
+                          </div>
+                          {deal.lead?.phone && (
+                            <div className="text-[11px] text-gray-500 font-mono">
+                              {deal.lead.phone}
+                            </div>
+                          )}
+                          {deal.project?.name && (
+                            <div className="text-[11px] text-indigo-700 font-medium bg-indigo-50 px-1.5 py-0.5 rounded w-fit">
+                              {deal.project.name}
+                            </div>
+                          )}
+                          <div className="pt-1 border-t border-gray-100 flex justify-between items-center text-[11px]">
+                            <span className="text-gray-500">
+                              Val: <strong className="text-gray-800">₹{deal.deal_value ? deal.deal_value.toLocaleString('en-IN') : 'N/A'}</strong>
+                            </span>
+                            <span className="text-gray-400 font-medium">{deal.probability}%</span>
+                          </div>
                         </div>
                       ))
                     )}

@@ -41,9 +41,16 @@ function StatCard({ label, value, icon: Icon, description, href }: StatCardProps
 interface WorkspaceOverviewProps {
   orgSlug: string
   orgId?: string
+  role?: string
+  profileId?: string
 }
 
-export async function WorkspaceOverview({ orgSlug, orgId }: WorkspaceOverviewProps) {
+export async function WorkspaceOverview({
+  orgSlug,
+  orgId,
+  role,
+  profileId,
+}: WorkspaceOverviewProps) {
   const service = createServiceClient()
 
   // Fetch org if orgId not passed
@@ -58,6 +65,176 @@ export async function WorkspaceOverview({ orgSlug, orgId }: WorkspaceOverviewPro
     if (!org) return <EmptyState title="Organisation not found" />
     resolvedOrgId = org.id
   }
+
+  // Role-Specific: Sales Executive Workspace-Scoped Dashboard (Approved Decision 2)
+  if (role === 'sales_exec' && profileId) {
+    const [myLeadsRes, mySiteVisitsRes] = await Promise.all([
+      service
+        .from('leads')
+        .select(`
+          id, name, phone, email, status, priority, updated_at,
+          project:projects(id, name)
+        `)
+        .eq('org_id', resolvedOrgId)
+        .eq('assigned_to', profileId)
+        .not('status', 'in', '("booked","lost","junk")')
+        .order('updated_at', { ascending: false })
+        .limit(25),
+      service
+        .from('site_visits')
+        .select('id, scheduled_at, status', { count: 'exact' })
+        .eq('org_id', resolvedOrgId)
+        .eq('assigned_to', profileId)
+        .eq('status', 'scheduled'),
+    ])
+
+    const myLeads = myLeadsRes.data || []
+    const activeLeadsCount = myLeads.length
+    const updatedTodayCount = myLeads.filter((l) => {
+      const d = new Date(l.updated_at)
+      return d.toDateString() === new Date().toDateString()
+    }).length
+    const inNegotiationCount = myLeads.filter((l) => l.status === 'negotiation').length
+    const siteVisitsCount = mySiteVisitsRes.count || 0
+
+    const execStats = [
+      {
+        label: 'My Active Leads',
+        value: activeLeadsCount,
+        icon: Users,
+        description: 'Assigned prospect inquiries',
+        href: `/${orgSlug}/leads`,
+      },
+      {
+        label: 'Actioned Today',
+        value: updatedTodayCount,
+        icon: CheckCircle,
+        description: 'Leads with status or notes today',
+      },
+      {
+        label: 'Scheduled Visits',
+        value: siteVisitsCount,
+        icon: FolderOpen,
+        description: 'Pending buyer site tours',
+        href: `/${orgSlug}/sales`,
+      },
+      {
+        label: 'In Negotiation',
+        value: inNegotiationCount,
+        icon: Layers,
+        description: 'Deals near booking stage',
+      },
+    ]
+
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {execStats.map((stat) => (
+            <StatCard key={stat.label} {...stat} />
+          ))}
+        </div>
+
+        {/* Priority Calling Queue */}
+        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden shadow-2xs">
+          <div className="px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
+            <div>
+              <h2 className="text-[13px] font-semibold text-[var(--foreground)]">
+                My Priority Calling Queue
+              </h2>
+              <p className="text-[11px] text-[var(--foreground-muted)]">
+                Assigned buyer enquiries awaiting follow-up or scheduled visits
+              </p>
+            </div>
+            <Link
+              href={`/${orgSlug}/leads`}
+              className="text-xs font-medium text-[var(--brand)] hover:underline flex items-center gap-1"
+            >
+              <span>View all leads</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {myLeads.length > 0 ? (
+            <div className="divide-y divide-[var(--border)]">
+              {myLeads.slice(0, 8).map((lead) => (
+                <div
+                  key={lead.id}
+                  className="px-5 py-3 flex items-center justify-between hover:bg-[var(--surface-hover)] transition-colors"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/${orgSlug}/leads/${lead.id}`}
+                        className="text-xs font-semibold text-[var(--foreground)] hover:text-[var(--brand)] transition-colors"
+                      >
+                        {lead.name}
+                      </Link>
+                      <span className="text-[11px] px-2 py-0.2 rounded-full font-medium bg-gray-100 text-gray-700 capitalize">
+                        {lead.status.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-[var(--foreground-muted)] mt-0.5 flex items-center gap-2">
+                      <span>{lead.phone}</span>
+                      {lead.project?.name && (
+                        <span>• Project: {lead.project.name}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/${orgSlug}/leads/${lead.id}`}
+                      className="px-2.5 py-1 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition"
+                    >
+                      Update Lead
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-xs text-[var(--foreground-muted)]">
+              No pending leads in your queue. All assigned inquiries are up to date!
+            </div>
+          )}
+        </div>
+
+        {/* Quick Operational Shortcuts */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Link
+            href={`/${orgSlug}/inventory`}
+            className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-hover)] transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-[var(--foreground)] group-hover:text-[var(--brand)]">
+                Browse Available Units to Pitch
+              </span>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[var(--brand)]" />
+            </div>
+            <p className="text-[11px] text-[var(--foreground-muted)] mt-1">
+              Check live floor matrices, unit specifications, and pricing to advise prospective buyers.
+            </p>
+          </Link>
+
+          <Link
+            href={`/${orgSlug}/sales`}
+            className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] hover:bg-[var(--surface-hover)] transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-[var(--foreground)] group-hover:text-[var(--brand)]">
+                Site Visit Management
+              </span>
+              <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[var(--brand)]" />
+            </div>
+            <p className="text-[11px] text-[var(--foreground-muted)] mt-1">
+              Review scheduled tours, visitor arrival times, and VIP cab arrangements.
+            </p>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  // Executive / Management Dashboard (Admins, Owners, Managers, Auditors)
 
   // Parallel stat fetches using service client
   const [leadsResult, projectsResult, , bookedResult, inventoryResult] =

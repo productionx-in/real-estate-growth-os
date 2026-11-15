@@ -16,14 +16,14 @@ export const dynamic = 'force-dynamic'
 
 interface PageProps {
   params: Promise<{ orgSlug: string }>
-  searchParams: Promise<{ status?: string; source?: string }>
+  searchParams: Promise<{ status?: string; source?: string; scope?: string }>
 }
 
 export default async function LeadsPage({ params, searchParams }: PageProps) {
   const { orgSlug } = await params
-  const { status, source } = await searchParams
+  const { status, source, scope } = await searchParams
 
-  const { org, role, isManager } = await getVerifiedWorkspace(orgSlug)
+  const { org, role, profile, isManager } = await getVerifiedWorkspace(orgSlug)
   const service = createServiceClient()
 
   // Fetch leads for this organisation
@@ -37,6 +37,18 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
     .eq('org_id', org.id)
     .order('created_at', { ascending: false })
     .limit(100)
+
+  // Server-authoritative role-based visibility enforcement:
+  if (role === 'sales_exec') {
+    // Sales executives only see leads assigned to them — perfectly consistent with RLS
+    query = query.eq('assigned_to', profile.id)
+  } else if (isManager) {
+    if (scope === 'my') {
+      query = query.eq('assigned_to', profile.id)
+    } else if (scope === 'unassigned') {
+      query = query.is('assigned_to', null)
+    }
+  }
 
   if (status) query = query.eq('status', status as LeadStatus)
   if (source) query = query.eq('source', source as LeadSource)
@@ -73,16 +85,55 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
     </>
   )
 
+  const pageTitle = role === 'sales_exec' ? 'My Leads' : 'Leads'
+  const pageDescription =
+    role === 'sales_exec'
+      ? `${leads?.length ?? 0} direct customer enquiries assigned to you for ${org.name}`
+      : isManager
+        ? `${leads?.length ?? 0} leads in ${scope === 'unassigned' ? 'unassigned queue' : scope === 'my' ? 'your personal queue' : 'pipeline'}`
+        : `${leads?.length ?? 0} leads in pipeline`
+
   return (
     <PageShell
-      title="Leads"
-      description={
-        isManager
-          ? `${leads?.length ?? 0} leads in pipeline`
-          : `${leads?.length ?? 0} assigned leads`
-      }
+      title={pageTitle}
+      description={pageDescription}
       actions={actions}
     >
+      {isManager && (
+        <div className="flex items-center gap-2 mb-4 border-b border-[var(--border)] pb-3">
+          <Link
+            href={`/${orgSlug}/leads`}
+            className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+              !scope || scope === 'all'
+                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            All Organisation Leads
+          </Link>
+          <Link
+            href={`/${orgSlug}/leads?scope=my`}
+            className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+              scope === 'my'
+                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            My Assigned Leads
+          </Link>
+          <Link
+            href={`/${orgSlug}/leads?scope=unassigned`}
+            className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+              scope === 'unassigned'
+                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            Unassigned Queue
+          </Link>
+        </div>
+      )}
+
       {leads && leads.length > 0 ? (
         <LeadsTable
           leads={(leads ?? []) as unknown as ComponentProps<typeof LeadsTable>['leads']}

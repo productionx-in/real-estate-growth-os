@@ -1,5 +1,6 @@
 // app/(dashboard)/[orgSlug]/analytics/page.tsx
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import { PageShell } from '@/components/layout/PageShell'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { getExecutiveBiAnalytics } from '@/lib/dal/analytics'
@@ -14,7 +15,12 @@ interface PageProps {
 
 export default async function AnalyticsPage({ params }: PageProps) {
   const { orgSlug } = await params
-  const { org } = await getVerifiedWorkspace(orgSlug)
+  const { org, role } = await getVerifiedWorkspace(orgSlug)
+
+  // Server-authoritative check: Sales executives are restricted from executive BI analytics
+  if (role === 'sales_exec') {
+    redirect(`/${orgSlug}`)
+  }
   const analytics = await getExecutiveBiAnalytics(org.id)
 
   return (

@@ -22,10 +22,11 @@ interface Project {
 
 interface CsvImportDropzoneProps {
   orgSlug: string
+  orgId?: string
   projects: Project[]
 }
 
-export function CsvImportDropzone({ orgSlug, projects }: CsvImportDropzoneProps) {
+export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzoneProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -112,10 +113,14 @@ export function CsvImportDropzone({ orgSlug, projects }: CsvImportDropzoneProps)
 
     startTransition(async () => {
       try {
-        const response = await fetch('/api/leads/import', {
+        const importUrl = `/api/leads/import?orgSlug=${encodeURIComponent(orgSlug)}${orgId ? `&orgId=${encodeURIComponent(orgId)}` : ''}`
+        const response = await fetch(importUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            orgId,
+            org_id: orgId,
+            orgSlug,
             projectId: selectedProjectId || null,
             leads: validRows,
           }),

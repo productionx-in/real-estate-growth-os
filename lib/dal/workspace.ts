@@ -5,6 +5,14 @@ import { redirect } from 'next/navigation'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import type { MemberRole } from '@/types/database'
 
+export interface AvailableOrgSummary {
+  id: string
+  name: string
+  slug: string
+  type: 'developer' | 'channel_partner'
+  role: MemberRole
+}
+
 export interface VerifiedWorkspace {
   user: {
     id: string
@@ -27,6 +35,7 @@ export interface VerifiedWorkspace {
   role: MemberRole
   isManager: boolean
   isAdmin: boolean
+  availableOrgs: AvailableOrgSummary[]
 }
 
 export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWorkspace> {
@@ -86,21 +95,44 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
     redirect('/select-org')
   }
 
-  // 4. Verify membership in this organisation (Strict security: never auto-assign ownership)
-  const { data: membership } = await service
+  // 4. Verify membership in this organisation and load all authorized memberships for workspace switching
+  const { data: allMemberships } = await service
     .from('org_members')
-    .select('role')
-    .eq('org_id', org.id)
+    .select(`
+      org_id,
+      role,
+      organisation:organisations(id, name, slug, type)
+    `)
     .eq('profile_id', profile.id)
-    .maybeSingle()
+    .order('joined_at', { ascending: true })
 
-  if (!membership) {
+  const typedMemberships = (allMemberships ?? []) as unknown as Array<{
+    org_id: string
+    role: string | null
+    organisation: { id: string; name: string; slug: string; type: string } | null
+  }>
+
+  const currentMembership = typedMemberships.find(
+    (m) => m.org_id === org.id || m.organisation?.slug === orgSlug
+  )
+
+  if (!currentMembership) {
     // User is authenticated but is NOT a member of this organisation.
     // Strictly redirect to their own org selector. Never grant membership or ownership.
     redirect('/select-org')
   }
 
-  const role = (membership.role ?? 'readonly') as MemberRole
+  const availableOrgs: AvailableOrgSummary[] = typedMemberships
+    .filter((m) => m.organisation && m.organisation.slug)
+    .map((m) => ({
+      id: m.organisation!.id,
+      name: m.organisation!.name,
+      slug: m.organisation!.slug,
+      type: m.organisation!.type as 'developer' | 'channel_partner',
+      role: (m.role ?? 'readonly') as MemberRole,
+    }))
+
+  const role = (currentMembership.role ?? 'readonly') as MemberRole
   const isManager = ['owner', 'admin', 'manager'].includes(role)
   const isAdmin = ['owner', 'admin'].includes(role)
 
@@ -118,5 +150,6 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
     role,
     isManager,
     isAdmin,
+    availableOrgs,
   }
 }

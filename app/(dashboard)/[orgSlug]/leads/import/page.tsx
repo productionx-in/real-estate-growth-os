@@ -3,7 +3,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { getVerifiedWorkspace } from '@/lib/dal/workspace'
+import { createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { CsvImportDropzone } from '@/components/leads/CsvImportDropzone'
 
@@ -15,47 +16,18 @@ interface PageProps {
 
 export default async function ImportLeadsPage({ params }: PageProps) {
   const { orgSlug } = await params
-  const supabase = await createClient()
+  const workspace = await getVerifiedWorkspace(orgSlug)
 
-  // 1. Resolve org
-  const { data: org } = await supabase
-    .from('organisations')
-    .select('id')
-    .eq('slug', orgSlug)
-    .single()
-
-  if (!org) redirect(`/${orgSlug}`)
-
-  // 2. Resolve user & permissions
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('auth_user_id', user.id)
-    .single()
-
-  if (!profile) redirect('/login')
-
-  const { data: membership } = await supabase
-    .from('org_members')
-    .select('role')
-    .eq('org_id', org.id)
-    .eq('profile_id', profile.id)
-    .single()
-
-  if (!membership || !['owner', 'admin', 'manager'].includes(membership.role)) {
+  if (!workspace.isManager && !workspace.isAdmin) {
     redirect(`/${orgSlug}/leads`)
   }
 
-  // 3. Fetch active projects for assignment selection
-  const { data: projects } = await supabase
+  // Fetch active projects for assignment selection using service client
+  const service = createServiceClient()
+  const { data: projects } = await service
     .from('projects')
     .select('id, name')
-    .eq('org_id', org.id)
+    .eq('org_id', workspace.org.id)
     .order('name')
 
   return (
@@ -73,7 +45,11 @@ export default async function ImportLeadsPage({ params }: PageProps) {
         </Link>
       </div>
 
-      <CsvImportDropzone orgSlug={orgSlug} projects={projects ?? []} />
+      <CsvImportDropzone
+        orgSlug={orgSlug}
+        orgId={workspace.org.id}
+        projects={projects ?? []}
+      />
     </PageShell>
   )
 }

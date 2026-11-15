@@ -565,7 +565,14 @@ export async function getDeals(
   filters?: { projectId?: string; stage?: DealStage }
 ): Promise<Deal[]> {
   const service = createServiceClient()
-  let query = service.from('deals').select('*').eq('org_id', orgId)
+  let query = service
+    .from('deals')
+    .select(`
+      *,
+      lead:leads(id, name, phone),
+      project:projects(id, name)
+    `)
+    .eq('org_id', orgId)
 
   if (filters?.projectId) query = query.eq('project_id', filters.projectId)
   if (filters?.stage) query = query.eq('stage', filters.stage)

@@ -1,5 +1,6 @@
 // app/(dashboard)/[orgSlug]/team/page.tsx
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -45,6 +46,11 @@ interface TeamMemberItem {
 export default async function TeamPage({ params }: PageProps) {
   const { orgSlug } = await params
   const workspace = await getVerifiedWorkspace(orgSlug)
+
+  // Server-authoritative check: Only managers and admins can view team management
+  if (!workspace.isManager && !workspace.isAdmin) {
+    redirect(`/${orgSlug}`)
+  }
   const service = createServiceClient()
 
   // 1. Fetch organisation members

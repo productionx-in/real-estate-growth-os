@@ -11,13 +11,29 @@ interface OrgLayoutProps {
 
 export default async function OrgLayout({ children, params }: OrgLayoutProps) {
   const { orgSlug } = await params
-  const { org } = await getVerifiedWorkspace(orgSlug)
+  const workspace = await getVerifiedWorkspace(orgSlug)
 
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--background)]">
-      <Sidebar orgName={org.name} orgSlug={org.slug} />
+      <Sidebar
+        orgName={workspace.org.name}
+        orgSlug={workspace.org.slug}
+        orgType={workspace.org.type}
+        role={workspace.role}
+        user={workspace.user}
+        profile={workspace.profile}
+        availableOrgs={workspace.availableOrgs}
+      />
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <Header />
+        <Header
+          orgName={workspace.org.name}
+          orgSlug={workspace.org.slug}
+          orgType={workspace.org.type}
+          role={workspace.role}
+          user={workspace.user}
+          profile={workspace.profile}
+          availableOrgs={workspace.availableOrgs}
+        />
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>

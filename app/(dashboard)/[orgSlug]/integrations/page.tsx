@@ -1,5 +1,6 @@
 // app/(dashboard)/[orgSlug]/integrations/page.tsx
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import { PageShell } from '@/components/layout/PageShell'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { getProjectsByOrg } from '@/lib/dal/projects'
@@ -16,6 +17,11 @@ interface PageProps {
 export default async function IntegrationsPage({ params }: PageProps) {
   const { orgSlug } = await params
   const { org, isManager, isAdmin } = await getVerifiedWorkspace(orgSlug)
+
+  // Server-authoritative access control: Only managers and admins can access integrations
+  if (!isManager && !isAdmin) {
+    redirect(`/${orgSlug}`)
+  }
 
   const [connectionsRes, mappingsRes, rawProjects] = await Promise.all([
     getIntegrationConnections(org.id),

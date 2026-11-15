@@ -58,11 +58,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Resolve target organisation
-    let requestedOrgId = parsed.data.orgId
+    const url = new URL(request.url)
+    let requestedOrgId = (
+      parsed.data.orgId ||
+      body.orgId ||
+      body.org_id ||
+      url.searchParams.get('orgId') ||
+      url.searchParams.get('org_id')
+    ) as string | undefined
     const { leads, projectId } = parsed.data
 
     if (!requestedOrgId) {
-      const requestedOrgSlug = (body.orgSlug || new URL(request.url).searchParams.get('orgSlug')) as string | undefined
+      const requestedOrgSlug = (
+        body.orgSlug ||
+        body.org_slug ||
+        url.searchParams.get('orgSlug') ||
+        url.searchParams.get('org_slug')
+      ) as string | undefined
       if (requestedOrgSlug) {
         const { data: org } = await service
           .from('organisations')

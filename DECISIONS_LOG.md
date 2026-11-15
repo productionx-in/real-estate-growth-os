@@ -20,14 +20,6 @@
 | **DEC-008** | 2026-11-14 | Database | Production database remediation staged into Migrations 0016, 0017, and 0018 with fail-closed recursion | **Approved / Staged** |
 | **DEC-009** | 2026-11-14 | Testing | Strict separation between in-memory unit tests and real PostgreSQL / provider staging tests | **Approved / Active** |
 | **DEC-010** | 2026-11-14 | Build / Infra | Webpack bundling mode retained for Next.js build due to Turbopack PostCSS child-process restrictions on Windows | **Approved / Active** |
-| **DEC-011** | 2026-11-15 | Integrations | Central Google Ads OAuth & Lead Form Webhook architecture with deferred app setup | **Approved / Active** |
-| **DEC-012** | 2026-11-15 | Integrations | Website Enquiry Forms: Multi-layer anti-spam (honeypot + speed), allowed origin CORS, and unified CRM lead ingestion | **Approved / Active** |
-| **DEC-013** | 2026-11-15 | Integrations | WhatsApp Business Cloud API: Webhook verification, Click-to-WhatsApp attribution, 24h care window, and consent enforcement | **Approved / Active** |
-| **DEC-014** | 2026-11-15 | Integrations | Indian Property Portals (99acres, Magicbricks, Housing.com): Webhook ingestion, timing-safe authentication, project routing, and 3-case deduplication | **Approved / Active** |
-| **DEC-015** | 2026-11-15 | Extensibility | Developer REST APIs, Outbound Webhooks & HMAC-SHA256 Delivery Architecture | **Approved / Active** |
-| **DEC-016** | 2026-11-15 | Sales Ops | Sales Operations, Site Visits, 48h Inventory Blockings, Bookings & RERA CP Commissions | **Approved / Active** |
-| **DEC-017** | 2026-11-15 | Digital Experience | Project Microsites (Showrooms), Drip Automations & Multi-Touch Attribution Engine | **Approved / Active** |
-| **DEC-018** | 2026-11-15 | UX & Multi-Org | Workspace Context Resolution via explicit orgId, orgSlug, and referer URL matching | **Approved / Active** |
 
 ---
 
@@ -75,15 +67,13 @@
   - *Privacy Guarantee:* Public responses never leak internal lead IDs, organization IDs, or infrastructure details. Restricted caller-injected keys (`org_id`, `role`, `user_id`) are stripped before normalization.
 
 ### DEC-013: WhatsApp Business Cloud API Architecture, Consent Compliance & Attribution
-- **Context:** Real estate developers in Hyderabad and India rely heavily on WhatsApp as a primary buyer acquisition and engagement channel through Click-to-WhatsApp Meta Ads, digital brochures, and site-visit confirmations. Compliance with Meta WhatsApp Business Messaging Policy and multi-tenant isolation is mandatory.
+- **Context:** Real estate developers in Hyderabad and India rely heavily on WhatsApp as a primary buyer acquisition and engagement channel through Click-to-WhatsApp Meta Ads, digital brochures, and site-visit confirmations. Compliance with Meta Messaging Policy, TRAI DND rules, and multi-tenant isolation is mandatory.
 - **Decision:**
   - *Cloud API Connection Architecture:* Supports WhatsApp Business Cloud API connections (`whatsapp_cloud`) with Phone Number ID, WABA ID, and webhook subscription tokens. Real Meta WABA developer credentials and phone number verification remain deferred per policy; zero live connections are simulated.
-  - *Outbound Messaging Client & Discovery:* Implemented authentic Graph API v21.0 outbound messaging (`POST /{phone_number_id}/messages`), phone number asset discovery (`GET /{waba_id}/phone_numbers`), and template discovery (`GET /{waba_id}/message_templates`), which fail cleanly with authentic Meta error payloads when unconfigured and never simulate fake delivery.
   - *Cryptographic Webhook Verification:* Enforces timing-safe comparison on GET challenge parameters and validates POST HMAC-SHA256 signatures (`x-hub-signature-256`) against unparsed raw body bytes.
-  - *Click-to-WhatsApp Attribution:* Automatically extracts Meta `referral` objects (`source_id`, `headline`, `body`, `source_url`, `ctwa_clid`, `media_type`) from initial inbound messages, mapping them directly to CRM campaign and ad attribution fields.
+  - *Click-to-WhatsApp Attribution:* Automatically extracts Meta `referral` objects (`source_id`, `headline`, `body`, `source_url`) from initial inbound messages, mapping them directly to CRM campaign and ad attribution fields.
   - *24-Hour Customer Care Window & Outbound Guard:* Enforces Meta's 24-hour customer service window for session messages. Outside the window, only pre-approved WhatsApp templates (`status: 'APPROVED'`) with variable interpolation are permitted.
   - *Customer Opt-In & Opt-Out Gating:* Evaluates inbound keywords (`STOP`, `UNSUBSCRIBE`, `CANCEL`, `QUIT`, `OPT OUT`, `REVOKE`). Matching messages immediately set `is_opted_out = true` and unconditionally block all outbound communications.
-  - *TRAI DND vs. Meta Policy Scope Clarification:* TRAI TCCCPR 2018 regulations and National DLT scrubbing apply strictly to carrier SMS and voice telemarketing calls, not OTT IP messaging. WhatsApp compliance is strictly governed by Meta's WhatsApp Business Messaging Policy and Indian DPDPA 2023 consent requirements. Previous mentions of "TRAI DND compliance" are formally corrected to "Meta WhatsApp Business Messaging Policy & User Consent Compliance".
   - *Unified Lead Ingestion & Conversation Association:* Ingests leads through central `processInboundLead` using `phone_number_id` (Priority 3.5), `campaign_id` (Priority 2), or `account_default` (Priority 4), while tracking message and conversation history in staged multi-tenant tables (`whatsapp_conversations`, `whatsapp_messages`).
   - *Tenant Isolation & Audit Security:* Strips injected tenant keys (`org_id`, `role`, `user_id`) and guarantees zero credential or token leakage in `integration_event_logs`.
 
@@ -119,6 +109,14 @@
   - *Commission Engine (`channel_partner_commissions`):* Supports percentage-based, fixed per sqft, and lump sum commission models. Automatically calculates 5% TDS deduction and structures milestone-based payouts (e.g. 50% on booking advance, 50% on agreement signing).
   - *Sales Pipeline Kanban (`deals`):* Complete lifecycle progression from `enquiry` through `site_visit_scheduled`, `negotiation`, `unit_blocked`, to `booked` / `won` with probability scoring.
 
+### DEC-017: Digital Experience Showrooms, Drip Automations & Multi-Touch Attribution Architecture
+- **Context:** Real estate buyers take 14 to 45 days across multiple digital and offline touchpoints before booking. Developers require interactive public project microsites (digital showrooms), automated follow-up drip workflows across WhatsApp and email, and accurate multi-touch attribution to evaluate marketing ROI.
+- **Decision:**
+  - *Public Digital Showrooms (`project_microsites`, `/p/[projectSlug]`):* Standalone, fast, responsive public project presentations featuring 3D virtual tour embeds, master layout plans, curated amenities, RERA disclosures, and direct CRM VIP site-visit enquiry capture.
+  - *Event-Driven Workflow Automation (`automation_workflows`, `automation_executions`):* Evaluates triggers (`lead_created`, `site_visit_scheduled`, `unit_blocked`, `booking_confirmed`) against filter conditions and executes ordered actions (`send_whatsapp_template`, `send_email`, `create_task`, `delay_hours`), logging step-by-step audit records with failure isolation.
+  - *Multi-Touch Attribution Engine (`lead_touchpoints`):* Registers every buyer touchpoint (`meta_ads`, `google_ads`, `website_form`, `99acres`, `magicbricks`, `housing`, `whatsapp`, `channel_partner`). Computes revenue attribution across 5 standard models: First Touch (100%), Last Touch (100%), Linear (equal split), Position-Based / U-Shaped (40% first, 20% middle, 40% last), and Time Decay (exponential half-life).
+  - *Developer Executive BI Dashboard (`/analytics`):* Aggregates real-time conversion funnels (Leads → Visits → Holds → Bookings), sales velocity (mean days to booking), channel sourcing ROI, and inventory absorption percentages.
+
 ### DEC-018: Explicit Multi-Organization Workspace Resolution in Lead Capture
 - **Context:** When users hold memberships in multiple developer organisations (e.g. `Otho` and `Acme`), submitting new leads at `/[orgSlug]/leads/new` previously yielded a 400 Bad Request error ("User belongs to multiple organisations. Please specify orgId in the request") because `LeadForm.tsx` failed to include `orgId` in the JSON POST payload, and the `/api/leads` route only checked the direct body payload without URL slug fallback.
 - **Decision:**
@@ -130,6 +128,17 @@
     4. Single active membership fallback (if user belongs to only 1 organization).
   - This eliminates user friction for multi-tenant users while rigorously verifying that the user has valid, active membership in the resolved organization before allowing any lead write.
 
-
-
-
+### DEC-019: UX Transformation Phase 2 — Navigation Shell, Workspace Switcher & Role Foundations
+- **Context:** Following the comprehensive Phase 1 UX and architecture audit, users required a friction-free navigation shell supporting multi-organisation workspaces, clear visual workspace context, role-tailored dashboards and navigation, and rigorous server-side route guards.
+- **Decision:**
+  - *Approved Decision 1 (Channel Partner Architecture):* Retain developer-managed channel partner referral model (Option A). Preserve `channel_partner` organisation type and schema without cross-tenant syndication in this phase.
+  - *Approved Decision 2 (Sales Executive Dashboard):* Implemented workspace-scoped dashboard for sales executives (`role === 'sales_exec'`), surfacing personal assigned leads, actioned today metrics, scheduled visits, deals in negotiation, and a dedicated Priority Calling Queue table with one-click status transitions. Managers and admins retain executive pipeline overview.
+  - *Approved Decision 3 (Project Visibility):* Organisation-wide project visibility retained for all authorised members; lead ownership and project access remain distinct permissions.
+  - *Multi-Organisation Interactive Switcher:* Enhanced `getVerifiedWorkspace` in `lib/dal/workspace.ts` to query all memberships for the authenticated profile and return `availableOrgs`. Built interactive dropdown in `Sidebar.tsx` and `Header.tsx` displaying organisation name, organisation type, user role, active status checkmark, and quick links to `/select-org` and `/create-org`.
+  - *Server-Authoritative Route Protection:* Enforced server-side checks in page components:
+    - `/analytics`: Blocked for `sales_exec` (redirects to `/${orgSlug}`).
+    - `/integrations`: Blocked for non-managers and non-admins (redirects to `/${orgSlug}`).
+    - `/settings`: Blocked for non-admins (redirects to `/${orgSlug}`).
+    - `/team`: Blocked for non-managers and non-admins (redirects to `/${orgSlug}`).
+  - *Elimination of Ghost Leads:* Aligned lead list queries with Supabase RLS (`assigned_to = profile.id` for sales reps) and guarded lead detail view (`lead.assigned_to !== profile.id` yields `notFound()`), ensuring sales reps never see 404s for leads in their list.
+  - *Deals Kanban Card Hydration:* Joined `lead(id, name, phone)` and `project(id, name)` in `getDeals()` to display customer names, phone numbers, and project badges on Kanban cards instead of raw IDs.
