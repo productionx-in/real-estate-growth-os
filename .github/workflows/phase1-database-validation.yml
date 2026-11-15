@@ -101,13 +101,13 @@ jobs:
       - name: Execute Application Regression Test Suite (All 27 Tests)
         run: |
           echo "Running existing project test suite..."
-          npm test
+          npm test 2>&1 | tee diagnostics/npm-test.log
 
       # 12. Execute TypeScript Compiler Check
       - name: Execute TypeScript Compiler Check
         run: |
           echo "Validating TypeScript types..."
-          npx tsc --noEmit
+          npx tsc --noEmit 2>&1 | tee diagnostics/tsc-check.log
 
       # 13. Capture Diagnostic State & Catalog Information
       - name: Capture Database Catalog Diagnostics

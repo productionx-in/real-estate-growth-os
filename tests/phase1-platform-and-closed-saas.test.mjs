@@ -4,7 +4,46 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
-import { MockEmailAdapter, setEmailAdapterForTesting } from '../lib/email/adapter.ts'
+
+class MockEmailAdapter {
+  constructor() {
+    this.sentEmails = []
+  }
+
+  async sendEmail(options) {
+    const id = `mock-email-${Math.random().toString(36).slice(2, 10)}`
+    this.sentEmails.push({
+      ...options,
+      id,
+      timestamp: new Date(),
+    })
+    return { success: true, id }
+  }
+
+  async sendInvitationEmail(options) {
+    const subject = `You've been invited to join ${options.orgName} on Production X`
+    const inviter = options.inviterName || 'An administrator'
+    const text = `${inviter} has invited you to join ${options.orgName} as a ${options.role} on Production X.\n\nActivate your account at: ${options.inviteUrl}`
+
+    return this.sendEmail({
+      to: options.to,
+      subject,
+      html: `<p>${text}</p>`,
+      text,
+    })
+  }
+
+  getRecentEmailFor(recipient) {
+    return this.sentEmails
+      .slice()
+      .reverse()
+      .find((e) => (Array.isArray(e.to) ? e.to.includes(recipient) : e.to === recipient))
+  }
+
+  clear() {
+    this.sentEmails = []
+  }
+}
 
 console.log('--- Running Phase 1: Platform Admin Security & Closed-SaaS Tests ---')
 
