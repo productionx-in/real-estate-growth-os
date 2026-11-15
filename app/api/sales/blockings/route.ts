@@ -1,8 +1,8 @@
 // app/api/sales/blockings/route.ts
 import { NextResponse, type NextRequest } from 'next/server'
-import { blockInventoryUnit, releaseExpiredBlockings } from '@/lib/dal/sales'
+import { blockInventoryUnit, releaseBlocking, getBlockings, releaseExpiredBlockings } from '@/lib/dal/sales'
 import { authorizeSalesRequest } from '@/lib/sales/auth'
-import { createServiceClient } from '@/lib/supabase/server'
+import { BlockUnitSchema, ReleaseBlockingSchema } from '@/lib/validations/sales'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,16 +15,11 @@ export async function GET(request: NextRequest) {
     await releaseExpiredBlockings(auth.context.orgId)
 
     const projectId = searchParams.get('projectId') || undefined
+    const inventoryId = searchParams.get('inventoryId') || undefined
     const status = searchParams.get('status') || undefined
 
-    const service = createServiceClient()
-    let query = service.from('inventory_blockings').select('*').eq('org_id', auth.context.orgId)
-
-    if (projectId) query = query.eq('project_id', projectId)
-    if (status) query = query.eq('status', status)
-
-    const { data } = await query.order('created_at', { ascending: false })
-    return NextResponse.json({ data: data || [], count: data?.length || 0 })
+    const blockings = await getBlockings(auth.context.orgId, { projectId, inventoryId, status })
+    return NextResponse.json({ data: blockings, count: blockings.length })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     return NextResponse.json({ error: msg }, { status: 500 })
@@ -37,23 +32,28 @@ export async function POST(request: NextRequest) {
     const auth = await authorizeSalesRequest(body.orgId)
     if (!auth.success) return auth.response
 
-    if (!body.projectId || !body.inventoryId || !body.leadId || body.tokenAmount === undefined) {
+    if (auth.context.role === 'readonly') {
+      return NextResponse.json({ error: 'Readonly users cannot place holds' }, { status: 403 })
+    }
+
+    const parsed = BlockUnitSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Missing required fields: projectId, inventoryId, leadId, tokenAmount' },
+        { error: 'Validation failed', details: parsed.error.flatten() },
         { status: 400 }
       )
     }
 
     const result = await blockInventoryUnit({
       orgId: auth.context.orgId,
-      projectId: body.projectId,
-      inventoryId: body.inventoryId,
-      leadId: body.leadId,
-      blockedBy: body.blockedBy,
-      tokenAmount: Number(body.tokenAmount),
-      paymentReference: body.paymentReference,
-      holdDurationHours: body.holdDurationHours,
-      remarks: body.remarks,
+      projectId: parsed.data.projectId,
+      inventoryId: parsed.data.inventoryId,
+      leadId: parsed.data.leadId,
+      blockedBy: auth.context.profile.id,
+      tokenAmount: parsed.data.tokenAmount,
+      paymentReference: parsed.data.paymentReference || null,
+      holdDurationHours: parsed.data.holdDurationHours,
+      remarks: parsed.data.remarks || null,
     })
 
     if (!result.success) {
@@ -61,6 +61,42 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ data: result.data }, { status: 201 })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: msg }, { status: 500 })
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const auth = await authorizeSalesRequest(body.orgId)
+    if (!auth.success) return auth.response
+
+    if (auth.context.role === 'readonly') {
+      return NextResponse.json({ error: 'Readonly users cannot release holds' }, { status: 403 })
+    }
+
+    const parsed = ReleaseBlockingSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+
+    const result = await releaseBlocking({
+      blockingId: parsed.data.blockingId,
+      orgId: auth.context.orgId,
+      releasedBy: auth.context.profile.id,
+      reason: parsed.data.reason || null,
+    })
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.error }, { status: 400 })
+    }
+
+    return NextResponse.json({ success: true, message: 'Hold successfully released' })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     return NextResponse.json({ error: msg }, { status: 500 })

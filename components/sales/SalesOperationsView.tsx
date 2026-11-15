@@ -2,28 +2,67 @@
 'use client'
 
 import React, { useState } from 'react'
-import type { SiteVisit, Booking, ChannelPartner, Deal } from '@/lib/sales/types'
+import type { SiteVisit, Booking, InventoryBlocking, ChannelPartner, Deal } from '@/lib/sales/types'
+import { Clock, CheckCircle2, AlertCircle, FileText, Building2, User } from 'lucide-react'
+import { formatCurrency } from '@/lib/utils/format'
 
 interface SalesOperationsViewProps {
   initialSiteVisits: SiteVisit[]
   initialBookings: Booking[]
+  initialBlockings?: InventoryBlocking[]
   initialChannelPartners: ChannelPartner[]
   initialDeals: Deal[]
+  orgId?: string
   orgName: string
 }
 
 export function SalesOperationsView({
   initialSiteVisits,
   initialBookings,
+  initialBlockings = [],
   initialChannelPartners,
   initialDeals,
+  orgId,
   orgName,
 }: SalesOperationsViewProps) {
   const [activeTab, setActiveTab] = useState<'visits' | 'bookings' | 'partners' | 'deals'>('deals')
   const [siteVisits] = useState<SiteVisit[]>(initialSiteVisits)
-  const [bookings] = useState<Booking[]>(initialBookings)
+  const [bookings, setBookings] = useState<Booking[]>(initialBookings)
+  const [blockings, setBlockings] = useState<InventoryBlocking[]>(initialBlockings)
   const [partners] = useState<ChannelPartner[]>(initialChannelPartners)
   const [deals] = useState<Deal[]>(initialDeals)
+  const [releasingId, setReleasingId] = useState<string | null>(null)
+
+  const activeBlockings = blockings.filter((b) => b.status === 'active')
+
+  const handleReleaseHold = async (blocking: InventoryBlocking) => {
+    const confirm = window.confirm(
+      `Are you sure you want to release the hold for ${blocking.lead?.name || 'Customer'}? The unit will return to Available.`
+    )
+    if (!confirm) return
+
+    setReleasingId(blocking.id)
+    try {
+      const res = await fetch('/api/sales/blockings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orgId: orgId || blocking.org_id,
+          blockingId: blocking.id,
+          reason: 'Hold cancelled from Sales Operations console',
+        }),
+      })
+      if (res.ok) {
+        setBlockings((prev) =>
+          prev.map((b) => (b.id === blocking.id ? { ...b, status: 'cancelled' } : b))
+        )
+      }
+    } catch {
+      // Ignored
+    } finally {
+      setReleasingId(null)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -31,15 +70,15 @@ export function SalesOperationsView({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-200 pb-5">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Sales & Channel Partner Operations
+            Sales & Commercial Operations
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Manage site visits, inventory blockings, confirmed bookings, broker partnerships, and sales pipelines for {orgName}.
+            Manage site visits, customer holds, confirmed bookings, broker partnerships, and sales pipelines for {orgName}.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-            Pipeline Active
+            Commercial Workflows Active
           </span>
         </div>
       </div>
@@ -50,7 +89,7 @@ export function SalesOperationsView({
           {[
             { id: 'deals', label: 'Sales Deals Pipeline', count: deals.length },
             { id: 'visits', label: 'Site Visits', count: siteVisits.length },
-            { id: 'bookings', label: 'Bookings & Holds', count: bookings.length },
+            { id: 'bookings', label: 'Bookings & Holds', count: bookings.length + activeBlockings.length },
             { id: 'partners', label: 'Channel Partners', count: partners.length },
           ].map((tab) => (
             <button
@@ -174,37 +213,118 @@ export function SalesOperationsView({
       )}
 
       {activeTab === 'bookings' && (
-        <div className="bg-white shadow-xs rounded-lg border border-gray-200 overflow-hidden">
-          <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 font-medium text-sm text-gray-700">
-            Confirmed Bookings & Active Holds
-          </div>
-          <div className="divide-y divide-gray-100">
-            {bookings.length === 0 ? (
-              <div className="p-8 text-center text-sm text-gray-500">
-                No bookings recorded yet. Convert an active hold or book directly from the inventory Explorer.
+        <div className="space-y-6">
+          {/* Section 1: Active Customer Holds */}
+          <div className="bg-white shadow-xs rounded-lg border border-amber-200 overflow-hidden">
+            <div className="px-4 py-3 bg-amber-50/80 border-b border-amber-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-700" />
+                <span className="font-semibold text-sm text-amber-900">
+                  Active Customer Holds (Temporary Unit Reservations)
+                </span>
               </div>
-            ) : (
-              bookings.map((b) => (
-                <div key={b.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
-                  <div>
-                    <div className="text-sm font-semibold text-gray-900">
-                      Booking #{b.booking_number}
-                    </div>
-                    <div className="text-xs text-gray-500 mt-0.5">
-                      Plan: {b.payment_plan} | Date: {b.booking_date}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900">
-                      ₹{b.total_amount.toLocaleString('en-IN')}
-                    </div>
-                    <div className="text-xs text-emerald-600">
-                      Paid: ₹{b.booking_amount_received.toLocaleString('en-IN')}
-                    </div>
-                  </div>
+              <span className="text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-bold">
+                {activeBlockings.length} Active
+              </span>
+            </div>
+
+            <div className="divide-y divide-amber-100">
+              {activeBlockings.length === 0 ? (
+                <div className="p-6 text-center text-xs text-amber-800/80 italic">
+                  No active unit holds right now. Sales executives can place temporary holds directly from the Inventory Explorer drawer.
                 </div>
-              ))
-            )}
+              ) : (
+                activeBlockings.map((b) => (
+                  <div key={b.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-amber-50/40">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-gray-900">
+                          {b.lead?.name || 'Customer'}
+                        </span>
+                        {b.lead?.phone && (
+                          <span className="text-xs text-gray-500 font-mono">({b.lead.phone})</span>
+                        )}
+                        <span className="text-xs bg-indigo-50 text-indigo-700 font-semibold px-2 py-0.5 rounded">
+                          Unit {b.inventory?.unit_number || 'Unit'}
+                        </span>
+                        {b.project?.name && (
+                          <span className="text-xs text-gray-500">• {b.project.name}</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1 flex items-center gap-4">
+                        <span>Expires: <strong className="text-gray-700">{new Date(b.expires_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</strong></span>
+                        {b.payment_reference && <span>Ref: <strong className="font-mono text-gray-700">{b.payment_reference}</strong></span>}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <span className="text-xs text-gray-500 block">Token Deposit</span>
+                        <span className="text-sm font-bold text-amber-800 font-mono">
+                          {formatCurrency(Number(b.token_amount))}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleReleaseHold(b)}
+                        disabled={releasingId === b.id}
+                        className="px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {releasingId === b.id ? 'Releasing...' : 'Release Hold'}
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Section 2: Confirmed Sales Bookings */}
+          <div className="bg-white shadow-xs rounded-lg border border-gray-200 overflow-hidden">
+            <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+              <span className="font-medium text-sm text-gray-700">
+                Confirmed Bookings & Sales Allotments
+              </span>
+              <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-medium">
+                {bookings.length} Booked
+              </span>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {bookings.length === 0 ? (
+                <div className="p-8 text-center text-sm text-gray-500">
+                  No confirmed bookings recorded yet. Confirm bookings directly from the Inventory Explorer drawer.
+                </div>
+              ) : (
+                bookings.map((b) => (
+                  <div key={b.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-gray-900">
+                          Booking #{b.booking_number}
+                        </span>
+                        <span className="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded-full capitalize">
+                          {b.status}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1 flex items-center gap-3">
+                        {b.lead?.name && <span>Buyer: <strong className="text-gray-700">{b.lead.name}</strong></span>}
+                        {b.inventory?.unit_number && <span>Unit: <strong className="text-gray-700">{b.inventory.unit_number}</strong></span>}
+                        <span>Plan: <strong className="capitalize text-gray-700">{b.payment_plan.replace(/_/g, ' ')}</strong></span>
+                        <span>Date: {b.booking_date}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-gray-900 font-mono">
+                        {formatCurrency(Number(b.total_amount))}
+                      </div>
+                      <div className="text-xs text-emerald-600 font-medium">
+                        Advance Received: {formatCurrency(Number(b.booking_amount_received))}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}

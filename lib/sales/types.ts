@@ -76,6 +76,9 @@ export interface InventoryBlocking {
   remarks: string | null
   created_at: string
   updated_at: string
+  lead?: { id?: string; name: string; phone?: string; email?: string } | null
+  inventory?: { id?: string; unit_number: string; category?: string; total_price?: number } | null
+  project?: { id?: string; name: string } | null
 }
 
 export type BookingStatus = 'draft' | 'confirmed' | 'agreement_signed' | 'registered' | 'cancelled'
@@ -101,6 +104,9 @@ export interface Booking {
   remarks: string | null
   created_at: string
   updated_at: string
+  lead?: { id?: string; name: string; phone?: string; email?: string } | null
+  inventory?: { id?: string; unit_number: string; category?: string; total_price?: number } | null
+  project?: { id?: string; name: string } | null
 }
 
 export type CommissionType = 'percentage' | 'fixed_per_sqft' | 'lump_sum'

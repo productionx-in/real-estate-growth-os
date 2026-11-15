@@ -3,8 +3,55 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { LeadSchema } from '@/lib/validations/lead'
 import { createLead } from '@/lib/dal/leads'
-import { authenticateCaller } from '@/lib/auth/tenant'
+import { authenticateCaller, authorizeOrgAccess } from '@/lib/auth/tenant'
+import { escapePostgrestPattern } from '@/lib/dal/inventory'
 import { createServiceClient } from '@/lib/supabase/server'
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const orgId = searchParams.get('orgId')
+    const projectId = searchParams.get('projectId')
+    const queryStr = searchParams.get('q')
+
+    if (!orgId) {
+      return NextResponse.json({ error: 'Missing required orgId' }, { status: 400 })
+    }
+
+    const authRes = await authenticateCaller()
+    if (!authRes.success) return authRes.response
+
+    const orgAccess = await authorizeOrgAccess(orgId)
+    if (!orgAccess.success) return orgAccess.response
+
+    const service = createServiceClient()
+    let query = service
+      .from('leads')
+      .select('id, name, phone, email, project_id, status')
+      .eq('org_id', orgId)
+      .neq('status', 'lost')
+      .order('name', { ascending: true })
+      .limit(50)
+
+    if (projectId) {
+      query = query.eq('project_id', projectId)
+    }
+
+    if (queryStr) {
+      const safe = escapePostgrestPattern(queryStr)
+      query = query.or(`name.ilike.%${safe}%,phone.ilike.%${safe}%,email.ilike.%${safe}%`)
+    }
+
+    const { data: leads, error } = await query
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ leads: leads || [] })
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {

@@ -2,7 +2,7 @@
 import type { Metadata } from 'next'
 import { PageShell } from '@/components/layout/PageShell'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
-import { getSiteVisits, getBookings, getChannelPartners, getDeals } from '@/lib/dal/sales'
+import { getSiteVisits, getBookings, getBlockings, getChannelPartners, getDeals } from '@/lib/dal/sales'
 import { SalesOperationsView } from '@/components/sales/SalesOperationsView'
 
 export const metadata: Metadata = { title: 'Sales & Channel Partner Operations' }
@@ -16,9 +16,10 @@ export default async function SalesPage({ params }: PageProps) {
   const { orgSlug } = await params
   const { org } = await getVerifiedWorkspace(orgSlug)
 
-  const [siteVisits, bookings, partners, deals] = await Promise.all([
+  const [siteVisits, bookings, blockings, partners, deals] = await Promise.all([
     getSiteVisits(org.id),
     getBookings(org.id),
+    getBlockings(org.id),
     getChannelPartners(org.id),
     getDeals(org.id),
   ])
@@ -31,8 +32,10 @@ export default async function SalesPage({ params }: PageProps) {
       <SalesOperationsView
         initialSiteVisits={siteVisits}
         initialBookings={bookings}
+        initialBlockings={blockings}
         initialChannelPartners={partners}
         initialDeals={deals}
+        orgId={org.id}
         orgName={org.name}
       />
     </PageShell>

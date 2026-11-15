@@ -14,15 +14,20 @@ import {
   Layers,
   Building2,
   DollarSign,
+  Clock,
+  FileCheck,
 } from 'lucide-react'
 import { formatCurrency, formatRelative, formatDate } from '@/lib/utils/format'
 import {
   PROJECT_CATEGORY_LABELS,
   type InventoryItemWithRelations,
 } from '@/types/inventory'
+import type { InventoryBlocking, Booking } from '@/lib/sales/types'
 import { InventoryStatusBadge } from './InventoryStatusBadge'
 import { InventoryStatusDialog } from './InventoryStatusDialog'
 import { InventoryForm } from './InventoryForm'
+import { HoldUnitModal } from '@/components/sales/HoldUnitModal'
+import { CreateBookingModal } from '@/components/sales/CreateBookingModal'
 
 interface InventoryHistoryRecord {
   id: string
@@ -56,6 +61,12 @@ export function InventoryDetailDrawer({
   const [loadingHistory, setLoadingHistory] = useState(true)
   const [showStatusModal, setShowStatusModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [activeHold, setActiveHold] = useState<InventoryBlocking | null>(null)
+  const [booking, setBooking] = useState<Booking | null>(null)
+  const [showHoldModal, setShowHoldModal] = useState(false)
+  const [showBookingModal, setShowBookingModal] = useState(false)
+  const [isReleasingHold, setIsReleasingHold] = useState(false)
+  const [releaseError, setReleaseError] = useState<string | null>(null)
 
   const item = detailsOverride && detailsOverride.id === initialItem.id ? { ...initialItem, ...detailsOverride } : initialItem
 
@@ -65,6 +76,8 @@ export function InventoryDetailDrawer({
       .then((data) => {
         if (data.item) setDetailsOverride(data.item)
         if (data.history) setHistory(data.history)
+        if (data.activeHold !== undefined) setActiveHold(data.activeHold)
+        if (data.booking !== undefined) setBooking(data.booking)
         setLoadingHistory(false)
       })
       .catch(() => setLoadingHistory(false))
@@ -78,6 +91,8 @@ export function InventoryDetailDrawer({
         if (!ignore) {
           if (data.item) setDetailsOverride(data.item)
           if (data.history) setHistory(data.history)
+          if (data.activeHold !== undefined) setActiveHold(data.activeHold)
+          if (data.booking !== undefined) setBooking(data.booking)
           setLoadingHistory(false)
         }
       })
@@ -89,6 +104,40 @@ export function InventoryDetailDrawer({
       ignore = true
     }
   }, [initialItem.id])
+
+  const handleReleaseHold = async () => {
+    if (!activeHold) return
+    const confirmRelease = window.confirm(
+      `Are you sure you want to release the hold on Unit ${item.unit_number}? This will revert the unit to Available.`
+    )
+    if (!confirmRelease) return
+
+    setIsReleasingHold(true)
+    setReleaseError(null)
+    try {
+      const res = await fetch('/api/sales/blockings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orgId: item.org_id,
+          blockingId: activeHold.id,
+          reason: 'Hold cancelled from Unit Detail view',
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setReleaseError(data.error || 'Failed to release hold')
+        setIsReleasingHold(false)
+        return
+      }
+      refetch()
+      if (onUpdateSuccess) onUpdateSuccess()
+    } catch {
+      setReleaseError('Network error releasing hold')
+    } finally {
+      setIsReleasingHold(false)
+    }
+  }
 
   // Keyboard navigation support: Left Arrow for Prev, Right Arrow for Next, Esc for Close
   useEffect(() => {
@@ -235,26 +284,168 @@ export function InventoryDetailDrawer({
               </div>
             </div>
 
-            {/* Actions Bar */}
-            <div className="flex items-center gap-2 pt-1 border-t border-[var(--border)]">
-              <button
-                type="button"
-                onClick={() => setShowEditModal(true)}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-lg hover:bg-[var(--surface-hover)] transition-colors shadow-2xs"
-              >
-                <Pencil className="w-3.5 h-3.5 text-[var(--foreground-muted)]" />
-                <span>Edit Details</span>
-              </button>
+            {/* Actions & Commercial Operations Bar */}
+            <div className="pt-2 border-t border-[var(--border)] space-y-2">
+              {item.status === 'available' && (
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowHoldModal(true)}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg transition-colors shadow-2xs"
+                  >
+                    <Clock className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Hold Unit (Token)</span>
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => setShowStatusModal(true)}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
-              >
-                <Edit3 className="w-3.5 h-3.5" />
-                <span>Change Status</span>
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowBookingModal(true)}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-2xs"
+                  >
+                    <FileCheck className="w-3.5 h-3.5" />
+                    <span>Book Unit</span>
+                  </button>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(true)}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-lg hover:bg-[var(--surface-hover)] transition-colors shadow-2xs"
+                >
+                  <Pencil className="w-3.5 h-3.5 text-[var(--foreground-muted)]" />
+                  <span>Edit Details</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowStatusModal(true)}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-[var(--foreground)] bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg hover:bg-[var(--border)] transition-colors shadow-2xs"
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-[var(--foreground-muted)]" />
+                  <span>Change Status</span>
+                </button>
+              </div>
             </div>
+
+            {/* Active Customer Hold Card */}
+            {(item.status === 'blocked' || item.status === 'on_hold') && activeHold && (
+              <div className="mt-3 p-4 rounded-xl border border-amber-300 bg-amber-50/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                      Active Customer Hold
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold text-amber-900 font-mono">
+                    Token: {formatCurrency(Number(activeHold.token_amount))}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-amber-200">
+                  <div>
+                    <span className="text-[11px] text-amber-800/80 block">Holding Buyer</span>
+                    <span className="font-semibold text-amber-950 block">
+                      {activeHold.lead?.name || 'Customer'}
+                    </span>
+                    {activeHold.lead?.phone && (
+                      <span className="text-[11px] text-amber-800 font-mono">
+                        {activeHold.lead.phone}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-amber-800/80 block">Expiry Deadline</span>
+                    <span className="font-semibold text-amber-950 block">
+                      {new Date(activeHold.expires_at).toLocaleString('en-IN', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                    {activeHold.payment_reference && (
+                      <span className="text-[11px] text-amber-800 font-mono block truncate">
+                        Ref: {activeHold.payment_reference}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {releaseError && (
+                  <div className="text-xs text-rose-700 bg-rose-50 p-2 rounded border border-rose-200">
+                    {releaseError}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 pt-2 border-t border-amber-200">
+                  <button
+                    type="button"
+                    onClick={() => setShowBookingModal(true)}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-2xs"
+                  >
+                    <FileCheck className="w-3.5 h-3.5" />
+                    <span>Convert to Booking</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleReleaseHold}
+                    disabled={isReleasingHold}
+                    className="px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {isReleasingHold ? 'Releasing...' : 'Release Hold'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Confirmed Booking Card */}
+            {(item.status === 'booked' || item.status === 'sold') && booking && (
+              <div className="mt-3 p-4 rounded-xl border border-blue-300 bg-blue-50/80 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-blue-900">
+                      Confirmed Sales Booking
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold text-blue-900 font-mono">
+                    #{booking.booking_number}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-blue-200">
+                  <div>
+                    <span className="text-[11px] text-blue-800/80 block">Allottee / Buyer</span>
+                    <span className="font-semibold text-blue-950 block">
+                      {booking.lead?.name || 'Customer'}
+                    </span>
+                    {booking.lead?.phone && (
+                      <span className="text-[11px] text-blue-800 font-mono">
+                        {booking.lead.phone}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-blue-800/80 block">Total Agreement</span>
+                    <span className="font-semibold text-emerald-800 font-mono block">
+                      {formatCurrency(Number(booking.total_amount))}
+                    </span>
+                    <span className="text-[11px] text-blue-800 block">
+                      Paid: {formatCurrency(Number(booking.booking_amount_received))}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] text-blue-900/80 pt-1.5 border-t border-blue-200/60">
+                  <span>Plan: <strong className="capitalize">{booking.payment_plan.replace(/_/g, ' ')}</strong></span>
+                  <span>Date: {new Date(booking.booking_date).toLocaleDateString('en-IN')}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* SECTION B: Property Specifications (Category-Aware) */}
@@ -655,6 +846,31 @@ export function InventoryDetailDrawer({
           defaultCategory={item.category}
           initialItem={item}
           onClose={() => setShowEditModal(false)}
+          onSuccess={() => {
+            if (onUpdateSuccess) onUpdateSuccess()
+            refetch()
+          }}
+        />
+      )}
+
+      {/* Hold Unit Modal Trigger */}
+      {showHoldModal && (
+        <HoldUnitModal
+          item={item}
+          onClose={() => setShowHoldModal(false)}
+          onSuccess={() => {
+            if (onUpdateSuccess) onUpdateSuccess()
+            refetch()
+          }}
+        />
+      )}
+
+      {/* Booking Modal Trigger */}
+      {showBookingModal && (
+        <CreateBookingModal
+          item={item}
+          activeHold={activeHold}
+          onClose={() => setShowBookingModal(false)}
           onSuccess={() => {
             if (onUpdateSuccess) onUpdateSuccess()
             refetch()

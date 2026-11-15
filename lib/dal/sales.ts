@@ -197,7 +197,7 @@ export async function blockInventoryUnit(params: {
     // 1. Verify unit availability
     const { data: unit, error: unitErr } = await service
       .from('inventory_items')
-      .select('id, status, org_id')
+      .select('id, status, org_id, unit_number')
       .eq('id', params.inventoryId)
       .eq('org_id', params.orgId)
       .single()
@@ -231,7 +231,12 @@ export async function blockInventoryUnit(params: {
         remarks: params.remarks || null,
         status: 'active',
       })
-      .select('*')
+      .select(`
+        *,
+        lead:leads(id, name, phone, email),
+        inventory:inventory_items(id, unit_number, category, total_price),
+        project:projects(id, name)
+      `)
       .single()
 
     if (blockErr) return { success: false, error: blockErr.message }
@@ -243,11 +248,210 @@ export async function blockInventoryUnit(params: {
       .eq('id', params.inventoryId)
       .eq('org_id', params.orgId)
 
+    // Resolve actor profile id for audit tracking
+    let actorId = params.blockedBy
+    if (!actorId) {
+      const { data: member } = await service
+        .from('org_members')
+        .select('profile_id')
+        .eq('org_id', params.orgId)
+        .limit(1)
+        .maybeSingle()
+      actorId = member?.profile_id || params.leadId
+    }
+
+    // 4. Record audit history in inventory_status_history
+    await service.from('inventory_status_history').insert({
+      inventory_id: params.inventoryId,
+      org_id: params.orgId,
+      previous_status: 'available',
+      new_status: 'blocked',
+      changed_by: actorId,
+      reason: params.remarks ? `Hold placed: ${params.remarks}` : `Hold placed with token ₹${params.tokenAmount}`,
+      metadata: {
+        blocking_id: blocking.id,
+        lead_id: params.leadId,
+        token_amount: params.tokenAmount,
+        payment_reference: params.paymentReference,
+        expires_at: expiresAt,
+      },
+    })
+
+    // 5. Advance or create deal for this lead
+    const { data: existingDeal } = await service
+      .from('deals')
+      .select('id')
+      .eq('org_id', params.orgId)
+      .eq('lead_id', params.leadId)
+      .eq('project_id', params.projectId)
+      .maybeSingle()
+
+    if (existingDeal) {
+      await service
+        .from('deals')
+        .update({
+          inventory_id: params.inventoryId,
+          stage: 'unit_blocked',
+          probability: 70,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existingDeal.id)
+    } else {
+      await service.from('deals').insert({
+        org_id: params.orgId,
+        project_id: params.projectId,
+        lead_id: params.leadId,
+        inventory_id: params.inventoryId,
+        stage: 'unit_blocked',
+        probability: 70,
+        notes: `Unit ${unit.unit_number} blocked with token of ₹${params.tokenAmount}`,
+      })
+    }
+
     return { success: true, data: blocking as unknown as InventoryBlocking }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     return { success: false, error: msg }
   }
+}
+
+export async function releaseBlocking(params: {
+  blockingId: string
+  orgId: string
+  releasedBy?: string | null
+  reason?: string | null
+}): Promise<{ success: boolean; error?: string }> {
+  const service = createServiceClient()
+  const now = new Date().toISOString()
+
+  try {
+    const { data: blocking, error: fetchErr } = await service
+      .from('inventory_blockings')
+      .select('id, inventory_id, status, lead_id, project_id')
+      .eq('id', params.blockingId)
+      .eq('org_id', params.orgId)
+      .single()
+
+    if (fetchErr || !blocking) {
+      return { success: false, error: 'Blocking record not found' }
+    }
+
+    if (blocking.status !== 'active') {
+      return { success: false, error: `Blocking cannot be released. Current status is ${blocking.status}` }
+    }
+
+    // Mark blocking as cancelled
+    const { error: updateErr } = await service
+      .from('inventory_blockings')
+      .update({
+        status: 'cancelled',
+        remarks: params.reason ? `Released: ${params.reason}` : 'Hold released manually',
+        updated_at: now,
+      })
+      .eq('id', blocking.id)
+
+    if (updateErr) return { success: false, error: updateErr.message }
+
+    // Revert inventory item back to available
+    await service
+      .from('inventory_items')
+      .update({ status: 'available', updated_at: now })
+      .eq('id', blocking.inventory_id)
+      .eq('org_id', params.orgId)
+
+    // Resolve actor profile id for audit tracking
+    let actorId = params.releasedBy
+    if (!actorId) {
+      const { data: member } = await service
+        .from('org_members')
+        .select('profile_id')
+        .eq('org_id', params.orgId)
+        .limit(1)
+        .maybeSingle()
+      actorId = member?.profile_id || blocking.lead_id
+    }
+
+    // Append audit history
+    await service.from('inventory_status_history').insert({
+      inventory_id: blocking.inventory_id,
+      org_id: params.orgId,
+      previous_status: 'blocked',
+      new_status: 'available',
+      changed_by: actorId,
+      reason: params.reason ? `Hold released: ${params.reason}` : 'Hold released manually',
+      metadata: { blocking_id: blocking.id, action: 'release_hold' },
+    })
+
+    return { success: true }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return { success: false, error: msg }
+  }
+}
+
+export async function getBlockings(
+  orgId: string,
+  filters?: { projectId?: string; inventoryId?: string; status?: string }
+): Promise<InventoryBlocking[]> {
+  const service = createServiceClient()
+  let query = service
+    .from('inventory_blockings')
+    .select(`
+      *,
+      lead:leads(id, name, phone, email),
+      inventory:inventory_items(id, unit_number, category, total_price),
+      project:projects(id, name)
+    `)
+    .eq('org_id', orgId)
+
+  if (filters?.projectId) query = query.eq('project_id', filters.projectId)
+  if (filters?.inventoryId) query = query.eq('inventory_id', filters.inventoryId)
+  if (filters?.status) query = query.eq('status', filters.status)
+
+  const { data } = await query.order('created_at', { ascending: false })
+  return (data || []) as unknown as InventoryBlocking[]
+}
+
+export async function getActiveUnitHold(
+  inventoryId: string,
+  orgId: string
+): Promise<InventoryBlocking | null> {
+  const service = createServiceClient()
+  const { data } = await service
+    .from('inventory_blockings')
+    .select(`
+      *,
+      lead:leads(id, name, phone, email),
+      project:projects(id, name)
+    `)
+    .eq('inventory_id', inventoryId)
+    .eq('org_id', orgId)
+    .eq('status', 'active')
+    .maybeSingle()
+
+  return (data as unknown as InventoryBlocking) || null
+}
+
+export async function getActiveUnitBooking(
+  inventoryId: string,
+  orgId: string
+): Promise<Booking | null> {
+  const service = createServiceClient()
+  const { data } = await service
+    .from('bookings')
+    .select(`
+      *,
+      lead:leads(id, name, phone, email),
+      project:projects(id, name)
+    `)
+    .eq('inventory_id', inventoryId)
+    .eq('org_id', orgId)
+    .neq('status', 'cancelled')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  return (data as unknown as Booking) || null
 }
 
 export async function releaseExpiredBlockings(orgId: string): Promise<number> {
@@ -280,6 +484,26 @@ export async function releaseExpiredBlockings(orgId: string): Promise<number> {
         .eq('id', item.inventory_id)
         .eq('org_id', orgId)
 
+      // Resolve actor for auto-expire audit
+      const { data: member } = await service
+        .from('org_members')
+        .select('profile_id')
+        .eq('org_id', orgId)
+        .limit(1)
+        .maybeSingle()
+      const systemActorId = member?.profile_id || item.id
+
+      // Record audit history
+      await service.from('inventory_status_history').insert({
+        inventory_id: item.inventory_id,
+        org_id: orgId,
+        previous_status: 'blocked',
+        new_status: 'available',
+        changed_by: systemActorId,
+        reason: 'Hold expired automatically (48h hold duration elapsed)',
+        metadata: { blocking_id: item.id, action: 'auto_expire' },
+      })
+
       releasedCount++
     }
 
@@ -311,6 +535,7 @@ export async function createBooking(params: {
   bookingAmountReceived: number
   paymentPlan?: 'construction_linked' | 'time_linked' | 'down_payment' | 'custom'
   remarks?: string | null
+  actorProfileId?: string | null
 }): Promise<{ success: boolean; data?: Booking; error?: string }> {
   const service = createServiceClient()
 
@@ -318,7 +543,7 @@ export async function createBooking(params: {
     // 1. Verify unit status
     const { data: unit, error: unitErr } = await service
       .from('inventory_items')
-      .select('id, status, super_built_up_area')
+      .select('id, status, super_built_up_area, unit_number')
       .eq('id', params.inventoryId)
       .eq('org_id', params.orgId)
       .single()
@@ -358,7 +583,12 @@ export async function createBooking(params: {
         payment_plan: params.paymentPlan || 'construction_linked',
         remarks: params.remarks || null,
       })
-      .select('*')
+      .select(`
+        *,
+        lead:leads(id, name, phone, email),
+        inventory:inventory_items(id, unit_number, category, total_price),
+        project:projects(id, name)
+      `)
       .single()
 
     if (bookErr) return { success: false, error: bookErr.message }
@@ -370,7 +600,38 @@ export async function createBooking(params: {
       .eq('id', params.inventoryId)
       .eq('org_id', params.orgId)
 
-    // 4. If converted from blocking, update blocking status
+    // Resolve actor profile id for audit tracking
+    let actorId = params.actorProfileId
+    if (!actorId) {
+      const { data: member } = await service
+        .from('org_members')
+        .select('profile_id')
+        .eq('org_id', params.orgId)
+        .limit(1)
+        .maybeSingle()
+      actorId = member?.profile_id || params.leadId
+    }
+
+    // 4. Record audit history in inventory_status_history
+    await service.from('inventory_status_history').insert({
+      inventory_id: params.inventoryId,
+      org_id: params.orgId,
+      previous_status: unit.status,
+      new_status: 'booked',
+      changed_by: actorId,
+      reason: params.remarks ? `Confirmed Booking: ${params.remarks}` : `Confirmed Booking #${bookingNumber}`,
+      metadata: {
+        booking_id: booking.id,
+        booking_number: bookingNumber,
+        lead_id: params.leadId,
+        total_amount: totalAmount,
+        booking_amount_received: params.bookingAmountReceived,
+        payment_plan: params.paymentPlan || 'construction_linked',
+        blocking_id: params.blockingId || null,
+      },
+    })
+
+    // 5. If converted from blocking, update blocking status
     if (params.blockingId) {
       await service
         .from('inventory_blockings')
@@ -378,7 +639,40 @@ export async function createBooking(params: {
         .eq('id', params.blockingId)
     }
 
-    // 5. If channel partner attached, generate commission record
+    // 6. Advance or create deal for this lead in stage 'booked' (100% probability)
+    const { data: existingDeal } = await service
+      .from('deals')
+      .select('id')
+      .eq('org_id', params.orgId)
+      .eq('lead_id', params.leadId)
+      .eq('project_id', params.projectId)
+      .maybeSingle()
+
+    if (existingDeal) {
+      await service
+        .from('deals')
+        .update({
+          inventory_id: params.inventoryId,
+          stage: 'booked',
+          probability: 100,
+          deal_value: totalAmount,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existingDeal.id)
+    } else {
+      await service.from('deals').insert({
+        org_id: params.orgId,
+        project_id: params.projectId,
+        lead_id: params.leadId,
+        inventory_id: params.inventoryId,
+        stage: 'booked',
+        probability: 100,
+        deal_value: totalAmount,
+        notes: `Unit ${unit.unit_number} booked under #${bookingNumber}`,
+      })
+    }
+
+    // 7. If channel partner attached, generate commission record
     if (params.channelPartnerId) {
       const { data: cp } = await service
         .from('channel_partners')
@@ -429,12 +723,21 @@ export async function createBooking(params: {
 
 export async function getBookings(
   orgId: string,
-  filters?: { projectId?: string; status?: string }
+  filters?: { projectId?: string; inventoryId?: string; status?: string }
 ): Promise<Booking[]> {
   const service = createServiceClient()
-  let query = service.from('bookings').select('*').eq('org_id', orgId)
+  let query = service
+    .from('bookings')
+    .select(`
+      *,
+      lead:leads(id, name, phone, email),
+      inventory:inventory_items(id, unit_number, category, total_price),
+      project:projects(id, name)
+    `)
+    .eq('org_id', orgId)
 
   if (filters?.projectId) query = query.eq('project_id', filters.projectId)
+  if (filters?.inventoryId) query = query.eq('inventory_id', filters.inventoryId)
   if (filters?.status) query = query.eq('status', filters.status)
 
   const { data } = await query.order('created_at', { ascending: false })

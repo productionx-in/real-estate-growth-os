@@ -2,6 +2,7 @@
 // Secure Inventory item detail routes: Enforces authentication, tenant isolation, and RBAC.
 import { NextResponse, type NextRequest } from 'next/server'
 import { getInventoryById, getInventoryStatusHistory, escapePostgrestPattern } from '@/lib/dal/inventory'
+import { getActiveUnitHold, getActiveUnitBooking } from '@/lib/dal/sales'
 import { InventoryItemSchema } from '@/lib/validations/inventory'
 import { authorizeInventoryAccess } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -32,7 +33,18 @@ export async function GET(
     }
 
     const history = await getInventoryStatusHistory(inventoryId)
-    return NextResponse.json({ item, history })
+
+    // Fetch active hold or booking if relevant
+    let activeHold = null
+    let booking = null
+
+    if (item.status === 'blocked' || item.status === 'on_hold') {
+      activeHold = await getActiveUnitHold(inventoryId, item.org_id)
+    } else if (item.status === 'booked' || item.status === 'sold') {
+      booking = await getActiveUnitBooking(inventoryId, item.org_id)
+    }
+
+    return NextResponse.json({ item, history, activeHold, booking })
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

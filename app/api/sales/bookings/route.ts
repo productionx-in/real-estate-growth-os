@@ -2,6 +2,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createBooking, getBookings } from '@/lib/dal/sales'
 import { authorizeSalesRequest } from '@/lib/sales/auth'
+import { CreateBookingSchema } from '@/lib/validations/sales'
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,9 +12,10 @@ export async function GET(request: NextRequest) {
     if (!auth.success) return auth.response
 
     const projectId = searchParams.get('projectId') || undefined
+    const inventoryId = searchParams.get('inventoryId') || undefined
     const status = searchParams.get('status') || undefined
 
-    const bookings = await getBookings(auth.context.orgId, { projectId, status })
+    const bookings = await getBookings(auth.context.orgId, { projectId, inventoryId, status })
     return NextResponse.json({ data: bookings, count: bookings.length })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
@@ -27,25 +29,31 @@ export async function POST(request: NextRequest) {
     const auth = await authorizeSalesRequest(body.orgId)
     if (!auth.success) return auth.response
 
-    if (!body.projectId || !body.inventoryId || !body.leadId || body.basePrice === undefined || body.bookingAmountReceived === undefined) {
+    if (auth.context.role === 'readonly') {
+      return NextResponse.json({ error: 'Readonly users cannot create bookings' }, { status: 403 })
+    }
+
+    const parsed = CreateBookingSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Missing required fields: projectId, inventoryId, leadId, basePrice, bookingAmountReceived' },
+        { error: 'Validation failed', details: parsed.error.flatten() },
         { status: 400 }
       )
     }
 
     const result = await createBooking({
       orgId: auth.context.orgId,
-      projectId: body.projectId,
-      inventoryId: body.inventoryId,
-      leadId: body.leadId,
-      blockingId: body.blockingId,
-      channelPartnerId: body.channelPartnerId,
-      basePrice: Number(body.basePrice),
-      additionalCharges: body.additionalCharges ? Number(body.additionalCharges) : 0,
-      bookingAmountReceived: Number(body.bookingAmountReceived),
-      paymentPlan: body.paymentPlan,
-      remarks: body.remarks,
+      projectId: parsed.data.projectId,
+      inventoryId: parsed.data.inventoryId,
+      leadId: parsed.data.leadId,
+      blockingId: parsed.data.blockingId || null,
+      channelPartnerId: parsed.data.channelPartnerId || null,
+      basePrice: parsed.data.basePrice,
+      additionalCharges: parsed.data.additionalCharges,
+      bookingAmountReceived: parsed.data.bookingAmountReceived,
+      paymentPlan: parsed.data.paymentPlan,
+      remarks: parsed.data.remarks || null,
+      actorProfileId: auth.context.profile.id,
     })
 
     if (!result.success) {
