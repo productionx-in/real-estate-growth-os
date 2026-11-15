@@ -339,9 +339,20 @@ export function InventoryDetailDrawer({
                       Active Customer Hold
                     </span>
                   </div>
-                  <span className="text-xs font-bold text-amber-900 font-mono">
-                    Token: {formatCurrency(Number(activeHold.token_amount))}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
+                      activeHold.payment_status === 'verified'
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                        : activeHold.payment_status === 'failed'
+                        ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                        : 'bg-amber-100 text-amber-800 border border-amber-300'
+                    }`}>
+                      {activeHold.payment_status ? activeHold.payment_status.replace('_', ' ') : 'Unverified Ref'}
+                    </span>
+                    <span className="text-xs font-bold text-amber-900 font-mono">
+                      Token: {formatCurrency(Number(activeHold.token_amount))}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-amber-200">
@@ -412,9 +423,20 @@ export function InventoryDetailDrawer({
                       Confirmed Sales Booking
                     </span>
                   </div>
-                  <span className="text-xs font-bold text-blue-900 font-mono">
-                    #{booking.booking_number}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
+                      booking.payment_status === 'verified'
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                        : booking.payment_status === 'partially_verified'
+                        ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                        : 'bg-amber-100 text-amber-800 border border-amber-300'
+                    }`}>
+                      {booking.payment_status ? booking.payment_status.replace('_', ' ') : 'Unverified Ref'}
+                    </span>
+                    <span className="text-xs font-bold text-blue-900 font-mono">
+                      #{booking.booking_number}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-blue-200">

@@ -41,6 +41,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const headerIdempotency = request.headers.get('Idempotency-Key')
+    const idempotencyKey = parsed.data.idempotencyKey || headerIdempotency || null
+
     const result = await createBooking({
       orgId: auth.context.orgId,
       projectId: parsed.data.projectId,
@@ -52,8 +55,10 @@ export async function POST(request: NextRequest) {
       additionalCharges: parsed.data.additionalCharges,
       bookingAmountReceived: parsed.data.bookingAmountReceived,
       paymentPlan: parsed.data.paymentPlan,
+      paymentStatus: parsed.data.paymentStatus,
       remarks: parsed.data.remarks || null,
       actorProfileId: auth.context.profile.id,
+      idempotencyKey,
     })
 
     if (!result.success) {

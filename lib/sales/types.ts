@@ -62,6 +62,8 @@ export interface ChannelPartner {
 
 export type BlockingStatus = 'active' | 'expired' | 'converted_to_booking' | 'cancelled'
 
+export type BlockingPaymentStatus = 'unverified' | 'verified' | 'failed' | 'refunded'
+
 export interface InventoryBlocking {
   id: string
   org_id: string
@@ -72,6 +74,8 @@ export interface InventoryBlocking {
   status: BlockingStatus
   token_amount: number
   payment_reference: string | null
+  payment_status?: BlockingPaymentStatus
+  idempotency_key?: string | null
   expires_at: string
   remarks: string | null
   created_at: string
@@ -83,6 +87,7 @@ export interface InventoryBlocking {
 
 export type BookingStatus = 'draft' | 'confirmed' | 'agreement_signed' | 'registered' | 'cancelled'
 export type PaymentPlanType = 'construction_linked' | 'time_linked' | 'down_payment' | 'custom'
+export type BookingPaymentStatus = 'unverified' | 'partially_verified' | 'verified'
 
 export interface Booking {
   id: string
@@ -100,6 +105,8 @@ export interface Booking {
   total_amount: number
   booking_amount_received: number
   payment_plan: PaymentPlanType
+  payment_status?: BookingPaymentStatus
+  idempotency_key?: string | null
   documents?: unknown[]
   remarks: string | null
   created_at: string

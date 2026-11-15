@@ -1820,6 +1820,8 @@ export interface Database {
           status: string
           token_amount: number
           payment_reference: string | null
+          payment_status: 'unverified' | 'verified' | 'failed' | 'refunded'
+          idempotency_key: string | null
           expires_at: string
           remarks: string | null
           created_at: string
@@ -1835,6 +1837,8 @@ export interface Database {
           status?: string
           token_amount?: number
           payment_reference?: string | null
+          payment_status?: 'unverified' | 'verified' | 'failed' | 'refunded'
+          idempotency_key?: string | null
           expires_at: string
           remarks?: string | null
           created_at?: string
@@ -1850,6 +1854,8 @@ export interface Database {
           status?: string
           token_amount?: number
           payment_reference?: string | null
+          payment_status?: 'unverified' | 'verified' | 'failed' | 'refunded'
+          idempotency_key?: string | null
           expires_at?: string
           remarks?: string | null
           created_at?: string
@@ -1873,6 +1879,8 @@ export interface Database {
           additional_charges: number
           total_amount: number
           booking_amount_received: number
+          payment_status: 'unverified' | 'verified' | 'partially_verified'
+          idempotency_key: string | null
           payment_plan: string
           documents: Json
           remarks: string | null
@@ -1894,6 +1902,8 @@ export interface Database {
           additional_charges?: number
           total_amount: number
           booking_amount_received?: number
+          payment_status?: 'unverified' | 'verified' | 'partially_verified'
+          idempotency_key?: string | null
           payment_plan?: string
           documents?: Json
           remarks?: string | null
@@ -1915,6 +1925,8 @@ export interface Database {
           additional_charges?: number
           total_amount?: number
           booking_amount_received?: number
+          payment_status?: 'unverified' | 'verified' | 'partially_verified'
+          idempotency_key?: string | null
           payment_plan?: string
           documents?: Json
           remarks?: string | null

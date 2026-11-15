@@ -241,6 +241,9 @@ export function HoldUnitModal({ item, onClose, onSuccess }: HoldUnitModalProps) 
                 placeholder="e.g. UPI / UTR 20261115001 or Cheque 58921"
                 className="w-full text-xs rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-mono"
               />
+              <p className="text-[11px] text-[var(--foreground-muted)]">
+                Note: Payment reference will be recorded as <strong className="text-amber-700">Unverified (Pending Realization)</strong>. Token deposits are only treated as realized once reconciled by Finance.
+              </p>
             </div>
 
             {/* Expiration Preview Notice */}

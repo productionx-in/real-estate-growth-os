@@ -250,6 +250,15 @@ export function SalesOperationsView({
                         {b.project?.name && (
                           <span className="text-xs text-gray-500">• {b.project.name}</span>
                         )}
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
+                          b.payment_status === 'verified'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : b.payment_status === 'failed'
+                            ? 'bg-rose-100 text-rose-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {b.payment_status ? b.payment_status.replace('_', ' ') : 'Unverified Ref'}
+                        </span>
                       </div>
                       <div className="text-xs text-gray-500 mt-1 flex items-center gap-4">
                         <span>Expires: <strong className="text-gray-700">{new Date(b.expires_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</strong></span>
@@ -304,6 +313,15 @@ export function SalesOperationsView({
                         </span>
                         <span className="text-xs bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded-full capitalize">
                           {b.status}
+                        </span>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${
+                          b.payment_status === 'verified'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : b.payment_status === 'partially_verified'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {b.payment_status ? b.payment_status.replace('_', ' ') : 'Unverified Ref'}
                         </span>
                       </div>
                       <div className="text-xs text-gray-500 mt-1 flex items-center gap-3">

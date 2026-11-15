@@ -44,6 +44,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const headerIdempotency = request.headers.get('Idempotency-Key')
+    const idempotencyKey = parsed.data.idempotencyKey || headerIdempotency || null
+
     const result = await blockInventoryUnit({
       orgId: auth.context.orgId,
       projectId: parsed.data.projectId,
@@ -52,8 +55,10 @@ export async function POST(request: NextRequest) {
       blockedBy: auth.context.profile.id,
       tokenAmount: parsed.data.tokenAmount,
       paymentReference: parsed.data.paymentReference || null,
+      paymentStatus: parsed.data.paymentStatus,
       holdDurationHours: parsed.data.holdDurationHours,
       remarks: parsed.data.remarks || null,
+      idempotencyKey,
     })
 
     if (!result.success) {
