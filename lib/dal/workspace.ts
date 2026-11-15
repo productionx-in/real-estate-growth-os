@@ -101,6 +101,7 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
     .select(`
       org_id,
       role,
+      status,
       organisation:organisations(id, name, slug, type)
     `)
     .eq('profile_id', profile.id)
@@ -109,21 +110,22 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
   const typedMemberships = (allMemberships ?? []) as unknown as Array<{
     org_id: string
     role: string | null
+    status?: string | null
     organisation: { id: string; name: string; slug: string; type: string } | null
   }>
 
   const currentMembership = typedMemberships.find(
-    (m) => m.org_id === org.id || m.organisation?.slug === orgSlug
+    (m) => (m.org_id === org.id || m.organisation?.slug === orgSlug) && m.status !== 'deactivated'
   )
 
   if (!currentMembership) {
-    // User is authenticated but is NOT a member of this organisation.
+    // User is authenticated but is NOT an active member of this organisation (or has been deactivated).
     // Strictly redirect to their own org selector. Never grant membership or ownership.
     redirect('/select-org')
   }
 
   const availableOrgs: AvailableOrgSummary[] = typedMemberships
-    .filter((m) => m.organisation && m.organisation.slug)
+    .filter((m) => m.organisation && m.organisation.slug && m.status !== 'deactivated')
     .map((m) => ({
       id: m.organisation!.id,
       name: m.organisation!.name,

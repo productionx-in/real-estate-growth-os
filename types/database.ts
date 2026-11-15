@@ -143,6 +143,9 @@ export interface Database {
           role: MemberRole
           invited_by: string | null
           joined_at: string
+          status: 'active' | 'deactivated' | 'suspended'
+          deactivated_at: string | null
+          deactivated_by: string | null
         }
         Insert: {
           id?: string
@@ -151,6 +154,9 @@ export interface Database {
           role?: MemberRole
           invited_by?: string | null
           joined_at?: string
+          status?: 'active' | 'deactivated' | 'suspended'
+          deactivated_at?: string | null
+          deactivated_by?: string | null
         }
         Update: {
           id?: string
@@ -159,6 +165,9 @@ export interface Database {
           role?: MemberRole
           invited_by?: string | null
           joined_at?: string
+          status?: 'active' | 'deactivated' | 'suspended'
+          deactivated_at?: string | null
+          deactivated_by?: string | null
         }
         Relationships: [
           {
@@ -171,6 +180,123 @@ export interface Database {
           {
             foreignKeyName: 'org_members_profile_id_fkey'
             columns: ['profile_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      org_subscriptions: {
+        Row: {
+          id: string
+          org_id: string
+          plan_tier: string
+          included_seats: number
+          additional_seats: number
+          status: 'trial' | 'active' | 'past_due' | 'canceled' | 'expired'
+          billing_cycle: 'monthly' | 'annual'
+          current_period_start: string
+          current_period_end: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          plan_tier?: string
+          included_seats?: number
+          additional_seats?: number
+          status?: 'trial' | 'active' | 'past_due' | 'canceled' | 'expired'
+          billing_cycle?: 'monthly' | 'annual'
+          current_period_start?: string
+          current_period_end?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          plan_tier?: string
+          included_seats?: number
+          additional_seats?: number
+          status?: 'trial' | 'active' | 'past_due' | 'canceled' | 'expired'
+          billing_cycle?: 'monthly' | 'annual'
+          current_period_start?: string
+          current_period_end?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'org_subscriptions_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: true
+            referencedRelation: 'organisations'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      org_invitations: {
+        Row: {
+          id: string
+          org_id: string
+          email: string
+          role: MemberRole
+          invited_by: string
+          token_hash: string
+          status: 'pending' | 'accepted' | 'expired' | 'revoked'
+          expires_at: string
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          email: string
+          role?: MemberRole
+          invited_by: string
+          token_hash: string
+          status?: 'pending' | 'accepted' | 'expired' | 'revoked'
+          expires_at?: string
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          email?: string
+          role?: MemberRole
+          invited_by?: string
+          token_hash?: string
+          status?: 'pending' | 'accepted' | 'expired' | 'revoked'
+          expires_at?: string
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'org_invitations_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'organisations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'org_invitations_invited_by_fkey'
+            columns: ['invited_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'org_invitations_accepted_by_fkey'
+            columns: ['accepted_by']
             isOneToOne: false
             referencedRelation: 'profiles'
             referencedColumns: ['id']

@@ -3,44 +3,21 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { UserCircle, AlertCircle, Mail, Phone } from 'lucide-react'
-import { formatDate } from '@/lib/utils/format'
+import { AlertCircle } from 'lucide-react'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
+import { getSubscriptionAndSeatUsage } from '@/lib/dal/subscriptions'
+import {
+  TeamManagementClient,
+  type TeamMemberItem,
+  type PendingInvitationItem,
+} from '@/components/team/TeamManagementClient'
 import type { MemberRole } from '@/types/database'
 
-export const metadata: Metadata = { title: 'Team' }
+export const metadata: Metadata = { title: 'Team & Access Management' }
 export const dynamic = 'force-dynamic'
 
 interface PageProps {
   params: Promise<{ orgSlug: string }>
-}
-
-const ROLE_LABELS: Record<MemberRole, string> = {
-  owner: 'Owner',
-  admin: 'Admin',
-  manager: 'Manager',
-  sales_exec: 'Sales Executive',
-  readonly: 'Read Only',
-}
-
-const ROLE_COLORS: Record<MemberRole, string> = {
-  owner: 'bg-purple-50 text-purple-700 border-purple-200',
-  admin: 'bg-blue-50 text-blue-700 border-blue-200',
-  manager: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-  sales_exec: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  readonly: 'bg-gray-100 text-gray-600 border-gray-200',
-}
-
-interface TeamMemberItem {
-  id: string
-  role: MemberRole
-  joined_at: string
-  name: string
-  email: string
-  phone: string | null
-  avatar_url: string | null
-  status: 'Active'
 }
 
 export default async function TeamPage({ params }: PageProps) {
@@ -53,14 +30,16 @@ export default async function TeamPage({ params }: PageProps) {
   }
   const service = createServiceClient()
 
-  // 1. Fetch organisation members
+  // 1. Fetch subscription seat metrics
+  const seatUsage = await getSubscriptionAndSeatUsage(workspace.org.id)
+
+  // 2. Fetch organisation members
   const { data: memberRows, error: membersError } = await service
     .from('org_members')
-    .select('id, org_id, profile_id, role, joined_at')
+    .select('id, org_id, profile_id, role, status, joined_at')
     .eq('org_id', workspace.org.id)
     .order('joined_at', { ascending: true })
 
-  // Guard against query errors: never silently show an empty state on error
   if (membersError) {
     return (
       <PageShell title="Team" description="Manage workspace members and sales executive roles">
@@ -75,7 +54,7 @@ export default async function TeamPage({ params }: PageProps) {
   const members = memberRows ?? []
   const profileIds = members.map((m) => m.profile_id).filter(Boolean)
 
-  // 2. Fetch associated user profiles
+  // 3. Fetch associated user profiles
   let profileMap = new Map<string, { id: string; auth_user_id: string; full_name: string; avatar_url: string | null; phone: string | null }>()
 
   if (profileIds.length > 0) {
@@ -91,7 +70,7 @@ export default async function TeamPage({ params }: PageProps) {
     }
   }
 
-  // 3. Resolve user emails via auth admin list
+  // 4. Resolve user emails via auth admin list
   let userEmailMap = new Map<string, string>()
   try {
     const { data: authData } = await service.auth.admin.listUsers({ perPage: 1000 })
@@ -102,110 +81,58 @@ export default async function TeamPage({ params }: PageProps) {
     console.error('Could not list auth users for emails:', err)
   }
 
-  // 4. Merge records
+  // 5. Merge active and deactivated member records
   const teamMembers: TeamMemberItem[] = members.map((m) => {
     const profile = profileMap.get(m.profile_id)
     const email = profile?.auth_user_id ? userEmailMap.get(profile.auth_user_id) : null
     const role = (m.role ?? 'readonly') as MemberRole
+    const status = (m.status === 'deactivated' ? 'deactivated' : 'active') as 'active' | 'deactivated'
 
     return {
       id: m.id,
+      profileId: m.profile_id,
       role,
       joined_at: m.joined_at,
       name: profile?.full_name ?? 'Team Member',
       email: email || '—',
       phone: profile?.phone ?? null,
       avatar_url: profile?.avatar_url ?? null,
-      status: 'Active',
+      status,
     }
   })
 
+  // 6. Fetch pending invitations for this organization
+  const { data: invitationRows } = await service
+    .from('org_invitations')
+    .select('id, email, role, created_at, expires_at, status')
+    .eq('org_id', workspace.org.id)
+    .eq('status', 'pending')
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: false })
+
+  const pendingInvitations: PendingInvitationItem[] = (invitationRows ?? []).map((inv) => ({
+    id: inv.id,
+    email: inv.email,
+    role: inv.role as MemberRole,
+    created_at: inv.created_at,
+    expires_at: inv.expires_at,
+    status: 'pending',
+  }))
+
   return (
     <PageShell
-      title="Team"
-      description={`${teamMembers.length} active member${teamMembers.length === 1 ? '' : 's'} in ${workspace.org.name}`}
+      title="Team & Access Management"
+      description={`Manage authorized users, invitations, and subscription seats for ${workspace.org.name}`}
     >
-      {teamMembers.length > 0 ? (
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl overflow-hidden shadow-2xs">
-          <table className="w-full text-[13px]">
-            <thead>
-              <tr className="border-b border-[var(--border)] bg-[var(--surface-hover)]">
-                <th className="text-left font-medium text-[var(--foreground-muted)] px-5 py-3 text-[11px] uppercase tracking-wide">
-                  Member
-                </th>
-                <th className="text-left font-medium text-[var(--foreground-muted)] px-5 py-3 text-[11px] uppercase tracking-wide">
-                  Role
-                </th>
-                <th className="text-left font-medium text-[var(--foreground-muted)] px-5 py-3 text-[11px] uppercase tracking-wide">
-                  Status
-                </th>
-                <th className="text-left font-medium text-[var(--foreground-muted)] px-5 py-3 text-[11px] uppercase tracking-wide">
-                  Contact
-                </th>
-                <th className="text-left font-medium text-[var(--foreground-muted)] px-5 py-3 text-[11px] uppercase tracking-wide">
-                  Joined
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border)]">
-              {teamMembers.map((m) => (
-                <tr key={m.id} className="hover:bg-[var(--surface-hover)] transition-colors">
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[var(--brand)] flex items-center justify-center text-white text-[11px] font-bold">
-                        {m.name.slice(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-[var(--foreground)] leading-tight">
-                          {m.name}
-                        </p>
-                        <p className="text-[11px] text-[var(--foreground-muted)] flex items-center gap-1 mt-0.5">
-                          <Mail className="w-3 h-3 text-[var(--foreground-subtle)]" />
-                          {m.email}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${
-                        ROLE_COLORS[m.role] ?? ''
-                      }`}
-                    >
-                      {ROLE_LABELS[m.role] ?? m.role}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      {m.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 text-[var(--foreground-muted)]">
-                    {m.phone ? (
-                      <span className="flex items-center gap-1">
-                        <Phone className="w-3 h-3 text-[var(--foreground-subtle)]" />
-                        {m.phone}
-                      </span>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td className="px-5 py-3.5 text-[var(--foreground-muted)] text-[12px]">
-                    {formatDate(m.joined_at)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <EmptyState
-          icon={UserCircle}
-          title="No team members yet"
-          description="Invite sales executives and managers to your workspace."
-        />
-      )}
+      <TeamManagementClient
+        orgSlug={orgSlug}
+        orgName={workspace.org.name}
+        isAdmin={workspace.isAdmin}
+        isManager={workspace.isManager}
+        seatUsage={seatUsage}
+        teamMembers={teamMembers}
+        pendingInvitations={pendingInvitations}
+      />
     </PageShell>
   )
 }
