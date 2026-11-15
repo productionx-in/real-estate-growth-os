@@ -11,7 +11,7 @@ const VerifyPaymentSchema = z.object({
   invoiceNumber: z.string().min(3, 'Valid invoice number required').max(100),
   paymentReference: z.string().min(3, 'Payment reference required').max(100),
   amountCents: z.number().int().min(1, 'Amount must be greater than 0'),
-  currency: z.string().length(3).default('INR'),
+  currency: z.string().length(3, 'Currency code must be exact 3-letter ISO code'),
 })
 
 export async function POST(request: NextRequest) {

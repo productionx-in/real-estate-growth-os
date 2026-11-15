@@ -144,14 +144,22 @@ export async function POST(request: NextRequest) {
       })
       emailDispatched = true
 
-      // Update delivery state in database
-      await (service.from('org_invitations') as any)
-        .update({
-          delivery_status: 'delivered',
-          delivery_attempts: 1,
-          delivery_updated_at: new Date().toISOString(),
-        })
-        .eq('id', invitationId)
+      // Update delivery state in database via dedicated RPC
+      const { data: recordData, error: recordError } = await (service.rpc as any)(
+        'record_invitation_delivery_outcome',
+        {
+          p_invitation_id: invitationId,
+          p_delivery_status: 'delivered',
+          p_expected_attempts: 1,
+          p_error_message: null,
+        }
+      )
+      if (recordError || (recordData && !recordData.success)) {
+        console.warn(
+          'Warning: Failed to record delivery confirmation in database:',
+          recordError || 'Zero rows updated (mismatched attempt counter)'
+        )
+      }
     } catch (mailErr: unknown) {
       emailDispatched = false
       emailError = mailErr instanceof Error ? mailErr.message : 'Email dispatch failed'
@@ -161,14 +169,21 @@ export async function POST(request: NextRequest) {
       )
 
       // Record delivery failure in database without rolling back provisioning
-      await (service.from('org_invitations') as any)
-        .update({
-          delivery_status: 'failed',
-          delivery_attempts: 1,
-          last_delivery_error: emailError,
-          delivery_updated_at: new Date().toISOString(),
-        })
-        .eq('id', invitationId)
+      const { data: recordData, error: recordError } = await (service.rpc as any)(
+        'record_invitation_delivery_outcome',
+        {
+          p_invitation_id: invitationId,
+          p_delivery_status: 'failed',
+          p_expected_attempts: 1,
+          p_error_message: emailError,
+        }
+      )
+      if (recordError || (recordData && !recordData.success)) {
+        console.error(
+          'CRITICAL: Failed to record delivery failure in database:',
+          recordError || 'Zero rows updated (mismatched attempt counter)'
+        )
+      }
     }
 
     // 7. Return HTTP 201 Created

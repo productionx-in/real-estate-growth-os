@@ -18,7 +18,10 @@ async function bootstrapSuperAdmin() {
   // 1. Strict Environment Variable Validation
   const adminEmail = process.env.INITIAL_SUPER_ADMIN_EMAIL
   const bootstrapSecret = process.env.PLATFORM_BOOTSTRAP_SECRET
+  const adminPassword = process.env.INITIAL_SUPER_ADMIN_PASSWORD
+  const totpCode = process.env.INITIAL_SUPER_ADMIN_TOTP_CODE
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!adminEmail) {
@@ -42,6 +45,20 @@ async function bootstrapSuperAdmin() {
     console.error(
       'FATAL ERROR: Missing Supabase database credentials (NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).'
     )
+    process.exit(1)
+  }
+
+  if (!anonKey) {
+    console.error(
+      'FATAL ERROR: Missing Supabase client key (NEXT_PUBLIC_SUPABASE_ANON_KEY / SUPABASE_ANON_KEY) required for live target user authentication assurance.'
+    )
+    process.exit(1)
+  }
+
+  if (!adminPassword || !totpCode) {
+    console.error('SECURITY ERROR: Bootstrap requires live authentication and authenticator assurance.')
+    console.error('Static database factor checks alone are insufficient to prove active account and authenticator possession at bootstrap time.')
+    console.error('Please supply INITIAL_SUPER_ADMIN_PASSWORD and the current 6-digit INITIAL_SUPER_ADMIN_TOTP_CODE.')
     process.exit(1)
   }
 
@@ -97,29 +114,65 @@ async function bootstrapSuperAdmin() {
 
   console.log(`Located verified auth identity: ${authUser.id}`)
 
-  // 3. Inspect MFA Factors for the target user specifically
-  console.log('Inspecting MFA enrollment factors for target user...')
-  const { data: factorsData, error: mfaError } = await supabase.auth.admin.mfa.listFactors({
-    userId: authUser.id,
+  // 3. Cryptographic Live Authentication & Authenticator (AAL2) Assurance
+  // The operator cannot silently elevate an unverified user. The target user must authenticate live
+  // with primary credentials and submit a valid 6-digit TOTP challenge code to establish active AAL2.
+  console.log('Establishing live user client for target authentication assurance...')
+  const userClient = createClient(supabaseUrl, anonKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
   })
+
+  console.log(`Authenticating target user live via primary credentials: ${normalizedTargetEmail}...`)
+  const { data: signInData, error: signInErr } = await userClient.auth.signInWithPassword({
+    email: normalizedTargetEmail,
+    password: adminPassword,
+  })
+
+  if (signInErr || !signInData?.user) {
+    console.error('AUTHENTICATION ASSURANCE FAILED: Target user primary password authentication failed:', signInErr?.message)
+    process.exit(1)
+  }
+
+  if (signInData.user.id !== authUser.id) {
+    console.error('SECURITY VIOLATION: Authenticated user ID does not match resolved target user ID.')
+    process.exit(1)
+  }
+
+  console.log('Target primary credentials verified. Querying enrolled MFA factors...')
+  const { data: factorsData, error: mfaError } = await userClient.auth.mfa.listFactors()
 
   if (mfaError) {
     console.error('FATAL ERROR querying user MFA factors:', mfaError.message)
     process.exit(1)
   }
 
-  const hasVerifiedTotp = factorsData?.factors?.some(
-    (f) => f.factor_type === 'totp' && f.status === 'verified'
-  )
+  const verifiedTotpFactor = factorsData?.totp?.find((f) => f.status === 'verified')
 
-  if (!hasVerifiedTotp) {
+  if (!verifiedTotpFactor) {
     console.error('SECURITY VIOLATION: Target user does not have an active verified TOTP MFA factor enrolled.')
     console.error('Production X requires verified TOTP MFA before platform Super Admin assignment.')
     console.error('Please enroll and verify an authenticator factor in Supabase Auth before bootstrapping.')
     process.exit(1)
   }
 
-  console.log('Verified TOTP factor confirmed for target user ID. Target is AAL2-compliant.')
+  console.log(`Challenging authenticator factor (${verifiedTotpFactor.id}) with live 6-digit code...`)
+  const { data: challengeData, error: challengeErr } = await userClient.auth.mfa.challengeAndVerify({
+    factorId: verifiedTotpFactor.id,
+    code: totpCode.trim(),
+  })
+
+  if (challengeErr) {
+    console.error('AUTHENTICATOR ASSURANCE FAILED: Live TOTP verification failed:', challengeErr.message)
+    process.exit(1)
+  }
+
+  const { data: aalData } = await userClient.auth.mfa.getAuthenticatorAssuranceLevel()
+  if (aalData?.currentLevel !== 'aal2') {
+    console.error(`SECURITY VIOLATION: Session failed to achieve AAL2 assurance (level: ${aalData?.currentLevel || 'aal1'}).`)
+    process.exit(1)
+  }
+
+  console.log('SUCCESS: Cryptographic AAL2 assurance confirmed live. Target user has proven account and authenticator possession.')
 
   // 4. ATOMIC DATABASE-LEVEL ONE-TIME BOOTSTRAP STORED PROCEDURE
   // Acquires exclusive advisory transaction lock and fails closed if super_admin already exists
@@ -140,6 +193,10 @@ async function bootstrapSuperAdmin() {
       console.log('\n[RECOVERY GUIDANCE]')
       console.log('An active Super Admin already exists in the system. The initial bootstrap door is locked.')
       console.log('To manage platform administrators, have an existing Super Admin use the Platform Admin API.')
+    } else if (rpcErr.message.includes('Privilege escalation rejected')) {
+      console.log('\n[RECOVERY GUIDANCE]')
+      console.log('Target user is already an existing platform administrator.')
+      console.log('To change administrator roles, an authorized Super Admin must update roles via the Platform Admin API.')
     }
     process.exit(1)
   }

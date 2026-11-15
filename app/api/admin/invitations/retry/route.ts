@@ -1,5 +1,5 @@
 // app/api/admin/invitations/retry/route.ts
-// Production X Platform Administration: Super Admin Invitation Retry & Resend Endpoint
+// Production X Platform Administration: Super Admin Atomic Invitation Retry & Resend Endpoint
 import { NextResponse, type NextRequest } from 'next/server'
 import crypto from 'node:crypto'
 import { authenticatePlatformAdmin } from '@/lib/auth/platform'
@@ -34,69 +34,41 @@ export async function POST(request: NextRequest) {
 
     const { invitationId } = parsed.data
 
-    // 3. Query existing invitation record
-    const { data: invitation, error: fetchError } = await (service.from('org_invitations') as any)
-      .select('id, org_id, email, role, status, expires_at, delivery_attempts')
-      .eq('id', invitationId)
-      .single()
-
-    if (fetchError || !invitation) {
-      return NextResponse.json(
-        { error: 'Invitation not found', message: `Invitation ${invitationId} does not exist` },
-        { status: 404 }
-      )
-    }
-
-    // 4. Validate invitation status - reject accepted, canceled, or revoked invitations
-    if (invitation.status !== 'pending') {
-      return NextResponse.json(
-        {
-          error: 'Invalid invitation state',
-          message: `Cannot resend invitation with status '${invitation.status}'. Only pending invitations can be resent.`,
-        },
-        { status: 400 }
-      )
-    }
-
-    // 5. Validate expiration - expired invitations cannot be resent without replacement workflow
-    const now = new Date()
-    const expiresAt = new Date(invitation.expires_at)
-    if (expiresAt <= now) {
-      return NextResponse.json(
-        {
-          error: 'Invitation expired',
-          message: 'This invitation has expired. Expired invitations cannot be resent directly; generate a replacement invitation.',
-        },
-        { status: 400 }
-      )
-    }
-
-    // 6. Fetch organisation details for email template
-    const { data: org } = await service
-      .from('organisations')
-      .select('name')
-      .eq('id', invitation.org_id)
-      .single()
-
-    const orgName = org?.name || 'Your Organisation'
-
-    // 7. Generate fresh 256-bit cryptographic token and update token_hash in DB
+    // 3. Generate fresh 256-bit cryptographic token and SHA-256 hash
     const rawToken = crypto.randomBytes(32).toString('hex')
     const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex')
     const newExpiresAt = new Date(Date.now() + 7 * 86400000).toISOString()
-    const nextAttempts = (invitation.delivery_attempts || 0) + 1
 
-    await (service.from('org_invitations') as any)
-      .update({
-        token_hash: tokenHash,
-        expires_at: newExpiresAt,
-        delivery_status: 'pending',
-        delivery_attempts: nextAttempts,
-        delivery_updated_at: new Date().toISOString(),
-      })
-      .eq('id', invitationId)
+    // 4. ATOMIC DATABASE TRANSACTION: Lock invitation, verify status/expiry, rotate token, increment attempts, write audit log
+    const { data: rotateResult, error: rotateError } = await (service.rpc as any)(
+      'rotate_invitation_token_atomic',
+      {
+        p_actor_auth_id: auth.user.id,
+        p_invitation_id: invitationId,
+        p_new_token_hash: tokenHash,
+        p_new_expires_at: newExpiresAt,
+        p_ip_address: request.headers.get('x-forwarded-for') || null,
+        p_user_agent: request.headers.get('user-agent') || null,
+      }
+    )
 
-    // 8. Attempt email delivery
+    if (rotateError) {
+      console.error('Atomic invitation token rotation failed:', rotateError)
+      const isNotFound = rotateError.message?.toLowerCase().includes('not found')
+      const isInvalidState = rotateError.message?.toLowerCase().includes('invalid state')
+      return NextResponse.json(
+        { error: rotateError.message || 'Failed to rotate invitation token atomically' },
+        { status: isNotFound ? 404 : isInvalidState ? 400 : 500 }
+      )
+    }
+
+    const rotation = Array.isArray(rotateResult) ? rotateResult[0] : (rotateResult as any)
+    const email = rotation?.email
+    const orgName = rotation?.org_name || 'Your Organisation'
+    const role = rotation?.role || 'owner'
+    const attempts = rotation?.attempts || 1
+
+    // 5. Dispatch email with rawToken out-of-band (ONLY after successful atomic DB rotation)
     let emailDispatched = false
     let deliveryError: string | null = null
 
@@ -106,61 +78,64 @@ export async function POST(request: NextRequest) {
       const mailer = getEmailAdapter()
 
       await mailer.sendInvitationEmail({
-        to: invitation.email,
+        to: email,
         orgName,
-        role: invitation.role,
+        role,
         inviteUrl,
         inviterName: auth.profile?.full_name || 'Production X Super Admin',
       })
       emailDispatched = true
 
-      await (service.from('org_invitations') as any)
-        .update({
-          delivery_status: 'delivered',
-          last_delivery_error: null,
-          delivery_updated_at: new Date().toISOString(),
-        })
-        .eq('id', invitationId)
+      // Record successful delivery
+      const { data: recordData, error: recordError } = await (service.rpc as any)(
+        'record_invitation_delivery_outcome',
+        {
+          p_invitation_id: invitationId,
+          p_delivery_status: 'delivered',
+          p_expected_attempts: attempts,
+          p_error_message: null,
+        }
+      )
+      if (recordError || (recordData && !recordData.success)) {
+        console.warn(
+          'Warning: Failed to record delivery confirmation in database:',
+          recordError || 'Zero rows updated (mismatched attempt counter)'
+        )
+      }
     } catch (mailErr: unknown) {
       emailDispatched = false
       deliveryError = mailErr instanceof Error ? mailErr.message : 'Email retry delivery failed'
+      console.error('Invitation retry email dispatch failed:', mailErr)
 
-      await (service.from('org_invitations') as any)
-        .update({
-          delivery_status: 'failed',
-          last_delivery_error: deliveryError,
-          delivery_updated_at: new Date().toISOString(),
-        })
-        .eq('id', invitationId)
+      // Record delivery failure
+      const { data: recordData, error: recordError } = await (service.rpc as any)(
+        'record_invitation_delivery_outcome',
+        {
+          p_invitation_id: invitationId,
+          p_delivery_status: 'failed',
+          p_expected_attempts: attempts,
+          p_error_message: deliveryError,
+        }
+      )
+      if (recordError || (recordData && !recordData.success)) {
+        console.error(
+          'CRITICAL: Failed to record delivery failure in database:',
+          recordError || 'Zero rows updated (mismatched attempt counter)'
+        )
+      }
     }
 
-    // 9. Write platform audit log
-    await service.from('platform_audit_logs').insert({
-      actor_user_id: auth.user.id,
-      actor_role: 'super_admin',
-      action: 'retry_organisation_invitation',
-      target_entity_type: 'org_invitations',
-      target_entity_id: invitationId,
-      metadata: {
-        email: invitation.email,
-        org_id: invitation.org_id,
-        delivery_status: emailDispatched ? 'delivered' : 'failed',
-        attempts: nextAttempts,
-        delivery_error: deliveryError,
-      },
-    })
-
-    // CRITICAL: NEVER return rawToken or tokenHash to client
+    // 6. Return response - NEVER return rawToken or tokenHash
     return NextResponse.json(
       {
         success: true,
         invitation: {
           id: invitationId,
-          email: invitation.email,
+          email,
           sent: emailDispatched,
           deliveryStatus: emailDispatched ? 'delivered' : 'failed',
           retryable: !emailDispatched,
-          attempts: nextAttempts,
+          attempts,
           deliveryError,
         },
       },
