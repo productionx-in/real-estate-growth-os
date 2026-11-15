@@ -45,7 +45,7 @@ jobs:
       - name: Start Disposable Local Supabase Stack
         run: |
           echo "Starting disposable local Supabase environment on runner..."
-          supabase start
+          supabase start --debug
           echo "Disposable Supabase services started successfully."
           supabase status
 
@@ -65,7 +65,7 @@ jobs:
       - name: Apply Complete Migration History (Clean DB Reset)
         run: |
           echo "Executing clean database reset to apply all 32 migrations in exact sequence..."
-          supabase db reset
+          supabase db reset --debug
           echo "All migrations applied successfully from clean state."
 
       # 7. Install Postgres Driver for Test Execution
