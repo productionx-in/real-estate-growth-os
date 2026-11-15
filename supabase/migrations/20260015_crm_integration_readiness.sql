@@ -28,14 +28,16 @@ CREATE TRIGGER integration_connections_updated_at
 
 -- Enforce Organisation Ownership Immutability on integration_connections
 CREATE OR REPLACE FUNCTION public.check_connection_org_immutable()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
 BEGIN
   IF OLD.org_id <> NEW.org_id THEN
     RAISE EXCEPTION 'Organisation ownership of an integration connection is immutable (from % to %)', OLD.org_id, NEW.org_id;
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS trg_connection_org_immutable ON public.integration_connections;
 CREATE TRIGGER trg_connection_org_immutable
@@ -78,7 +80,9 @@ CREATE TRIGGER integration_project_mappings_updated_at
 
 -- Enforce Organisation Ownership Immutability and Cross-Tenant Integrity on integration_project_mappings
 CREATE OR REPLACE FUNCTION public.check_mapping_same_org()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
 DECLARE
   v_conn_org UUID;
   v_proj_org UUID;
@@ -99,7 +103,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS trg_check_mapping_same_org ON public.integration_project_mappings;
 CREATE TRIGGER trg_check_mapping_same_org
@@ -183,7 +187,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_leads_connection_external_lead_id
 
 -- Cross-Tenant Integrity Triggers on leads (Project, Connection, Duplicate & Org Immutability)
 CREATE OR REPLACE FUNCTION public.check_lead_tenant_integrity()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
 DECLARE
   v_proj_org UUID;
   v_conn_org UUID;
@@ -220,7 +226,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS trg_check_lead_tenant_integrity ON public.leads;
 CREATE TRIGGER trg_check_lead_tenant_integrity
@@ -229,14 +235,16 @@ CREATE TRIGGER trg_check_lead_tenant_integrity
 
 -- Enforce Organisation Ownership Immutability on projects
 CREATE OR REPLACE FUNCTION public.check_project_org_immutable()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
 BEGIN
   IF OLD.org_id <> NEW.org_id THEN
     RAISE EXCEPTION 'Project organisation ownership is immutable (from % to %)', OLD.org_id, NEW.org_id;
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS trg_project_org_immutable ON public.projects;
 CREATE TRIGGER trg_project_org_immutable

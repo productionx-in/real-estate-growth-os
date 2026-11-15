@@ -93,7 +93,11 @@ RETURNS TABLE (
   success BOOLEAN,
   platform_user_id UUID,
   error_message TEXT
-) AS $$
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions, pg_temp
+AS $$
 DECLARE
   v_existing_count INTEGER;
   v_new_platform_user_id UUID;
@@ -159,8 +163,7 @@ BEGIN
 
   RETURN QUERY SELECT true, v_new_platform_user_id, NULL::TEXT;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER
-SET search_path = public, extensions, pg_temp;
+$$;
 
 REVOKE ALL ON FUNCTION public.bootstrap_initial_super_admin_atomic(UUID, TEXT, TEXT, TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.bootstrap_initial_super_admin_atomic(UUID, TEXT, TEXT, TEXT) TO service_role;
@@ -195,7 +198,11 @@ RETURNS TABLE (
   invoice_id UUID,
   invoice_number TEXT,
   initial_amount_cents BIGINT
-) AS $$
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions, pg_temp
+AS $$
 DECLARE
   v_actor_platform_user_id UUID;
   v_actor_role public.platform_role;
@@ -477,8 +484,7 @@ BEGIN
     v_invoice_num,
     v_calculated_amount_cents;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER
-SET search_path = public, extensions, pg_temp;
+$$;
 
 REVOKE ALL ON FUNCTION public.provision_organisation_atomic(
   UUID, TEXT, TEXT, public.org_type, TEXT, INTEGER, TEXT, TEXT, TEXT, TEXT, TIMESTAMPTZ, UUID, TEXT, TEXT, TEXT
@@ -509,7 +515,11 @@ RETURNS TABLE (
   period_start TIMESTAMPTZ,
   period_end TIMESTAMPTZ,
   error_message TEXT
-) AS $$
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions, pg_temp
+AS $$
 DECLARE
   v_actor_role public.platform_role;
   v_sub RECORD;
@@ -685,8 +695,7 @@ BEGIN
 
   RETURN QUERY SELECT true, v_sub.id, 'active'::TEXT, v_now, v_period_end, NULL::TEXT;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER
-SET search_path = public, extensions, pg_temp;
+$$;
 
 REVOKE ALL ON FUNCTION public.verify_payment_and_activate_subscription(UUID, UUID, TEXT, BIGINT, TEXT, TEXT, TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.verify_payment_and_activate_subscription(UUID, UUID, TEXT, BIGINT, TEXT, TEXT, TEXT) TO service_role;

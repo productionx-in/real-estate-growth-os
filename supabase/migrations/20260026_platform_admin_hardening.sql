@@ -52,11 +52,13 @@ CREATE INDEX IF NOT EXISTS idx_platform_audit_logs_entity ON public.platform_aud
 
 -- WORM Trigger: Blocks any UPDATE or DELETE on audit logs
 CREATE OR REPLACE FUNCTION public.prevent_audit_log_mutation()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
 BEGIN
   RAISE EXCEPTION 'Security Violation: platform_audit_logs records are immutable and cannot be updated or deleted.';
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS trg_immutable_platform_audit_logs ON public.platform_audit_logs;
 CREATE TRIGGER trg_immutable_platform_audit_logs
@@ -65,7 +67,12 @@ CREATE TRIGGER trg_immutable_platform_audit_logs
 
 -- Hardened Security Definer Function for Platform Role Check
 CREATE OR REPLACE FUNCTION public.auth_is_platform_role(allowed_roles public.platform_role[])
-RETURNS BOOLEAN AS $$
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = public, pg_temp
+AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM public.platform_users pu
@@ -74,8 +81,7 @@ BEGIN
       AND pu.role = ANY(allowed_roles)
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER STABLE
-SET search_path = public, pg_temp;
+$$;
 
 REVOKE ALL ON FUNCTION public.auth_is_platform_role(public.platform_role[]) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.auth_is_platform_role(public.platform_role[]) TO authenticated, service_role;

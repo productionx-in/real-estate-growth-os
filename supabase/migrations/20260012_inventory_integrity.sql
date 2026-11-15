@@ -9,6 +9,7 @@
 -- 1. Trigger function: Ensure hierarchy nodes belong to same project & org as their parent
 CREATE OR REPLACE FUNCTION validate_hierarchy_node_consistency()
 RETURNS TRIGGER
+LANGUAGE plpgsql
 SET search_path = public, pg_temp
 AS $$
 DECLARE
@@ -36,7 +37,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS trg_validate_hierarchy_node_consistency ON project_hierarchy_nodes;
 CREATE TRIGGER trg_validate_hierarchy_node_consistency
@@ -46,6 +47,7 @@ CREATE TRIGGER trg_validate_hierarchy_node_consistency
 -- 2. Trigger function: Ensure inventory item consistency (org match, category match, hierarchy node match)
 CREATE OR REPLACE FUNCTION validate_inventory_item_integrity()
 RETURNS TRIGGER
+LANGUAGE plpgsql
 SET search_path = public, pg_temp
 AS $$
 DECLARE
@@ -93,7 +95,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS trg_validate_inventory_item_integrity ON inventory_items;
 CREATE TRIGGER trg_validate_inventory_item_integrity
@@ -116,8 +118,9 @@ RETURNS TABLE (
   unit_number TEXT,
   status inventory_status
 )
-SET search_path = public, pg_temp
+LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, pg_temp
 AS $$
 DECLARE
   v_current_status inventory_status;
@@ -210,8 +213,9 @@ BEGIN
   RETURN QUERY
   SELECT p_inventory_id, v_org_id, v_project_id, v_unit_number, p_new_status;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Secure execution permissions
 REVOKE ALL ON FUNCTION transition_inventory_status_atomic(UUID, inventory_status, inventory_status, UUID, TEXT, JSONB) FROM PUBLIC;
+
 GRANT EXECUTE ON FUNCTION transition_inventory_status_atomic(UUID, inventory_status, inventory_status, UUID, TEXT, JSONB) TO authenticated, service_role;

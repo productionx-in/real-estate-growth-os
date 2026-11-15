@@ -103,7 +103,11 @@ CREATE OR REPLACE FUNCTION public.reserve_employee_seat_atomic(
   p_role public.member_role,
   p_expires_at TIMESTAMPTZ
 )
-RETURNS TABLE (success BOOLEAN, invitation_id UUID, raw_token TEXT, error_message TEXT) AS $$
+RETURNS TABLE (success BOOLEAN, invitation_id UUID, raw_token TEXT, error_message TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, extensions, pg_temp
+AS $$
 DECLARE
   v_caller_profile_id UUID;
   v_caller_role public.member_role;
@@ -220,8 +224,7 @@ BEGIN
 
   RETURN QUERY SELECT true, v_new_invitation_id, v_raw_token, NULL::TEXT;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER
-SET search_path = public, extensions, pg_temp;
+$$;
 
 REVOKE ALL ON FUNCTION public.reserve_employee_seat_atomic(UUID, TEXT, public.member_role, TIMESTAMPTZ) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.reserve_employee_seat_atomic(UUID, TEXT, public.member_role, TIMESTAMPTZ) TO authenticated, service_role;
@@ -239,7 +242,12 @@ RETURNS TABLE (
   inviter_name TEXT,
   expires_at TIMESTAMPTZ,
   is_valid BOOLEAN
-) AS $$
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = public, extensions, pg_temp
+AS $$
 DECLARE
   v_token_hash TEXT;
 BEGIN
@@ -262,8 +270,7 @@ BEGIN
   LEFT JOIN public.profiles p ON p.id = i.invited_by
   WHERE i.token_hash = v_token_hash;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER STABLE
-SET search_path = public, extensions, pg_temp;
+$$;
 
 REVOKE ALL ON FUNCTION public.verify_invitation_token(TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.verify_invitation_token(TEXT) TO anon, authenticated, service_role;
