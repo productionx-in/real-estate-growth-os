@@ -32,6 +32,7 @@
 | **STAGE 5** | **Sales & Channel Partner Management** | **Code Verified** | `tests/sales-and-channel-partners.test.mjs` (10/10 passed), `lib/dal/sales.ts`, `app/api/sales/*`, `SalesOperationsView.tsx`, Migration 0023 staged. |
 | **STAGE 6** | **Digital Experience & Automation** | **Code Verified** | `tests/digital-experience-and-automation.test.mjs` (9/9 passed), `lib/automation/*`, `app/p/[projectSlug]`, `ExecutiveBiDashboardView.tsx`, Migration 0024 staged. |
 | **UX TRANSFORMATION PHASE 2** | **Navigation Shell, Workspace Switching & Role Foundations** | **Code Verified** | `tests/phase2-navigation-and-role-foundations.test.mjs` (12/12 passed), interactive workspace switcher, multi-org safe resolution, server-authoritative route defense, role-adaptive navigation, sales exec dashboard. |
+| **SUBSCRIPTION & SEATS** | **Subscription-Based Access Control & User Provisioning** | **Code Verified** | `tests/subscription-and-seat-entitlements.test.mjs` (12/12 passed), `lib/subscriptions/config.ts`, `lib/dal/subscriptions.ts`, `lib/dal/invitations.ts`, Migration 0025 staged, production build verified (Exit 0). |
 
 ---
 
@@ -54,14 +55,15 @@
 | `20260022` | Integration APIs & Webhooks | DDL / Developer Keys & Outbound Webhooks | Staging / Prod | Prepared on disk; SHA-256 API key hashing, HMAC-SHA256 outbound delivery |
 | `20260023` | Sales & Channel Partner Operations | DDL / Site visits, Blockings, Bookings, CPs, Deals | Staging / Prod | Prepared on disk; site visits, 48h holds, confirmed bookings, RERA CP directory |
 | `20260024` | Digital Experience & Automation | DDL / Microsites, Workflows, Multi-Touch Touchpoints | Staging / Prod | Prepared on disk; public showrooms, drip workflows, multi-touch attribution |
-| `20260025` | Subscription & Seat Entitlements Schema | DDL / Subscriptions, Invitations & Member Status | Staging / Prod | Architecture planned; prepared for staging after design review |
+| `20260025` | Subscription & Seat Entitlements Schema | DDL / Subscriptions, Invitations & Member Status | Staging / Prod | Prepared on disk; `org_subscriptions`, `org_invitations`, member status extensions |
 
 ---
 
 ## 3. Active Checkpoint & Codebase Health
 
+- **Production Next.js Build (`npm run build`):** **PASS** (Exit 0, 50 routes compiled, static export successful).
 - **TypeScript Compilation (`npx tsc --noEmit`):** **PASS** (0 errors).
-- **Automated Test Suites (`npm test`):** **PASS** (23 / 23 test suites passed, 247+ assertions green).
+- **Automated Test Suites (`npm test`):** **PASS** (24 / 24 test suites passed, 260+ assertions green).
 - **ESLint (`npm run lint`):** **PASS** (0 errors, 0 warnings).
 - **Next.js Production Build (`npm run build`):** Webpack compiles; dynamic prerender routes protected via `force-dynamic`.
 - **Targeted UI & Lead Resolution Verification (Screenshots Addressed):**

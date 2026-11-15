@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Building2, Shield, Check, Copy, AlertCircle, Loader2 } from 'lucide-react'
-import { PLAN_CONFIGS, type PlanTier } from '@/lib/dal/subscriptions'
+import { PLAN_CONFIGS, type PlanTier } from '@/lib/subscriptions/config'
 
 export function PlatformProvisioningModal() {
   const router = useRouter()
