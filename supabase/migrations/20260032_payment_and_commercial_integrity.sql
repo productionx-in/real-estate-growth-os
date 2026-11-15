@@ -84,13 +84,11 @@ GRANT SELECT ON TABLE public.platform_bootstrap_state TO service_role;
 
 -- WORM Trigger: Permanently blocks UPDATE or DELETE on bootstrap state
 CREATE OR REPLACE FUNCTION public.prevent_bootstrap_state_mutation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
+RETURNS TRIGGER AS $$
 BEGIN
   RAISE EXCEPTION 'Security Violation: platform_bootstrap_state is immutable and permanently one-time. It cannot be updated or deleted.';
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_prevent_bootstrap_state_mutation ON public.platform_bootstrap_state;
 CREATE TRIGGER trg_prevent_bootstrap_state_mutation

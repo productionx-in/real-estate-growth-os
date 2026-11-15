@@ -15,11 +15,7 @@ CREATE OR REPLACE FUNCTION public.reserve_employee_seat_atomic(
   p_role public.member_role,
   p_expires_at TIMESTAMPTZ
 )
-RETURNS TABLE (success BOOLEAN, invitation_id UUID, raw_token TEXT, error_message TEXT)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public, extensions, pg_temp
-AS $$
+RETURNS TABLE (success BOOLEAN, invitation_id UUID, raw_token TEXT, error_message TEXT) AS $$
 DECLARE
   v_caller_auth_id UUID;
   v_caller_profile_id UUID;
@@ -156,7 +152,8 @@ BEGIN
 
   RETURN QUERY SELECT true, v_new_invitation_id, v_raw_token, NULL::TEXT;
 END;
-$$;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public, extensions, pg_temp;
 
 REVOKE ALL ON FUNCTION public.reserve_employee_seat_atomic(UUID, TEXT, public.member_role, TIMESTAMPTZ) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.reserve_employee_seat_atomic(UUID, TEXT, public.member_role, TIMESTAMPTZ) TO authenticated, service_role;
@@ -187,11 +184,7 @@ RETURNS TABLE (
   org_slug TEXT,
   subscription_id UUID,
   invitation_id UUID
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public, extensions, pg_temp
-AS $$
+) AS $$
 DECLARE
   v_actor_platform_user_id UUID;
   v_actor_role public.platform_role;
@@ -342,7 +335,8 @@ BEGIN
 
   RETURN QUERY SELECT v_new_org_id, trim(p_org_slug), v_new_sub_id, v_new_invite_id;
 END;
-$$;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public, extensions, pg_temp;
 
 REVOKE ALL ON FUNCTION public.provision_organisation_atomic(
   UUID, TEXT, TEXT, public.org_type, TEXT, INTEGER, TEXT, TEXT, TEXT, TEXT, TIMESTAMPTZ, UUID, TEXT, TEXT
@@ -359,9 +353,7 @@ GRANT EXECUTE ON FUNCTION public.provision_organisation_atomic(
 
 -- Strengthen audit log trigger function to reject both UPDATE and DELETE explicitly
 CREATE OR REPLACE FUNCTION public.prevent_audit_log_mutation()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
+RETURNS TRIGGER AS $$
 BEGIN
   IF TG_OP = 'UPDATE' THEN
     RAISE EXCEPTION 'Security Violation: platform_audit_logs records are immutable and cannot be updated.';
@@ -370,7 +362,7 @@ BEGIN
   END IF;
   RETURN NULL;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_immutable_platform_audit_logs ON public.platform_audit_logs;
 CREATE TRIGGER trg_immutable_platform_audit_logs

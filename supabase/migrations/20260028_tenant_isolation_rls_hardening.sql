@@ -6,12 +6,7 @@ CREATE OR REPLACE FUNCTION public.auth_has_role_in_org(
   check_org_id UUID,
   allowed_roles TEXT[]
 )
-RETURNS BOOLEAN
-LANGUAGE plpgsql
-SECURITY DEFINER
-STABLE
-SET search_path = public, pg_temp
-AS $$
+RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM public.org_members om
@@ -22,7 +17,8 @@ BEGIN
       AND om.status = 'active' -- CRITICAL SECURITY ENFORCEMENT: Rejects deactivated and suspended members
   );
 END;
-$$;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE
+SET search_path = public, pg_temp;
 
 REVOKE ALL ON FUNCTION public.auth_has_role_in_org(UUID, TEXT[]) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.auth_has_role_in_org(UUID, TEXT[]) TO authenticated, service_role;

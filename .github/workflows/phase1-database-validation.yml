@@ -35,11 +35,11 @@ jobs:
       - name: Install project dependencies
         run: npm ci
 
-      # 4. Install Pinned Supabase CLI (Do NOT use unpinned latest)
+      # 4. Install Pinned Supabase CLI (exact 2.122.1 avoids legacy Issue #4746 parser bug)
       - name: Setup Pinned Supabase CLI
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@v3
         with:
-          version: '1.200.0'
+          version: 2.122.1
 
       # 5. Start Disposable Local Supabase Stack (Docker-backed)
       - name: Start Disposable Local Supabase Stack

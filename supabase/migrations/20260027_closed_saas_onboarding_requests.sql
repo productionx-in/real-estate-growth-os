@@ -46,11 +46,7 @@ CREATE INDEX IF NOT EXISTS idx_onboarding_requests_requested_by ON public.custom
 
 -- Trigger: Enforces strict field immutability and valid state transitions
 CREATE OR REPLACE FUNCTION public.enforce_onboarding_request_field_immutability()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public, pg_temp
-AS $$
+RETURNS TRIGGER AS $$
 BEGIN
   -- Super Admin has full administrative transition authority
   IF public.auth_is_platform_role(ARRAY['super_admin'::public.platform_role]) THEN
@@ -81,7 +77,8 @@ BEGIN
 
   RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public, pg_temp;
 
 REVOKE ALL ON FUNCTION public.enforce_onboarding_request_field_immutability() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.enforce_onboarding_request_field_immutability() TO authenticated, service_role;

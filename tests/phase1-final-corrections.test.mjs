@@ -10,7 +10,7 @@ import path from 'node:path'
 function testMigrationContractsPass4() {
   const migPath = path.resolve('supabase/migrations/20260032_payment_and_commercial_integrity.sql')
   assert.equal(fs.existsSync(migPath), true, 'Migration 0032 must exist')
-  const sql = fs.readFileSync(migPath, 'utf8')
+  const sql = fs.readFileSync(migPath, 'utf8').replace(/\r\n/g, '\n')
 
   // 1. EXACT PostgreSQL Function Identity Signatures on REVOKE and GRANT
   assert.equal(sql.includes('REVOKE ALL ON FUNCTION public.provision_organisation_atomic(\n  UUID, TEXT, TEXT, public.org_type, TEXT, TEXT, INTEGER, TEXT, TEXT, TIMESTAMPTZ, UUID, TEXT, TEXT, TEXT\n) FROM PUBLIC, anon, authenticated;'), true, 'Must revoke provision function using exact argument types')
