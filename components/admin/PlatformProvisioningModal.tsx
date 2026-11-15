@@ -13,15 +13,15 @@ export function PlatformProvisioningModal() {
   const [planTier, setPlanTier] = useState<PlanTier>('growth')
   const [includedSeats, setIncludedSeats] = useState<number>(PLAN_CONFIGS.growth.defaultIncludedSeats)
   const [adminEmail, setAdminEmail] = useState('')
+  const [adminName, setAdminName] = useState('')
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [provisionResult, setProvisionResult] = useState<{
-    activationUrl?: string
     adminEmail?: string
     orgSlug?: string
+    message?: string
   } | null>(null)
-  const [copied, setCopied] = useState(false)
 
   function handleTierChange(tier: PlanTier) {
     setPlanTier(tier)
@@ -46,6 +46,7 @@ export function PlatformProvisioningModal() {
           planTier,
           includedSeats,
           adminEmail: adminEmail.trim(),
+          adminName: adminName.trim() || undefined,
           billingCycle,
         }),
       })
@@ -58,9 +59,9 @@ export function PlatformProvisioningModal() {
       }
 
       setProvisionResult({
-        activationUrl: data.activation?.activationUrl,
         adminEmail: data.activation?.adminEmail,
         orgSlug: data.organisation?.slug,
+        message: data.message,
       })
       router.refresh()
     } catch {
@@ -70,13 +71,6 @@ export function PlatformProvisioningModal() {
     }
   }
 
-  function handleCopy() {
-    if (!provisionResult?.activationUrl) return
-    navigator.clipboard.writeText(provisionResult.activationUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
   function handleReset() {
     setName('')
     setSlug('')
@@ -84,6 +78,7 @@ export function PlatformProvisioningModal() {
     setPlanTier('growth')
     setIncludedSeats(PLAN_CONFIGS.growth.defaultIncludedSeats)
     setAdminEmail('')
+    setAdminName('')
     setBillingCycle('annual')
     setError(null)
     setProvisionResult(null)
@@ -99,7 +94,7 @@ export function PlatformProvisioningModal() {
           Provision Customer Organisation
         </h1>
         <p className="text-xs text-[var(--foreground-muted)] mt-1">
-          Set up a new verified customer workspace, subscription plan, and issue the initial administrator invitation.
+          Set up a new verified customer workspace, authoritative subscription plan, and issue the initial administrator invitation.
         </p>
       </div>
 
@@ -124,30 +119,6 @@ export function PlatformProvisioningModal() {
               For security, primary administrator tokens are never exposed in browser responses and are delivered directly via transactional email.
             </p>
           </div>
-
-          {provisionResult.activationUrl && (
-            <div className="space-y-1.5 pt-2">
-              <label className="block text-[11px] font-medium text-[var(--foreground-muted)] uppercase">
-                Administrator Activation Link
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={provisionResult.activationUrl}
-                  className="w-full px-3 py-2 text-[12px] font-mono bg-gray-50 border border-[var(--border)] rounded-md text-[var(--foreground)]"
-                />
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="px-3 py-2 bg-[var(--brand)] text-white text-[12px] font-medium rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center gap-1.5 flex-shrink-0"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? 'Copied' : 'Copy'}</span>
-                </button>
-              </div>
-            </div>
-          )}
 
           <div className="pt-3">
             <button
@@ -219,6 +190,22 @@ export function PlatformProvisioningModal() {
                 disabled={loading}
                 onChange={(e) => setAdminEmail(e.target.value)}
                 placeholder="admin@developer.com"
+                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
+                Primary Administrator Name (Optional)
+              </label>
+              <input
+                type="text"
+                value={adminName}
+                disabled={loading}
+                onChange={(e) => setAdminName(e.target.value)}
+                placeholder="Vikram Sharma"
                 className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors"
               />
             </div>

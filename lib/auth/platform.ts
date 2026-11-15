@@ -147,6 +147,7 @@ export async function authenticatePlatformAdmin(
 /**
  * Append-only tamper-proof platform audit logger.
  * Writes directly via service role to ensure immutable audit log retention.
+ * Fails visibly if audit log cannot be persisted.
  */
 export async function logPlatformAction(params: {
   actorUserId: string
@@ -159,6 +160,25 @@ export async function logPlatformAction(params: {
   userAgent?: string
 }): Promise<{ success: boolean; id?: string; error?: string }> {
   try {
+    // Sanitize metadata: NEVER log service credentials, passwords, raw tokens or secrets
+    const sanitizedMetadata: Record<string, unknown> = {}
+    if (params.metadata) {
+      for (const [key, value] of Object.entries(params.metadata)) {
+        const lowerKey = key.toLowerCase()
+        if (
+          lowerKey.includes('secret') ||
+          lowerKey.includes('token') ||
+          lowerKey.includes('password') ||
+          lowerKey.includes('credential') ||
+          lowerKey.includes('key')
+        ) {
+          sanitizedMetadata[key] = '[REDACTED]'
+        } else {
+          sanitizedMetadata[key] = value
+        }
+      }
+    }
+
     const service = createServiceClient()
     const { data, error } = await service
       .from('platform_audit_logs')
@@ -168,7 +188,7 @@ export async function logPlatformAction(params: {
         action: params.action,
         target_entity_type: params.targetEntityType,
         target_entity_id: params.targetEntityId,
-        metadata: (params.metadata || {}) as Json,
+        metadata: sanitizedMetadata as Json,
         ip_address: params.ipAddress || null,
         user_agent: params.userAgent || null,
       })
@@ -176,14 +196,14 @@ export async function logPlatformAction(params: {
       .single()
 
     if (error) {
-      console.error('CRITICAL: Failed to write to platform_audit_logs:', error)
+      console.error('CRITICAL AUDIT FAILURE: Failed to write to platform_audit_logs:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, id: data.id }
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown audit log error'
-    console.error('CRITICAL: Unhandled exception in logPlatformAction:', err)
+    console.error('CRITICAL AUDIT FAILURE: Unhandled exception in logPlatformAction:', err)
     return { success: false, error: errorMsg }
   }
 }

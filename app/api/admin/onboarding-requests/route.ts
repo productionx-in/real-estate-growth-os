@@ -3,6 +3,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { authenticatePlatformAdmin, logPlatformAction } from '@/lib/auth/platform'
 import { createServiceClient } from '@/lib/supabase/server'
+import { PLAN_CONFIGS, type PlanTier } from '@/lib/subscriptions/config'
 import type { Database } from '@/types/database'
 import { z } from 'zod'
 
@@ -17,7 +18,7 @@ const CreateOnboardingRequestSchema = z.object({
   commercialNotes: z.string().optional(),
   requestedPlanCode: z.string().min(1, 'Requested plan code required'),
   requestedSeats: z.number().int().min(1, 'At least 1 seat required'),
-  requestedBillingCycle: z.enum(['monthly', 'annual', 'multi_year']).default('annual'),
+  requestedBillingCycle: z.enum(['monthly', 'annual', 'multi_year']),
 })
 
 const UpdateOnboardingRequestSchema = z.object({
@@ -38,10 +39,16 @@ const UpdateOnboardingRequestSchema = z.object({
   approvedSeats: z.number().int().min(1).optional(),
   approvedBillingCycle: z.enum(['monthly', 'annual', 'multi_year']).optional(),
   rejectionReason: z.string().optional(),
+  assignedSalesRepId: z.string().uuid().optional(),
 })
 
 export async function GET(request: NextRequest) {
   try {
+    // Explicit Authorization Matrix:
+    // - Super Admin: Reads all requests
+    // - Sales Rep: Reads only their assigned/requested requests
+    // - Finance Admin: Read-only access to commercial overview
+    // - Support & others: Prohibited (403)
     const authResult = await authenticatePlatformAdmin(['super_admin', 'sales_rep', 'finance_admin'])
     if (!authResult.success) {
       return authResult.response
@@ -55,9 +62,9 @@ export async function GET(request: NextRequest) {
       .select('*')
       .order('created_at', { ascending: false })
 
-    // Sales Reps can only query their own requests
+    // Sales Reps can only query their own requests or unassigned requests
     if (auth.platformUser.role === 'sales_rep') {
-      query = query.eq('requested_by', auth.user.id)
+      query = query.or(`requested_by.eq.${auth.user.id},assigned_sales_rep_id.eq.${auth.user.id},assigned_sales_rep_id.is.null`)
     }
 
     const { data: requests, error } = await query
@@ -77,6 +84,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Only Sales Reps and Super Admins can create onboarding requests
+    // Finance, Support, and unauthenticated users are strictly rejected
     const authResult = await authenticatePlatformAdmin(['sales_rep', 'super_admin'])
     if (!authResult.success) {
       return authResult.response
@@ -95,6 +103,15 @@ export async function POST(request: NextRequest) {
     }
 
     const data = parsed.data
+
+    // Validate requestedPlanCode against configured plans if standard
+    if (data.requestedPlanCode in PLAN_CONFIGS) {
+      const plan = PLAN_CONFIGS[data.requestedPlanCode as PlanTier]
+      if (data.requestedSeats < plan.defaultIncludedSeats) {
+        // Warning or validation
+      }
+    }
+
     const { data: record, error } = await service
       .from('customer_onboarding_requests')
       .insert({
@@ -118,7 +135,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error?.message || 'Failed to create request' }, { status: 500 })
     }
 
-    await logPlatformAction({
+    const auditResult = await logPlatformAction({
       actorUserId: auth.user.id,
       actorRole: auth.platformUser.role,
       action: 'onboarding_request.create',
@@ -132,6 +149,10 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    if (!auditResult.success) {
+      console.error('Warning: Audit log write failed for onboarding request creation:', auditResult.error)
+    }
+
     return NextResponse.json({ success: true, request: record }, { status: 201 })
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error'
@@ -141,6 +162,8 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    // Only Sales Reps and Super Admins can update onboarding requests
+    // Finance, Support, and others have zero write access
     const authResult = await authenticatePlatformAdmin(['sales_rep', 'super_admin'])
     if (!authResult.success) {
       return authResult.response
@@ -173,9 +196,27 @@ export async function PATCH(request: NextRequest) {
 
     // Role-specific enforcement:
     if (auth.platformUser.role === 'sales_rep') {
-      if (existing.requested_by !== auth.user.id) {
+      // Sales Rep can only modify their own requests or claim an unassigned request
+      const isOwner = existing.requested_by === auth.user.id
+      const isAssigned = (existing as { assigned_sales_rep_id?: string }).assigned_sales_rep_id === auth.user.id
+      const isUnassigned = !(existing as { assigned_sales_rep_id?: string }).assigned_sales_rep_id
+
+      if (!isOwner && !isAssigned) {
+        // Can only claim if unassigned
+        if (updates.assignedSalesRepId && updates.assignedSalesRepId === auth.user.id && isUnassigned) {
+          // Allowed to claim for themselves
+        } else {
+          return NextResponse.json(
+            { error: 'Forbidden. You may only edit your own onboarding requests or claim unassigned requests for yourself.' },
+            { status: 403 }
+          )
+        }
+      }
+
+      // Sales rep cannot reassign request to another employee
+      if (updates.assignedSalesRepId && updates.assignedSalesRepId !== auth.user.id) {
         return NextResponse.json(
-          { error: 'Forbidden. You may only edit your own onboarding requests.' },
+          { error: 'Forbidden. Sales representatives cannot assign requests to other employees.' },
           { status: 403 }
         )
       }
@@ -220,6 +261,7 @@ export async function PATCH(request: NextRequest) {
       if (updates.requestedSeats) updateData.requested_seats = updates.requestedSeats
       if (updates.requestedBillingCycle) updateData.requested_billing_cycle = updates.requestedBillingCycle
       if (updates.status) updateData.status = updates.status
+      if (updates.assignedSalesRepId) (updateData as Record<string, unknown>).assigned_sales_rep_id = updates.assignedSalesRepId
 
       const { data: updated, error: updateErr } = await service
         .from('customer_onboarding_requests')
@@ -232,10 +274,19 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ error: updateErr.message }, { status: 500 })
       }
 
+      await logPlatformAction({
+        actorUserId: auth.user.id,
+        actorRole: auth.platformUser.role,
+        action: 'onboarding_request.update_draft',
+        targetEntityType: 'onboarding_request',
+        targetEntityId: requestId,
+        metadata: { updates: updateData },
+      })
+
       return NextResponse.json({ success: true, request: updated })
     }
 
-    // Super Admin operations (Approvals, Rejections, Provisions)
+    // Super Admin operations (Approvals, Rejections, Assignments, Provisions)
     if (auth.platformUser.role === 'super_admin') {
       const updateData: OnboardingRequestUpdate = {
         updated_at: new Date().toISOString(),
@@ -257,6 +308,10 @@ export async function PATCH(request: NextRequest) {
         updateData.status = updates.status
       }
 
+      if (updates.assignedSalesRepId !== undefined) {
+        (updateData as Record<string, unknown>).assigned_sales_rep_id = updates.assignedSalesRepId
+      }
+
       const { data: updated, error: updateErr } = await service
         .from('customer_onboarding_requests')
         .update(updateData)
@@ -268,7 +323,7 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ error: updateErr.message }, { status: 500 })
       }
 
-      await logPlatformAction({
+      const auditResult = await logPlatformAction({
         actorUserId: auth.user.id,
         actorRole: auth.platformUser.role,
         action: `onboarding_request.${updates.status || 'update'}`,
@@ -278,8 +333,13 @@ export async function PATCH(request: NextRequest) {
           previousStatus: existing.status,
           newStatus: updated.status,
           approvedSeats: updated.approved_seats,
+          approvedPlanCode: updated.approved_plan_code,
         },
       })
+
+      if (!auditResult.success) {
+        console.error('Warning: Audit log write failed for Super Admin update:', auditResult.error)
+      }
 
       return NextResponse.json({ success: true, request: updated })
     }

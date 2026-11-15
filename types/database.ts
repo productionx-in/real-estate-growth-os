@@ -196,7 +196,7 @@ export interface Database {
         }
         Insert: {
           id?: string
-          requested_by: string
+          requested_by?: string | null
           company_name: string
           company_type: OrgType
           admin_email: string

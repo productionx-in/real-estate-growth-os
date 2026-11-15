@@ -1,24 +1,27 @@
 #!/usr/bin/env node
 // scripts/bootstrap-super-admin.mjs
 // Production X: Secure Platform Super Admin Initial Bootstrap CLI
+// Specification: One-time bootstrap, secret validation, fail-closed, no CLI secret bypass
 import crypto from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 
 async function bootstrapSuperAdmin() {
   console.log('--- Production X Platform Super Admin Bootstrap ---')
 
+  // 1. Strict Environment Variable Validation
+  // Never permit CLI arguments to bypass the bootstrap secret or email
   const adminEmail = process.env.INITIAL_SUPER_ADMIN_EMAIL
   const bootstrapSecret = process.env.PLATFORM_BOOTSTRAP_SECRET
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  if (!adminEmail || !bootstrapSecret) {
-    console.error('ERROR: Missing required environment variables.')
-    console.error('Required:')
-    console.error('  INITIAL_SUPER_ADMIN_EMAIL   (e.g., security@productionx.ai)')
-    console.error('  PLATFORM_BOOTSTRAP_SECRET   (Secret authorization token for initial setup)')
-    console.error('  NEXT_PUBLIC_SUPABASE_URL    (Supabase project URL)')
-    console.error('  SUPABASE_SERVICE_ROLE_KEY   (Supabase service-role API key)')
+  if (!adminEmail) {
+    console.error('FATAL ERROR: Missing required INITIAL_SUPER_ADMIN_EMAIL environment variable.')
+    process.exit(1)
+  }
+
+  if (!bootstrapSecret) {
+    console.error('FATAL ERROR: Missing required PLATFORM_BOOTSTRAP_SECRET environment variable.')
     process.exit(1)
   }
 
@@ -28,7 +31,7 @@ async function bootstrapSuperAdmin() {
   }
 
   if (!supabaseUrl || !serviceRoleKey) {
-    console.error('ERROR: Missing Supabase database credentials (NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).')
+    console.error('FATAL ERROR: Missing Supabase database credentials (NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).')
     process.exit(1)
   }
 
@@ -36,16 +39,58 @@ async function bootstrapSuperAdmin() {
     auth: { autoRefreshToken: false, persistSession: false },
   })
 
-  console.log(`Searching for Supabase Auth identity: ${adminEmail}...`)
-  const { data: userList, error: listErr } = await supabase.auth.admin.listUsers({ perPage: 1000 })
-  if (listErr) {
-    console.error('ERROR querying auth.users:', listErr.message)
+  // 2. ONE-TIME BOOTSTRAP CHECK: Fail closed if ANY super_admin already exists
+  console.log('Verifying platform initialization status...')
+  const { data: existingSuperAdmins, error: adminCheckErr } = await supabase
+    .from('platform_users')
+    .select('id, user_id, role, is_active')
+    .eq('role', 'super_admin')
+    .eq('is_active', true)
+
+  if (adminCheckErr) {
+    console.error('FATAL ERROR checking existing platform administrators:', adminCheckErr.message)
     process.exit(1)
   }
 
-  let authUser = userList?.users?.find(
-    (u) => u.email?.toLowerCase() === adminEmail.toLowerCase()
-  )
+  if (existingSuperAdmins && existingSuperAdmins.length > 0) {
+    console.error('SECURITY ALERT: Platform has already been bootstrapped. Super Admin exists.')
+    console.error('One-time bootstrap cannot be re-executed. Future administrative access must be managed by an existing Super Admin.')
+    process.exit(1)
+  }
+
+  // 3. Exact target identity resolution via paginated search
+  console.log(`Resolving exact identity for: ${adminEmail}...`)
+  let authUser = null
+  let page = 1
+  const perPage = 100
+  let hasMore = true
+
+  while (hasMore) {
+    const { data: userPage, error: listErr } = await supabase.auth.admin.listUsers({
+      page,
+      perPage,
+    })
+
+    if (listErr) {
+      console.error('FATAL ERROR querying auth.users:', listErr.message)
+      process.exit(1)
+    }
+
+    const found = userPage?.users?.find(
+      (u) => u.email?.toLowerCase() === adminEmail.toLowerCase()
+    )
+
+    if (found) {
+      authUser = found
+      break
+    }
+
+    if (!userPage?.users || userPage.users.length < perPage) {
+      hasMore = false
+    } else {
+      page++
+    }
+  }
 
   if (!authUser) {
     console.log(`User ${adminEmail} does not exist in auth.users. Creating account...`)
@@ -57,19 +102,18 @@ async function bootstrapSuperAdmin() {
       user_metadata: { full_name: 'Platform Super Admin' },
     })
 
-    if (createErr || !newUser.user) {
-      console.error('ERROR creating auth user:', createErr?.message)
+    if (createErr || !newUser?.user) {
+      console.error('FATAL ERROR creating auth user:', createErr?.message)
       process.exit(1)
     }
 
     authUser = newUser.user
     console.log(`Auth identity created with ID: ${authUser.id}`)
-    console.log(`Temporary setup password generated. Super Admin must reset password and enroll MFA.`)
   } else {
     console.log(`Found existing auth identity: ${authUser.id}`)
   }
 
-  // Ensure profile exists
+  // 4. Resolve or create profile
   let { data: profile } = await supabase
     .from('profiles')
     .select('id')
@@ -87,58 +131,33 @@ async function bootstrapSuperAdmin() {
       .single()
 
     if (profErr) {
-      console.error('ERROR creating profile:', profErr.message)
+      console.error('FATAL ERROR creating profile:', profErr.message)
       process.exit(1)
     }
     profile = newProf
   }
 
-  // Create or elevate platform_users record to super_admin
-  const { data: existingPlatformUser } = await supabase
+  // 5. Insert new platform_user record as super_admin with mandatory MFA
+  console.log('Establishing platform super_admin user record...')
+  const { data: newPlatUser, error: insertErr } = await supabase
     .from('platform_users')
-    .select('id, role, is_active')
-    .eq('user_id', authUser.id)
-    .maybeSingle()
+    .insert({
+      user_id: authUser.id,
+      role: 'super_admin',
+      is_active: true,
+      mfa_enforced: true,
+    })
+    .select('id')
+    .single()
 
-  let platformUserId = existingPlatformUser?.id
-
-  if (existingPlatformUser) {
-    console.log(`Updating existing platform_user record to super_admin...`)
-    const { error: updateErr } = await supabase
-      .from('platform_users')
-      .update({
-        role: 'super_admin',
-        is_active: true,
-        mfa_enforced: true,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', existingPlatformUser.id)
-
-    if (updateErr) {
-      console.error('ERROR updating platform_users:', updateErr.message)
-      process.exit(1)
-    }
-  } else {
-    console.log(`Inserting new platform_user record as super_admin...`)
-    const { data: newPlatUser, error: insertErr } = await supabase
-      .from('platform_users')
-      .insert({
-        user_id: authUser.id,
-        role: 'super_admin',
-        is_active: true,
-        mfa_enforced: true,
-      })
-      .select('id')
-      .single()
-
-    if (insertErr || !newPlatUser) {
-      console.error('ERROR inserting platform_user:', insertErr?.message)
-      process.exit(1)
-    }
-    platformUserId = newPlatUser.id
+  if (insertErr || !newPlatUser) {
+    console.error('FATAL ERROR inserting platform_user:', insertErr?.message)
+    process.exit(1)
   }
 
-  // Generate 10 offline recovery codes
+  const platformUserId = newPlatUser.id
+
+  // 6. Generate 10 emergency offline MFA recovery codes
   console.log('Generating 10 emergency MFA offline recovery codes...')
   const rawCodes = []
   for (let i = 0; i < 10; i++) {
@@ -146,16 +165,23 @@ async function bootstrapSuperAdmin() {
     const formatted = `${code.slice(0, 4)}-${code.slice(4, 8)}-${code.slice(8, 12)}`
     const codeHash = crypto.createHash('sha256').update(formatted).digest('hex')
 
-    await supabase.from('platform_mfa_recovery_codes').insert({
+    const { error: codeErr } = await supabase.from('platform_mfa_recovery_codes').insert({
       platform_user_id: platformUserId,
       code_hash: codeHash,
       is_used: false,
     })
+
+    if (codeErr) {
+      console.error('FATAL ERROR storing MFA recovery codes:', codeErr.message)
+      process.exit(1)
+    }
+
     rawCodes.push(formatted)
   }
 
-  // Write immutable audit log entry
-  await supabase.from('platform_audit_logs').insert({
+  // 7. Write immutable audit log entry - NEVER log the bootstrap secret
+  console.log('Recording immutable platform audit log...')
+  const { error: auditErr } = await supabase.from('platform_audit_logs').insert({
     actor_user_id: authUser.id,
     actor_role: 'super_admin',
     action: 'platform.bootstrap_super_admin',
@@ -165,15 +191,21 @@ async function bootstrapSuperAdmin() {
       email: adminEmail,
       mfa_enforced: true,
       recovery_codes_generated: 10,
+      bootstrap_method: 'ENVIRONMENT_SECRET_INITIALIZATION',
     },
   })
+
+  if (auditErr) {
+    console.error('FATAL ERROR: Failed to record platform bootstrap audit log:', auditErr.message)
+    process.exit(1)
+  }
 
   console.log('\n======================================================')
   console.log('SUCCESS: Platform Super Admin successfully bootstrapped!')
   console.log(`User ID:          ${authUser.id}`)
   console.log(`Email:            ${adminEmail}`)
   console.log(`Platform Role:    super_admin`)
-  console.log(`MFA Enforced:     true`)
+  console.log(`MFA Enforced:     true (AAL2 Required)`)
   console.log('\nEMERGENCY MFA RECOVERY CODES (Store securely offline):')
   rawCodes.forEach((c, idx) => console.log(`  ${idx + 1}. ${c}`))
   console.log('======================================================\n')
