@@ -55,8 +55,7 @@ WITH ranked_current_versions AS (
   WHERE is_current = true
 )
 UPDATE public.subscription_plan_versions
-SET is_current = false,
-    updated_at = now()
+SET is_current = false
 WHERE id IN (
   SELECT id FROM ranked_current_versions WHERE rn > 1
 );
