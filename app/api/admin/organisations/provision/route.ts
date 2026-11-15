@@ -5,7 +5,6 @@ import crypto from 'node:crypto'
 import { authenticatePlatformAdmin } from '@/lib/auth/platform'
 import { createServiceClient } from '@/lib/supabase/server'
 import { slugify, isReservedSlug } from '@/lib/utils/slugify'
-import { PLAN_CONFIGS, type PlanTier } from '@/lib/subscriptions/config'
 import { getEmailAdapter } from '@/lib/email/adapter'
 import { z } from 'zod'
 
@@ -13,17 +12,19 @@ const ProvisionOrgSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   slug: z.string().min(2).max(60).regex(/^[a-z0-9-]+$/).optional(),
   type: z.enum(['developer', 'channel_partner']),
-  planTier: z.enum(['free', 'starter', 'growth', 'enterprise', 'custom']),
-  includedSeats: z.number().int().min(1, 'Included seats must be at least 1').max(500),
+  planTier: z.enum(['free', 'starter', 'growth', 'enterprise']),
+  includedSeats: z.number().int().min(1, 'Included seats must be at least 1').max(500).optional(),
   adminEmail: z.string().email('Please enter a valid administrator email address'),
   adminName: z.string().optional(),
   billingCycle: z.enum(['monthly', 'annual']),
   onboardingRequestId: z.string().uuid().optional(),
+  commercialOverrideCode: z.string().min(3).max(100).optional(),
 })
 
 export async function POST(request: NextRequest) {
   try {
     // 1. Enforce Platform Super Admin authorization and MFA AAL2 verification
+    // Derived strictly from the verified session; client cannot spoof actor UUID
     const authResult = await authenticatePlatformAdmin(['super_admin'], true)
     if (!authResult.success) {
       return authResult.response
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
     const { auth } = authResult
     const service = createServiceClient()
 
-    // 2. Validate provisioning payload - NO arbitrary/invented defaults
+    // 2. Validate provisioning payload - NO silent defaults for planTier or billingCycle
     const body = await request.json()
     const parsed = ProvisionOrgSchema.safeParse(body)
     if (!parsed.success) {
@@ -51,18 +52,10 @@ export async function POST(request: NextRequest) {
       adminName,
       billingCycle,
       onboardingRequestId,
+      commercialOverrideCode,
     } = parsed.data
 
     const normalizedEmail = adminEmail.trim().toLowerCase()
-
-    // Validate planTier against approved configuration
-    const planConfig = PLAN_CONFIGS[planTier as PlanTier]
-    if (!planConfig) {
-      return NextResponse.json(
-        { error: `Invalid plan tier: ${planTier}. Must match an approved subscription plan.` },
-        { status: 400 }
-      )
-    }
 
     // 3. Resolve unique slug safely
     const baseSlug = parsed.data.slug || slugify(name)
@@ -87,8 +80,8 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date(Date.now() + 14 * 86400000).toISOString() // 14-day expiry for primary admin
 
     // 5. Execute SINGLE TRANSACTIONAL DATABASE OPERATION via Postgres stored procedure
-    // Handles: org creation, subscription creation, owner invitation, onboarding request update, audit log write
-    // If ANY step fails, PostgreSQL automatically aborts and rolls back entire transaction
+    // Derives baseline seats from DB plan version if includedSeats is omitted
+    // Validates pricing, org type match, onboarding request FOR UPDATE, and commercial override code
     const { data: provisionRpcResult, error: rpcError } = await (service.rpc as any)(
       'provision_organisation_atomic',
       {
@@ -97,37 +90,43 @@ export async function POST(request: NextRequest) {
         p_org_slug: slug,
         p_org_type: type,
         p_plan_tier: planTier,
-        p_included_seats: includedSeats,
+        p_included_seats: includedSeats || null,
         p_billing_cycle: billingCycle,
-        p_admin_email: normalizedEmail,
-        p_admin_name: adminName?.trim() || 'Primary Administrator',
-        p_token_hash: tokenHash,
-        p_expires_at: expiresAt,
+        p_owner_email: normalizedEmail,
+        p_invitation_token_hash: tokenHash,
+        p_token_expires_at: expiresAt,
         p_onboarding_request_id: onboardingRequestId || null,
         p_ip_address: request.headers.get('x-forwarded-for') || null,
         p_user_agent: request.headers.get('user-agent') || null,
+        p_commercial_override_code: commercialOverrideCode?.trim() || null,
       }
     )
 
     if (rpcError) {
       console.error('Transactional organisation provisioning failed (rolled back):', rpcError)
-      const isConflict = rpcError.message?.toLowerCase().includes('conflict') || rpcError.message?.toLowerCase().includes('already in use')
+      const isConflict =
+        rpcError.message?.toLowerCase().includes('conflict') ||
+        rpcError.message?.toLowerCase().includes('already exists')
+      const isValidation =
+        rpcError.message?.toLowerCase().includes('validation') ||
+        rpcError.message?.toLowerCase().includes('commercial policy violation')
+      const isInvalidState = rpcError.message?.toLowerCase().includes('invalid state')
+
       return NextResponse.json(
         { error: rpcError.message || 'Failed to provision organisation atomically' },
-        { status: isConflict ? 409 : 500 }
+        { status: isConflict ? 409 : isInvalidState ? 422 : isValidation ? 400 : 500 }
       )
     }
 
-    // RPC returns array of 1 row with: org_id, org_slug, subscription_id, invitation_id
     const row = Array.isArray(provisionRpcResult) ? provisionRpcResult[0] : (provisionRpcResult as any)
     const orgId = row?.org_id
     const orgSlug = row?.org_slug || slug
     const subscriptionId = row?.subscription_id
     const invitationId = row?.invitation_id
+    const invoiceNumber = row?.invoice_number
+    const effectiveSeats = row?.included_seats || includedSeats
 
     // 6. AFTER DB COMMIT: Transactional email dispatch via provider-independent mailer
-    // If email dispatch fails, the DB record is already committed. The pending invitation remains valid
-    // and can be resent via the secure resend mechanism.
     let emailDispatched = false
     let emailError: string | null = null
 
@@ -141,23 +140,45 @@ export async function POST(request: NextRequest) {
         orgName: name.trim(),
         role: 'Owner & Primary Administrator',
         inviteUrl,
-        inviterName: auth.profile.full_name || 'Production X Super Admin',
+        inviterName: auth.profile?.full_name || 'Production X Super Admin',
       })
       emailDispatched = true
+
+      // Update delivery state in database
+      await (service.from('org_invitations') as any)
+        .update({
+          delivery_status: 'delivered',
+          delivery_attempts: 1,
+          delivery_updated_at: new Date().toISOString(),
+        })
+        .eq('id', invitationId)
     } catch (mailErr: unknown) {
       emailDispatched = false
       emailError = mailErr instanceof Error ? mailErr.message : 'Email dispatch failed'
-      console.error('Warning: Invitation email dispatch failed after commit (invitation preserved for resend):', mailErr)
+      console.error(
+        'Warning: Invitation email dispatch failed after commit (recorded for retry):',
+        mailErr
+      )
+
+      // Record delivery failure in database without rolling back provisioning
+      await (service.from('org_invitations') as any)
+        .update({
+          delivery_status: 'failed',
+          delivery_attempts: 1,
+          last_delivery_error: emailError,
+          delivery_updated_at: new Date().toISOString(),
+        })
+        .eq('id', invitationId)
     }
 
     // 7. Return HTTP 201 Created
-    // CRITICAL: NEVER return the raw invitation token or invite URL in API response
+    // CRITICAL: NEVER return the raw invitation token or token_hash in API response
     return NextResponse.json(
       {
         success: true,
         message: emailDispatched
           ? 'Customer organisation provisioned successfully. Activation email dispatched.'
-          : 'Customer organisation provisioned successfully. Invitation email pending resend.',
+          : 'Customer organisation provisioned successfully. Invitation email delivery failed; retry available.',
         organisation: {
           id: orgId,
           name: name.trim(),
@@ -167,15 +188,18 @@ export async function POST(request: NextRequest) {
         subscription: {
           id: subscriptionId,
           planTier,
-          includedSeats,
+          includedSeats: effectiveSeats,
           billingCycle,
+          status: planTier === 'free' ? 'trialing' : 'pending_payment',
+          invoiceNumber: invoiceNumber || null,
         },
-        activation: {
+        invitation: {
+          id: invitationId,
           adminEmail: normalizedEmail,
-          invitationId,
-          expiresAt,
-          emailDispatched,
-          emailError,
+          sent: emailDispatched,
+          deliveryStatus: emailDispatched ? 'delivered' : 'failed',
+          retryable: !emailDispatched,
+          deliveryError: emailError,
         },
       },
       { status: 201 }

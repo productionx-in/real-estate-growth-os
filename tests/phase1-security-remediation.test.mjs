@@ -51,7 +51,7 @@ function testProvisionRouteContracts() {
   assert.equal(fs.existsSync(routePath), true, 'Provision route must exist')
   const content = fs.readFileSync(routePath, 'utf8')
 
-  assert.equal(content.includes("service.rpc(\n      'provision_organisation_atomic'"), true, 'Must invoke provision_organisation_atomic RPC')
+  assert.equal(content.includes("'provision_organisation_atomic'"), true, 'Must invoke provision_organisation_atomic RPC')
   assert.equal(content.includes("activationUrl: data.activation?.activationUrl"), false, 'Must not return activation URL in API response')
   assert.equal(content.includes("sendInvitationEmail"), true, 'Must dispatch invitation email via adapter after commit')
   assert.equal(content.includes("authenticatePlatformAdmin(['super_admin'], true)"), true, 'Must require Super Admin with MFA AAL2')
@@ -70,7 +70,7 @@ function testOnboardingRouteContracts() {
   assert.equal(adminContent.includes("updates.assignedSalesRepId !== auth.user.id"), true, 'Sales rep cannot assign requests to other employees')
 
   const publicContent = fs.readFileSync(publicPath, 'utf8')
-  assert.equal(publicContent.includes("IP_RATE_LIMIT"), true, 'Public endpoint must enforce rate-limiting')
+  assert.equal(publicContent.includes("DatabaseRateLimitAdapter"), true, 'Public endpoint must enforce distributed rate-limiting')
   assert.equal(publicContent.includes("status: 'draft'"), true, 'Public endpoint must constrain status to draft')
 
   console.log('✓ Suite 1 Test 3 Passed: Onboarding API enforces explicit authorization matrix and dedicated restricted public endpoint')
@@ -83,7 +83,7 @@ function testBootstrapScriptContracts() {
 
   assert.equal(content.includes("process.env.INITIAL_SUPER_ADMIN_EMAIL"), true, 'Must require INITIAL_SUPER_ADMIN_EMAIL')
   assert.equal(content.includes("process.env.PLATFORM_BOOTSTRAP_SECRET"), true, 'Must require PLATFORM_BOOTSTRAP_SECRET')
-  assert.equal(content.includes("existingSuperAdmins && existingSuperAdmins.length > 0"), true, 'Must fail-closed if super_admin exists')
+  assert.equal(content.includes("bootstrap_initial_super_admin_atomic"), true, 'Must invoke atomic database procedure')
   assert.equal(content.includes("page"), true, 'Must paginate auth.users lookup')
   assert.equal(content.includes("console.log(bootstrapSecret"), false, 'Must not log bootstrap secret value')
   assert.equal(content.includes("console.error(bootstrapSecret"), false, 'Must not log bootstrap secret value in error')
