@@ -40,7 +40,12 @@ It manages the complete developer business journey:
 
 ## 2.2 Organisation & Multi-Tenant Architecture
 - Structure: **Organisation → Optional Branches → Teams → Projects → Inventory**.
-- Users can belong to multiple organisations simultaneously.
+- **Commercial SaaS Model:** Organisation-controlled, subscription-based access. Public self-service employee registration is prohibited.
+- **Customer Provisioning:** Developer and Channel Partner organisations are provisioned through an authorised Production X onboarding process by Platform Administrators. Initial org admins receive activation invitations.
+- **Invite-Only Employee Onboarding:** Organisation administrators invite staff via email. Accepting an invite links the user to the existing workspace and never creates a new organisation.
+- **Subscription Seat Entitlements:** Total seats = included (plan-configurable) + additional purchased. Active members consume seats; pending invites reserve seats. Seat limits are enforced at the API layer.
+- **User Lifecycle & Deactivation:** Role editing and member deactivations are supported. Deactivated employees immediately lose workspace access, but their historical lead assignments, activity logs, notes, and audit records remain intact. Lead reassignment follows an explicit workflow.
+- **Multi-Tenant Memberships:** Users can belong to multiple organisations simultaneously. Each organisation independently accounts for seats against its own subscription pool.
 - Workspace context must be explicit, verified, and tenant-isolated.
 - Never assume the first membership is the active organisation.
 - All roles and permissions are verified server-side; Row Level Security (RLS) is enforced at the database level.

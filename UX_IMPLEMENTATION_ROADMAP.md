@@ -37,11 +37,13 @@ This transformation roadmap is organized into 4 disciplined, non-destructive pha
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
 ┌───────────────────────────────────▼────────────────────────────────────┐
-│ PHASE 4: Team Onboarding, Invitations & Channel Partner Portal         │
-│ - Workspace Invitation Flow (Invite via email & accept invitation)    │
-│ - Split `/register` into "Create Workspace" vs "Join Workspace"        │
-│ - Team Member Role Management & Deactivation UI                        │
-│ - Channel Partner Project Collateral & Referral Submission Portal      │
+│ PHASE 4: Subscription-Based Access, Provisioning & Team Lifecycle      │
+│ - Platform Admin Customer Organization & Subscription Provisioning     │
+│ - Org Administrator Employee Invitation Flow (with Seat Reservations)  │
+│ - Subscription Seat Metering & Limit Enforcement (Included + Add-on)   │
+│ - Secure Login Shell (Remove public employee self-service signup)      │
+│ - Member Role Management, Deactivation & Safe Lead Reassignment        │
+│ - Channel Partner Referral Portal & Project Syndication                │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -122,39 +124,56 @@ Streamline the core daily workflow for sales reps and sales managers, eliminatin
 
 ---
 
-### PHASE 4: Team Onboarding, Invitations & Channel Partner Portal
+### PHASE 4: Subscription-Based Access, Provisioning & Team Lifecycle
 
 #### Objective
-Enable self-service developer team onboarding and structured broker collaboration.
+Implement an organization-controlled, subscription-based SaaS access model with strict seat allowance enforcement, invite-only employee onboarding, safe employee deactivation, and controlled organization provisioning.
 
 #### Target Components & Routes:
-- `app/(auth)/register/page.tsx`
-- `components/auth/RegisterForm.tsx`
+- `app/(auth)/login/page.tsx` & `components/auth/LoginForm.tsx`
+- `app/(auth)/register/page.tsx` & `components/auth/RegisterForm.tsx` (Transitioned away from public arbitrary signup)
 - `app/(dashboard)/[orgSlug]/team/page.tsx`
 - `components/team/InviteMemberModal.tsx` *(New)*
+- `components/team/SubscriptionSeatMeter.tsx` *(New)*
+- `components/team/DeactivateMemberModal.tsx` *(New)*
 - `app/api/team/invite/route.ts` *(New)*
+- `app/api/team/members/[memberId]/route.ts` *(New)*
 - `app/invite/[token]/page.tsx` *(New)*
 - `components/sales/ChannelPartnerPortalView.tsx` *(New)*
 
 #### Deliverables:
-1. **Onboarding Split:**
-   - Update `/register` to offer: "Register Developer Organization" vs "Join Workspace via Invite".
-2. **Team Member Invitation Engine:**
-   - Implement `InviteMemberModal` in `/[orgSlug]/team`.
-   - Admin enters Email, Name, and selects Role (`manager`, `sales_exec`, `readonly`).
-   - System sends Supabase invite email or generates a secure acceptance link.
-3. **Team Management Actions:**
-   - Add action dropdown per member row: Change Role, Reassign Leads, Deactivate Access.
-4. **Channel Partner Collaboration Experience:**
-   - Enable brokers to view authorized developer projects, live inventory availability, and submit referrals with automatic broker attribution.
+1. **Public Auth Shell Hardening:**
+   - Remove public self-service employee registration.
+   - Login page provides Email, Password, Sign In, and Forgot Password.
+   - Display clear guidance that access is provisioned by organization administrators.
+2. **Platform Administrator Provisioning:**
+   - Authorized Production X onboarding process creates customer organization and sets initial subscription tier / seat allowance.
+   - Sends initial organization administrator an activation link to claim the workspace.
+3. **Employee Invitation & Seat Reservation Engine:**
+   - Administrator invites staff (`email`, `role`, `expires_at`).
+   - Pending invitations reserve a seat from the subscription pool.
+   - Token-based acceptance (`/invite/[token]`) adds employee to the **existing** organization. Never spawns a new organization.
+4. **Subscription Seat Accounting & Enforcement:**
+   - Dynamic seat formula: `Available Seats = (Included Seats + Purchased Seats) - (Active Members + Pending Invites)`.
+   - Enforce seat boundaries at API and UI levels. Block over-allocation and provide upgrade/add-seat pathways.
+5. **Employee Lifecycle & Historical Retention:**
+   - Role updates and employee deactivation.
+   - Deactivation immediately revokes workspace access on server.
+   - Mandatory lead reassignment modal (bulk reassign to active rep or unassigned pool).
+   - Historical lead activity logs, call notes, and booking records permanently preserved.
 
 #### Database & Security Implications:
-- Add an `invitations` table (`id`, `org_id`, `email`, `role`, `invited_by`, `token`, `expires_at`, `status`) via a clean new migration.
-- Strict RLS on invitations: only org admins can read/write.
+- Migration 0025 staged on disk:
+  - Table `org_subscriptions` (`org_id`, `plan_id`, `included_seats`, `additional_seats`, `status`, `billing_cycle`, `expires_at`).
+  - Table `org_invitations` (`id`, `org_id`, `email`, `role`, `invited_by`, `token_hash`, `status`, `expires_at`).
+  - Columns added to `org_members`: `status TEXT NOT NULL DEFAULT 'active'`, `deactivated_at TIMESTAMPTZ`.
+  - Row Level Security: Invitations and subscription details accessible only to organization owners and admins.
 
 #### Testing Requirements:
-- Invitation lifecycle tests (generation, expiration, acceptance, role assignment).
-- Channel partner referral submission and attribution isolation tests.
+- Seat limit enforcement tests (blocking invitations when limit is reached).
+- Invitation lifecycle tests (creation, expiry, cancellation, acceptance, seat reservation and release).
+- Deactivation tests (access revocation, historical activity preservation, lead reassignment).
+- Multi-organization seat independence tests.
 
 ---
 

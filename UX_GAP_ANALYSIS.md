@@ -13,66 +13,42 @@
 
 ---
 
-### GAP-01: Ghost Lead Exposure and Detail 404 Disconnect
-- **Problem:** Sales Executives can see leads belonging to other sales representatives in the general Leads Table, but receive an immediate `404 Not Found` when clicking on them.
-- **Evidence:**
-  - `app/(dashboard)/[orgSlug]/leads/page.tsx` (Lines 27-44): Uses `createServiceClient()` to query `.from('leads').select(...).eq('org_id', org.id)` without checking `role` or `assigned_to`.
-  - `app/(dashboard)/[orgSlug]/leads/[leadId]/page.tsx` (Lines 68-70): Calls `getLeadById(leadId)`.
-  - `lib/dal/leads.ts` (Lines 8-22): Uses authenticated `createClient()`. Supabase RLS policy `members_can_read_leads` (`supabase/migrations/20260011_tenant_isolation_rls.sql`, lines 130-138) strictly permits `sales_exec` to SELECT only rows where `assigned_to = auth_profile_id()`. The query returns null and `notFound()` is triggered.
-- **Affected Roles:** Sales Executive (`sales_exec`).
-- **Business Impact:** High confusion, perceived software bugs, broken user workflow, and potential leakage of prospect contact information before clicking.
-- **Recommended Correction:** Align `app/(dashboard)/[orgSlug]/leads/page.tsx` to automatically filter by `assigned_to = auth.profile.id` when `role === 'sales_exec'`, while providing a clear toggle for Managers/Admins to view "My Leads" vs "All Team Leads".
-- **Clarification Required:** No. Standard RLS alignment.
+### GAP-01: Ghost Lead Exposure and Detail 404 Disconnect [RESOLVED IN PHASE 2]
+- **Problem:** Sales Executives previously saw leads belonging to other sales representatives in the general Leads Table, but received an immediate `404 Not Found` when clicking on them.
+- **Resolution:** Resolved in Phase 2. Query filtered by `assigned_to = profile.id` for `sales_exec` on server; lead detail view enforces matching tenant and assignment checks.
 
 ---
 
-### GAP-02: Crashed Multi-Org Personal Dashboard (`/my/dashboard`)
-- **Problem:** When an employee belongs to more than one developer organization (e.g. contracting across multiple entities), loading `/my/dashboard` results in an unhandled 500 runtime error.
-- **Evidence:**
-  - `app/(dashboard)/my/dashboard/page.tsx` (Lines 37-41):
-    ```typescript
-    const { data: membership } = await supabase
-      .from('org_members').select('org_id, role, organisations(slug)')
-      .eq('profile_id', profile.id).single()
-    ```
-  - Calling `.single()` on a profile with multiple memberships throws Supabase error `PGRST116: JSON object requested, multiple (or no) rows returned`.
-- **Affected Roles:** All multi-org users accessing their personal dashboard.
-- **Business Impact:** Complete page crash for multi-org users.
-- **Recommended Correction:** Replace `.single()` with multi-org aware query or scope the personal dashboard to the currently active workspace (`/[orgSlug]/my-dashboard`).
-- **Clarification Required:** Yes (Business Decision #2): Should personal dashboards be org-scoped (`/[orgSlug]/my-dashboard`) or global cross-org (`/my/dashboard`)?
+### GAP-02: Crashed Multi-Org Personal Dashboard (`/my/dashboard`) [RESOLVED IN PHASE 2]
+- **Problem:** When an employee belonged to more than one developer organization, loading `/my/dashboard` crashed due to `.single()`.
+- **Resolution:** Resolved in Phase 2. Safe multi-org resolution handles 0, 1, and multiple memberships without crashing, redirecting to `/select-org` when no explicit slug is provided.
 
 ---
 
-### GAP-03: Mandatory Organization Creation on User Registration
-- **Problem:** Every user who creates an account is forced to create a new organization, making it impossible for hired sales managers or sales executives to register and join an existing developer workspace.
+### GAP-03: Public Self-Service Registration vs Organisation-Controlled SaaS Provisioning
+- **Problem:** Arbitrary public self-registration allows uncontrolled creation of organizations and users. Employees hired by an existing developer or brokerage cannot simply accept an invitation into their employer's workspace; instead, public registration forces the creation of an isolated, orphan organization.
 - **Evidence:**
-  - `components/auth/RegisterForm.tsx` (Lines 31-100): Forces user through Step 1 (Account credentials) directly into Step 2 (Organisation Details: Org Name, Org Type). Submitting executes `POST /api/orgs`, assigning the user as `owner` of a new organization.
-  - `app/api/orgs/route.ts` (Lines 105-117): Is the only route in the application that writes to `org_members`.
+  - `components/auth/RegisterForm.tsx` (Lines 31-100): Forces user through Step 1 (Account credentials) directly into Step 2 (Organisation Details: Org Name, Org Type), creating a new organization via `POST /api/orgs`.
+  - `app/api/orgs/route.ts` (Lines 105-117): Allows any authenticated user to create an organization and become `owner`.
 - **Affected Roles:** Newly hired Sales Executives, Sales Managers, and Team Members.
-- **Business Impact:** Results in hundreds of empty orphan organisations created by employees who just wanted to log into their employer's workspace.
-- **Recommended Correction:** Split `/register` into:
-  1. "Create a New Workspace" (for Developer Owners).
-  2. "Join an Existing Workspace" (via invitation link or workspace code).
-- **Clarification Required:** No. Essential SaaS onboarding pattern.
+- **Approved Product Direction:**
+  1. Production X operates as an organization-controlled subscription SaaS.
+  2. Public self-service employee registration is prohibited. The login shell will provide Email, Password, Sign in, and Forgot password, with clear messaging that access is provisioned by an organization administrator.
+  3. Customer organizations are provisioned through an authorized Production X onboarding process by Platform Administrators.
+  4. Internal staff are invited by authorized organization administrators (`org_invitations`). Accepting an invitation links the user to the existing organization and **never** creates a new organization.
+- **Status:** Architecture approved; implementation scheduled for Onboarding & Access Management phase.
 
 ---
 
-### GAP-04: Lack of In-App Workspace Switcher
-- **Problem:** Once inside a workspace (`/[orgSlug]`), a user with multiple memberships has no user interface element to switch between organizations.
-- **Evidence:**
-  - `components/layout/Sidebar.tsx` (Lines 101-119): Displays `Growth OS` and the organization name as non-clickable plain text.
-  - `components/layout/Header.tsx` (Lines 1-43): Contains only a non-functional Bell and a Sign Out button.
-  - The only workspace selector exists at `/select-org`, which is only reachable via redirect if an invalid slug is entered or after fresh login.
-- **Affected Roles:** Developer Owners, External Consultants, Multi-Project Sales Directors.
-- **Business Impact:** Severe friction; users must manually edit URL paths in browser address bar.
-- **Recommended Correction:** Add a workspace switcher dropdown to the Sidebar brand section or Header, listing all organizations the user belongs to with an option to "+ Create or Join Workspace".
-- **Clarification Required:** No. Standard enterprise UX requirement.
+### GAP-04: Lack of In-App Workspace Switcher [RESOLVED IN PHASE 2]
+- **Problem:** Once inside a workspace (`/[orgSlug]`), a user with multiple memberships had no user interface element to switch between organizations.
+- **Resolution:** Resolved in Phase 2. Built interactive Workspace Switcher dropdown in Sidebar and Header listing all verified memberships with active state indicators.
 
 ---
 
-### GAP-05: Non-Role-Adaptive Static Navigation
-- **Problem:** The navigation sidebar shows identical tabs to all user roles regardless of permissions or business relevance.
-- **Evidence:**
+### GAP-05: Non-Role-Adaptive Static Navigation [RESOLVED IN PHASE 2]
+- **Problem:** Navigation sidebar showed identical tabs to all user roles regardless of permissions.
+- **Resolution:** Resolved in Phase 2. Role-adaptive navigation groups sections by role (`sales_exec`, `manager`, `admin`, `channel_partner`) and enforces server-authoritative route guards.
   - `components/layout/Sidebar.tsx` (Lines 26-75): Hardcodes 9 navigation items for all users.
   - Sales Executives see "Integrations", "Analytics & BI", "Team", and "Settings".
   - Read-Only users see full operational menus.
@@ -132,3 +108,31 @@
 - **Business Impact:** Users do not receive timely alerts when leads are assigned, site visits are scheduled, or unit holds are about to expire.
 - **Recommended Correction:** Wire an in-app notification center that surfaces real-time alerts for lead assignments, upcoming visits, and holding expiries.
 - **Clarification Required:** No.
+
+---
+
+### GAP-10: Missing Subscription Seat Accounting & Limit Enforcement
+- **Problem:** The application has no mechanism to track subscription seat allowances, count occupied vs reserved seats, or block unauthorized employee over-allocation.
+- **Evidence:**
+  - `organisations` table contains only a static `plan` enum (`free`, `growth`, `enterprise`) with zero seat allowance metadata.
+  - `app/(dashboard)/[orgSlug]/team/page.tsx` renders a read-only table without a seat usage indicator.
+  - There is no API barrier preventing unlimited additions to `org_members`.
+- **Approved Product Direction:**
+  1. Subscriptions define included seats and additional purchased seats per plan tier (flexible; not hardcoded).
+  2. Active members (`org_members`) consume seats; pending invitations (`org_invitations`) reserve seats.
+  3. When `Available Seats <= 0`, invitation APIs strictly reject requests with HTTP 403 / 409 and clear guidance to purchase additional seats or upgrade plan.
+- **Status:** Architecture approved; schema and enforcement planned.
+
+---
+
+### GAP-11: Missing Employee Deactivation & Safe Lead Reassignment Workflow
+- **Problem:** When an employee departs an organization, administrators have no mechanism to deactivate their access without either deleting records (which risks cascading data deletion or orphan foreign keys) or relying on manual SQL.
+- **Evidence:**
+  - `org_members` has no `status` column (`active` vs `deactivated`).
+  - No lead reassignment flow exists upon offboarding; active leads risk being silently orphaned or auto-assigned without management oversight.
+- **Approved Product Direction:**
+  1. Add `status` (`'active' | 'deactivated'`) and `deactivated_at` to `org_members`.
+  2. Deactivation immediately cuts off access to that workspace.
+  3. Deactivation interface presents a mandatory lead reassignment dialog (reassign to specific rep or move to unassigned pool).
+  4. Historical lead activities, notes, and booking records permanently retain the departed employee's name for auditing.
+- **Status:** Architecture approved; implementation planned.

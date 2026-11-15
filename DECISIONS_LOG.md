@@ -142,3 +142,21 @@
     - `/team`: Blocked for non-managers and non-admins (redirects to `/${orgSlug}`).
   - *Elimination of Ghost Leads:* Aligned lead list queries with Supabase RLS (`assigned_to = profile.id` for sales reps) and guarded lead detail view (`lead.assigned_to !== profile.id` yields `notFound()`), ensuring sales reps never see 404s for leads in their list.
   - *Deals Kanban Card Hydration:* Joined `lead(id, name, phone)` and `project(id, name)` in `getDeals()` to display customer names, phone numbers, and project badges on Kanban cards instead of raw IDs.
+
+### DEC-020: Subscription-Based Access Control, Organisation-Provisioned SaaS & Seat Entitlements
+- **Context:** To establish enterprise SaaS control, prevent arbitrary public registration of uncontrolled organisations, and strictly govern user access, Production X requires an organisation-controlled, subscription-based model.
+- **Decision:**
+  - *Prohibition of Self-Service Employee Registration:* Arbitrary public employee signup is strictly disallowed. The public login shell provides Email, Password, Sign in, and Forgot password, with explicit guidance that workspace access is provisioned by an organization administrator.
+  - *Authorised Organisation Provisioning:* Customer organisations (Developers and Channel Partners) are provisioned through an authorized Production X onboarding process by Platform Administrators. The initial organization administrator receives an activation token to claim the account.
+  - *Employee Invitation & Joining Engine:* Authorized organization administrators invite staff (`org_invitations`). Accepting an invitation links the user to the existing organisation and never spawns a new organization.
+  - *Subscription Seat Accounting & Enforcement:*
+    - Total Seat Allowance = Included Seats (plan-defined) + Additional Purchased Seats.
+    - Active members (`org_members.status = 'active'`) consume seats; pending invitations (`org_invitations.status = 'pending' AND expires_at > now()`) reserve seats.
+    - When `Available Seats <= 0`, invitation APIs reject requests with HTTP 403 / 409 and route administrators to plan upgrades or seat expansion.
+    - Seat limits are enforced at the API layer and cannot be bypassed via direct calls. Plan seat allowances are flexible and configurable (not hardcoded to 5).
+  - *Employee Lifecycle & Historical Preservation:*
+    - Role changes and employee deactivations are supported.
+    - Deactivation immediately terminates workspace access on the server while preserving historical lead assignments, activity logs, notes, and audit records.
+    - Lead reassignment upon departure follows an explicit, managed workflow (reassign to active rep or move to unassigned pool).
+  - *Multi-Organisation Membership Independence:* A user may belong to multiple organisations. Each organisation independently accounts for that user's seat against its own subscription quota. Safe switching is enforced server-side.
+

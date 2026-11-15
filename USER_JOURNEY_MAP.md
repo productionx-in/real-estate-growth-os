@@ -15,14 +15,17 @@
 ┌───────────────────────────────┬───────────────────────────────┬───────────────────────────────┐
 │ Role                          │ Primary Daily Objective       │ Key Current Friction Point    │
 ├───────────────────────────────┼───────────────────────────────┼───────────────────────────────┤
-│ Developer Owner / Director    │ Business ROI, cashflow, deals │ No executive summary; BI page │
-│                               │ and inventory absorption.     │ labeled "Stage 6 Active".     │
+│ Platform Administrator        │ Customer org provisioning,    │ No platform admin portal;     │
+│ (Production X Operator)       │ subscription & seat management│ direct DB updates currently.  │
 ├───────────────────────────────┼───────────────────────────────┼───────────────────────────────┤
-│ Sales Manager / Team Lead     │ Pipeline tracking, team       │ Cannot invite team; cannot    │
-│                               │ velocity, lead distribution.  │ view rep workload in one view.│
+│ Developer Owner / Director    │ Business ROI, cashflow, deals │ Previously forced public      │
+│                               │ and inventory absorption.     │ signup; now org-provisioned.  │
 ├───────────────────────────────┼───────────────────────────────┼───────────────────────────────┤
-│ Sales Executive / Closing Rep │ Rapid buyer follow-ups, calls,│ Forced to see org overview;   │
-│                               │ site visits, unit blocking.   │ lead detail 404s on unassigned│
+│ Sales Manager / Team Lead     │ Pipeline tracking, team       │ Cannot invite team or enforce │
+│                               │ velocity, lead distribution.  │ subscription seat boundaries. │
+├───────────────────────────────┼───────────────────────────────┼───────────────────────────────┤
+│ Sales Executive / Closing Rep │ Rapid buyer follow-ups, calls,│ Needs simple invite acceptance│
+│                               │ site visits, unit blocking.   │ without creating dummy orgs.  │
 ├───────────────────────────────┼───────────────────────────────┼───────────────────────────────┤
 │ Channel Partner (Broker)      │ Project collateral, inventory │ No broker portal; isolated    │
 │                               │ availability, commission payouts. in empty parallel workspace.│
@@ -35,17 +38,22 @@
 
 ### 2.1 Role 1: Developer Owner / Administrator
 
-#### Phase A: Onboarding & Workspace Registration
-1. **Entry Point:** Lands on `/register`.
-2. **Step 1 (Account):** Enters Full Name, Email, Password (min 8 chars).
-3. **Step 2 (Organisation):** Enters Organization Name (e.g. "Prestige Group"), selects "Property Developer / Builder".
-4. **Outcome:** Auth user created, Profile created, Organization created, and user inserted into `org_members` with `role = 'owner'`.
-5. **Initial State:** Starter demo data seeded automatically (`lib/demo/seed.ts`), so the workspace opens with sample projects and leads.
+#### Phase A: Organisation Provisioning & Activation
+1. **Commercial Onboarding:** Organization and initial subscription are provisioned by Production X Platform Administration (not via public self-service signup).
+2. **Account Activation:** The designated Developer Administrator receives an activation email with a secure, time-limited token.
+3. **Password Setup & First Login:** The administrator accesses the activation link, sets a strong password, and activates their profile.
+4. **Outcome:** Auth user linked to the pre-provisioned organization as `owner` or `admin` with its configured seat allowance.
+5. **Initial State:** Starter configuration and workspace initialized safely with zero orphan accounts.
 
 #### Phase B: Project Setup & Team Onboarding
 1. **Adding Projects:** Navigates to `/[orgSlug]/projects/new`. Selects category (Apartments, Plotted, Villas, Commercial, Mixed-Use). Fills in RERA number, launch date, amenities, and specifications.
 2. **Adding Hierarchy & Inventory:** Opens project, navigates to Hierarchy tab, adds Towers and Floors. Uses "Bulk Import" (`/[orgSlug]/inventory`) to upload inventory CSV.
-3. **Inviting Team Members (CRITICAL BOTTLENECK):** Navigates to `/[orgSlug]/team`. Expects an "Invite Member" button. Finds only a static table. Must ask technical database administrators to run raw SQL inserts into `org_members` to onboard sales staff.
+3. **Inviting Team Members (Subscription Controlled):**
+   - Navigates to `/[orgSlug]/team`.
+   - Views subscription seat meter (`Active Members + Pending Invites <= Total Seats`).
+   - Clicks "+ Invite Team Member", enters employee email and assigns role (`sales_exec`, `manager`, `readonly`).
+   - If seats available: generates invitation token, reserves seat, and sends invitation email.
+   - If seat limit reached: displays explanatory banner with upgrade / purchase option.
 
 #### Phase C: Executive Management & BI
 1. **Daily Overview:** Logs into `/[orgSlug]`. Views high-level counts: Active Projects, Total Inventory Units, Total Leads, Confirmed Bookings.
@@ -113,17 +121,32 @@
 
 ---
 
-### 2.5 Role 5: Employee Departure & Account Offboarding
+### 2.5 Role 5: Invited Employee Onboarding (Sales Manager, Executive, Admin)
 
-#### Current Implementation Reality:
-- **No UI Exists:** Neither `/[orgSlug]/team` nor `/[orgSlug]/settings` provides a "Deactivate Member" or "Remove Member" button.
-- **Database Behavior:**
-  - `org_members` table has `ON DELETE RESTRICT` on `organisations(id)` and `profiles(id)`.
-  - `leads` table has `assigned_to REFERENCES profiles(id) ON DELETE SET NULL`.
-- **Departure Risks:**
-  1. If an administrator deletes a member profile in PostgreSQL, any active leads assigned to that person have `assigned_to` set to `NULL`.
-  2. If the auto-assign trigger fires, those unassigned leads are distributed to whoever has the fewest open leads, without human manager review.
-  3. The departed employee's Supabase auth session remains active unless revoked in the Supabase Cloud dashboard.
+#### Phase A: Invitation & Account Creation
+1. **Trigger:** Organization administrator sends invitation from `/[orgSlug]/team` specifying email, role, and expiration.
+2. **Notification:** Employee receives an invitation email containing a secure token link (`/invite?token=...`).
+3. **Invitation Acceptance:**
+   - Case A (New User): Lands on acceptance screen. Sets full name and password. Account is activated and linked to the existing organisation with the assigned role. **Zero new organisations are created.**
+   - Case B (Existing User): Signs in with existing credentials. Organization membership is added to their profile. User can immediately switch between organisations via the Workspace Switcher.
+4. **Seat Reservation:** The invitation occupies 1 reserved seat until accepted (which converts to an active seat) or revoked/expired (which releases the seat).
+
+---
+
+### 2.6 Role 6: Employee Departure & Account Offboarding
+
+#### Enterprise Managed Lifecycle:
+1. **Action Initiation:** Organization Administrator navigates to `/[orgSlug]/team` and selects "Deactivate Member" from the actions menu.
+2. **Safety Verification & Reassignment Modal:**
+   - The system checks if the employee has active assigned leads (`status NOT IN ('booked', 'lost', 'junk')`), pending site visits, or active deals.
+   - Administrator is presented with explicit options:
+     - Option A: Reassign all active leads to a specific active sales representative.
+     - Option B: Move leads to the workspace's Unassigned Queue for subsequent triage.
+3. **Execution & Historical Preservation:**
+   - Member status set to `deactivated` in `org_members`.
+   - Access to the workspace is revoked immediately on the server.
+   - Historical audit logs, call notes, completed site visits, and booking attributions created by the departed employee remain permanently preserved.
+   - The deactivated seat is released, incrementing `Available Seats` by 1.
 
 ---
 
@@ -133,12 +156,14 @@
 ┌─────────────────────────────────┬────────────────────────────────────────────────────────┐
 │ Current Point of Failure        │ UX & Workflow Solution                                 │
 ├─────────────────────────────────┼────────────────────────────────────────────────────────┤
-│ 1. Mandatory Org Creation       │ Split `/register` into "Create Org" vs "Join via Code" │
-│ 2. Invisible Workspace Switcher │ Add workspace dropdown in Topbar / Sidebar             │
+│ 1. Public Self-Service Signup   │ Shift to Subscription-based Platform Onboarding & Invites│
+│ 2. Invisible Workspace Switcher │ Add workspace dropdown in Topbar / Sidebar (Phase 2 Done)│
 │ 3. Static Sidebar Navigation    │ Filter sidebar items based on `role` and `org.type`    │
 │ 4. Universal Overview Dashboard │ Route `sales_exec` to focused Personal Pipeline view   │
 │ 5. Read-Only Team & Sales Views │ Add "+ Invite Member", "+ Schedule Visit" modals       │
 │ 6. Inactive Bell Icon           │ Build in-app Activity / Notification dropdown          │
 │ 7. Lead Detail 404 Disconnect   │ Align leads table query with RLS role constraints     │
+│ 8. Unchecked Seat Capacity      │ Enforce plan seat limits at API layer with upgrade CTA │
+│ 9. Unsafe Employee Departure    │ Deactivation modal with atomic lead reassignment       │
 └─────────────────────────────────┴────────────────────────────────────────────────────────┘
 ```

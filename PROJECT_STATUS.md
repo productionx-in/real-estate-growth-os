@@ -54,6 +54,7 @@
 | `20260022` | Integration APIs & Webhooks | DDL / Developer Keys & Outbound Webhooks | Staging / Prod | Prepared on disk; SHA-256 API key hashing, HMAC-SHA256 outbound delivery |
 | `20260023` | Sales & Channel Partner Operations | DDL / Site visits, Blockings, Bookings, CPs, Deals | Staging / Prod | Prepared on disk; site visits, 48h holds, confirmed bookings, RERA CP directory |
 | `20260024` | Digital Experience & Automation | DDL / Microsites, Workflows, Multi-Touch Touchpoints | Staging / Prod | Prepared on disk; public showrooms, drip workflows, multi-touch attribution |
+| `20260025` | Subscription & Seat Entitlements Schema | DDL / Subscriptions, Invitations & Member Status | Staging / Prod | Architecture planned; prepared for staging after design review |
 
 ---
 

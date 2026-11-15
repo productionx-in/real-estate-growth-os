@@ -14,7 +14,10 @@
 ```mermaid
 erDiagram
     ORGANISATIONS ||--o{ ORG_MEMBERS : employs
+    ORGANISATIONS ||--o{ ORG_SUBSCRIPTIONS : subscribes
+    ORGANISATIONS ||--o{ ORG_INVITATIONS : issues
     PROFILES ||--o{ ORG_MEMBERS : belongs_to
+    PROFILES ||--o{ ORG_INVITATIONS : invited_by
     ORGANISATIONS ||--o{ PROJECTS : develops
     PROJECTS ||--o{ PROJECT_HIERARCHY_NODES : structures
     PROJECTS ||--o{ INVENTORY_ITEMS : contains
@@ -92,28 +95,50 @@ auth.users (Supabase Auth)
   - Restricted to `['owner', 'admin', 'manager']`.
   - Reassignment writes an audit activity to `lead_activities`.
 
+### 2.5 Subscription & Seat Entitlement Architecture
+
+In accordance with the approved commercial SaaS model:
+- **Organisation-Controlled Scope:** Subscriptions are attached to organizations (`organisations`), not individual users. Both Developer Organisations and Channel Partner Organisations maintain independent subscriptions and seat allocations.
+- **Seat Accounting Model:**
+  - `Included Seats`: Defined by plan tier (configurable; not hardcoded).
+  - `Additional Purchased Seats`: Add-on seats acquired by the organization.
+  - `Total Seat Allowance` = `Included Seats` + `Additional Purchased Seats`.
+  - `Occupied Seats` = Count of active members (`org_members.status = 'active'`).
+  - `Reserved Seats` = Count of valid pending invitations (`org_invitations.status = 'pending' AND expires_at > now()`).
+  - `Available Seats` = `Total Seat Allowance` - (`Occupied Seats` + `Reserved Seats`).
+- **Internal Member Enforcement:** All internal organization roles (`owner`, `admin`, `manager`, `sales_exec`, `readonly`) consume 1 seat.
+- **Multiple Organisation Independence:** If a user belongs to multiple organizations, each organization accounts for that user's seat independently against its own subscription pool.
+- **Seat Limit Enforcement:** When `Available Seats <= 0`, new invitations are strictly blocked at both the API and UI layers, routing administrators to plan upgrades or additional seat purchases.
+
 ---
 
 ## 3. Structural Capability Assessment
 
 | Business Requirement | Supported Today? | Architectural Mechanism | Identified Limitation |
 | :--- | :---: | :--- | :--- |
+| **Subscription-controlled organization provisioning** | **Staged** | Platform Administrator onboarding and customer provisioning. | Replaces arbitrary public registration (`/register`). |
+| **Employee invitations & seat reservations** | **Staged** | `org_invitations` table with cryptographically secure tokens. | Joining links to existing org; pending invites reserve seats. |
+| **Strict subscription seat limits** | **Staged** | Server DAL seat calculator (`active + pending <= total`). | Enforced at API layer; blocks over-allocation. |
+| **Safe employee deactivation & lead retention** | **Staged** | `org_members.status = 'deactivated'` + explicit lead reassignment. | Preserves historical activities and prevents orphaned leads. |
 | **One developer working with multiple channel partners** | **Partial** | Developer registers multiple rows in `public.channel_partners`. | Purely a static directory. Brokers have no login access or live inventory portal. |
 | **One channel partner working with multiple developers** | **No** | None. | CP organisations cannot subscribe to or link with external developer workspaces. |
 | **Multiple projects under each developer** | **Yes** | `projects.org_id REFERENCES organisations(id)`. | Fully supported across all 5 property categories. |
 | **Multiple managers and sales executives** | **Yes** | `org_members` many-to-many relationship with role enum. | Fully supported; dynamic role verification. |
 | **Project-level access restrictions** | **No** | None. All members see all projects. | No project-to-user scoping table exists. |
-| **Users belonging to multiple organisations** | **Yes (Backend) / Poor (UI)** | `org_members` supports multiple rows per `profile_id`. | Backend supports multi-org, but frontend lacks an in-app workspace switcher. |
-| **Employee removal & responsibility reassignment** | **Partial** | SQL supports deleting `org_members`. `leads.assigned_to` has `ON DELETE SET NULL`. | No UI for inviting, removing, or bulk-reassigning departed employee leads. |
+| **Users belonging to multiple organisations** | **Yes** | `org_members` supports multiple rows per `profile_id`. | Verified server-side; interactive workspace switcher active. |
+| **Employee removal & responsibility reassignment** | **Staged** | Formal deactivation modal with batch lead reassignment. | Preserves historical data with full audit trail. |
 
 ---
 
 ## 4. Key Architectural Recommendations for Future Phases
 
-1. **Unify Channel Partner Model:**
+1. **Subscription & User Provisioning Engine:**
+   - Deploy `org_subscriptions` and `org_invitations` to enforce seat limits and invite-only employee onboarding.
+   - Restrict public `/register` so arbitrary users cannot spawn uncontrolled organisations.
+2. **Unify Channel Partner Model:**
    - Allow a developer to "invite" an external Channel Partner by generating an authenticated partner link.
    - When a broker logs into their CP Workspace, establish a secure syndication link allowing them to browse authorized projects/collateral and register buyer referrals without direct access to developer internal CRM records.
-2. **Project Scoping Layer:**
+3. **Project Scoping Layer:**
    - Introduce an optional `project_assignments` mapping (`project_id`, `profile_id`, `role`) so enterprise developers can restrict visibility by development site.
-3. **Project-Aware Lead Distribution:**
+4. **Project-Aware Lead Distribution:**
    - Upgrade the auto-assignment trigger to filter sales executives assigned to the specific `project_id` associated with the incoming lead.

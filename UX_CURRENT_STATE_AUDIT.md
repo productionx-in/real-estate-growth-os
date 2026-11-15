@@ -123,6 +123,23 @@ The application enforces permissions across three distinct layers:
 | **Channel Partner Admin** | `owner`, `admin` (where `org.type = 'channel_partner'`) | `/register` choosing "Channel Partner" | System | `/[orgSlug]` (Overview) | View own org leads | Cannot view developer inventory unless syndicated |
 | **Read Only Member** | `readonly` | Manual DB insert to `org_members` | Admin | `/[orgSlug]` (Overview) | Read projects, read inventory, read leads | All state transitions, creation, editing, exporting |
 
+### 3.2 Subscription-Based Access & Provisioning Architecture Audit
+
+In accordance with the approved commercial and security model:
+- **Commercial SaaS Model:** Production X is a subscription-based, organization-controlled platform for property developers and channel partner brokerages.
+- **Prohibition of Self-Service Employee Signup:** Arbitrary public signup is strictly disallowed. Employees cannot create independent accounts or spawn uncontrolled organizations.
+- **Authorized Provisioning:**
+  - Customer organizations are provisioned by Production X Platform Administrators alongside their subscription tier and user seat entitlements.
+  - Organization administrators receive an activation link to claim the primary account.
+  - Internal staff (sales managers, sales executives, admins) are invited strictly by authorized organization administrators.
+- **Seat Allowance & Accounting:**
+  - Subscriptions specify included and purchased seats.
+  - Active members consume seats; pending invitations reserve seats.
+  - Seat limits are enforced at the API and UI layers, blocking over-allocation and routing administrators to seat expansion.
+- **Lifecycle & Historical Retention:**
+  - Deactivation immediately terminates workspace access while strictly preserving historical lead assignments, activity logs, notes, and audit records.
+  - Reassignment of departures follows an explicit, managed workflow.
+
 ---
 
 ## 4. Dashboards Audit
@@ -191,12 +208,14 @@ The application enforces permissions across three distinct layers:
   - In the Deals Kanban, cards display raw truncated IDs: `Lead ID: 894bf8...` instead of lead name, phone, or project title.
   - All four tabs are completely **read-only**. There is no "+ Schedule Site Visit", "+ Record Hold", "+ Confirm Booking", or "+ Onboard Channel Partner" modal.
 
-### 5.6 Team Directory (`/[orgSlug]/team`)
+### 5.6 Team Directory & Seat Management (`/[orgSlug]/team`)
 - **Display:** Table listing member names, roles, contact info, and join date.
-- **Usability Gaps:**
-  - Completely **read-only**.
-  - No "Invite Team Member" button.
-  - No "Edit Role" or "Deactivate User" actions.
+- **Usability & Architecture Gaps:**
+  - Completely **read-only** with no interactive management controls.
+  - **No Subscription Seat Meter:** Does not show total seats, active members, pending invitations, or remaining capacity.
+  - **No Invitation Workflow:** Lacks an "Invite Team Member" action modal (email, role selection, seat verification, expiration).
+  - **No Member Lifecycle Controls:** Administrators cannot change a member's role or deactivate an employee.
+  - **No Safe Offboarding / Lead Reassignment:** Deactivating an employee has no structured workflow to reassign their active leads or audit historical activity.
   - Empty state promises: *"Invite sales executives and managers to your workspace"*, but provides zero functionality to do so.
 
 ### 5.7 Workspace Settings (`/[orgSlug]/settings`)
@@ -207,9 +226,11 @@ The application enforces permissions across three distinct layers:
 
 ## 6. Summary of Critical UX & Workflow Bottlenecks
 
-1. **Onboarding Black Hole:** New users can only create new organizations. There is zero invitation or joining flow in the UI.
-2. **Missing Workspace Switcher:** Multi-org users cannot switch workspaces without modifying URL parameters.
-3. **Static Role Navigation:** Sales Executives and Read-Only users are presented with full administrative navigation.
-4. **Lead Visibility Contradiction:** Execs see all leads in list view, but encounter 404 errors when attempting to open details.
-5. **Inert Sales Operations:** Sales and Channel Partner tabs are view-only with missing creation modals.
-6. **Inert Communication Tools:** Header notification bell is non-functional; lead detail view lacks single-click phone/WhatsApp launchers.
+1. **Uncontrolled Registration vs Subscription SaaS:** Public `/register` allows anyone to spin up an organization, while invited employees cannot simply accept an invitation into an existing developer workspace.
+2. **Missing Invitation & Seat Management:** Organizations have no UI to invite staff, track pending invitations, or enforce subscription seat limits.
+3. **Missing Offboarding & Lead Reassignment:** No mechanism exists to deactivate departures safely while retaining historical logs and reallocating active leads.
+4. **Missing Workspace Switcher:** Multi-org users cannot switch workspaces without modifying URL parameters (Resolved in Phase 2).
+5. **Static Role Navigation:** Sales Executives and Read-Only users are presented with full administrative navigation (Resolved in Phase 2).
+6. **Lead Visibility Contradiction:** Execs see all leads in list view, but encounter 404 errors when attempting to open details (Resolved in Phase 2).
+7. **Inert Sales Operations:** Sales and Channel Partner tabs are view-only with missing creation modals.
+8. **Inert Communication Tools:** Header notification bell is non-functional; lead detail view lacks single-click phone/WhatsApp launchers.
