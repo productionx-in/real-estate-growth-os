@@ -6,7 +6,7 @@ import assert from 'node:assert/strict'
 const connectionString =
   process.env.DATABASE_URL ||
   process.env.SUPABASE_DB_URL ||
-  'postgresql://postgres:postgres@localhost:54322/postgres'
+  'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 
 async function runRealDbIntegrationTests() {
   console.log('===================================================================')
@@ -48,22 +48,37 @@ async function runRealDbIntegrationTests() {
     const testCustomerEmail = 'customer.owner@productionx.test'
 
     // Clean up any previous test runs
-    await client.query(`
-      DELETE FROM public.platform_bootstrap_state WHERE initial_super_admin_user_id IN ($1, $2);
-      DELETE FROM public.platform_admins WHERE user_id IN ($1, $2);
-      DELETE FROM public.platform_users WHERE user_id IN ($1, $2);
-      DELETE FROM auth.users WHERE id IN ($1, $2, $3);
-    `, [testAdminUserId, testApproverAdminUserId, testCustomerUserId])
+    await client.query('DELETE FROM public.platform_bootstrap_state WHERE initial_super_admin_user_id IN ($1, $2);', [testAdminUserId, testApproverAdminUserId])
+    await client.query('DELETE FROM public.platform_users WHERE user_id IN ($1, $2);', [testAdminUserId, testApproverAdminUserId])
+    await client.query('DELETE FROM auth.users WHERE id IN ($1, $2, $3);', [testAdminUserId, testApproverAdminUserId, testCustomerUserId])
 
-    // Insert test users into auth.users
-    await client.query(`
-      INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
-      VALUES 
-        ($1, $2, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Admin"}', now(), now(), 'authenticated', 'authenticated'),
-        ($3, $4, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Approver"}', now(), now(), 'authenticated', 'authenticated'),
-        ($5, $6, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Customer"}', now(), now(), 'authenticated', 'authenticated')
-      ON CONFLICT (id) DO NOTHING;
-    `, [testAdminUserId, testAdminEmail, testApproverAdminUserId, testApproverEmail, testCustomerUserId, testCustomerEmail])
+    // Check if auth.users has instance_id column
+    const colCheck = await client.query(`
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_schema = 'auth' AND table_name = 'users' AND column_name = 'instance_id'
+      LIMIT 1;
+    `)
+    const hasInstanceId = colCheck.rowCount > 0
+
+    if (hasInstanceId) {
+      await client.query(`
+        INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
+        VALUES 
+          ($1, '00000000-0000-0000-0000-000000000000', $2, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Admin"}', now(), now(), 'authenticated', 'authenticated'),
+          ($3, '00000000-0000-0000-0000-000000000000', $4, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Approver"}', now(), now(), 'authenticated', 'authenticated'),
+          ($5, '00000000-0000-0000-0000-000000000000', $6, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Customer"}', now(), now(), 'authenticated', 'authenticated')
+        ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, updated_at = now();
+      `, [testAdminUserId, testAdminEmail, testApproverAdminUserId, testApproverEmail, testCustomerUserId, testCustomerEmail])
+    } else {
+      await client.query(`
+        INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
+        VALUES 
+          ($1, $2, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Admin"}', now(), now(), 'authenticated', 'authenticated'),
+          ($3, $4, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Approver"}', now(), now(), 'authenticated', 'authenticated'),
+          ($5, $6, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Customer"}', now(), now(), 'authenticated', 'authenticated')
+        ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, updated_at = now();
+      `, [testAdminUserId, testAdminEmail, testApproverAdminUserId, testApproverEmail, testCustomerUserId, testCustomerEmail])
+    }
 
     // ========================================================================
     // B. BOOTSTRAP SECURITY TESTS
@@ -119,10 +134,10 @@ async function runRealDbIntegrationTests() {
 
     // Setup second admin manually as authorized super_admin for two-person approvals
     await client.query(`
-      INSERT INTO public.platform_admins (user_id, role, is_active, created_by)
-      VALUES ($1, 'super_admin', true, $2)
+      INSERT INTO public.platform_users (user_id, role, is_active, mfa_enforced)
+      VALUES ($1, 'super_admin'::public.platform_role, true, true)
       ON CONFLICT (user_id) DO NOTHING;
-    `, [testApproverAdminUserId, testAdminUserId])
+    `, [testApproverAdminUserId])
 
     // ========================================================================
     // E. COMMERCIAL OVERRIDES TESTS
@@ -144,16 +159,16 @@ async function runRealDbIntegrationTests() {
     } else {
       // Seed minimal plan and plan_version if not present
       const spIns = await client.query(`
-        INSERT INTO public.subscription_plans (tier, name, target_org_type, is_active)
-        VALUES ('growth', 'Enterprise Growth', 'developer', true)
+        INSERT INTO public.subscription_plans (code, tier, name, target_org_type, is_active)
+        VALUES ('developer_growth', 'growth', 'Enterprise Growth', 'developer', true)
         RETURNING id;
       `)
       const pvIns = await client.query(`
         INSERT INTO public.subscription_plan_versions (
           plan_id, version_number, is_current, base_price_annual_cents, base_price_monthly_cents,
-          included_seats, additional_seat_price_cents, effective_from
+          included_seats, additional_seat_price_cents
         ) VALUES (
-          $1, 1, true, 1000000, 100000, 15, 20000, now()
+          $1, 1, true, 1000000, 100000, 15, 20000
         ) RETURNING id;
       `, [spIns.rows[0].id])
       testPlanVersionId = pvIns.rows[0].id
@@ -163,7 +178,7 @@ async function runRealDbIntegrationTests() {
     const overrideCode = 'COMM-TEST-' + Date.now()
     const ovrRes = await client.query(`
       SELECT public.create_commercial_override_atomic(
-        $1, $2, $3, 'developer', 25, NULL, 850000, NULL, 15000, 'Special Pilot Agreement', now() + INTERVAL '14 days'
+        $1, $2, $3, 'developer'::public.org_type, 25, 'Special Pilot Agreement', 850000, NULL, 15000
       ) AS res;
     `, [testAdminUserId, overrideCode, testPlanVersionId])
     const ovrData = ovrRes.rows[0].res
@@ -178,14 +193,14 @@ async function runRealDbIntegrationTests() {
           SELECT public.approve_commercial_override_atomic($1, $2);
         `, [testAdminUserId, ovrData.override_id])
       },
-      /Self-approval prohibited|no_self_approval/,
+      /cannot self-approve|Self-approval prohibited|no_self_approval/,
       'Self-approval must be rejected by database constraint'
     )
     console.log('✓ E2: Creator self-approval strictly rejected by real database constraint')
 
     // E3: Independent Super Admin approves override
     const appRes = await client.query(`
-      SELECT public.approve_commercial_override_atomic($1, $2);
+      SELECT public.approve_commercial_override_atomic($1, $2) AS res;
     `, [testApproverAdminUserId, ovrData.override_id])
     assert.equal(appRes.rows[0].res.status, 'approved')
     console.log('✓ E3: Independent Super Admin approval succeeded')
@@ -197,15 +212,15 @@ async function runRealDbIntegrationTests() {
 
     const testOrgSlug = 'test-org-' + Date.now()
     const testRawToken = 'test-token-bytes-1234567890abcdef'
-    const testTokenHash = 'hash-' + Date.now()
+    const testTokenHash = 'hash-token-crypto-32-chars-long-abcdef0123456789'
 
     // A1: Valid organisation provisioning with commercial override
     const provRes = await client.query(`
       SELECT public.provision_organisation_atomic(
-        $1, 'Test Realty Ltd', $2, 'developer',
+        $1, 'Test Realty Ltd', $2, 'developer'::public.org_type,
         'growth', 'annual', NULL,
         $3, $4, now() + INTERVAL '7 days',
-        NULL, $5, NULL, NULL
+        NULL, NULL, NULL, $5
       ) AS res;
     `, [testAdminUserId, testOrgSlug, testCustomerEmail, testTokenHash, overrideCode])
 
@@ -252,7 +267,7 @@ async function runRealDbIntegrationTests() {
     console.log('✓ C2: Initial delivery outcome (attempt 1) recorded as delivered')
 
     // C3: Retry Token Rotation increments counter to 2
-    const newHash = 'hash-retry-2-' + Date.now()
+    const newHash = 'hash-retry-2-crypto-32-chars-long-0123456789abcdef'
     const rotRes = await client.query(`
       SELECT public.rotate_invitation_token_atomic($1, $2, $3, now() + INTERVAL '7 days') AS res;
     `, [testAdminUserId, invitationId, newHash])

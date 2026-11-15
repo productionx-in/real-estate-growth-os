@@ -7,7 +7,21 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
-import { PLAN_CONFIGS } from '../lib/subscriptions/config.ts'
+
+function loadPlanConfigs() {
+  const fileContent = fs.readFileSync(path.resolve('lib/subscriptions/config.ts'), 'utf8')
+  const tiers = ['free', 'starter', 'growth', 'enterprise', 'custom']
+  const configs = {}
+  for (const tier of tiers) {
+    const regex = new RegExp(`${tier}:\\s*{[\\s\\S]*?defaultIncludedSeats:\\s*(\\d+)`, 'm')
+    const match = fileContent.match(regex)
+    if (match) {
+      configs[tier] = { defaultIncludedSeats: parseInt(match[1], 10) }
+    }
+  }
+  return configs
+}
+const PLAN_CONFIGS = loadPlanConfigs()
 
 console.log('--- Running Phase 1 Security Remediation & Hardening Tests ---')
 

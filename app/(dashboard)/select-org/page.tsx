@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Building2, ArrowRight, Plus } from 'lucide-react'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 
 interface OrgMembershipItem {
   role: string | null
@@ -25,10 +25,8 @@ export default async function SelectOrgPage() {
 
   if (!user) redirect('/login')
 
-  const service = createServiceClient()
-
-  // Find or create profile
-  let { data: profile } = await service
+  // Find or create profile using authenticated user's session (respects RLS, no elevated service role required)
+  let { data: profile } = await supabase
     .from('profiles')
     .select('id')
     .eq('auth_user_id', user.id)
@@ -40,7 +38,7 @@ export default async function SelectOrgPage() {
       user.email?.split('@')[0] ||
       'User'
 
-    const { data: newProfile } = await service
+    const { data: newProfile } = await supabase
       .from('profiles')
       .insert({ auth_user_id: user.id, full_name: fullName })
       .select('id')
@@ -53,8 +51,8 @@ export default async function SelectOrgPage() {
     redirect('/create-org')
   }
 
-  // Find user's active organisations
-  const { data: memberships } = await service
+  // Find user's active organisations using authenticated user's session
+  const { data: memberships } = await supabase
     .from('org_members')
     .select(`
       role,

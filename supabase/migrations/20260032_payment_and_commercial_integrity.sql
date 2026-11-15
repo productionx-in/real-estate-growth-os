@@ -11,6 +11,9 @@
 -- 9. Complete Audit Schema Consistency (actor_user_id, actor_role, action, target_entity_type, target_entity_id, metadata)
 BEGIN;
 
+-- Ensure platform_admin role exists on platform_role enum
+ALTER TYPE public.platform_role ADD VALUE IF NOT EXISTS 'platform_admin';
+
 -- ============================================================================
 -- 1. DROP OBSOLETE OVERLOADED FUNCTIONS FROM PRIOR INTERIM MIGRATIONS
 -- ============================================================================
@@ -55,8 +58,7 @@ WITH ranked_current_versions AS (
   WHERE is_current = true
 )
 UPDATE public.subscription_plan_versions
-SET is_current = false,
-    updated_at = now()
+SET is_current = false
 WHERE id IN (
   SELECT id FROM ranked_current_versions WHERE rn > 1
 );
@@ -74,7 +76,7 @@ CREATE TABLE IF NOT EXISTS public.platform_bootstrap_state (
   is_completed BOOLEAN PRIMARY KEY DEFAULT true CHECK (is_completed = true),
   completed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   initial_super_admin_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
-  initial_super_admin_record_id UUID NOT NULL REFERENCES public.platform_admins(id) ON DELETE RESTRICT,
+  initial_super_admin_record_id UUID NOT NULL REFERENCES public.platform_users(id) ON DELETE RESTRICT,
   audit_log_id UUID NOT NULL REFERENCES public.platform_audit_logs(id) ON DELETE RESTRICT
 );
 
@@ -135,6 +137,8 @@ GRANT SELECT ON TABLE public.subscription_commercial_overrides TO authenticated,
 
 -- Alter org_subscriptions to hold complete immutable commercial contract snapshot
 ALTER TABLE public.org_subscriptions
+  ALTER COLUMN current_period_start DROP NOT NULL,
+  ALTER COLUMN current_period_end DROP NOT NULL,
   ADD COLUMN IF NOT EXISTS contracted_base_price_cents BIGINT,
   ADD COLUMN IF NOT EXISTS contracted_additional_seat_price_cents BIGINT,
   ADD COLUMN IF NOT EXISTS contracted_currency TEXT DEFAULT 'INR',
@@ -175,7 +179,7 @@ BEGIN
   END IF;
 
   SELECT role INTO v_caller_role
-  FROM public.platform_admins
+  FROM public.platform_users
   WHERE user_id = p_actor_auth_id AND is_active = true;
 
   IF v_caller_role IS NULL OR v_caller_role NOT IN ('super_admin', 'platform_admin') THEN
@@ -286,7 +290,7 @@ BEGIN
   END IF;
 
   SELECT role INTO v_caller_role
-  FROM public.platform_admins
+  FROM public.platform_users
   WHERE user_id = p_actor_auth_id AND is_active = true;
 
   IF v_caller_role IS NULL OR v_caller_role != 'super_admin' THEN
@@ -372,7 +376,7 @@ BEGIN
   END IF;
 
   SELECT role INTO v_caller_role
-  FROM public.platform_admins
+  FROM public.platform_users
   WHERE user_id = p_actor_auth_id AND is_active = true;
 
   IF v_caller_role IS NULL OR v_caller_role != 'super_admin' THEN
@@ -498,7 +502,7 @@ DECLARE
   v_effective_included_seats INTEGER;
   v_effective_base_price_cents BIGINT;
   v_effective_add_seat_price_cents BIGINT;
-  v_override_record RECORD;
+  v_override_record public.subscription_commercial_overrides%ROWTYPE;
   v_onboarding_request RECORD;
   v_rows_updated INTEGER;
   v_initial_sub_status TEXT;
@@ -507,7 +511,9 @@ DECLARE
   v_invoice_num TEXT;
   v_invoice_amount_cents BIGINT;
   v_new_sub_id UUID;
+  v_new_invoice_id UUID;
   v_new_invitation_id UUID;
+  v_actor_profile_id UUID;
   v_normalized_email TEXT;
   v_effective_override_approved_by UUID := NULL;
   v_effective_override_reason TEXT := NULL;
@@ -518,12 +524,23 @@ BEGIN
   END IF;
 
   SELECT role INTO v_caller_role
-  FROM public.platform_admins
+  FROM public.platform_users
   WHERE user_id = p_actor_auth_id
     AND is_active = true;
 
   IF v_caller_role IS NULL OR v_caller_role != 'super_admin' THEN
     RAISE EXCEPTION 'Access denied: caller % is not an active platform super_admin', p_actor_auth_id;
+  END IF;
+
+  -- Resolve or auto-create profile for actor (required for org_invitations foreign key)
+  SELECT id INTO v_actor_profile_id
+  FROM public.profiles
+  WHERE auth_user_id = p_actor_auth_id;
+
+  IF v_actor_profile_id IS NULL THEN
+    INSERT INTO public.profiles (auth_user_id, full_name)
+    VALUES (p_actor_auth_id, 'Platform Super Admin')
+    RETURNING id INTO v_actor_profile_id;
   END IF;
 
   -- 2. Input validation - NO silent defaults permitted
@@ -686,9 +703,13 @@ BEGIN
     END IF;
 
     -- Validate approved seats ceiling if override specifies seat allowance
-    IF v_override_record.approved_included_seats IS NOT NULL AND v_override_record.approved_included_seats < v_effective_included_seats THEN
-      RAISE EXCEPTION 'Commercial policy violation: override code approves up to % seats, but % seats were requested',
-        v_override_record.approved_included_seats, v_effective_included_seats;
+    IF v_override_record.approved_included_seats IS NOT NULL THEN
+      IF p_included_seats IS NULL THEN
+        v_effective_included_seats := v_override_record.approved_included_seats;
+      ELSIF v_override_record.approved_included_seats < v_effective_included_seats THEN
+        RAISE EXCEPTION 'Commercial policy violation: override code approves up to % seats, but % seats were requested',
+          v_override_record.approved_included_seats, v_effective_included_seats;
+      END IF;
     END IF;
 
     -- Validate custom override pricing
@@ -739,7 +760,7 @@ BEGIN
   INSERT INTO public.organisations (
     name,
     slug,
-    org_type,
+    type,
     created_at,
     updated_at
   ) VALUES (
@@ -848,32 +869,11 @@ BEGIN
       'INR',
       'issued',
       now() + INTERVAL '14 days'
-    );
+    )
+    RETURNING id INTO v_new_invoice_id;
   END IF;
 
-  -- 13. Handle Owner Member / Invitation
-  SELECT id INTO v_owner_user_id
-  FROM auth.users
-  WHERE lower(email) = v_normalized_email;
-
-  IF v_owner_user_id IS NOT NULL THEN
-    INSERT INTO public.org_members (
-      org_id,
-      user_id,
-      role,
-      status,
-      created_at,
-      updated_at
-    ) VALUES (
-      v_new_org_id,
-      v_owner_user_id,
-      'owner',
-      'active',
-      now(),
-      now()
-    );
-  END IF;
-
+  -- 13. Create Primary Owner Invitation Record
   INSERT INTO public.org_invitations (
     org_id,
     email,
@@ -891,7 +891,7 @@ BEGIN
     v_normalized_email,
     'owner',
     'pending',
-    p_actor_auth_id,
+    v_actor_profile_id,
     p_invitation_token_hash,
     p_token_expires_at,
     'pending',
@@ -962,11 +962,13 @@ BEGIN
   );
 
   RETURN jsonb_build_object(
+    'status', 'provisioned',
     'org_id', v_new_org_id,
     'org_slug', trim(p_org_slug),
     'subscription_id', v_new_sub_id,
     'subscription_status', v_initial_sub_status,
     'invoice_number', v_invoice_num,
+    'invoice_id', v_new_invoice_id,
     'invoice_amount_cents', v_invoice_amount_cents,
     'invitation_id', v_new_invitation_id,
     'owner_email', v_normalized_email,
@@ -1013,7 +1015,7 @@ BEGIN
   END IF;
 
   SELECT role INTO v_caller_role
-  FROM public.platform_admins
+  FROM public.platform_users
   WHERE user_id = p_actor_auth_id
     AND is_active = true;
 
@@ -1196,12 +1198,14 @@ BEGIN
     );
 
     RETURN jsonb_build_object(
-      'status', 'seats_activated',
+      'status', 'activated',
+      'invoice_type', 'additional_seats',
       'subscription_id', v_sub.id,
       'subscription_status', v_sub.status,
       'invoice_id', v_invoice.id,
       'invoice_number', v_invoice.invoice_number,
       'payment_reference', v_clean_ref,
+      'seats_activated', v_invoice.seat_quantity,
       'seats_added', v_invoice.seat_quantity,
       'total_additional_seats', v_sub.additional_seats + v_invoice.seat_quantity,
       'total_usable_seats', v_sub.included_seats + v_sub.additional_seats + v_invoice.seat_quantity,
@@ -1337,7 +1341,6 @@ BEGIN
       'message', 'Initial subscription payment verified and workspace activated'
     );
   END IF;
-  );
 END;
 $$;
 
@@ -1369,7 +1372,7 @@ BEGIN
   END IF;
 
   SELECT role INTO v_caller_role
-  FROM public.platform_admins
+  FROM public.platform_users
   WHERE user_id = p_actor_auth_id AND is_active = true;
 
   IF v_caller_role IS NULL OR v_caller_role NOT IN ('super_admin', 'platform_admin') THEN
@@ -1536,7 +1539,7 @@ BEGIN
 
   -- 4. CRITICAL PRIVILEGE ESCALATION FIX: Disallow any existing platform administrator
   SELECT role, is_active INTO v_existing_admin
-  FROM public.platform_admins
+  FROM public.platform_users
   WHERE user_id = p_target_user_id;
 
   IF v_existing_admin.role IS NOT NULL THEN
@@ -1549,19 +1552,19 @@ BEGIN
     RAISE EXCEPTION 'Security violation: target user must have a verified TOTP MFA factor enrolled before bootstrap assignment';
   END IF;
 
-  -- 6. Plain INSERT into platform_admins (NO ON CONFLICT DO UPDATE)
-  INSERT INTO public.platform_admins (
+  -- 6. Plain INSERT into platform_users (NO ON CONFLICT DO UPDATE)
+  INSERT INTO public.platform_users (
     user_id,
     role,
     is_active,
-    created_by,
+    mfa_enforced,
     created_at,
     updated_at
   ) VALUES (
     p_target_user_id,
-    'super_admin',
+    'super_admin'::public.platform_role,
     true,
-    p_target_user_id,
+    true,
     now(),
     now()
   )
@@ -1580,7 +1583,7 @@ BEGIN
     p_target_user_id,
     'super_admin',
     'bootstrap_initial_super_admin',
-    'platform_admins',
+    'platform_users',
     v_new_admin_id,
     jsonb_build_object(
       'email', lower(trim(p_target_email)),
@@ -1653,7 +1656,7 @@ BEGIN
   END IF;
 
   SELECT role INTO v_caller_role
-  FROM public.platform_admins
+  FROM public.platform_users
   WHERE user_id = p_actor_auth_id
     AND is_active = true;
 
@@ -1685,7 +1688,7 @@ BEGIN
     RAISE EXCEPTION 'Billing error: calculated renewal obligation is zero or negative (%)', v_renewal_amount_cents;
   END IF;
 
-  v_invoice_num := 'REN-' || to_char(now(), 'YYYYMM') || '-' || upper(substring(replace(p_org_id::text, '-', ''), 1, 8));
+  v_invoice_num := 'REN-' || to_char(now(), 'YYYYMM') || '-' || upper(substring(replace(p_org_id::text, '-', ''), 1, 8)) || '-' || upper(substring(replace(gen_random_uuid()::text, '-', ''), 1, 4));
 
   -- 4. Persist Authoritative Renewal Invoice
   INSERT INTO public.org_subscription_invoices (
@@ -1784,7 +1787,7 @@ BEGIN
   END IF;
 
   SELECT role INTO v_caller_role
-  FROM public.platform_admins
+  FROM public.platform_users
   WHERE user_id = p_actor_auth_id
     AND is_active = true;
 
@@ -1817,7 +1820,7 @@ BEGIN
     RAISE EXCEPTION 'Billing error: contracted additional seat price is zero or not configured for subscription %', v_sub.id;
   END IF;
 
-  v_invoice_num := 'SEAT-' || to_char(now(), 'YYYYMM') || '-' || upper(substring(replace(p_org_id::text, '-', ''), 1, 8));
+  v_invoice_num := 'SEAT-' || to_char(now(), 'YYYYMM') || '-' || upper(substring(replace(p_org_id::text, '-', ''), 1, 8)) || '-' || upper(substring(replace(gen_random_uuid()::text, '-', ''), 1, 4));
 
   -- 4. Persist Seat Expansion Invoice (Obligation Created; Seats NOT Granted Until Payment Verified)
   INSERT INTO public.org_subscription_invoices (
