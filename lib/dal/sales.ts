@@ -214,169 +214,36 @@ export async function blockInventoryUnit(params: {
       } as never
     )
 
-    if (!rpcErr && rpcData) {
-      const rows = Array.isArray(rpcData) ? rpcData : [rpcData]
-      if (rows.length > 0) {
-        const blockingId =
-          (rows[0] as { blocking_id?: string; id?: string }).blocking_id ||
-          (rows[0] as { id?: string }).id ||
-          ''
-        const { data: fullBlocking } = await service
-          .from('inventory_blockings')
-          .select(`
-            *,
-            lead:leads(id, name, phone, email),
-            inventory:inventory_items(id, unit_number, category, total_price),
-            project:projects(id, name)
-          `)
-          .eq('id', blockingId)
-          .single()
-
-        return { success: true, data: (fullBlocking || rows[0]) as unknown as InventoryBlocking }
-      }
-    }
-
-    if (rpcErr && !rpcErr.message.includes('function') && !rpcErr.message.includes('does not exist')) {
+    if (rpcErr) {
       return { success: false, error: rpcErr.message }
     }
 
-    // 2. Fallback logic with idempotency and row verification
-    if (params.idempotencyKey) {
-      const { data: existing } = await service
-        .from('inventory_blockings')
-        .select(`
-          *,
-          lead:leads(id, name, phone, email),
-          inventory:inventory_items(id, unit_number, category, total_price),
-          project:projects(id, name)
-        `)
-        .eq('org_id', params.orgId)
-        .eq('idempotency_key', params.idempotencyKey)
-        .maybeSingle()
-
-      if (existing) {
-        return { success: true, data: existing as unknown as InventoryBlocking }
-      }
+    if (!rpcData) {
+      return { success: false, error: 'Hold atomic RPC returned no data' }
     }
 
-    // Verify unit availability
-    const { data: unit, error: unitErr } = await service
-      .from('inventory_items')
-      .select('id, status, org_id, unit_number')
-      .eq('id', params.inventoryId)
-      .eq('org_id', params.orgId)
-      .single()
-
-    if (unitErr || !unit) {
-      return { success: false, error: 'Inventory unit not found or access denied' }
+    const rows = Array.isArray(rpcData) ? rpcData : [rpcData]
+    if (rows.length === 0) {
+      return { success: false, error: 'Hold atomic RPC returned empty record' }
     }
 
-    if (unit.status !== 'available') {
-      return {
-        success: false,
-        error: `Cannot block unit. Current status is ${unit.status} (expected 'available')`,
-      }
-    }
+    const blockingId =
+      (rows[0] as { blocking_id?: string; id?: string }).blocking_id ||
+      (rows[0] as { id?: string }).id ||
+      ''
 
-    const duration = params.holdDurationHours || 48
-    const expiresAt = new Date(Date.now() + duration * 3600 * 1000).toISOString()
-
-    // Insert blocking record
-    const { data: blocking, error: blockErr } = await service
+    const { data: fullBlocking } = await service
       .from('inventory_blockings')
-      .insert({
-        org_id: params.orgId,
-        project_id: params.projectId,
-        inventory_id: params.inventoryId,
-        lead_id: params.leadId,
-        blocked_by: params.blockedBy || null,
-        token_amount: params.tokenAmount,
-        payment_reference: params.paymentReference || null,
-        payment_status: params.paymentStatus || 'unverified',
-        idempotency_key: params.idempotencyKey || null,
-        expires_at: expiresAt,
-        remarks: params.remarks || null,
-        status: 'active',
-      })
       .select(`
         *,
         lead:leads(id, name, phone, email),
         inventory:inventory_items(id, unit_number, category, total_price),
         project:projects(id, name)
       `)
-      .single()
-
-    if (blockErr) return { success: false, error: blockErr.message }
-
-    // Transition unit status to 'blocked'
-    await service
-      .from('inventory_items')
-      .update({ status: 'blocked', updated_at: new Date().toISOString() })
-      .eq('id', params.inventoryId)
-      .eq('org_id', params.orgId)
-
-    // Resolve actor profile id for audit tracking
-    let actorId = params.blockedBy
-    if (!actorId) {
-      const { data: member } = await service
-        .from('org_members')
-        .select('profile_id')
-        .eq('org_id', params.orgId)
-        .limit(1)
-        .maybeSingle()
-      actorId = member?.profile_id || params.leadId
-    }
-
-    // Record audit history in inventory_status_history
-    await service.from('inventory_status_history').insert({
-      inventory_id: params.inventoryId,
-      org_id: params.orgId,
-      previous_status: 'available',
-      new_status: 'blocked',
-      changed_by: actorId,
-      reason: params.remarks ? `Hold placed: ${params.remarks}` : `Hold placed with token ₹${params.tokenAmount}`,
-      metadata: {
-        blocking_id: blocking.id,
-        lead_id: params.leadId,
-        token_amount: params.tokenAmount,
-        payment_reference: params.paymentReference,
-        payment_status: params.paymentStatus || 'unverified',
-        expires_at: expiresAt,
-      },
-    })
-
-    // Advance or create deal for this lead
-    const { data: existingDeal } = await service
-      .from('deals')
-      .select('id')
-      .eq('org_id', params.orgId)
-      .eq('lead_id', params.leadId)
-      .eq('project_id', params.projectId)
+      .eq('id', blockingId)
       .maybeSingle()
 
-    if (existingDeal) {
-      await service
-        .from('deals')
-        .update({
-          inventory_id: params.inventoryId,
-          stage: 'unit_blocked',
-          probability: 70,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', existingDeal.id)
-    } else {
-      await service.from('deals').insert({
-        org_id: params.orgId,
-        project_id: params.projectId,
-        lead_id: params.leadId,
-        inventory_id: params.inventoryId,
-        stage: 'unit_blocked',
-        probability: 70,
-        notes: `Unit ${unit.unit_number} blocked with token of ₹${params.tokenAmount}`,
-      })
-    }
-
-    return { success: true, data: blocking as unknown as InventoryBlocking }
+    return { success: true, data: (fullBlocking || rows[0]) as unknown as InventoryBlocking }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     return { success: false, error: msg }
@@ -404,78 +271,12 @@ export async function releaseBlocking(params: {
       } as never
     )
 
-    if (!rpcErr && rpcData) {
-      return { success: true }
-    }
-
-    if (rpcErr && !rpcErr.message.includes('function') && !rpcErr.message.includes('does not exist')) {
+    if (rpcErr) {
       return { success: false, error: rpcErr.message }
     }
 
-    // 2. Fallback with invariant protection
-    const { data: blocking, error: fetchErr } = await service
-      .from('inventory_blockings')
-      .select('id, inventory_id, status, lead_id, project_id')
-      .eq('id', params.blockingId)
-      .eq('org_id', params.orgId)
-      .single()
-
-    if (fetchErr || !blocking) {
-      return { success: false, error: 'Blocking record not found' }
-    }
-
-    if (blocking.status !== 'active') {
-      return { success: false, error: `Blocking cannot be released. Current status is ${blocking.status}` }
-    }
-
-    // Verify current unit status before modifying
-    const { data: unit } = await service
-      .from('inventory_items')
-      .select('status')
-      .eq('id', blocking.inventory_id)
-      .eq('org_id', params.orgId)
-      .single()
-
-    // Mark blocking as cancelled
-    const { error: updateErr } = await service
-      .from('inventory_blockings')
-      .update({
-        status: 'cancelled',
-        remarks: params.reason ? `Released: ${params.reason}` : 'Hold released manually',
-        updated_at: now,
-      })
-      .eq('id', blocking.id)
-
-    if (updateErr) return { success: false, error: updateErr.message }
-
-    // CRITICAL INVARIANT: Revert inventory item back to available ONLY IF currently blocked
-    if (unit && unit.status === 'blocked') {
-      await service
-        .from('inventory_items')
-        .update({ status: 'available', updated_at: now })
-        .eq('id', blocking.inventory_id)
-        .eq('org_id', params.orgId)
-
-      let actorId = params.releasedBy
-      if (!actorId) {
-        const { data: member } = await service
-          .from('org_members')
-          .select('profile_id')
-          .eq('org_id', params.orgId)
-          .limit(1)
-          .maybeSingle()
-        actorId = member?.profile_id || blocking.lead_id
-      }
-
-      await service.from('inventory_status_history').insert({
-        inventory_id: blocking.inventory_id,
-        org_id: params.orgId,
-        previous_status: 'blocked',
-        new_status: 'available',
-        changed_by: actorId,
-        reason: params.reason ? `Hold released: ${params.reason}` : 'Hold released manually',
-        metadata: { blocking_id: blocking.id, action: 'release_hold' },
-      })
+    if (!rpcData) {
+      return { success: false, error: 'Release atomic RPC returned no data' }
     }
 
     return { success: true }
@@ -552,82 +353,20 @@ export async function getActiveUnitBooking(
 
 export async function releaseExpiredBlockings(orgId?: string): Promise<number> {
   const service = createServiceClient()
-  const now = new Date().toISOString()
 
-  try {
-    // 1. Attempt atomic PostgreSQL sweep RPC execution
-    const { data: rpcData, error: rpcErr } = await service.rpc(
-      'sweep_expired_holds_atomic' as never,
-      { p_org_id: orgId || null } as never
-    )
+  // Atomic PostgreSQL sweep RPC execution ONLY - fail closed, no sequential fallback
+  const { data: rpcData, error: rpcErr } = await service.rpc(
+    'sweep_expired_holds_atomic' as never,
+    { p_org_id: orgId || null } as never
+  )
 
-    if (!rpcErr && rpcData) {
-      const rows = Array.isArray(rpcData) ? rpcData : [rpcData]
-      return rows.length
-    }
-
-    // 2. Fallback sweep with invariant protection
-    let query = service
-      .from('inventory_blockings')
-      .select('id, inventory_id, org_id')
-      .eq('status', 'active')
-      .lt('expires_at', now)
-
-    if (orgId) query = query.eq('org_id', orgId)
-
-    const { data: expired } = await query
-    if (!expired || expired.length === 0) return 0
-
-    let releasedCount = 0
-    for (const item of expired) {
-      // Mark blocking as expired
-      await service
-        .from('inventory_blockings')
-        .update({ status: 'expired', updated_at: now })
-        .eq('id', item.id)
-
-      // Fetch unit to verify invariant
-      const { data: unit } = await service
-        .from('inventory_items')
-        .select('status')
-        .eq('id', item.inventory_id)
-        .eq('org_id', item.org_id)
-        .single()
-
-      if (unit && unit.status === 'blocked') {
-        // Revert unit back to available
-        await service
-          .from('inventory_items')
-          .update({ status: 'available', updated_at: now })
-          .eq('id', item.inventory_id)
-          .eq('org_id', item.org_id)
-
-        const { data: member } = await service
-          .from('org_members')
-          .select('profile_id')
-          .eq('org_id', item.org_id)
-          .limit(1)
-          .maybeSingle()
-        const systemActorId = member?.profile_id || item.id
-
-        await service.from('inventory_status_history').insert({
-          inventory_id: item.inventory_id,
-          org_id: item.org_id,
-          previous_status: 'blocked',
-          new_status: 'available',
-          changed_by: systemActorId,
-          reason: 'Hold expired automatically (hold duration elapsed)',
-          metadata: { blocking_id: item.id, action: 'auto_expire' },
-        })
-      }
-
-      releasedCount++
-    }
-
-    return releasedCount
-  } catch {
-    return 0
+  if (rpcErr) {
+    throw new Error(`Failed to sweep expired holds atomically: ${rpcErr.message}`)
   }
+
+  if (!rpcData) return 0
+  const rows = Array.isArray(rpcData) ? rpcData : [rpcData]
+  return rows.length
 }
 
 // ---------------------------------------------------------------------------
@@ -680,255 +419,36 @@ export async function createBooking(params: {
       } as never
     )
 
-    if (!rpcErr && rpcData) {
-      const rows = Array.isArray(rpcData) ? rpcData : [rpcData]
-      if (rows.length > 0) {
-        const bookingId =
-          (rows[0] as { booking_id?: string; id?: string }).booking_id ||
-          (rows[0] as { id?: string }).id ||
-          ''
-        const { data: fullBooking } = await service
-          .from('bookings')
-          .select(`
-            *,
-            lead:leads(id, name, phone, email),
-            inventory:inventory_items(id, unit_number, category, total_price),
-            project:projects(id, name)
-          `)
-          .eq('id', bookingId)
-          .single()
-
-        return { success: true, data: (fullBooking || rows[0]) as unknown as Booking }
-      }
-    }
-
-    if (rpcErr && !rpcErr.message.includes('function') && !rpcErr.message.includes('does not exist')) {
+    if (rpcErr) {
       return { success: false, error: rpcErr.message }
     }
 
-    // 2. Fallback logic with idempotency and commercial verification
-    if (params.idempotencyKey) {
-      const { data: existing } = await service
-        .from('bookings')
-        .select(`
-          *,
-          lead:leads(id, name, phone, email),
-          inventory:inventory_items(id, unit_number, category, total_price),
-          project:projects(id, name)
-        `)
-        .eq('org_id', params.orgId)
-        .eq('idempotency_key', params.idempotencyKey)
-        .maybeSingle()
-
-      if (existing) {
-        return { success: true, data: existing as unknown as Booking }
-      }
+    if (!rpcData) {
+      return { success: false, error: 'Booking atomic RPC returned no data' }
     }
 
-    // Verify unit status
-    const { data: unit, error: unitErr } = await service
-      .from('inventory_items')
-      .select('id, status, super_built_up_area, unit_number')
-      .eq('id', params.inventoryId)
-      .eq('org_id', params.orgId)
-      .single()
-
-    if (unitErr || !unit) {
-      return { success: false, error: 'Inventory unit not found or access denied' }
+    const rows = Array.isArray(rpcData) ? rpcData : [rpcData]
+    if (rows.length === 0) {
+      return { success: false, error: 'Booking atomic RPC returned empty record' }
     }
 
-    // Unit must be either 'available' or 'blocked' (if converting from a blocking)
-    if (unit.status !== 'available' && unit.status !== 'blocked') {
-      return {
-        success: false,
-        error: `Cannot book unit. Current unit status is ${unit.status}`,
-      }
-    }
+    const bookingId =
+      (rows[0] as { booking_id?: string; id?: string }).booking_id ||
+      (rows[0] as { id?: string }).id ||
+      ''
 
-    if (params.basePrice <= 0) {
-      return { success: false, error: 'Base price must be greater than zero' }
-    }
-
-    // If converting from blocking, verify blocking details
-    if (params.blockingId) {
-      const { data: blk, error: blkErr } = await service
-        .from('inventory_blockings')
-        .select('id, status, inventory_id, lead_id')
-        .eq('id', params.blockingId)
-        .eq('org_id', params.orgId)
-        .single()
-
-      if (blkErr || !blk) {
-        return { success: false, error: 'Blocking record not found' }
-      }
-      if (blk.status !== 'active') {
-        return { success: false, error: `Cannot convert hold: status is ${blk.status} (expected active)` }
-      }
-      if (blk.inventory_id !== params.inventoryId) {
-        return { success: false, error: 'Blocking unit does not match requested unit' }
-      }
-      if (blk.lead_id !== params.leadId) {
-        return { success: false, error: 'Blocking buyer does not match requested buyer' }
-      }
-    }
-
-    const bookingNumber = generateBookingNumber()
-    const additional = params.additionalCharges || 0
-    const totalAmount = params.basePrice + additional
-
-    // Insert Booking
-    const { data: booking, error: bookErr } = await service
+    const { data: fullBooking } = await service
       .from('bookings')
-      .insert({
-        org_id: params.orgId,
-        project_id: params.projectId,
-        inventory_id: params.inventoryId,
-        lead_id: params.leadId,
-        blocking_id: params.blockingId || null,
-        channel_partner_id: params.channelPartnerId || null,
-        booking_number: bookingNumber,
-        status: 'confirmed',
-        base_price: params.basePrice,
-        additional_charges: additional,
-        total_amount: totalAmount,
-        booking_amount_received: params.bookingAmountReceived,
-        payment_plan: params.paymentPlan || 'construction_linked',
-        payment_status: params.paymentStatus || 'unverified',
-        idempotency_key: params.idempotencyKey || null,
-        remarks: params.remarks || null,
-      })
       .select(`
         *,
         lead:leads(id, name, phone, email),
         inventory:inventory_items(id, unit_number, category, total_price),
         project:projects(id, name)
       `)
-      .single()
-
-    if (bookErr) return { success: false, error: bookErr.message }
-
-    // Mark unit status as 'booked'
-    await service
-      .from('inventory_items')
-      .update({ status: 'booked', updated_at: new Date().toISOString() })
-      .eq('id', params.inventoryId)
-      .eq('org_id', params.orgId)
-
-    // Resolve actor profile id for audit tracking
-    let actorId = params.actorProfileId
-    if (!actorId) {
-      const { data: member } = await service
-        .from('org_members')
-        .select('profile_id')
-        .eq('org_id', params.orgId)
-        .limit(1)
-        .maybeSingle()
-      actorId = member?.profile_id || params.leadId
-    }
-
-    // Record audit history in inventory_status_history
-    await service.from('inventory_status_history').insert({
-      inventory_id: params.inventoryId,
-      org_id: params.orgId,
-      previous_status: unit.status,
-      new_status: 'booked',
-      changed_by: actorId,
-      reason: params.remarks ? `Confirmed Booking: ${params.remarks}` : `Confirmed Booking #${bookingNumber}`,
-      metadata: {
-        booking_id: booking.id,
-        booking_number: bookingNumber,
-        lead_id: params.leadId,
-        total_amount: totalAmount,
-        booking_amount_received: params.bookingAmountReceived,
-        payment_plan: params.paymentPlan || 'construction_linked',
-        blocking_id: params.blockingId || null,
-      },
-    })
-
-    // If converted from blocking, update blocking status
-    if (params.blockingId) {
-      await service
-        .from('inventory_blockings')
-        .update({ status: 'converted_to_booking', updated_at: new Date().toISOString() })
-        .eq('id', params.blockingId)
-    }
-
-    // Advance or create deal for this lead in stage 'booked' (100% probability)
-    const { data: existingDeal } = await service
-      .from('deals')
-      .select('id')
-      .eq('org_id', params.orgId)
-      .eq('lead_id', params.leadId)
-      .eq('project_id', params.projectId)
+      .eq('id', bookingId)
       .maybeSingle()
 
-    if (existingDeal) {
-      await service
-        .from('deals')
-        .update({
-          inventory_id: params.inventoryId,
-          stage: 'booked',
-          probability: 100,
-          deal_value: totalAmount,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', existingDeal.id)
-    } else {
-      await service.from('deals').insert({
-        org_id: params.orgId,
-        project_id: params.projectId,
-        lead_id: params.leadId,
-        inventory_id: params.inventoryId,
-        stage: 'booked',
-        probability: 100,
-        deal_value: totalAmount,
-        notes: `Unit ${unit.unit_number} booked under #${bookingNumber}`,
-      })
-    }
-
-    // If channel partner attached, generate commission record
-    if (params.channelPartnerId) {
-      const { data: cp } = await service
-        .from('channel_partners')
-        .select('default_commission_rate')
-        .eq('id', params.channelPartnerId)
-        .single()
-
-      const rate = cp?.default_commission_rate || 2.0
-      const gross = (totalAmount * rate) / 100
-      const tds = (gross * 5.0) / 100
-      const net = gross - tds
-
-      await service.from('channel_partner_commissions').insert({
-        org_id: params.orgId,
-        booking_id: booking.id,
-        channel_partner_id: params.channelPartnerId,
-        commission_type: 'percentage',
-        commission_rate: rate,
-        gross_commission_amount: gross,
-        tds_percentage: 5.0,
-        net_commission_amount: net,
-        status: 'pending_approval',
-        milestones: [
-          {
-            name: 'Booking Advance Milestone',
-            percentage: 50,
-            amount: net * 0.5,
-            trigger_event: 'booking_confirmed',
-            is_paid: false,
-          },
-          {
-            name: 'Sale Agreement Registration Milestone',
-            percentage: 50,
-            amount: net * 0.5,
-            trigger_event: 'agreement_signed',
-            is_paid: false,
-          },
-        ] as unknown as import('@/types/database').Json,
-      })
-    }
-
-    return { success: true, data: booking as unknown as Booking }
+    return { success: true, data: (fullBooking || rows[0]) as unknown as Booking }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     return { success: false, error: msg }

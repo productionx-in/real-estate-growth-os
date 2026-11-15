@@ -1,0 +1,144 @@
+name: Phase 2 Developer Booking Validation & Concurrency
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-booking-workflow:
+    name: Phase 2 Clean DB Migrations, Booking RPCs & Concurrency
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      # 1. Checkout Repository
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js Environment
+      - name: Setup Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # 3. Install Project Dependencies
+      - name: Install project dependencies
+        run: npm ci
+
+      # 4. Install Pinned Supabase CLI
+      - name: Setup Pinned Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: 2.122.1
+
+      # 5. Start Disposable Local Supabase Stack
+      - name: Start Disposable Local Supabase Stack
+        run: |
+          echo "Starting disposable local Supabase environment on runner..."
+          supabase start --debug
+          echo "Disposable Supabase services started successfully."
+          supabase status
+
+          mkdir -p diagnostics
+
+          # Export local credentials using 127.0.0.1 (IPv4)
+          echo "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres" >> $GITHUB_ENV
+          echo "SUPABASE_URL=http://127.0.0.1:54321" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321" >> $GITHUB_ENV
+
+          ANON_KEY=$(supabase status -o env | grep 'ANON_KEY=' | head -n1 | cut -d '=' -f2 | tr -d '"')
+          SERVICE_KEY=$(supabase status -o env | grep 'SERVICE_ROLE_KEY=' | head -n1 | cut -d '=' -f2 | tr -d '"')
+
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY" >> $GITHUB_ENV
+          echo "SUPABASE_ANON_KEY=$ANON_KEY" >> $GITHUB_ENV
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_KEY" >> $GITHUB_ENV
+
+      # 6. Apply Full Migration History from a Clean Database (0001 through 20260033)
+      - name: Apply Complete Migration History (Clean DB Reset 0001 - 20260033)
+        run: |
+          echo "Executing clean database reset to apply all 33 migrations in exact sequence..."
+          supabase db reset --debug
+          echo "All 33 migrations applied successfully from clean state."
+
+      # 7. Install Postgres Driver for Test Execution
+      - name: Install pg driver on runner
+        run: npm install --no-save pg
+
+      # 8. Execute Phase 2 Real Database Integration & Multi-Connection Concurrency Tests
+      - name: Execute Phase 2 Real Database Integration & Concurrency Tests
+        run: |
+          echo "Running Phase 2 real database integration and multi-connection concurrency tests..."
+          node tests/db-integration/phase2-booking-real-db.test.mjs 2>&1 | tee diagnostics/phase2-booking-real-db.log
+
+      # 9. Execute Phase 1 Regression Real DB Tests
+      - name: Execute Phase 1 Regression Real DB & Concurrency Tests
+        run: |
+          echo "Running Phase 1 regression real DB tests..."
+          node tests/db-integration/phase1-real-db.test.mjs 2>&1 | tee diagnostics/phase1-real-db.log
+          node tests/db-integration/phase1-concurrency.test.mjs 2>&1 | tee diagnostics/phase1-concurrency.log
+
+      # 10. Execute Application Regression Test Suite (All 29 Test Suites)
+      - name: Execute Application Regression Test Suite
+        run: |
+          echo "Running full test suite..."
+          npm test 2>&1 | tee diagnostics/npm-test.log
+
+      # 11. Execute TypeScript Compiler Check
+      - name: Execute TypeScript Compiler Check
+        run: |
+          echo "Validating TypeScript types..."
+          npx tsc --noEmit 2>&1 | tee diagnostics/tsc-check.log
+
+      # 12. Capture Database Catalog Diagnostics
+      - name: Capture Database Catalog Diagnostics
+        if: always()
+        run: |
+          mkdir -p diagnostics
+          echo "Dumping routine definitions..."
+          psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "
+            SELECT routine_name, routine_type, security_type, specific_schema 
+            FROM information_schema.routines 
+            WHERE specific_schema = 'public' 
+            ORDER BY routine_name;
+          " > diagnostics/catalog_routines.txt 2>&1 || true
+
+          echo "Dumping table RLS states..."
+          psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "
+            SELECT tablename, rowsecurity 
+            FROM pg_tables 
+            WHERE schemaname = 'public' 
+            ORDER BY tablename;
+          " > diagnostics/catalog_tables.txt 2>&1 || true
+
+          echo "=== Test Log Summaries ==="
+          for f in diagnostics/*.log; do
+            if [ -f "$f" ]; then
+              echo "--- $f (last 50 lines) ---"
+              tail -n 50 "$f"
+            fi
+          done
+
+      # 13. Publish Diagnostic Artifacts
+      - name: Publish Test Artifacts & Diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-booking-validation-diagnostics
+          path: diagnostics/
+          retention-days: 7
+
+      # 14. Clean Up Disposable Environment
+      - name: Clean Up Disposable Supabase Stack
+        if: always()
+        run: |
+          echo "Stopping and tearing down disposable local Supabase containers..."
+          supabase stop || true

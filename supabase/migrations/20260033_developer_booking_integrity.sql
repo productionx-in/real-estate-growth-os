@@ -34,7 +34,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_active_blocking_per_unit
 -- B. Prevent double-booking: at most one active booking on any inventory unit
 CREATE UNIQUE INDEX IF NOT EXISTS uq_active_booking_per_unit
   ON public.bookings(inventory_id)
-  WHERE status IN ('confirmed', 'agreement_signed', 'registered');
+  WHERE status != 'cancelled';
 
 -- C. Idempotency keys scoped by organisation
 CREATE UNIQUE INDEX IF NOT EXISTS uq_inventory_blockings_idempotency
@@ -92,8 +92,7 @@ DECLARE
 BEGIN
   -- Idempotency Check: if idempotency key provided and already exists, return existing record
   IF p_idempotency_key IS NOT NULL THEN
-    SELECT ib.id, ib.org_id, ib.project_id, ib.inventory_id, ib.lead_id, ib.token_amount, ib.status, ib.expires_at, ib.created_at
-    INTO v_blocking_id, v_unit_org_id, v_unit_project_id, v_unit_org_id, v_lead_org_id, p_token_amount, v_unit_number, v_expires_at, v_created_at
+    SELECT ib.id INTO v_blocking_id
     FROM public.inventory_blockings ib
     WHERE ib.org_id = p_org_id AND ib.idempotency_key = p_idempotency_key;
 
@@ -157,6 +156,12 @@ BEGIN
     LIMIT 1;
   END IF;
 
+  IF v_actor_profile_id IS NULL THEN
+    SELECT p.id INTO v_actor_profile_id
+    FROM public.profiles p
+    LIMIT 1;
+  END IF;
+
   -- Calculate expiry
   v_expires_at := pg_catalog.now() + (p_hold_duration_hours || ' hours')::interval;
   v_created_at := pg_catalog.now();
@@ -216,7 +221,7 @@ BEGIN
     p_org_id,
     'available',
     'blocked',
-    COALESCE(v_actor_profile_id, p_lead_id),
+    v_actor_profile_id,
     COALESCE(p_remarks, 'Hold placed with token ₹' || p_token_amount::text),
     json_build_object(
       'blocking_id', v_blocking_id,
@@ -341,6 +346,12 @@ BEGIN
     LIMIT 1;
   END IF;
 
+  IF v_actor_profile_id IS NULL THEN
+    SELECT p.id INTO v_actor_profile_id
+    FROM public.profiles p
+    LIMIT 1;
+  END IF;
+
   -- 3. Mark blocking as cancelled
   UPDATE public.inventory_blockings
   SET status = 'cancelled',
@@ -372,7 +383,7 @@ BEGIN
       p_org_id,
       'blocked',
       'available',
-      COALESCE(v_actor_profile_id, v_inv_id),
+      v_actor_profile_id,
       COALESCE(p_reason, 'Hold released manually'),
       json_build_object('blocking_id', p_blocking_id, 'action', 'release_hold')::jsonb,
       v_now
@@ -440,8 +451,7 @@ DECLARE
 BEGIN
   -- Idempotency Check: if idempotency key provided and exists, return existing booking
   IF p_idempotency_key IS NOT NULL THEN
-    SELECT b.id, b.booking_number, b.total_amount, b.status, b.created_at
-    INTO v_booking_id, v_booking_number, v_total_amount, v_unit_number, v_now
+    SELECT b.id INTO v_booking_id
     FROM public.bookings b
     WHERE b.org_id = p_org_id AND b.idempotency_key = p_idempotency_key;
 
@@ -536,6 +546,12 @@ BEGIN
     LIMIT 1;
   END IF;
 
+  IF v_actor_profile_id IS NULL THEN
+    SELECT p.id INTO v_actor_profile_id
+    FROM public.profiles p
+    LIMIT 1;
+  END IF;
+
   -- Generate unique booking number
   v_booking_number := 'BK-' || to_char(v_now, 'YYYYMMDD') || '-' || floor(1000 + random() * 9000)::text;
 
@@ -604,7 +620,7 @@ BEGIN
     p_org_id,
     v_unit_status,
     'booked',
-    COALESCE(v_actor_profile_id, p_lead_id),
+    v_actor_profile_id,
     COALESCE(p_remarks, 'Confirmed Booking #' || v_booking_number),
     json_build_object(
       'booking_id', v_booking_id,
@@ -777,6 +793,12 @@ BEGIN
       WHERE om.org_id = v_rec.org_id
       LIMIT 1;
 
+      IF v_system_actor_id IS NULL THEN
+        SELECT p.id INTO v_system_actor_id
+        FROM public.profiles p
+        LIMIT 1;
+      END IF;
+
       INSERT INTO public.inventory_status_history (
         inventory_id,
         org_id,
@@ -791,7 +813,7 @@ BEGIN
         v_rec.org_id,
         'blocked',
         'available',
-        COALESCE(v_system_actor_id, v_rec.inventory_id),
+        v_system_actor_id,
         'Hold expired automatically (hold duration elapsed)',
         json_build_object('blocking_id', v_rec.id, 'action', 'auto_expire')::jsonb,
         v_now
