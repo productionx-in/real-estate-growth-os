@@ -9,6 +9,7 @@
 -- 1. Trigger function: Ensure hierarchy nodes belong to same project & org as their parent
 CREATE OR REPLACE FUNCTION validate_hierarchy_node_consistency()
 RETURNS TRIGGER
+LANGUAGE plpgsql
 SET search_path = public, pg_temp
 AS $$
 DECLARE
@@ -46,6 +47,7 @@ CREATE TRIGGER trg_validate_hierarchy_node_consistency
 -- 2. Trigger function: Ensure inventory item consistency (org match, category match, hierarchy node match)
 CREATE OR REPLACE FUNCTION validate_inventory_item_integrity()
 RETURNS TRIGGER
+LANGUAGE plpgsql
 SET search_path = public, pg_temp
 AS $$
 DECLARE
@@ -116,8 +118,9 @@ RETURNS TABLE (
   unit_number TEXT,
   status inventory_status
 )
-SET search_path = public, pg_temp
+LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, pg_temp
 AS $$
 DECLARE
   v_current_status inventory_status;
