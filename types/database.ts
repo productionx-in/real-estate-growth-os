@@ -12,6 +12,8 @@ export type Json =
 export type OrgType = 'developer' | 'channel_partner'
 export type OrgPlan = 'free' | 'growth' | 'enterprise'
 export type MemberRole = 'owner' | 'admin' | 'manager' | 'sales_exec' | 'readonly'
+export type PlatformRole = 'super_admin' | 'sales_rep' | 'finance_admin' | 'support_agent'
+export type OnboardingRequestStatus = 'draft' | 'pending_approval' | 'approved' | 'provisioned' | 'rejected'
 
 // Standard 5 Project Categories
 export type ProjectCategory =
@@ -69,6 +71,297 @@ export type ActivityType =
 export interface Database {
   public: {
     Tables: {
+      platform_users: {
+        Row: {
+          id: string
+          user_id: string
+          role: PlatformRole
+          is_active: boolean
+          mfa_enforced: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          role: PlatformRole
+          is_active?: boolean
+          mfa_enforced?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          role?: PlatformRole
+          is_active?: boolean
+          mfa_enforced?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_mfa_recovery_codes: {
+        Row: {
+          id: string
+          platform_user_id: string
+          code_hash: string
+          is_used: boolean
+          used_at: string | null
+          used_by_ip: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          platform_user_id: string
+          code_hash: string
+          is_used?: boolean
+          used_at?: string | null
+          used_by_ip?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          platform_user_id?: string
+          code_hash?: string
+          is_used?: boolean
+          used_at?: string | null
+          used_by_ip?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      platform_audit_logs: {
+        Row: {
+          id: string
+          actor_user_id: string
+          actor_role: PlatformRole
+          action: string
+          target_entity_type: string
+          target_entity_id: string
+          metadata: Json
+          ip_address: string | null
+          user_agent: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          actor_user_id: string
+          actor_role: PlatformRole
+          action: string
+          target_entity_type: string
+          target_entity_id: string
+          metadata?: Json
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          actor_user_id?: string
+          actor_role?: PlatformRole
+          action?: string
+          target_entity_type?: string
+          target_entity_id?: string
+          metadata?: Json
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      customer_onboarding_requests: {
+        Row: {
+          id: string
+          requested_by: string
+          company_name: string
+          company_type: OrgType
+          admin_email: string
+          admin_name: string
+          admin_phone: string | null
+          commercial_notes: string | null
+          requested_plan_code: string
+          requested_seats: number
+          requested_billing_cycle: string
+          approved_plan_code: string | null
+          approved_seats: number | null
+          approved_billing_cycle: string | null
+          status: OnboardingRequestStatus
+          reviewed_by: string | null
+          reviewed_at: string | null
+          provisioned_org_id: string | null
+          rejection_reason: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          requested_by: string
+          company_name: string
+          company_type: OrgType
+          admin_email: string
+          admin_name: string
+          admin_phone?: string | null
+          commercial_notes?: string | null
+          requested_plan_code: string
+          requested_seats: number
+          requested_billing_cycle?: string
+          approved_plan_code?: string | null
+          approved_seats?: number | null
+          approved_billing_cycle?: string | null
+          status?: OnboardingRequestStatus
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          provisioned_org_id?: string | null
+          rejection_reason?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          requested_by?: string
+          company_name?: string
+          company_type?: OrgType
+          admin_email?: string
+          admin_name?: string
+          admin_phone?: string | null
+          commercial_notes?: string | null
+          requested_plan_code?: string
+          requested_seats?: number
+          requested_billing_cycle?: string
+          approved_plan_code?: string | null
+          approved_seats?: number | null
+          approved_billing_cycle?: string | null
+          status?: OnboardingRequestStatus
+          reviewed_by?: string | null
+          reviewed_at?: string | null
+          provisioned_org_id?: string | null
+          rejection_reason?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          id: string
+          code: string
+          name: string
+          target_org_type: OrgType
+          description: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          code: string
+          name: string
+          target_org_type: OrgType
+          description?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          code?: string
+          name?: string
+          target_org_type?: OrgType
+          description?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_plan_versions: {
+        Row: {
+          id: string
+          plan_id: string
+          version_number: number
+          is_current: boolean
+          included_seats: number
+          max_projects: number | null
+          max_inventory_units: number | null
+          max_storage_bytes: number | null
+          max_integrations: number | null
+          intelligence_credits_monthly: number | null
+          currency: string
+          base_price_monthly_cents: number
+          base_price_annual_cents: number
+          additional_seat_price_cents: number
+          features: Json
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          plan_id: string
+          version_number: number
+          is_current?: boolean
+          included_seats: number
+          max_projects?: number | null
+          max_inventory_units?: number | null
+          max_storage_bytes?: number | null
+          max_integrations?: number | null
+          intelligence_credits_monthly?: number | null
+          currency?: string
+          base_price_monthly_cents?: number
+          base_price_annual_cents?: number
+          additional_seat_price_cents?: number
+          features?: Json
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          plan_id?: string
+          version_number?: number
+          is_current?: boolean
+          included_seats?: number
+          max_projects?: number | null
+          max_inventory_units?: number | null
+          max_storage_bytes?: number | null
+          max_integrations?: number | null
+          intelligence_credits_monthly?: number | null
+          currency?: string
+          base_price_monthly_cents?: number
+          base_price_annual_cents?: number
+          additional_seat_price_cents?: number
+          features?: Json
+          created_by?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      org_subscription_seat_purchases: {
+        Row: {
+          id: string
+          org_id: string
+          subscription_id: string
+          seats_added: number
+          purchased_at: string
+          status: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          subscription_id: string
+          seats_added: number
+          purchased_at?: string
+          status?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          subscription_id?: string
+          seats_added?: number
+          purchased_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       organisations: {
         Row: {
           id: string
@@ -197,6 +490,15 @@ export interface Database {
           billing_cycle: 'monthly' | 'annual'
           current_period_start: string
           current_period_end: string
+          plan_version_id: string | null
+          grace_period_ends_at: string | null
+          is_read_only: boolean
+          read_only_reason: string | null
+          canceled_at: string | null
+          cancel_at_period_end: boolean
+          last_verified_payment_id: string | null
+          restored_at: string | null
+          restored_by: string | null
           created_at: string
           updated_at: string
         }
@@ -210,6 +512,15 @@ export interface Database {
           billing_cycle?: 'monthly' | 'annual'
           current_period_start?: string
           current_period_end?: string
+          plan_version_id?: string | null
+          grace_period_ends_at?: string | null
+          is_read_only?: boolean
+          read_only_reason?: string | null
+          canceled_at?: string | null
+          cancel_at_period_end?: boolean
+          last_verified_payment_id?: string | null
+          restored_at?: string | null
+          restored_by?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -223,6 +534,15 @@ export interface Database {
           billing_cycle?: 'monthly' | 'annual'
           current_period_start?: string
           current_period_end?: string
+          plan_version_id?: string | null
+          grace_period_ends_at?: string | null
+          is_read_only?: boolean
+          read_only_reason?: string | null
+          canceled_at?: string | null
+          cancel_at_period_end?: boolean
+          last_verified_payment_id?: string | null
+          restored_at?: string | null
+          restored_by?: string | null
           created_at?: string
           updated_at?: string
         }

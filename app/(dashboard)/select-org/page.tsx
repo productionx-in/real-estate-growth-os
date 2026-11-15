@@ -53,7 +53,7 @@ export default async function SelectOrgPage() {
     redirect('/create-org')
   }
 
-  // Find user's organisations
+  // Find user's active organisations
   const { data: memberships } = await service
     .from('org_members')
     .select(`
@@ -61,6 +61,7 @@ export default async function SelectOrgPage() {
       organisation:organisations(id, name, slug, type)
     `)
     .eq('profile_id', profile.id)
+    .eq('status', 'active')
     .order('joined_at', { ascending: true })
 
   if (!memberships || memberships.length === 0) {

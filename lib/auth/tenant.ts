@@ -131,7 +131,7 @@ export async function authorizeOrgAccess(
 
   const { data: membership } = await service
     .from('org_members')
-    .select('role')
+    .select('role, status')
     .eq('org_id', orgId)
     .eq('profile_id', auth.profile.id)
     .maybeSingle()
@@ -141,6 +141,16 @@ export async function authorizeOrgAccess(
       success: false,
       response: NextResponse.json(
         { error: 'Forbidden. You do not belong to this organisation.' },
+        { status: 403 }
+      ),
+    }
+  }
+
+  if (membership.status !== 'active') {
+    return {
+      success: false,
+      response: NextResponse.json(
+        { error: 'Forbidden. Your membership in this organisation has been deactivated or suspended.' },
         { status: 403 }
       ),
     }
@@ -199,7 +209,7 @@ export async function authorizeProjectAccess(
 
   const { data: membership } = await service
     .from('org_members')
-    .select('role')
+    .select('role, status')
     .eq('org_id', project.org_id)
     .eq('profile_id', auth.profile.id)
     .maybeSingle()
@@ -209,6 +219,16 @@ export async function authorizeProjectAccess(
       success: false,
       response: NextResponse.json(
         { error: 'Forbidden. You do not belong to this project’s organisation.' },
+        { status: 403 }
+      ),
+    }
+  }
+
+  if (membership.status !== 'active') {
+    return {
+      success: false,
+      response: NextResponse.json(
+        { error: 'Forbidden. Your membership in this organisation has been deactivated or suspended.' },
         { status: 403 }
       ),
     }
@@ -273,7 +293,7 @@ export async function authorizeInventoryAccess(
 
   const { data: membership } = await service
     .from('org_members')
-    .select('role')
+    .select('role, status')
     .eq('org_id', item.org_id)
     .eq('profile_id', auth.profile.id)
     .maybeSingle()
@@ -283,6 +303,16 @@ export async function authorizeInventoryAccess(
       success: false,
       response: NextResponse.json(
         { error: 'Forbidden. You do not belong to this inventory’s organisation.' },
+        { status: 403 }
+      ),
+    }
+  }
+
+  if (membership.status !== 'active') {
+    return {
+      success: false,
+      response: NextResponse.json(
+        { error: 'Forbidden. Your membership in this organisation has been deactivated or suspended.' },
         { status: 403 }
       ),
     }
@@ -348,7 +378,7 @@ export async function authorizeLeadAccess(
 
   const { data: membership } = await service
     .from('org_members')
-    .select('role')
+    .select('role, status')
     .eq('org_id', lead.org_id)
     .eq('profile_id', auth.profile.id)
     .maybeSingle()
@@ -358,6 +388,16 @@ export async function authorizeLeadAccess(
       success: false,
       response: NextResponse.json(
         { error: 'Forbidden. You do not belong to this lead’s organisation.' },
+        { status: 403 }
+      ),
+    }
+  }
+
+  if (membership.status !== 'active') {
+    return {
+      success: false,
+      response: NextResponse.json(
+        { error: 'Forbidden. Your membership in this organisation has been deactivated or suspended.' },
         { status: 403 }
       ),
     }

@@ -2,10 +2,22 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/types/database'
 
-const PUBLIC_ROUTES = ['/', '/login', '/register', '/auth/callback', '/auth/confirm']
-const AUTH_ROUTES = ['/login', '/register']
+const PUBLIC_ROUTES = ['/', '/login', '/auth/callback', '/auth/confirm']
 
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // 1. Closed-SaaS Decommissioning: Redirect /register to login with closed_saas notice
+  if (pathname === '/register' || pathname.startsWith('/register/')) {
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = '/login'
+    loginUrl.searchParams.set('notice', 'closed_saas')
+    return NextResponse.redirect(loginUrl)
+  }
+
+  // 2. Allow invitation activation page to load publicly without premature login bounce
+  const isInviteRoute = pathname.startsWith('/invite/')
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -52,11 +64,12 @@ export async function proxy(request: NextRequest) {
     console.error('Failed to get user session:', error)
   }
 
-  const { pathname } = request.nextUrl
-
-  // Allow public routes
-  if (PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith('/auth/'))) {
-    if (user && AUTH_ROUTES.includes(pathname)) {
+  // Allow public routes and invite verification
+  if (
+    isInviteRoute ||
+    PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith('/auth/'))
+  ) {
+    if (user && pathname === '/login') {
       const url = request.nextUrl.clone()
       url.pathname = '/select-org'
       return NextResponse.redirect(url)

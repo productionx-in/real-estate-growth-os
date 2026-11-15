@@ -140,6 +140,18 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSignIn} className="space-y-4">
+      {searchParams.get('notice') === 'closed_saas' && (
+        <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-[13px] flex items-start gap-2.5">
+          <Shield className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+          <div>
+            <div className="font-semibold text-blue-950">Closed-SaaS Platform</div>
+            <div className="text-[12px] text-blue-700 mt-0.5 leading-relaxed">
+              Public self-service registration is disabled. Production X workspaces are provisioned by invitation or through our sales team. Please sign in to an existing account.
+            </div>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="p-3 rounded-md bg-[var(--danger-bg)] border border-red-100 text-[13px] text-[var(--danger)]">
           {error}

@@ -118,7 +118,10 @@ export function PlatformProvisioningModal() {
               <span>Customer Workspace Successfully Provisioned</span>
             </div>
             <p className="text-[12px] text-emerald-700 leading-relaxed">
-              Workspace <strong>/{provisionResult.orgSlug}</strong> created with {includedSeats} subscription seats. An activation invitation was generated for <strong>{provisionResult.adminEmail}</strong>.
+              Workspace <strong>/{provisionResult.orgSlug}</strong> created with {includedSeats} subscription seats. An activation invitation email has been securely dispatched to <strong>{provisionResult.adminEmail}</strong>.
+            </p>
+            <p className="text-[11px] text-emerald-600 mt-1">
+              For security, primary administrator tokens are never exposed in browser responses and are delivered directly via transactional email.
             </p>
           </div>
 

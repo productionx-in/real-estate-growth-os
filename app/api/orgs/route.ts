@@ -28,6 +28,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorised. Please log in first.' }, { status: 401 })
     }
 
+    // Closed-SaaS: Block public self-service organisation creation
+    const service = createServiceClient()
+    const { data: platformUser } = await service
+      .from('platform_users')
+      .select('role, is_active')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .maybeSingle()
+
+    if (!platformUser || platformUser.role !== 'super_admin') {
+      return NextResponse.json(
+        {
+          error: 'Forbidden: Self-service organisation creation is disabled on Production X. Organisations must be provisioned by a Platform Super Admin.',
+          code: 'CLOSED_SAAS_PROVISIONING_ONLY',
+        },
+        { status: 403 }
+      )
+    }
+
     const body = await request.json()
     const parsed = CreateOrgSchema.safeParse(body)
 
@@ -40,9 +59,6 @@ export async function POST(request: NextRequest) {
 
     const { name, type, seedDemoData } = parsed.data
     const baseSlug = parsed.data.slug || slugify(name)
-
-    // Use service role for workspace bootstrap
-    const service = createServiceClient()
 
     // Check reserved slug and slug uniqueness — append random suffix on collision
     let slug = baseSlug

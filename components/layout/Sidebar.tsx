@@ -323,14 +323,6 @@ export function Sidebar({
                 <Compass className="w-3.5 h-3.5" />
                 <span>All Workspaces Directory</span>
               </Link>
-              <Link
-                href="/create-org"
-                onClick={() => setIsSwitcherOpen(false)}
-                className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] text-indigo-600 hover:bg-indigo-50 transition-colors font-medium"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Create New Workspace</span>
-              </Link>
             </div>
           </div>
         )}

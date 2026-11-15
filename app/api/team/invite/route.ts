@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { createEmployeeInvitation } from '@/lib/dal/invitations'
+import { getEmailAdapter } from '@/lib/email/adapter'
 import type { MemberRole } from '@/types/database'
 import { z } from 'zod'
 
@@ -80,14 +81,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const { data: orgData } = await service
+      .from('organisations')
+      .select('name')
+      .eq('id', targetOrgId)
+      .maybeSingle()
+
     const origin = request.nextUrl.origin
-    const inviteUrl = `${origin}/invite/${result.plaintextToken}`
+    if (result.plaintextToken) {
+      const inviteUrl = `${origin}/invite/${result.plaintextToken}`
+      const mailer = getEmailAdapter()
+      await mailer.sendInvitationEmail({
+        to: email,
+        orgName: orgData?.name || 'Workspace',
+        role: role,
+        inviteUrl,
+        inviterName: auth.profile.full_name,
+      })
+    }
 
     return NextResponse.json(
       {
         success: true,
         invitation: result.invitation,
-        inviteUrl,
+        emailDispatched: true,
       },
       { status: 201 }
     )
