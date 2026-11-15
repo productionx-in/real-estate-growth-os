@@ -140,6 +140,12 @@ ALTER TABLE public.org_subscriptions
   ADD COLUMN IF NOT EXISTS contracted_currency TEXT DEFAULT 'INR',
   ADD COLUMN IF NOT EXISTS commercial_override_id UUID REFERENCES public.subscription_commercial_overrides(id) ON DELETE SET NULL;
 
+-- Alter org_subscription_invoices to record invoice type, seat quantity, and unit price
+ALTER TABLE public.org_subscription_invoices
+  ADD COLUMN IF NOT EXISTS invoice_type TEXT NOT NULL DEFAULT 'subscription' CHECK (invoice_type IN ('subscription', 'renewal', 'additional_seats')),
+  ADD COLUMN IF NOT EXISTS seat_quantity INTEGER DEFAULT NULL CHECK (seat_quantity IS NULL OR seat_quantity > 0),
+  ADD COLUMN IF NOT EXISTS unit_price_cents BIGINT DEFAULT NULL CHECK (unit_price_cents IS NULL OR unit_price_cents > 0);
+
 
 -- RPC: Create Commercial Override (Strict Role Enforcement: super_admin or platform_admin ONLY)
 CREATE OR REPLACE FUNCTION public.create_commercial_override_atomic(
@@ -1094,12 +1100,7 @@ BEGIN
     END IF;
   END IF;
 
-  -- 7. Subscription State Validation
-  IF v_sub.status != 'pending_payment' THEN
-    RAISE EXCEPTION 'Invalid state: subscription is in status %, expected pending_payment. Duplicate activation rejected.', v_sub.status;
-  END IF;
-
-  -- 8. Invoice Validation
+  -- 7. Invoice Validation
   IF v_invoice.status != 'issued' THEN
     RAISE EXCEPTION 'Invalid state: invoice % is in status %, expected issued', v_invoice.invoice_number, v_invoice.status;
   END IF;
@@ -1112,15 +1113,7 @@ BEGIN
     RAISE EXCEPTION 'Validation error: submitted currency % does not match invoice currency %', p_currency, v_invoice.currency;
   END IF;
 
-  -- 9. Compute Paid Billing Anniversary Dates (CALENDAR INTERVALS: 1 year / 1 month)
-  v_new_period_start := now();
-  IF v_sub.billing_cycle = 'annual' THEN
-    v_new_period_end := v_new_period_start + INTERVAL '1 year';
-  ELSE
-    v_new_period_end := v_new_period_start + INTERVAL '1 month';
-  END IF;
-
-  -- 10. Insert Canonical Payment Transaction Record
+  -- 8. Insert Canonical Payment Transaction Record
   INSERT INTO public.org_subscription_payments (
     payment_reference,
     invoice_id,
@@ -1143,7 +1136,7 @@ BEGIN
     now()
   );
 
-  -- 11. Settle Invoice
+  -- 9. Settle Invoice to Paid
   UPDATE public.org_subscription_invoices
   SET status = 'paid',
       paid_at = now(),
@@ -1151,57 +1144,199 @@ BEGIN
       updated_at = now()
   WHERE id = v_invoice.id;
 
-  -- 12. Activate Subscription with Established Anniversary Dates
-  UPDATE public.org_subscriptions
-  SET status = 'active',
-      current_period_start = v_new_period_start,
-      current_period_end = v_new_period_end,
-      updated_at = now()
-  WHERE id = v_sub.id;
+  -- 10. Process Payment Effect Based on Authoritative Invoice Type
+  IF v_invoice.invoice_type = 'additional_seats' THEN
+    -- A. Additional Seats Payment: Subscription must already be active
+    IF v_sub.status != 'active' THEN
+      RAISE EXCEPTION 'Invalid state: subscription is in status %, expected active to activate additional seats.', v_sub.status;
+    END IF;
 
-  -- 13. Write Platform Audit Log using ACTUAL SCHEMA COLUMNS
-  INSERT INTO public.platform_audit_logs (
-    actor_user_id,
-    actor_role,
-    action,
-    target_entity_type,
-    target_entity_id,
-    metadata,
-    ip_address,
-    user_agent,
-    created_at
-  ) VALUES (
-    p_actor_auth_id,
-    v_caller_role,
-    'verify_payment_and_activate_subscription',
-    'org_subscriptions',
-    v_sub.id,
-    jsonb_build_object(
-      'org_id', p_org_id,
+    IF v_invoice.seat_quantity IS NULL OR v_invoice.seat_quantity <= 0 THEN
+      RAISE EXCEPTION 'Data integrity error: additional_seats invoice % has invalid seat_quantity %', v_invoice.invoice_number, v_invoice.seat_quantity;
+    END IF;
+
+    -- Atomically activate additional seats ONLY upon verified payment!
+    UPDATE public.org_subscriptions
+    SET additional_seats = additional_seats + v_invoice.seat_quantity,
+        updated_at = now()
+    WHERE id = v_sub.id;
+
+    -- Audit Log for Seat Activation
+    INSERT INTO public.platform_audit_logs (
+      actor_user_id,
+      actor_role,
+      action,
+      target_entity_type,
+      target_entity_id,
+      metadata,
+      ip_address,
+      user_agent,
+      created_at
+    ) VALUES (
+      p_actor_auth_id,
+      v_caller_role,
+      'activate_additional_seats',
+      'org_subscriptions',
+      v_sub.id,
+      jsonb_build_object(
+        'org_id', p_org_id,
+        'invoice_id', v_invoice.id,
+        'invoice_number', v_invoice.invoice_number,
+        'payment_reference', v_clean_ref,
+        'amount_cents', p_amount_cents,
+        'currency', p_currency,
+        'seats_activated', v_invoice.seat_quantity,
+        'previous_additional_seats', v_sub.additional_seats,
+        'new_total_additional_seats', v_sub.additional_seats + v_invoice.seat_quantity,
+        'new_total_usable_seats', v_sub.included_seats + v_sub.additional_seats + v_invoice.seat_quantity
+      ),
+      p_ip_address,
+      p_user_agent,
+      now()
+    );
+
+    RETURN jsonb_build_object(
+      'status', 'seats_activated',
+      'subscription_id', v_sub.id,
+      'subscription_status', v_sub.status,
       'invoice_id', v_invoice.id,
       'invoice_number', v_invoice.invoice_number,
       'payment_reference', v_clean_ref,
-      'amount_cents', p_amount_cents,
-      'currency', p_currency,
-      'previous_status', v_sub.status,
-      'new_status', 'active',
-      'current_period_start', v_new_period_start,
-      'current_period_end', v_new_period_end
-    ),
-    p_ip_address,
-    p_user_agent,
-    now()
-  );
+      'seats_added', v_invoice.seat_quantity,
+      'total_additional_seats', v_sub.additional_seats + v_invoice.seat_quantity,
+      'total_usable_seats', v_sub.included_seats + v_sub.additional_seats + v_invoice.seat_quantity,
+      'message', 'Payment verified and additional seats activated successfully'
+    );
 
-  RETURN jsonb_build_object(
-    'status', 'activated',
-    'subscription_id', v_sub.id,
-    'subscription_status', 'active',
-    'invoice_id', v_invoice.id,
-    'invoice_number', v_invoice.invoice_number,
-    'payment_reference', v_clean_ref,
-    'current_period_start', v_new_period_start,
-    'current_period_end', v_new_period_end
+  ELSIF v_invoice.invoice_type = 'renewal' THEN
+    -- B. Renewal Payment: Subscription must be active or past_due
+    IF v_sub.status NOT IN ('active', 'past_due') THEN
+      RAISE EXCEPTION 'Invalid state: subscription is in status %, expected active or past_due for renewal.', v_sub.status;
+    END IF;
+
+    IF v_sub.billing_cycle = 'annual' THEN
+      v_new_period_end := COALESCE(v_sub.current_period_end, now()) + INTERVAL '1 year';
+    ELSE
+      v_new_period_end := COALESCE(v_sub.current_period_end, now()) + INTERVAL '1 month';
+    END IF;
+
+    UPDATE public.org_subscriptions
+    SET status = 'active',
+        current_period_end = v_new_period_end,
+        updated_at = now()
+    WHERE id = v_sub.id;
+
+    -- Audit Log for Renewal
+    INSERT INTO public.platform_audit_logs (
+      actor_user_id,
+      actor_role,
+      action,
+      target_entity_type,
+      target_entity_id,
+      metadata,
+      ip_address,
+      user_agent,
+      created_at
+    ) VALUES (
+      p_actor_auth_id,
+      v_caller_role,
+      'renew_subscription',
+      'org_subscriptions',
+      v_sub.id,
+      jsonb_build_object(
+        'org_id', p_org_id,
+        'invoice_id', v_invoice.id,
+        'invoice_number', v_invoice.invoice_number,
+        'payment_reference', v_clean_ref,
+        'amount_cents', p_amount_cents,
+        'currency', p_currency,
+        'previous_status', v_sub.status,
+        'new_status', 'active',
+        'current_period_end', v_new_period_end
+      ),
+      p_ip_address,
+      p_user_agent,
+      now()
+    );
+
+    RETURN jsonb_build_object(
+      'status', 'renewed',
+      'subscription_id', v_sub.id,
+      'subscription_status', 'active',
+      'invoice_id', v_invoice.id,
+      'invoice_number', v_invoice.invoice_number,
+      'payment_reference', v_clean_ref,
+      'current_period_start', v_sub.current_period_start,
+      'current_period_end', v_new_period_end,
+      'message', 'Renewal payment verified and subscription renewed successfully'
+    );
+
+  ELSE
+    -- C. Initial Subscription Activation: Subscription must be pending_payment
+    IF v_sub.status != 'pending_payment' THEN
+      RAISE EXCEPTION 'Invalid state: subscription is in status %, expected pending_payment. Duplicate activation rejected.', v_sub.status;
+    END IF;
+
+    v_new_period_start := now();
+    IF v_sub.billing_cycle = 'annual' THEN
+      v_new_period_end := v_new_period_start + INTERVAL '1 year';
+    ELSE
+      v_new_period_end := v_new_period_start + INTERVAL '1 month';
+    END IF;
+
+    UPDATE public.org_subscriptions
+    SET status = 'active',
+        current_period_start = v_new_period_start,
+        current_period_end = v_new_period_end,
+        updated_at = now()
+    WHERE id = v_sub.id;
+
+    -- Audit Log for Initial Subscription Activation
+    INSERT INTO public.platform_audit_logs (
+      actor_user_id,
+      actor_role,
+      action,
+      target_entity_type,
+      target_entity_id,
+      metadata,
+      ip_address,
+      user_agent,
+      created_at
+    ) VALUES (
+      p_actor_auth_id,
+      v_caller_role,
+      'verify_payment_and_activate_subscription',
+      'org_subscriptions',
+      v_sub.id,
+      jsonb_build_object(
+        'org_id', p_org_id,
+        'invoice_id', v_invoice.id,
+        'invoice_number', v_invoice.invoice_number,
+        'payment_reference', v_clean_ref,
+        'amount_cents', p_amount_cents,
+        'currency', p_currency,
+        'previous_status', v_sub.status,
+        'new_status', 'active',
+        'current_period_start', v_new_period_start,
+        'current_period_end', v_new_period_end
+      ),
+      p_ip_address,
+      p_user_agent,
+      now()
+    );
+
+    RETURN jsonb_build_object(
+      'status', 'activated',
+      'subscription_id', v_sub.id,
+      'subscription_status', 'active',
+      'invoice_id', v_invoice.id,
+      'invoice_number', v_invoice.invoice_number,
+      'payment_reference', v_clean_ref,
+      'current_period_start', v_new_period_start,
+      'current_period_end', v_new_period_end,
+      'message', 'Initial subscription payment verified and workspace activated'
+    );
+  END IF;
   );
 END;
 $$;
@@ -1684,11 +1819,14 @@ BEGIN
 
   v_invoice_num := 'SEAT-' || to_char(now(), 'YYYYMM') || '-' || upper(substring(replace(p_org_id::text, '-', ''), 1, 8));
 
-  -- 4. Persist Seat Expansion Invoice
+  -- 4. Persist Seat Expansion Invoice (Obligation Created; Seats NOT Granted Until Payment Verified)
   INSERT INTO public.org_subscription_invoices (
     org_id,
     subscription_id,
     invoice_number,
+    invoice_type,
+    seat_quantity,
+    unit_price_cents,
     amount_cents,
     currency,
     status,
@@ -1699,6 +1837,9 @@ BEGIN
     p_org_id,
     v_sub.id,
     v_invoice_num,
+    'additional_seats',
+    p_additional_seats_count,
+    v_sub.contracted_additional_seat_price_cents,
     v_addon_amount_cents,
     COALESCE(v_sub.contracted_currency, 'INR'),
     'issued',
@@ -1708,15 +1849,7 @@ BEGIN
   )
   RETURNING id INTO v_new_invoice_id;
 
-  -- 5. Atomically Increment additional_seats on Subscription
-  UPDATE public.org_subscriptions
-  SET additional_seats = additional_seats + p_additional_seats_count,
-      updated_at = now()
-  WHERE id = v_sub.id;
-
-  v_updated_total_seats := v_sub.included_seats + v_sub.additional_seats + p_additional_seats_count;
-
-  -- 6. Audit Log
+  -- 5. Audit Log (Usable seats remain unchanged at invoice creation)
   INSERT INTO public.platform_audit_logs (
     actor_user_id,
     actor_role,
@@ -1730,16 +1863,17 @@ BEGIN
   ) VALUES (
     p_actor_auth_id,
     v_caller_role,
-    'purchase_additional_seats',
+    'create_additional_seats_invoice',
     'org_subscriptions',
     v_sub.id,
     jsonb_build_object(
-      'additional_seats_added', p_additional_seats_count,
-      'new_total_additional_seats', v_sub.additional_seats + p_additional_seats_count,
+      'additional_seats_requested', p_additional_seats_count,
+      'current_usable_additional_seats', v_sub.additional_seats,
       'invoice_id', v_new_invoice_id,
       'invoice_number', v_invoice_num,
       'amount_cents', v_addon_amount_cents,
-      'contracted_additional_seat_price_cents', v_sub.contracted_additional_seat_price_cents
+      'contracted_additional_seat_price_cents', v_sub.contracted_additional_seat_price_cents,
+      'status', 'issued_pending_payment'
     ),
     p_ip_address,
     p_user_agent,
@@ -1750,10 +1884,13 @@ BEGIN
     'success', true,
     'invoice_id', v_new_invoice_id,
     'invoice_number', v_invoice_num,
-    'seats_added', p_additional_seats_count,
-    'total_seats', v_updated_total_seats,
+    'seats_requested', p_additional_seats_count,
+    'usable_additional_seats', v_sub.additional_seats,
+    'total_usable_seats', v_sub.included_seats + v_sub.additional_seats,
     'amount_cents', v_addon_amount_cents,
-    'currency', COALESCE(v_sub.contracted_currency, 'INR')
+    'currency', COALESCE(v_sub.contracted_currency, 'INR'),
+    'status', 'issued_pending_payment',
+    'message', 'Additional seat purchase obligation created and invoice issued. Usable seats activate only upon payment verification.'
   );
 END;
 $$;

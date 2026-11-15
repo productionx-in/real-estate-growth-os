@@ -1,0 +1,145 @@
+name: Phase 1 Database Validation & Multi-Connection Concurrency
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Enforce zero remote access: only runner permissions
+permissions:
+  contents: read
+
+jobs:
+  validate-database:
+    name: Clean DB Migrations, Integration & Concurrency Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      # 1. Checkout Repository
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js Environment
+      - name: Setup Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # 3. Install Project Dependencies
+      - name: Install project dependencies
+        run: npm ci
+
+      # 4. Install Pinned Supabase CLI (Do NOT use unpinned latest)
+      - name: Setup Pinned Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: '1.200.0'
+
+      # 5. Start Disposable Local Supabase Stack (Docker-backed)
+      - name: Start Disposable Local Supabase Stack
+        run: |
+          echo "Starting disposable local Supabase environment on runner..."
+          supabase start
+          echo "Disposable Supabase services started successfully."
+          supabase status
+
+          # Export local credentials to GITHUB_ENV for test suites
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:54322/postgres" >> $GITHUB_ENV
+          echo "SUPABASE_URL=http://localhost:54321" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321" >> $GITHUB_ENV
+
+          ANON_KEY=$(supabase status -o env | grep 'ANON_KEY=' | head -n1 | cut -d '=' -f2 | tr -d '"')
+          SERVICE_KEY=$(supabase status -o env | grep 'SERVICE_ROLE_KEY=' | head -n1 | cut -d '=' -f2 | tr -d '"')
+
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY" >> $GITHUB_ENV
+          echo "SUPABASE_ANON_KEY=$ANON_KEY" >> $GITHUB_ENV
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_KEY" >> $GITHUB_ENV
+
+      # 6. Apply Full Migration History from a Clean Database (0001 through 20260032)
+      - name: Apply Complete Migration History (Clean DB Reset)
+        run: |
+          echo "Executing clean database reset to apply all 32 migrations in exact sequence..."
+          supabase db reset
+          echo "All migrations applied successfully from clean state."
+
+      # 7. Install Postgres Driver for Test Execution
+      - name: Install pg driver on runner
+        run: npm install --no-save pg
+
+      # 8. Execute Real Database Integration Tests (Phase 4)
+      - name: Execute Real Database Integration Tests (Phase 4)
+        run: |
+          echo "Running real database integration tests against disposable PostgreSQL instance..."
+          node tests/db-integration/phase1-real-db.test.mjs
+
+      # 9. Execute Real Multi-Connection Concurrency Tests (Phase 5)
+      - name: Execute Multi-Connection Concurrency Tests (Phase 5)
+        run: |
+          echo "Running multi-connection concurrency tests against disposable PostgreSQL instance..."
+          node tests/db-integration/phase1-concurrency.test.mjs
+
+      # 10. Execute Real Supabase Auth Live AAL2 & Bootstrap CLI Tests
+      - name: Execute Live Supabase Auth AAL2 & Bootstrap CLI Tests
+        run: |
+          echo "Running live Supabase Auth AAL2 and Bootstrap CLI test suite..."
+          node tests/db-integration/phase1-bootstrap-cli.test.mjs
+
+      # 11. Execute Application Regression Test Suite (Phase 6)
+      - name: Execute Application Regression Test Suite (All 27 Tests)
+        run: |
+          echo "Running existing project test suite..."
+          npm test
+
+      # 12. Execute TypeScript Compiler Check
+      - name: Execute TypeScript Compiler Check
+        run: |
+          echo "Validating TypeScript types..."
+          npx tsc --noEmit
+
+      # 13. Capture Diagnostic State & Catalog Information
+      - name: Capture Database Catalog Diagnostics
+        if: always()
+        run: |
+          mkdir -p diagnostics
+          echo "Dumping routine definitions and security types..."
+          psql postgresql://postgres:postgres@localhost:54322/postgres -c "
+            SELECT routine_name, routine_type, security_type, specific_schema 
+            FROM information_schema.routines 
+            WHERE specific_schema = 'public' 
+            ORDER BY routine_name;
+          " > diagnostics/catalog_routines.txt 2>&1 || true
+
+          echo "Dumping table RLS states..."
+          psql postgresql://postgres:postgres@localhost:54322/postgres -c "
+            SELECT tablename, rowsecurity 
+            FROM pg_tables 
+            WHERE schemaname = 'public' 
+            ORDER BY tablename;
+          " > diagnostics/catalog_tables.txt 2>&1 || true
+
+          echo "Dumping platform bootstrap state..."
+          psql postgresql://postgres:postgres@localhost:54322/postgres -c "
+            SELECT * FROM public.platform_bootstrap_state;
+          " > diagnostics/bootstrap_state.txt 2>&1 || true
+
+      # 14. Publish Diagnostic Artifacts
+      - name: Publish Test Artifacts & Diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-validation-diagnostics
+          path: diagnostics/
+          retention-days: 7
+
+      # 15. Clean Up Disposable Environment
+      - name: Clean Up Disposable Supabase Stack
+        if: always()
+        run: |
+          echo "Stopping and tearing down disposable local Supabase containers..."
+          supabase stop || true
