@@ -6,7 +6,7 @@ import assert from 'node:assert/strict'
 const connectionString =
   process.env.DATABASE_URL ||
   process.env.SUPABASE_DB_URL ||
-  'postgresql://postgres:postgres@localhost:54322/postgres'
+  'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 
 async function runRealDbIntegrationTests() {
   console.log('===================================================================')
@@ -52,15 +52,33 @@ async function runRealDbIntegrationTests() {
     await client.query('DELETE FROM public.platform_users WHERE user_id IN ($1, $2);', [testAdminUserId, testApproverAdminUserId])
     await client.query('DELETE FROM auth.users WHERE id IN ($1, $2, $3);', [testAdminUserId, testApproverAdminUserId, testCustomerUserId])
 
-    // Insert test users into auth.users
-    await client.query(`
-      INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
-      VALUES 
-        ($1, $2, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Admin"}', now(), now(), 'authenticated', 'authenticated'),
-        ($3, $4, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Approver"}', now(), now(), 'authenticated', 'authenticated'),
-        ($5, $6, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Customer"}', now(), now(), 'authenticated', 'authenticated')
-      ON CONFLICT (id) DO NOTHING;
-    `, [testAdminUserId, testAdminEmail, testApproverAdminUserId, testApproverEmail, testCustomerUserId, testCustomerEmail])
+    // Check if auth.users has instance_id column
+    const colCheck = await client.query(`
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_schema = 'auth' AND table_name = 'users' AND column_name = 'instance_id'
+      LIMIT 1;
+    `)
+    const hasInstanceId = colCheck.rowCount > 0
+
+    if (hasInstanceId) {
+      await client.query(`
+        INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
+        VALUES 
+          ($1, '00000000-0000-0000-0000-000000000000', $2, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Admin"}', now(), now(), 'authenticated', 'authenticated'),
+          ($3, '00000000-0000-0000-0000-000000000000', $4, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Approver"}', now(), now(), 'authenticated', 'authenticated'),
+          ($5, '00000000-0000-0000-0000-000000000000', $6, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Customer"}', now(), now(), 'authenticated', 'authenticated')
+        ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, updated_at = now();
+      `, [testAdminUserId, testAdminEmail, testApproverAdminUserId, testApproverEmail, testCustomerUserId, testCustomerEmail])
+    } else {
+      await client.query(`
+        INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
+        VALUES 
+          ($1, $2, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Admin"}', now(), now(), 'authenticated', 'authenticated'),
+          ($3, $4, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Approver"}', now(), now(), 'authenticated', 'authenticated'),
+          ($5, $6, '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Test Customer"}', now(), now(), 'authenticated', 'authenticated')
+        ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, updated_at = now();
+      `, [testAdminUserId, testAdminEmail, testApproverAdminUserId, testApproverEmail, testCustomerUserId, testCustomerEmail])
+    }
 
     // ========================================================================
     // B. BOOTSTRAP SECURITY TESTS
