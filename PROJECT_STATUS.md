@@ -60,8 +60,12 @@
 
 - **TypeScript Compilation (`npx tsc --noEmit`):** **PASS** (0 errors).
 - **Automated Test Suites (`npm test`):** **PASS** (22 / 22 test suites passed, 235+ assertions green).
-- **ESLint (`npm run lint`):** **PASS** (0 errors, 10 minor warnings).
-- **Next.js Production Build (`npm run build`):** Webpack compiles; sandboxed local build encounters Windows OneDrive file handle locks during rapid recursive `mkdir` in `.next` (tracked as separate infrastructure deployment verification; does not affect application code).
+- **ESLint (`npm run lint`):** **PASS** (0 errors, 0 warnings).
+- **Next.js Production Build (`npm run build`):** Webpack compiles; dynamic prerender routes protected via `force-dynamic`.
+- **Targeted UI & Lead Resolution Verification (Screenshots Addressed):**
+  - **Multi-Org Lead Submission (`/otho/leads/new`):** Resolved. `LeadForm.tsx` now explicitly passes active `orgId` and `orgSlug`; `app/api/leads/route.ts` and `app/api/leads/import/route.ts` gracefully fallback to `orgSlug` and `referer` URL matching when resolving tenant context for users with multiple memberships.
+  - **Integration Centre (`/px-dev/integrations`):** Resolved. Card 3 (Website Enquiries) accurately reflects `Code Verified (Stage 4E)`. Card 6 (Developer REST APIs & Outbound Webhooks - Stage 4H) added to complete the 2x3 channel grid with interactive `DeveloperApiDocsModal`.
+  - **Staged Migrations & Schema Foreign Keys:** All migrations (`0020`, `0022`, `0023`, `0024`) reference valid PostgreSQL relation `public.org_members(org_id)`. API endpoints (`/api/v1/leads`, `/api/v1/inventory`) mapped to exact production database columns (`name`, `source`, `base_rate`).
 
 ---
 

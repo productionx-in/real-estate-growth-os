@@ -68,7 +68,7 @@ function Label({ htmlFor, children, required }: { htmlFor: string; children: Rea
 
 const inputClass = "w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors placeholder:text-[var(--foreground-subtle)]"
 
-export function LeadForm({ orgSlug, projects, defaultValues, leadId }: LeadFormProps) {
+export function LeadForm({ orgSlug, orgId, projects, defaultValues, leadId }: LeadFormProps) {
   const router = useRouter()
   const isEditing = !!leadId
 
@@ -120,7 +120,11 @@ export function LeadForm({ orgSlug, projects, defaultValues, leadId }: LeadFormP
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          orgId,
+          orgSlug,
+        }),
       })
 
       if (!response.ok) {

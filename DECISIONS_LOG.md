@@ -24,6 +24,10 @@
 | **DEC-012** | 2026-11-15 | Integrations | Website Enquiry Forms: Multi-layer anti-spam (honeypot + speed), allowed origin CORS, and unified CRM lead ingestion | **Approved / Active** |
 | **DEC-013** | 2026-11-15 | Integrations | WhatsApp Business Cloud API: Webhook verification, Click-to-WhatsApp attribution, 24h care window, and consent enforcement | **Approved / Active** |
 | **DEC-014** | 2026-11-15 | Integrations | Indian Property Portals (99acres, Magicbricks, Housing.com): Webhook ingestion, timing-safe authentication, project routing, and 3-case deduplication | **Approved / Active** |
+| **DEC-015** | 2026-11-15 | Extensibility | Developer REST APIs, Outbound Webhooks & HMAC-SHA256 Delivery Architecture | **Approved / Active** |
+| **DEC-016** | 2026-11-15 | Sales Ops | Sales Operations, Site Visits, 48h Inventory Blockings, Bookings & RERA CP Commissions | **Approved / Active** |
+| **DEC-017** | 2026-11-15 | Digital Experience | Project Microsites (Showrooms), Drip Automations & Multi-Touch Attribution Engine | **Approved / Active** |
+| **DEC-018** | 2026-11-15 | UX & Multi-Org | Workspace Context Resolution via explicit orgId, orgSlug, and referer URL matching | **Approved / Active** |
 
 ---
 
@@ -115,13 +119,16 @@
   - *Commission Engine (`channel_partner_commissions`):* Supports percentage-based, fixed per sqft, and lump sum commission models. Automatically calculates 5% TDS deduction and structures milestone-based payouts (e.g. 50% on booking advance, 50% on agreement signing).
   - *Sales Pipeline Kanban (`deals`):* Complete lifecycle progression from `enquiry` through `site_visit_scheduled`, `negotiation`, `unit_blocked`, to `booked` / `won` with probability scoring.
 
-### DEC-017: Digital Experience Showrooms, Drip Automations & Multi-Touch Attribution Architecture
-- **Context:** Real estate buyers take 14 to 45 days across multiple digital and offline touchpoints before booking. Developers require interactive public project microsites (digital showrooms), automated follow-up drip workflows across WhatsApp and email, and accurate multi-touch attribution to evaluate marketing ROI.
+### DEC-018: Explicit Multi-Organization Workspace Resolution in Lead Capture
+- **Context:** When users hold memberships in multiple developer organisations (e.g. `Otho` and `Acme`), submitting new leads at `/[orgSlug]/leads/new` previously yielded a 400 Bad Request error ("User belongs to multiple organisations. Please specify orgId in the request") because `LeadForm.tsx` failed to include `orgId` in the JSON POST payload, and the `/api/leads` route only checked the direct body payload without URL slug fallback.
 - **Decision:**
-  - *Public Digital Showrooms (`project_microsites`, `/p/[projectSlug]`):* Standalone, fast, responsive public project presentations featuring 3D virtual tour embeds, master layout plans, curated amenities, RERA disclosures, and direct CRM VIP site-visit enquiry capture.
-  - *Event-Driven Workflow Automation (`automation_workflows`, `automation_executions`):* Evaluates triggers (`lead_created`, `site_visit_scheduled`, `unit_blocked`, `booking_confirmed`) against filter conditions and executes ordered actions (`send_whatsapp_template`, `send_email`, `create_task`, `delay_hours`), logging step-by-step audit records with failure isolation.
-  - *Multi-Touch Attribution Engine (`lead_touchpoints`):* Registers every buyer touchpoint (`meta_ads`, `google_ads`, `website_form`, `99acres`, `magicbricks`, `housing`, `whatsapp`, `channel_partner`). Computes revenue attribution across 5 standard models: First Touch (100%), Last Touch (100%), Linear (equal split), Position-Based / U-Shaped (40% first, 20% middle, 40% last), and Time Decay (exponential half-life).
-  - *Developer Executive BI Dashboard (`/analytics`):* Aggregates real-time conversion funnels (Leads → Visits → Holds → Bookings), sales velocity (mean days to booking), channel sourcing ROI, and inventory absorption percentages.
+  - `LeadForm.tsx` now passes `{ ...form, orgId, orgSlug }` directly in the submission payload.
+  - The backend route handler `/api/leads` and `/api/leads/import` implement a 4-tier tenant context resolution hierarchy:
+    1. Direct `body.orgId` or `query.orgId`.
+    2. Direct `body.orgSlug` or `query.orgSlug` matched against user's active memberships.
+    3. `Referer` URL header inspection matching `/[orgSlug]/...` path patterns against user's active memberships.
+    4. Single active membership fallback (if user belongs to only 1 organization).
+  - This eliminates user friction for multi-tenant users while rigorously verifying that the user has valid, active membership in the resolved organization before allowing any lead write.
 
 
 

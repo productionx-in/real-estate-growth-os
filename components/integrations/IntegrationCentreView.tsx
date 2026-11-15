@@ -9,6 +9,7 @@ import {
   Globe,
   MessageCircle,
   Building,
+  Code,
   CheckCircle2,
   ShieldCheck,
   Plus,
@@ -26,6 +27,7 @@ import { ConnectionDetailsModal } from '@/components/integrations/ConnectionDeta
 import { WebsiteEnquiryWizardModal } from '@/components/integrations/WebsiteEnquiryWizardModal'
 import { WhatsAppWizardModal } from '@/components/integrations/WhatsAppWizardModal'
 import { PortalIntegrationModal } from '@/components/integrations/PortalIntegrationModal'
+import { DeveloperApiDocsModal } from '@/components/integrations/DeveloperApiDocsModal'
 
 interface ProjectOption {
   id: string
@@ -65,6 +67,7 @@ export function IntegrationCentreView({
   const [isWebsiteWizardOpen, setIsWebsiteWizardOpen] = useState(false)
   const [isWhatsAppWizardOpen, setIsWhatsAppWizardOpen] = useState(false)
   const [isPortalModalOpen, setIsPortalModalOpen] = useState(false)
+  const [isDeveloperApiDocsOpen, setIsDeveloperApiDocsOpen] = useState(false)
   const [selectedConnection, setSelectedConnection] = useState<
     (IntegrationConnectionRecord & { mappings?: IntegrationProjectMappingRecord[] }) | null
   >(null)
@@ -354,7 +357,7 @@ export function IntegrationCentreView({
               <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
                 <div className="flex justify-between">
                   <span>Implementation:</span>
-                  <span className="font-semibold text-gray-900">Next Stage (Stage 4E Staged)</span>
+                  <span className="font-semibold text-emerald-700">Code Verified (Stage 4E)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Provider Setup:</span>
@@ -488,6 +491,54 @@ export function IntegrationCentreView({
                 className="w-full py-2 px-3 text-[12px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition cursor-pointer text-center"
               >
                 Configure &amp; Test Portals
+              </button>
+            </div>
+          </div>
+
+          {/* 6. Developer APIs & Webhooks */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4 hover:border-gray-300 transition-all shadow-2xs flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-2xs">
+                  <Code className="w-5 h-5" />
+                </div>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  Active Runtime
+                </span>
+              </div>
+
+              <div>
+                <h4 className="text-[14px] font-bold text-gray-900">Developer APIs &amp; Webhooks</h4>
+                <p className="text-[11px] text-gray-500">REST Ingestion &amp; Outbound Event Dispatch</p>
+              </div>
+
+              <p className="text-[12px] text-gray-600 leading-relaxed">
+                Connect custom landing pages, mobile apps or ERPs, and receive real-time cryptographically signed
+                webhook events on lead state transitions.
+              </p>
+
+              <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
+                <div className="flex justify-between">
+                  <span>Implementation:</span>
+                  <span className="font-semibold text-emerald-700">Code Verified (Stage 4H)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Provider Setup:</span>
+                  <span className="text-emerald-700 font-medium">Standard REST &amp; HMAC-SHA256</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Connection Status:</span>
+                  <span className="text-emerald-700 font-medium">Ready • Bearer Key Auth</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3">
+              <button
+                onClick={() => setIsDeveloperApiDocsOpen(true)}
+                className="w-full py-2 px-3 text-[12px] font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition cursor-pointer text-center"
+              >
+                View API Docs &amp; Webhooks
               </button>
             </div>
           </div>
@@ -707,6 +758,12 @@ export function IntegrationCentreView({
         orgId={org.id}
         projects={projects}
         onConnectionCreated={refreshData}
+      />
+
+      {/* DEVELOPER API & WEBHOOK DOCS MODAL */}
+      <DeveloperApiDocsModal
+        isOpen={isDeveloperApiDocsOpen}
+        onClose={() => setIsDeveloperApiDocsOpen(false)}
       />
     </div>
   )

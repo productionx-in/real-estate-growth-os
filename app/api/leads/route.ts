@@ -26,7 +26,40 @@ export async function POST(request: NextRequest) {
     }
 
     // Resolve target organisation
-    const requestedOrgId = (body.orgId || body.org_id) as string | undefined
+    let requestedOrgId = (body.orgId || body.org_id) as string | undefined
+
+    // Fallback 1: resolve by orgSlug from body or search parameters
+    const requestedOrgSlug = (body.orgSlug || new URL(request.url).searchParams.get('orgSlug')) as string | undefined
+    if (!requestedOrgId && requestedOrgSlug) {
+      const { data: org } = await service
+        .from('organisations')
+        .select('id')
+        .eq('slug', requestedOrgSlug)
+        .maybeSingle()
+      if (org) requestedOrgId = org.id
+    }
+
+    // Fallback 2: resolve by referer header (e.g. user submitting from /[orgSlug]/leads/new)
+    if (!requestedOrgId) {
+      const referer = request.headers.get('referer')
+      if (referer) {
+        try {
+          const refPath = new URL(referer).pathname
+          const match = refPath.match(/^\/([^/]+)\/leads/)
+          if (match && match[1] && match[1] !== 'leads' && match[1] !== 'api') {
+            const { data: org } = await service
+              .from('organisations')
+              .select('id')
+              .eq('slug', match[1])
+              .maybeSingle()
+            if (org) requestedOrgId = org.id
+          }
+        } catch {
+          // ignore invalid referer URL
+        }
+      }
+    }
+
     let targetOrgId: string
 
     if (requestedOrgId) {
