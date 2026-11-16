@@ -1,0 +1,64 @@
+name: Scheduled Unit Hold Expiration Sweep
+
+on:
+  schedule:
+    # Trigger every 5 minutes (24/7 background hold expiration sweeper)
+    # NOTE: GitHub Actions scheduled cron workflows run on a best-effort basis.
+    # Under high GitHub Actions queue load, execution timing may experience minor jitter
+    # or delays of a few minutes. The sweep_expired_holds_atomic stored procedure handles
+    # any accumulated expired holds safely in bulk using FOR UPDATE SKIP LOCKED.
+    - cron: '*/5 * * * *'
+
+  workflow_dispatch:
+    inputs:
+      target_org_id:
+        description: 'Optional Organisation UUID to sweep specific tenant'
+        required: false
+        type: string
+
+# Concurrency policy: prevent overlapping sweeper executions
+concurrency:
+  group: sweep-holds-cron
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sweep-expired-holds:
+    name: Sweep Expired Unit Holds
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Verify Required Secrets Configuration
+        id: check-secrets
+        env:
+          ENDPOINT: ${{ secrets.CRON_ENDPOINT_URL }}
+          SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$ENDPOINT" ] || [ -z "$SECRET" ]; then
+            echo "::error::GitHub Secrets CRON_ENDPOINT_URL or CRON_SECRET are not configured."
+            echo "Please configure these secrets in GitHub Repository Settings -> Secrets and variables -> Actions:"
+            echo "  - CRON_ENDPOINT_URL (e.g. https://<deployment-url>/api/cron/sweep-holds)"
+            echo "  - CRON_SECRET (matching the CRON_SECRET environment variable on Vercel)"
+            exit 1
+          fi
+          echo "Required cron secrets are configured."
+
+      - name: Trigger Unit Hold Expiration Sweeper
+        env:
+          CRON_ENDPOINT_URL: ${{ secrets.CRON_ENDPOINT_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TARGET_ORG_ID: ${{ inputs.target_org_id }}
+        run: |
+          node scripts/trigger-sweep-holds.mjs
