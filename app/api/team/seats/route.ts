@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getSubscriptionAndSeatUsage } from '@/lib/dal/subscriptions'
+import { isActiveMembership } from '@/lib/auth/permissions'
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,11 +39,12 @@ export async function GET(request: NextRequest) {
     const { data: membership } = await service
       .from('org_members')
       .select('role, status')
+      .eq('status', 'active')
       .eq('org_id', targetOrgId)
       .eq('profile_id', auth.profile.id)
       .maybeSingle()
 
-    if (!membership || membership.status === 'deactivated') {
+    if (!membership || !isActiveMembership(membership.status)) {
       return NextResponse.json({ error: 'Unauthorised for this organisation' }, { status: 403 })
     }
 

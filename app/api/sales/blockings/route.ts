@@ -2,6 +2,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { blockInventoryUnit, releaseExpiredBlockings } from '@/lib/dal/sales'
 import { authorizeSalesRequest } from '@/lib/sales/auth'
+import { SALES_WRITE_ROLES } from '@/lib/auth/permissions'
 import { createServiceClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const auth = await authorizeSalesRequest(body.orgId)
+    const auth = await authorizeSalesRequest(body.orgId, SALES_WRITE_ROLES)
     if (!auth.success) return auth.response
 
     if (!body.projectId || !body.inventoryId || !body.leadId || body.tokenAmount === undefined) {

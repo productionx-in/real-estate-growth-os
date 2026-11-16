@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
     const { data: membership } = await supabase
       .from('org_members')
       .select('role')
+      .eq('status', 'active')
       .eq('org_id', lead.org_id)
       .eq('profile_id', profile.id)
       .single()
@@ -67,6 +68,7 @@ export async function POST(request: NextRequest) {
       const { data: targetMember } = await supabase
         .from('org_members')
         .select('role')
+        .eq('status', 'active')
         .eq('org_id', lead.org_id)
         .eq('profile_id', assignToProfileId)
         .single()

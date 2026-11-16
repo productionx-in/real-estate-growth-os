@@ -2,6 +2,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createDeal, getDeals, updateDealStage } from '@/lib/dal/sales'
 import { authorizeSalesRequest } from '@/lib/sales/auth'
+import { SALES_WRITE_ROLES } from '@/lib/auth/permissions'
 import type { DealStage } from '@/lib/sales/types'
 
 export async function GET(request: NextRequest) {
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const auth = await authorizeSalesRequest(body.orgId)
+    const auth = await authorizeSalesRequest(body.orgId, SALES_WRITE_ROLES)
     if (!auth.success) return auth.response
 
     if (!body.projectId || !body.leadId) {
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json()
-    const auth = await authorizeSalesRequest(body.orgId)
+    const auth = await authorizeSalesRequest(body.orgId, SALES_WRITE_ROLES)
     if (!auth.success) return auth.response
 
     if (!body.id || !body.stage) {

@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
       const { data: membership } = await service
         .from('org_members')
         .select('role')
+        .eq('status', 'active')
         .eq('org_id', requestedOrgId)
         .eq('profile_id', auth.profile.id)
         .maybeSingle()
@@ -92,6 +93,7 @@ export async function POST(request: NextRequest) {
       const { data: memberships } = await service
         .from('org_members')
         .select('org_id, role')
+        .eq('status', 'active')
         .eq('profile_id', auth.profile.id)
 
       if (!memberships || memberships.length === 0) {
