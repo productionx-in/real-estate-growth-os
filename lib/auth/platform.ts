@@ -1,5 +1,5 @@
 // lib/auth/platform.ts
-// Production X: Platform-Level Authorization Guard, Super Admin MFA Verification & Audit Logger
+// REGrow: Platform-Level Authorization Guard, Super Admin MFA Verification & Audit Logger
 import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import type { Json } from '@/types/database'

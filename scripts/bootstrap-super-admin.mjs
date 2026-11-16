@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // scripts/bootstrap-super-admin.mjs
-// Production X: Secure Platform Super Admin Initial Bootstrap CLI
+// REGrow: Secure Platform Super Admin Initial Bootstrap CLI
 // Specification:
 // - Atomic database-level one-time lock (pg_advisory_xact_lock)
 // - Fails closed if active super_admin already exists
@@ -24,7 +24,7 @@ class UnusedRealtimeTransport {
 const realtimeCompat = globalThis.WebSocket ? {} : { realtime: { transport: UnusedRealtimeTransport } }
 
 async function bootstrapSuperAdmin() {
-  console.log('--- Production X Platform Super Admin Bootstrap ---')
+  console.log('--- REGrow Platform Super Admin Bootstrap ---')
 
   // 1. Strict Environment Variable Validation
   const adminEmail = process.env.INITIAL_SUPER_ADMIN_EMAIL
@@ -163,7 +163,7 @@ async function bootstrapSuperAdmin() {
 
   if (!verifiedTotpFactor) {
     console.error('SECURITY VIOLATION: Target user does not have an active verified TOTP MFA factor enrolled.')
-    console.error('Production X requires verified TOTP MFA before platform Super Admin assignment.')
+    console.error('REGrow requires verified TOTP MFA before platform Super Admin assignment.')
     console.error('Please enroll and verify an authenticator factor in Supabase Auth before bootstrapping.')
     process.exit(1)
   }
