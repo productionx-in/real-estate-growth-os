@@ -3,6 +3,7 @@
 // Uses two genuinely independent PostgreSQL client connections to verify serialization,
 // advisory locks, row locks, and race-condition immunity.
 import assert from 'node:assert/strict'
+import { installStrictInt8Parser } from './pg-strict-int8.mjs'
 
 const connectionString =
   process.env.DATABASE_URL ||
@@ -23,6 +24,7 @@ async function runConcurrencyTests() {
     process.exit(1)
   }
 
+  installStrictInt8Parser(pg)
   const { Client } = pg.default || pg
 
   // Establish Connection 1
@@ -87,6 +89,33 @@ async function runConcurrencyTests() {
         ($2, 'super_admin'::public.platform_role, true, true)
       ON CONFLICT (user_id) DO NOTHING;
     `, [testAdminId1, testAdminId2])
+
+    // Catalog fixture: provision_organisation_atomic() requires exactly one active, current
+    // 'growth' plan version for 'developer'. A clean `supabase db reset` contains only the
+    // legacy baseline plans from migration 0029, so this suite must create its own fixture
+    // (it previously relied on rows left behind by phase1-real-db, which CI wipes with a reset).
+    // The lookup mirrors the function's own matching predicate, so it never creates a duplicate.
+    const growthPlan = await client1.query(`
+      SELECT 1
+      FROM public.subscription_plans sp
+      JOIN public.subscription_plan_versions pv ON pv.plan_id = sp.id AND pv.is_current = true
+      WHERE (sp.tier = 'growth' OR sp.code = 'growth' OR sp.code = 'growth_developer')
+        AND sp.target_org_type = 'developer'
+        AND sp.is_active = true;
+    `)
+    if (growthPlan.rowCount === 0) {
+      const planIns = await client1.query(`
+        INSERT INTO public.subscription_plans (code, tier, name, target_org_type, is_active)
+        VALUES ('developer_growth', 'growth', 'Enterprise Growth', 'developer', true)
+        RETURNING id;
+      `)
+      await client1.query(`
+        INSERT INTO public.subscription_plan_versions (
+          plan_id, version_number, is_current, base_price_annual_cents, base_price_monthly_cents,
+          included_seats, additional_seat_price_cents
+        ) VALUES ($1, 1, true, 1000000, 100000, 15, 20000);
+      `, [planIns.rows[0].id])
+    }
 
     // ========================================================================
     // CONCURRENCY TEST 1: SIMULTANEOUS PAYMENT VERIFICATION (Advisory Lock & Uniqueness)
@@ -272,16 +301,57 @@ async function runConcurrencyTests() {
       ON CONFLICT (id) DO NOTHING;
     `, [candidateUser1, candidateUser2])
 
-    // Try bootstrap concurrently: since bootstrap state was already completed earlier, both MUST fail closed!
+    // This suite runs against a freshly reset database (CI resets before it), so the platform
+    // bootstrap is still OPEN. It previously assumed phase1-real-db had already closed it, a
+    // cross-suite dependency that CI's `supabase db reset` removes.
+    const preState = await client1.query('SELECT count(*)::int AS n FROM public.platform_bootstrap_state WHERE is_completed = true')
+    assert.equal(preState.rows[0].n, 0, 'Precondition: Test 6 requires a clean database where platform bootstrap has not yet been completed')
+
+    // 6A. Race on an OPEN bootstrap: the advisory-locked singleton must admit exactly one winner.
     const boot1 = client1.query('SELECT public.bootstrap_initial_super_admin_atomic($1, \'candidate1@prod-x.test\', true)', [candidateUser1])
     const boot2 = client2.query('SELECT public.bootstrap_initial_super_admin_atomic($1, \'candidate2@prod-x.test\', true)', [candidateUser2])
 
-    const [bootRes1, bootRes2] = await Promise.allSettled([boot1, boot2])
-    assert.equal(bootRes1.status, 'rejected', 'Candidate 1 must be rejected')
-    assert.equal(bootRes2.status, 'rejected', 'Candidate 2 must be rejected')
-    assert.match(bootRes1.reason.message, /Bootstrap permanently closed/)
-    assert.match(bootRes2.reason.message, /Bootstrap permanently closed/)
-    console.log('✓ Concurrency Test 6 Passed: Both concurrent bootstrap attempts rejected by singleton lock.')
+    const raceResults = await Promise.allSettled([boot1, boot2])
+    const winners = raceResults.filter((r) => r.status === 'fulfilled')
+    const losers = raceResults.filter((r) => r.status === 'rejected')
+    assert.equal(winners.length, 1, 'Exactly one concurrent bootstrap attempt must succeed')
+    assert.equal(losers.length, 1, 'Exactly one concurrent bootstrap attempt must be rejected')
+    assert.match(losers[0].reason.message, /Bootstrap permanently closed/)
+
+    const winnerId = raceResults[0].status === 'fulfilled' ? candidateUser1 : candidateUser2
+    const bootState = await client1.query('SELECT initial_super_admin_user_id FROM public.platform_bootstrap_state')
+    assert.equal(bootState.rowCount, 1, 'Exactly one platform_bootstrap_state row must exist')
+    assert.equal(bootState.rows[0].initial_super_admin_user_id, winnerId, 'Bootstrap state must record the single winner')
+    const candidateAdmins = await client1.query(
+      `SELECT user_id FROM public.platform_users WHERE user_id IN ($1, $2) AND role = 'super_admin'`,
+      [candidateUser1, candidateUser2]
+    )
+    assert.equal(candidateAdmins.rowCount, 1, 'Exactly one candidate may become super_admin')
+    assert.equal(candidateAdmins.rows[0].user_id, winnerId)
+    console.log('✓ Concurrency Test 6A Passed: Advisory-locked singleton admitted exactly one concurrent bootstrap winner.')
+
+    // 6B. Once closed, further concurrent attempts must ALL fail closed.
+    const candidateUser3 = '88888888-8888-8888-8888-888888888888'
+    const candidateUser4 = '99999999-9999-9999-9999-999999999999'
+    await client1.query(`
+      INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
+      VALUES
+        ($1, 'candidate3@prod-x.test', '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Candidate 3"}', now(), now(), 'authenticated', 'authenticated'),
+        ($2, 'candidate4@prod-x.test', '$2a$10$abcdefghijklmnopqrstuvwxyzABCDEF', now(), '{"provider":"email"}', '{"full_name":"Candidate 4"}', now(), now(), 'authenticated', 'authenticated')
+      ON CONFLICT (id) DO NOTHING;
+    `, [candidateUser3, candidateUser4])
+
+    const [bootRes3, bootRes4] = await Promise.allSettled([
+      client1.query('SELECT public.bootstrap_initial_super_admin_atomic($1, \'candidate3@prod-x.test\', true)', [candidateUser3]),
+      client2.query('SELECT public.bootstrap_initial_super_admin_atomic($1, \'candidate4@prod-x.test\', true)', [candidateUser4]),
+    ])
+    assert.equal(bootRes3.status, 'rejected', 'Candidate 3 must be rejected')
+    assert.equal(bootRes4.status, 'rejected', 'Candidate 4 must be rejected')
+    assert.match(bootRes3.reason.message, /Bootstrap permanently closed/)
+    assert.match(bootRes4.reason.message, /Bootstrap permanently closed/)
+    const finalState = await client1.query('SELECT count(*)::int AS n FROM public.platform_bootstrap_state')
+    assert.equal(finalState.rows[0].n, 1, 'Closed bootstrap must not create additional state rows')
+    console.log('✓ Concurrency Test 6B Passed: Both concurrent bootstrap attempts rejected after closure by singleton lock.')
 
     console.log('\n===================================================================')
     console.log('ALL REAL MULTI-CONNECTION CONCURRENCY TESTS PASSED CLEANLY!')
