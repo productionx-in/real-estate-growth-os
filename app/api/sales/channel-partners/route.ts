@@ -2,6 +2,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createChannelPartner, getChannelPartners, getCommissions } from '@/lib/dal/sales'
 import { authorizeSalesRequest } from '@/lib/sales/auth'
+import { CHANNEL_PARTNER_ADMIN_ROLES } from '@/lib/auth/permissions'
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const auth = await authorizeSalesRequest(body.orgId)
+    const auth = await authorizeSalesRequest(body.orgId, CHANNEL_PARTNER_ADMIN_ROLES)
     if (!auth.success) return auth.response
 
     if (!body.firmName || !body.contactPerson || !body.phone) {

@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
     const { data: membership } = await service
       .from('org_members')
       .select('role')
+      .eq('status', 'active')
       .eq('org_id', orgId)
       .eq('profile_id', authResult.auth.profile.id)
       .maybeSingle()
