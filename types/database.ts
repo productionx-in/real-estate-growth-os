@@ -2507,6 +2507,13 @@ export interface Database {
             isOneToOne: false
             referencedRelation: 'teams'
             referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'lead_routing_decisions_assigned_to_fkey'
+            columns: ['assigned_to']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
           }
         ]
       }

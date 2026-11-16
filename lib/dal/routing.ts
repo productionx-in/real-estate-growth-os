@@ -160,3 +160,23 @@ export async function listLeadRoutingDecisions(orgId: string, leadId: string) {
   if (error) return fail(error, 'Failed to load routing history')
   return { success: true as const, data }
 }
+
+/** Most recent routing decisions for the organisation (settings screen "Recent activity"). */
+export async function listRecentRoutingDecisions(orgId: string, limit = 25) {
+  const service = createServiceClient()
+  const { data, error } = await service.from('lead_routing_decisions')
+    .select('id, lead_id, decided_at, outcome, assigned_to, strategy, detail, lead:leads(id, name), assignee:profiles!lead_routing_decisions_assigned_to_fkey(id, full_name)')
+    .eq('org_id', orgId).order('decided_at', { ascending: false }).limit(limit)
+  if (error) return fail(error, 'Failed to load routing activity')
+  return { success: true as const, data }
+}
+
+/** Duty status of the caller across their teams: null when they belong to no team. */
+export async function getOwnDutyStatus(orgId: string, profileId: string): Promise<DalResult<{ teams: number; onDuty: boolean | null }>> {
+  const service = createServiceClient()
+  const { data, error } = await service.from('team_members').select('is_on_duty, team:teams!inner(is_active)')
+    .eq('org_id', orgId).eq('profile_id', profileId).eq('team.is_active', true)
+  if (error) return fail(error, 'Failed to load duty status')
+  const rows = data ?? []
+  return { success: true, data: { teams: rows.length, onDuty: rows.length ? rows.some((r) => r.is_on_duty) : null } }
+}
