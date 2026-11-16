@@ -287,7 +287,7 @@ export function MetaConnectWizardModal({
                   <ShieldCheck className="w-4 h-4 text-blue-600" />
                   Official Single-App Multi-Tenant Integration
                 </p>
-                Production X maintains a single verified Meta developer application. Each real estate
+                REGrow maintains a single verified Meta developer application. Each real estate
                 company securely connects its own Facebook Pages and business accounts. Leads submitted
                 by customers flow directly and exclusively into your private organisation workspace.
               </div>
@@ -334,7 +334,7 @@ export function MetaConnectWizardModal({
                     <div className="text-[12px]">
                       <p className="font-semibold text-gray-900">Select Permitted Pages & Forms</p>
                       <p className="text-gray-500">
-                        Production X detects your lead generation forms and lets you route each form to
+                        REGrow detects your lead generation forms and lets you route each form to
                         the appropriate property project.
                       </p>
                     </div>
@@ -362,7 +362,7 @@ export function MetaConnectWizardModal({
             <div className="space-y-4">
               <div className="space-y-3">
                 <h3 className="text-[14px] font-bold text-gray-900">
-                  Permissions Requested by Production X
+                  Permissions Requested by REGrow
                 </h3>
                 <p className="text-[12px] text-gray-600">
                   To automatically import buyer leads, Meta requires you to approve specific access
@@ -375,7 +375,7 @@ export function MetaConnectWizardModal({
                     <div>
                       <p className="font-semibold text-emerald-950">Read Lead Form Submissions</p>
                       <p className="text-emerald-800">
-                        Allows Production X to retrieve contact info (name, phone, email) when buyers
+                        Allows REGrow to retrieve contact info (name, phone, email) when buyers
                         submit a Facebook or Instagram Lead Ad form.
                       </p>
                     </div>
@@ -386,7 +386,7 @@ export function MetaConnectWizardModal({
                     <div>
                       <p className="font-semibold text-emerald-950">View Managed Pages</p>
                       <p className="text-emerald-800">
-                        Allows Production X to list your business Pages so you can select which project
+                        Allows REGrow to list your business Pages so you can select which project
                         Pages to link.
                       </p>
                     </div>
@@ -413,15 +413,15 @@ export function MetaConnectWizardModal({
                 </h4>
                 <ul className="text-[12px] text-gray-600 space-y-1.5 list-disc list-inside">
                   <li>
-                    Production X will <strong>NEVER</strong> post to your Facebook timeline or
+                    REGrow will <strong>NEVER</strong> post to your Facebook timeline or
                     Instagram feed.
                   </li>
                   <li>
-                    Production X will <strong>NEVER</strong> read your personal messages or private
+                    REGrow will <strong>NEVER</strong> read your personal messages or private
                     photos.
                   </li>
                   <li>
-                    Production X will <strong>NEVER</strong> ask for or store your Facebook password.
+                    REGrow will <strong>NEVER</strong> ask for or store your Facebook password.
                   </li>
                   <li>
                     Your connection credentials are encrypted using secure vault storage and are never
@@ -551,7 +551,7 @@ export function MetaConnectWizardModal({
             <div className="space-y-4">
               <div>
                 <h3 className="text-[14px] font-bold text-gray-900 mb-1">
-                  Map Lead Forms to Production X Projects
+                  Map Lead Forms to REGrow Projects
                 </h3>
                 <p className="text-[12px] text-gray-600">
                   Assign each Meta lead form to the specific development project it belongs to.
