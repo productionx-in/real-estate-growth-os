@@ -5,7 +5,7 @@ import { releaseExpiredBlockings } from '@/lib/dal/sales'
 
 export const dynamic = 'force-dynamic'
 
-export function verifyCronAuthorization(request: NextRequest): { authorized: boolean; status: number; error?: string } {
+function verifyCronAuthorization(request: NextRequest): { authorized: boolean; status: number; error?: string } {
   const isProduction = process.env.NODE_ENV === 'production'
   const cronSecret = process.env.CRON_SECRET
 
