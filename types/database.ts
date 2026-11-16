@@ -941,6 +941,7 @@ export interface Database {
           name: string
           email: string | null
           phone: string
+          phone_e164: string | null
           source: LeadSource
           status: LeadStatus
           priority: LeadPriority
@@ -2267,6 +2268,247 @@ export interface Database {
           occurred_at?: string
         }
         Relationships: []
+      }
+      teams: {
+        Row: {
+          id: string
+          org_id: string
+          name: string
+          description: string | null
+          timezone: string
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          name: string
+          description?: string | null
+          timezone?: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          org_id?: string
+          name?: string
+          description?: string | null
+          timezone?: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'teams_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'organisations'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      team_members: {
+        Row: {
+          id: string
+          org_id: string
+          team_id: string
+          profile_id: string
+          weight: number
+          daily_capacity: number | null
+          is_on_duty: boolean
+          last_assigned_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          team_id: string
+          profile_id: string
+          weight?: number
+          daily_capacity?: number | null
+          is_on_duty?: boolean
+          last_assigned_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          org_id?: string
+          team_id?: string
+          profile_id?: string
+          weight?: number
+          daily_capacity?: number | null
+          is_on_duty?: boolean
+          last_assigned_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'team_members_team_id_fkey'
+            columns: ['team_id']
+            isOneToOne: false
+            referencedRelation: 'teams'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'team_members_profile_id_fkey'
+            columns: ['profile_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      member_leaves: {
+        Row: {
+          id: string
+          org_id: string
+          profile_id: string
+          starts_on: string
+          ends_on: string
+          reason: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          profile_id: string
+          starts_on: string
+          ends_on: string
+          reason?: string | null
+          created_at?: string
+        }
+        Update: {
+          org_id?: string
+          profile_id?: string
+          starts_on?: string
+          ends_on?: string
+          reason?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'member_leaves_profile_id_fkey'
+            columns: ['profile_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      routing_rules: {
+        Row: {
+          id: string
+          org_id: string
+          name: string
+          priority: number
+          is_active: boolean
+          match_project_ids: string[]
+          match_sources: LeadSource[]
+          match_connection_ids: string[]
+          match_campaign_ids: string[]
+          match_form_ids: string[]
+          team_id: string
+          strategy: string
+          sticky_days: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          name: string
+          priority?: number
+          is_active?: boolean
+          match_project_ids?: string[]
+          match_sources?: LeadSource[]
+          match_connection_ids?: string[]
+          match_campaign_ids?: string[]
+          match_form_ids?: string[]
+          team_id: string
+          strategy?: string
+          sticky_days?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          org_id?: string
+          name?: string
+          priority?: number
+          is_active?: boolean
+          match_project_ids?: string[]
+          match_sources?: LeadSource[]
+          match_connection_ids?: string[]
+          match_campaign_ids?: string[]
+          match_form_ids?: string[]
+          team_id?: string
+          strategy?: string
+          sticky_days?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'routing_rules_team_id_fkey'
+            columns: ['team_id']
+            isOneToOne: false
+            referencedRelation: 'teams'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      lead_routing_decisions: {
+        Row: {
+          id: string
+          org_id: string
+          lead_id: string
+          decided_at: string
+          outcome: string
+          assigned_to: string | null
+          rule_id: string | null
+          team_id: string | null
+          strategy: string | null
+          detail: Json
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          lead_id: string
+          decided_at?: string
+          outcome: string
+          assigned_to?: string | null
+          rule_id?: string | null
+          team_id?: string | null
+          strategy?: string | null
+          detail?: Json
+        }
+        Update: never
+        Relationships: [
+          {
+            foreignKeyName: 'lead_routing_decisions_lead_id_fkey'
+            columns: ['lead_id']
+            isOneToOne: false
+            referencedRelation: 'leads'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'lead_routing_decisions_rule_id_fkey'
+            columns: ['rule_id']
+            isOneToOne: false
+            referencedRelation: 'routing_rules'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'lead_routing_decisions_team_id_fkey'
+            columns: ['team_id']
+            isOneToOne: false
+            referencedRelation: 'teams'
+            referencedColumns: ['id']
+          }
+        ]
       }
     }
     Views: {
