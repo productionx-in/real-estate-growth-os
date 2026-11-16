@@ -1,6 +1,6 @@
 # REGrow by INFYN Group — Product Strategy
 
-**Date:** 2026-11-16 · **Status:** Stage 3 (Decide) complete → awaiting founder review (Stage 4). No product code has been changed.
+**Date:** 2026-11-16 · **Status:** Direction approved by founders (2026-11-16). M0 in progress — see ENGINEERING_BACKLOG.md.
 
 ## Executive summary
 1. **Sell the outcome, not the CRM.** Customer #1 asked for lead capture → assignment within minutes → follow-up reminders.
@@ -19,6 +19,7 @@
 ## Documents
 | Document | Purpose |
 |---|---|
+| [ENGINEERING_BACKLOG.md](ENGINEERING_BACKLOG.md) | **Approved build plan** — M0–M3 items with owners, sizes and acceptance criteria |
 | [LEAD_ENGINE_PRODUCT_SPEC.md](LEAD_ENGINE_PRODUCT_SPEC.md) | **The product to build first** — scope, flows, SLA design, data model, reuse vs build, acceptance criteria, customer discovery questions |
 | [STRATEGIC_RECOMMENDATIONS.md](STRATEGIC_RECOMMENDATIONS.md) | SWOT, the ten decisions, next milestones, approvals needed |
 | [BUSINESS_MODEL.md](BUSINESS_MODEL.md) | Packaging, pricing, founding-customer offer, unit-economics scenarios, market size |
