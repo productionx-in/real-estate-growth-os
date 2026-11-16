@@ -1,5 +1,5 @@
 // app/api/admin/subscriptions/verify-payment/route.ts
-// Production X Platform Administration: Super Admin Payment Verification & Subscription Activation
+// REGrow Platform Administration: Super Admin Payment Verification & Subscription Activation
 import { NextResponse, type NextRequest } from 'next/server'
 import { authenticatePlatformAdmin } from '@/lib/auth/platform'
 import { createServiceClient } from '@/lib/supabase/server'

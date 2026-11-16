@@ -1,6 +1,6 @@
 // lib/integrations/meta/config.ts
-// Central Production X Meta Developer App Configuration.
-// Production X operates ONE verified Meta developer app across all customer tenants.
+// Central REGrow Meta Developer App Configuration.
+// REGrow operates ONE verified Meta developer app across all customer tenants.
 // Manages OAuth endpoints, app credentials, permissions, and webhook parameters.
 
 export interface MetaAppConfig {

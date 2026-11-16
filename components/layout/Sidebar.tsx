@@ -22,6 +22,7 @@ import {
   Shuffle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { PRODUCT_NAME } from '@/lib/brand'
 import type { MemberRole } from '@/types/database'
 import type { AvailableOrgSummary } from '@/lib/dal/workspace'
 
@@ -379,7 +380,7 @@ export function Sidebar({
               {profile?.full_name || 'Team Member'}
             </p>
             <p className="text-[10px] text-[var(--foreground-muted)] truncate">
-              Growth OS Enterprise
+              {PRODUCT_NAME}
             </p>
           </div>
           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 capitalize border border-gray-200">

@@ -32,7 +32,7 @@ export default async function PlatformProvisioningPage() {
   return (
     <PageShell
       title="Platform Customer Onboarding"
-      description="Authorised Production X workspace provisioning and subscription seat entitlement management"
+      description="Authorised REGrow workspace provisioning and subscription seat entitlement management"
     >
       <div className="py-6">
         <PlatformProvisioningModal />

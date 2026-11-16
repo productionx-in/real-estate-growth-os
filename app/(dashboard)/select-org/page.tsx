@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Building2, ArrowRight, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 interface OrgMembershipItem {
   role: string | null
@@ -85,7 +86,7 @@ export default async function SelectOrgPage() {
           <div className="w-9 h-9 rounded-xl bg-[var(--brand)] flex items-center justify-center shadow-xs">
             <Building2 className="w-5 h-5 text-white" />
           </div>
-          <span className="text-lg font-bold text-[var(--foreground)]">Growth OS</span>
+          <span className="text-lg font-bold text-[var(--foreground)]">{PRODUCT_NAME}</span>
         </div>
 
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-7 shadow-sm">
