@@ -1,5 +1,7 @@
 // lib/email/adapter.ts
-// Production X: Provider-Independent Email Adapter (Resend + Development Mock)
+// REGrow: Provider-Independent Email Adapter (Resend + Development Mock)
+
+import { EMAIL_SENDER_NAME, PRODUCT_NAME, PRODUCT_FULL_NAME } from '@/lib/brand'
 
 export interface SendEmailOptions {
   to: string | string[]
@@ -35,7 +37,7 @@ export class ResendEmailAdapter implements EmailAdapter {
   private apiKey: string
   private defaultFrom: string
 
-  constructor(apiKey: string, defaultFrom: string = 'Production X <noreply@productionx.ai>') {
+  constructor(apiKey: string, defaultFrom: string = `${EMAIL_SENDER_NAME} <noreply@productionx.ai>`) {
     this.apiKey = apiKey
     this.defaultFrom = defaultFrom
   }
@@ -70,13 +72,13 @@ export class ResendEmailAdapter implements EmailAdapter {
   }
 
   async sendInvitationEmail(options: InvitationEmailOptions): Promise<EmailResult> {
-    const subject = `You've been invited to join ${options.orgName} on Production X`
+    const subject = `You've been invited to join ${options.orgName} on ${PRODUCT_NAME}`
     const inviter = options.inviterName || 'An administrator'
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #111827;">
         <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">Workspace Invitation</h2>
         <p style="font-size: 15px; line-height: 24px; margin-bottom: 16px;">
-          ${inviter} has invited you to join <strong>${options.orgName}</strong> as a <strong>${options.role}</strong> on Production X Real Estate Growth OS.
+          ${inviter} has invited you to join <strong>${options.orgName}</strong> as a <strong>${options.role}</strong> on ${PRODUCT_FULL_NAME}.
         </p>
         <div style="margin: 28px 0;">
           <a href="${options.inviteUrl}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">
@@ -88,7 +90,7 @@ export class ResendEmailAdapter implements EmailAdapter {
         </p>
       </div>
     `
-    const text = `${inviter} has invited you to join ${options.orgName} as a ${options.role} on Production X.\n\nActivate your account at: ${options.inviteUrl}\n\nThis link will expire in 7 days.`
+    const text = `${inviter} has invited you to join ${options.orgName} as a ${options.role} on ${PRODUCT_NAME}.\n\nActivate your account at: ${options.inviteUrl}\n\nThis link will expire in 7 days.`
 
     return this.sendEmail({
       to: options.to,
@@ -116,9 +118,9 @@ export class MockEmailAdapter implements EmailAdapter {
   }
 
   async sendInvitationEmail(options: InvitationEmailOptions): Promise<EmailResult> {
-    const subject = `You've been invited to join ${options.orgName} on Production X`
+    const subject = `You've been invited to join ${options.orgName} on ${PRODUCT_NAME}`
     const inviter = options.inviterName || 'An administrator'
-    const text = `${inviter} has invited you to join ${options.orgName} as a ${options.role} on Production X.\n\nActivate your account at: ${options.inviteUrl}`
+    const text = `${inviter} has invited you to join ${options.orgName} as a ${options.role} on ${PRODUCT_NAME}.\n\nActivate your account at: ${options.inviteUrl}`
 
     return this.sendEmail({
       to: options.to,

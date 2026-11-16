@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const origin = request.nextUrl.origin || 'https://app.productionx.com'
 
   const jsContent = `/**
- * Production X - Real Estate Growth OS Embeddable Enquiry Form Runtime
+ * REGrow - Real Estate Growth OS Embeddable Enquiry Form Runtime
  * Lightweight, zero-dependency, responsive lead capture widget.
  */
 (function() {
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       var formLoadTime = Date.now();
 
       if (!connectionId) {
-        console.warn('[Production X] Missing data-connection-id on enquiry form container.');
+        console.warn('[REGrow] Missing data-connection-id on enquiry form container.');
         return;
       }
 
