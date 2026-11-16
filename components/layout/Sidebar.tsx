@@ -20,11 +20,16 @@ import {
   Plus,
   Compass,
   Shuffle,
+  ListChecks,
+  Gauge,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { PRODUCT_NAME } from '@/lib/brand'
 import type { MemberRole } from '@/types/database'
 import type { AvailableOrgSummary } from '@/lib/dal/workspace'
+
+/** Dispatched by the header's menu button to open/close the sidebar drawer on phones. */
+export const NAV_TOGGLE_EVENT = 'regrow:toggle-nav'
 
 interface NavItem {
   label: string
@@ -67,6 +72,7 @@ function getRoleNavSections(
       {
         title: 'MY PIPELINE',
         items: [
+          { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
           { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
           { label: 'My Leads', href: `/${orgSlug}/leads`, icon: Users },
           { label: 'Sales & Visits', href: `/${orgSlug}/sales`, icon: Briefcase },
@@ -97,6 +103,7 @@ function getRoleNavSections(
       {
         title: 'BROKERAGE CRM',
         items: [
+          { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
           { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
           { label: 'Referred Leads', href: `/${orgSlug}/leads`, icon: Users },
           { label: 'Deals & Commissions', href: `/${orgSlug}/sales`, icon: Briefcase },
@@ -120,6 +127,7 @@ function getRoleNavSections(
       {
         title: 'SALES & CRM',
         items: [
+          { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
           { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
           { label: 'Leads CRM', href: `/${orgSlug}/leads`, icon: Users },
           { label: 'Sales Operations', href: `/${orgSlug}/sales`, icon: Briefcase },
@@ -136,6 +144,7 @@ function getRoleNavSections(
       {
         title: 'PERFORMANCE',
         items: [
+          { label: 'Speed to lead', href: `/${orgSlug}/speed-to-lead`, icon: Gauge },
           { label: 'Analytics & BI', href: `/${orgSlug}/analytics`, icon: TrendingUp },
           { label: 'Team Directory', href: `/${orgSlug}/team`, icon: UserCircle },
         ],
@@ -148,6 +157,7 @@ function getRoleNavSections(
     {
       title: 'SALES & CRM',
       items: [
+        { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
         { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
         { label: 'Leads CRM', href: `/${orgSlug}/leads`, icon: Users },
         { label: 'Sales & CPs', href: `/${orgSlug}/sales`, icon: Briefcase },
@@ -164,6 +174,7 @@ function getRoleNavSections(
     {
       title: 'GROWTH & PLATFORM',
       items: [
+        { label: 'Speed to lead', href: `/${orgSlug}/speed-to-lead`, icon: Gauge },
         { label: 'Integrations', href: `/${orgSlug}/integrations`, icon: Plug },
         { label: 'Analytics & BI', href: `/${orgSlug}/analytics`, icon: TrendingUp },
       ],
@@ -193,6 +204,15 @@ export function Sidebar({
 
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false)
   const switcherRef = useRef<HTMLDivElement>(null)
+  // Phones: the sidebar is an off-canvas drawer opened from the header's menu button.
+  const [mobileOpen, setMobileOpen] = useState(false)
+  useEffect(() => {
+    const toggle = () => setMobileOpen((v) => !v)
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false) }
+    window.addEventListener(NAV_TOGGLE_EVENT, toggle)
+    window.addEventListener('keydown', onKey)
+    return () => { window.removeEventListener(NAV_TOGGLE_EVENT, toggle); window.removeEventListener('keydown', onKey) }
+  }, [])
 
   // Close switcher when clicking outside
   useEffect(() => {
@@ -239,9 +259,19 @@ export function Sidebar({
   }
 
   return (
+    <>
+    {mobileOpen && (
+      <div className="fixed inset-0 z-30 bg-black/40 md:hidden" aria-hidden="true" onClick={() => setMobileOpen(false)} />
+    )}
     <aside
+      id="app-sidebar"
       style={{ width: 'var(--sidebar-width)' }}
-      className="flex-shrink-0 h-full bg-[var(--surface)] border-r border-[var(--border)] flex flex-col relative"
+      className={cn(
+        'flex-shrink-0 h-full bg-[var(--surface)] border-r border-[var(--border)] flex flex-col',
+        'fixed inset-y-0 left-0 z-40 transition-transform duration-200 md:static md:z-auto md:translate-x-0',
+        mobileOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'
+      )}
+      onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMobileOpen(false) }}
     >
       {/* Brand & Workspace Switcher Header */}
       <div
@@ -389,5 +419,6 @@ export function Sidebar({
         </div>
       </div>
     </aside>
+    </>
   )
 }
