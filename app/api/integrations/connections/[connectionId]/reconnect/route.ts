@@ -36,6 +36,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     const { data: membership } = await service
       .from('org_members')
       .select('role')
+      .eq('status', 'active')
       .eq('org_id', conn.org_id)
       .eq('profile_id', authResult.auth.profile.id)
       .maybeSingle()

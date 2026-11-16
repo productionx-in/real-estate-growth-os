@@ -2,6 +2,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createBooking, getBookings } from '@/lib/dal/sales'
 import { authorizeSalesRequest } from '@/lib/sales/auth'
+import { SALES_WRITE_ROLES } from '@/lib/auth/permissions'
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const auth = await authorizeSalesRequest(body.orgId)
+    const auth = await authorizeSalesRequest(body.orgId, SALES_WRITE_ROLES)
     if (!auth.success) return auth.response
 
     if (!body.projectId || !body.inventoryId || !body.leadId || body.basePrice === undefined || body.bookingAmountReceived === undefined) {

@@ -67,6 +67,7 @@ async function resolveTenantOrg(
     const { data: membership } = await service
       .from('org_members')
       .select('role')
+      .eq('status', 'active')
       .eq('org_id', targetOrgId)
       .eq('profile_id', profileId)
       .maybeSingle()
@@ -79,6 +80,7 @@ async function resolveTenantOrg(
   const { data: membership } = await service
     .from('org_members')
     .select('org_id, role')
+    .eq('status', 'active')
     .eq('profile_id', profileId)
     .order('created_at', { ascending: true })
     .limit(1)

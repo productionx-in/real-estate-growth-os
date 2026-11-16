@@ -6,6 +6,7 @@ import { createEmployeeInvitation } from '@/lib/dal/invitations'
 import { getEmailAdapter } from '@/lib/email/adapter'
 import type { MemberRole } from '@/types/database'
 import { z } from 'zod'
+import { isActiveMembership } from '@/lib/auth/permissions'
 
 const InviteSchema = z.object({
   orgSlug: z.string().optional(),
@@ -55,11 +56,12 @@ export async function POST(request: NextRequest) {
     const { data: callerMembership } = await service
       .from('org_members')
       .select('role, status')
+      .eq('status', 'active')
       .eq('org_id', targetOrgId)
       .eq('profile_id', auth.profile.id)
       .maybeSingle()
 
-    if (!callerMembership || callerMembership.status === 'deactivated' || !['owner', 'admin'].includes(callerMembership.role)) {
+    if (!callerMembership || !isActiveMembership(callerMembership.status) || !['owner', 'admin'].includes(callerMembership.role)) {
       return NextResponse.json(
         { error: 'Insufficient permissions. Only owners and administrators can invite employees.' },
         { status: 403 }
