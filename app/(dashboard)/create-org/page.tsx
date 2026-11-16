@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { Building2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { CreateOrgForm } from '@/components/auth/CreateOrgForm'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export const metadata: Metadata = { title: 'Create Workspace' }
 export const dynamic = 'force-dynamic'
@@ -24,7 +25,7 @@ export default async function CreateOrgPage() {
             <Building2 className="w-6 h-6 text-white" />
           </div>
           <span className="text-xl font-bold tracking-tight text-[var(--foreground)]">
-            Real Estate Growth OS
+            {PRODUCT_NAME}
           </span>
         </div>
 
