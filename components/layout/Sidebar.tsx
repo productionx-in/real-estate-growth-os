@@ -21,6 +21,7 @@ import {
   Compass,
   Shuffle,
   ListChecks,
+  Gauge,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import type { MemberRole } from '@/types/database'
@@ -142,6 +143,7 @@ function getRoleNavSections(
       {
         title: 'PERFORMANCE',
         items: [
+          { label: 'Speed to lead', href: `/${orgSlug}/speed-to-lead`, icon: Gauge },
           { label: 'Analytics & BI', href: `/${orgSlug}/analytics`, icon: TrendingUp },
           { label: 'Team Directory', href: `/${orgSlug}/team`, icon: UserCircle },
         ],
@@ -171,6 +173,7 @@ function getRoleNavSections(
     {
       title: 'GROWTH & PLATFORM',
       items: [
+        { label: 'Speed to lead', href: `/${orgSlug}/speed-to-lead`, icon: Gauge },
         { label: 'Integrations', href: `/${orgSlug}/integrations`, icon: Plug },
         { label: 'Analytics & BI', href: `/${orgSlug}/analytics`, icon: TrendingUp },
       ],

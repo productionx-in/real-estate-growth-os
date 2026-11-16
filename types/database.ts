@@ -2832,6 +2832,10 @@ export interface Database {
         }
         Returns: Json
       }
+      lead_response_report: {
+        Args: { p_org: string; p_from: string; p_to: string }
+        Returns: Json
+      }
       process_lead_responses: {
         Args: { p_now?: string }
         Returns: Json
