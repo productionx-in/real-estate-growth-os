@@ -71,7 +71,7 @@ export function RoiCalculator() {
               : 'At these numbers the subscription costs more than the ad value recovered.'}
           </p>
         </div>
-        <Link href="/demo?plan=leads" className="mt-6 text-center px-4 py-3 text-[15px] font-semibold text-[#0b1220] bg-white hover:bg-blue-50 rounded-xl transition-colors">
+        <Link href="/leakage-audit" className="mt-6 text-center px-4 py-3 text-[15px] font-semibold text-[#0b1220] bg-white hover:bg-blue-50 rounded-xl transition-colors">
           Get a free lead-leakage audit
         </Link>
         <p className="mt-3 text-[11px] text-slate-500 leading-relaxed">

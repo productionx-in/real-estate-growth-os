@@ -39,6 +39,7 @@ await check('GET', '/', null)
 await check('GET', '/login', null)
 await check('GET', '/pricing', null)
 await check('GET', '/demo', null)
+await check('GET', '/leakage-audit', null)
 await check('GET', '/acme/leads', '/login')
 await check('GET', '/select-org', '/login')
 await check('GET', '/apiary', '/login') // only the /api prefix is exempt, not look-alike paths
