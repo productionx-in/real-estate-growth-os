@@ -25,3 +25,10 @@ export function canWriteSales(role: MemberRole | null | undefined): boolean {
 export function canManageChannelPartners(role: MemberRole | null | undefined): boolean {
   return !!role && CHANNEL_PARTNER_ADMIN_ROLES.includes(role)
 }
+
+/** Roles allowed to configure lead routing (teams, rules, members' duty and capacity). */
+export const ROUTING_ADMIN_ROLES: readonly MemberRole[] = ['owner', 'admin', 'manager']
+
+export function canManageRouting(role: MemberRole | null | undefined): boolean {
+  return !!role && ROUTING_ADMIN_ROLES.includes(role)
+}

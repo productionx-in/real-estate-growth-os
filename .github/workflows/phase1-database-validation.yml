@@ -135,6 +135,15 @@ jobs:
           supabase db reset --debug
           node tests/db-integration/m0-sales-tenant-integrity.test.mjs 2>&1 | tee diagnostics/m0-sales-tenant-integrity.log
 
+      # 10d. M1 teams & lead routing (migrations 20260037, 20260038): routing engine + DAL
+      - name: Execute M1 Lead Routing Tests (Migrations 20260037-20260038)
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' && steps.pgdriver.outcome == 'success' }}
+        run: |
+          echo "Executing clean database reset for M1 routing isolation..."
+          supabase db reset --debug
+          node tests/db-integration/m1-lead-routing.test.mjs 2>&1 | tee diagnostics/m1-lead-routing.log
+          node tests/db-integration/m1-routing-dal.test.mjs 2>&1 | tee diagnostics/m1-routing-dal.log
+
       # 11. Execute Application Regression Test Suite (Phase 6)
       - name: Execute Application Regression Test Suite (All 27 Tests)
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
