@@ -19,6 +19,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
+    # Every `run` step uses bash with errexit, nounset and pipefail. Without pipefail,
+    # `node test.mjs | tee log` returns tee's exit status (0) and a failing test is reported
+    # as a passing step. GitHub's default for steps without `shell:` is `bash -e {0}`, which
+    # does not set pipefail.
+    defaults:
+      run:
+        shell: bash --noprofile --norc -euo pipefail {0}
+
     steps:
       # 1. Checkout Repository
       - name: Check out repository
@@ -33,6 +41,7 @@ jobs:
 
       # 3. Install Project Dependencies
       - name: Install project dependencies
+        id: install
         run: npm ci
 
       # 4. Install Pinned Supabase CLI (exact 2.122.1 avoids legacy Issue #4746 parser bug)
@@ -43,6 +52,7 @@ jobs:
 
       # 5. Start Disposable Local Supabase Stack (Docker-backed)
       - name: Start Disposable Local Supabase Stack
+        id: stack
         run: |
           echo "Starting disposable local Supabase environment on runner..."
           supabase start --debug
@@ -57,8 +67,13 @@ jobs:
           echo "SUPABASE_URL=http://127.0.0.1:54321" >> $GITHUB_ENV
           echo "NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321" >> $GITHUB_ENV
 
-          ANON_KEY=$(supabase status -o env | grep 'ANON_KEY=' | head -n1 | cut -d '=' -f2 | tr -d '"')
-          SERVICE_KEY=$(supabase status -o env | grep 'SERVICE_ROLE_KEY=' | head -n1 | cut -d '=' -f2 | tr -d '"')
+          # grep -m1 instead of `grep | head -n1`: under pipefail, head closing the pipe early can fail grep with SIGPIPE.
+          ANON_KEY=$(supabase status -o env | grep -m1 '^ANON_KEY=' | cut -d '=' -f2 | tr -d '"')
+          SERVICE_KEY=$(supabase status -o env | grep -m1 '^SERVICE_ROLE_KEY=' | cut -d '=' -f2 | tr -d '"')
+          if [ -z "$ANON_KEY" ] || [ -z "$SERVICE_KEY" ]; then
+            echo "::error::Could not read local Supabase API keys from 'supabase status -o env'"
+            exit 1
+          fi
 
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY" >> $GITHUB_ENV
           echo "SUPABASE_ANON_KEY=$ANON_KEY" >> $GITHUB_ENV
@@ -66,6 +81,7 @@ jobs:
 
       # 6. Apply Full Migration History from a Clean Database (0001 through 20260032)
       - name: Apply Complete Migration History (Clean DB Reset)
+        id: migrate
         run: |
           echo "Executing clean database reset to apply all 32 migrations in exact sequence..."
           supabase db reset --debug
@@ -73,16 +89,20 @@ jobs:
 
       # 7. Install Postgres Driver for Test Execution
       - name: Install pg driver on runner
+        id: pgdriver
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
         run: npm install --no-save pg
 
       # 8. Execute Real Database Integration Tests (Phase 4)
       - name: Execute Real Database Integration Tests (Phase 4)
+        if: ${{ !cancelled() && steps.migrate.outcome == 'success' && steps.pgdriver.outcome == 'success' }}
         run: |
           echo "Running real database integration tests against disposable PostgreSQL instance..."
           node tests/db-integration/phase1-real-db.test.mjs 2>&1 | tee diagnostics/phase1-real-db.log
 
       # 9. Execute Real Multi-Connection Concurrency Tests (Phase 5)
       - name: Execute Multi-Connection Concurrency Tests (Phase 5)
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' && steps.pgdriver.outcome == 'success' }}
         run: |
           echo "Executing clean database reset for concurrency isolation..."
           supabase db reset --debug
@@ -91,6 +111,7 @@ jobs:
 
       # 10. Execute Real Supabase Auth Live AAL2 & Bootstrap CLI Tests
       - name: Execute Live Supabase Auth AAL2 & Bootstrap CLI Tests
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
         run: |
           echo "Executing clean database reset for live bootstrap isolation..."
           supabase db reset --debug
@@ -99,13 +120,17 @@ jobs:
 
       # 11. Execute Application Regression Test Suite (Phase 6)
       - name: Execute Application Regression Test Suite (All 27 Tests)
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: |
+          mkdir -p diagnostics
           echo "Running existing project test suite..."
           npm test 2>&1 | tee diagnostics/npm-test.log
 
       # 12. Execute TypeScript Compiler Check
       - name: Execute TypeScript Compiler Check
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: |
+          mkdir -p diagnostics
           echo "Validating TypeScript types..."
           npx tsc --noEmit 2>&1 | tee diagnostics/tsc-check.log
 
