@@ -74,6 +74,15 @@ async function main() {
     await test('leads entered past the "new" stage (e.g. historical imports) get no clock', async () => {
       assert.equal((await lead(org, asha, { status: 'qualified' })).sla_state, null)
     })
+    await test('bulk-imported leads start no clock and send no alerts; a later reassignment does', async () => {
+      const l = await one(`INSERT INTO public.leads (org_id, name, phone, source, assigned_to, custom_fields)
+                           VALUES ($1,'Imported',$2,'csv_import',$3,'{"imported_at":"2026-11-01T00:00:00Z"}') RETURNING *`, [org, phone(), asha.profileId])
+      assert.equal(l.sla_state, null)
+      assert.equal((await notes(asha, 'lead_assigned')).filter((x) => x.lead_id === l.id).length, 0)
+      await q(`UPDATE public.leads SET assigned_to=$2 WHERE id=$1`, [l.id, ravi.profileId])
+      assert.equal((await getLead(l.id)).sla_state, 'pending')
+      assert.equal((await notes(ravi, 'lead_assigned')).filter((x) => x.lead_id === l.id).length, 1)
+    })
     await test('outside working hours the clock starts at the next working-day start', async () => {
       await q(`INSERT INTO public.lead_response_settings (org_id, workday_start, workday_end, timezone) VALUES ($1,'09:00','21:00','Asia/Kolkata')`, [other])
       const at = (iso) => one('SELECT public.regrow_response_deadline($1, $2::timestamptz, 5) d', [other, iso])
