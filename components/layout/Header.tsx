@@ -40,6 +40,7 @@ const SECTION_LABELS: Record<string, string> = {
   settings: 'Workspace Settings',
   routing: 'Lead Routing',
   today: 'Today',
+  'speed-to-lead': 'Speed to lead',
   new: 'Create',
   import: 'Bulk Import',
   edit: 'Edit',
