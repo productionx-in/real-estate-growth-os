@@ -39,6 +39,8 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [successCount, setSuccessCount] = useState<number | null>(null)
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+  const [unmatched, setUnmatched] = useState<{ owners: string[]; projects: string[] }>({ owners: [], projects: [] })
 
   function handleFileSelected(selectedFile: File) {
     if (!selectedFile.name.endsWith('.csv')) {
@@ -112,30 +114,44 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
     setError(null)
 
     startTransition(async () => {
+      // The API takes up to 500 leads per request; a CRM history is usually larger, so send it in batches.
+      const BATCH = 500
+      const importUrl = `/api/leads/import?orgSlug=${encodeURIComponent(orgSlug)}${orgId ? `&orgId=${encodeURIComponent(orgId)}` : ''}`
+      const owners = new Set<string>()
+      const projects = new Set<string>()
+      let imported = 0
+      setProgress({ done: 0, total: validRows.length })
       try {
-        const importUrl = `/api/leads/import?orgSlug=${encodeURIComponent(orgSlug)}${orgId ? `&orgId=${encodeURIComponent(orgId)}` : ''}`
-        const response = await fetch(importUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orgId,
-            org_id: orgId,
-            orgSlug,
-            projectId: selectedProjectId || null,
-            leads: validRows,
-          }),
-        })
-
-        const data = await response.json()
-        if (!response.ok) {
-          setError(data.error ?? 'Import failed')
-          return
+        for (let i = 0; i < validRows.length; i += BATCH) {
+          const response = await fetch(importUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgId,
+              org_id: orgId,
+              orgSlug,
+              projectId: selectedProjectId || null,
+              leads: validRows.slice(i, i + BATCH),
+            }),
+          })
+          const data = await response.json()
+          if (!response.ok) {
+            setError(`${data.error ?? 'Import failed'}${imported ? ` — ${imported} leads were imported before this batch.` : ''}`)
+            if (imported) router.refresh()
+            return
+          }
+          imported += data.importedCount ?? 0
+          for (const o of data.unmatchedOwners ?? []) owners.add(o)
+          for (const p of data.unmatchedProjects ?? []) projects.add(p)
+          setProgress({ done: Math.min(i + BATCH, validRows.length), total: validRows.length })
         }
-
-        setSuccessCount(data.importedCount)
+        setUnmatched({ owners: [...owners], projects: [...projects] })
+        setSuccessCount(imported)
         router.refresh()
       } catch {
-        setError('Network error. Failed to complete import.')
+        setError(`Network error.${imported ? ` ${imported} leads were imported before the connection dropped.` : ''}`)
+      } finally {
+        setProgress(null)
       }
     })
   }
@@ -151,7 +167,18 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
         </h2>
         <p className="text-[13px] text-[var(--foreground-muted)]">
           Successfully imported <strong className="text-[var(--foreground)]">{successCount}</strong> leads into your workspace.
+          Imported leads keep their original date and stage, and do not trigger new-lead alerts.
         </p>
+        {(unmatched.owners.length > 0 || unmatched.projects.length > 0) && (
+          <div className="text-left text-[12px] bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
+            {unmatched.owners.length > 0 && (
+              <p><strong>Salespeople not found in this workspace</strong> (those leads were shared among the team instead): {unmatched.owners.slice(0, 10).join(', ')}{unmatched.owners.length > 10 ? '…' : ''}</p>
+            )}
+            {unmatched.projects.length > 0 && (
+              <p><strong>Projects not found</strong> (create them, then reassign): {unmatched.projects.slice(0, 10).join(', ')}{unmatched.projects.length > 10 ? '…' : ''}</p>
+            )}
+          </div>
+        )}
         <div className="pt-2 flex justify-center gap-3">
           <button
             onClick={handleReset}
@@ -225,7 +252,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
             Click to upload or drag and drop
           </h3>
           <p className="mt-1 text-[12px] text-[var(--foreground-muted)]">
-            CSV files only up to 5MB (up to 500 leads per batch)
+            CSV up to 5 MB — our template or an export from Sell.Do, LeadSquared or a spreadsheet. Name, phone, source, stage, salesperson, project and enquiry date are recognised.
           </p>
         </div>
       ) : (
@@ -376,7 +403,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
               className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              {isPending ? 'Importing leads…' : `Import ${validCount} Valid Leads`}
+              {isPending ? (progress ? `Importing ${progress.done} of ${progress.total}…` : 'Importing leads…') : `Import ${validCount} Valid Leads`}
             </button>
           </div>
         </div>
