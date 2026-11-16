@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Building2, AlertTriangle, ArrowLeft } from 'lucide-react'
 import { validateInvitationToken } from '@/lib/dal/invitations'
 import { AcceptInviteForm } from '@/components/auth/AcceptInviteForm'
+import { PRODUCT_NAME } from '@/lib/brand'
 
 export const metadata: Metadata = { title: 'Accept Workspace Invitation' }
 export const dynamic = 'force-dynamic'
@@ -24,7 +25,7 @@ export default async function InvitePage({ params }: PageProps) {
             <Building2 className="w-6 h-6 text-white" />
           </div>
           <span className="text-xl font-bold tracking-tight text-[var(--foreground)]">
-            Real Estate Growth OS
+            {PRODUCT_NAME}
           </span>
         </div>
 
