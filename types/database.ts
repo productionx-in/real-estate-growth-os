@@ -67,6 +67,9 @@ export type ActivityType =
   | 'call_logged'
   | 'site_visit_scheduled'
   | 'site_visited'
+  | 'whatsapp_logged'
+  | 'follow_up_scheduled'
+  | 'follow_up_completed'
 
 export interface Database {
   public: {
@@ -942,6 +945,11 @@ export interface Database {
           email: string | null
           phone: string
           phone_e164: string | null
+          assigned_at: string | null
+          first_action_at: string | null
+          sla_due_at: string | null
+          sla_state: 'pending' | 'nudged' | 'met' | 'breached' | null
+          next_follow_up_at: string | null
           source: LeadSource
           status: LeadStatus
           priority: LeadPriority
@@ -967,6 +975,11 @@ export interface Database {
           updated_at: string
         }
         Insert: {
+          assigned_at?: string | null
+          first_action_at?: string | null
+          sla_due_at?: string | null
+          sla_state?: 'pending' | 'nudged' | 'met' | 'breached' | null
+          next_follow_up_at?: string | null
           id?: string
           org_id: string
           project_id?: string | null
@@ -999,6 +1012,11 @@ export interface Database {
           updated_at?: string
         }
         Update: {
+          assigned_at?: string | null
+          first_action_at?: string | null
+          sla_due_at?: string | null
+          sla_state?: 'pending' | 'nudged' | 'met' | 'breached' | null
+          next_follow_up_at?: string | null
           id?: string
           org_id?: string
           project_id?: string | null
@@ -2573,6 +2591,102 @@ export interface Database {
           }
         ]
       }
+      lead_response_settings: {
+        Row: {
+          org_id: string
+          first_response_minutes: number
+          nudge_minutes: number
+          reassign_on_breach: boolean
+          workday_start: string
+          workday_end: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          org_id: string
+          first_response_minutes?: number
+          nudge_minutes?: number
+          reassign_on_breach?: boolean
+          workday_start?: string
+          workday_end?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          org_id?: string
+          first_response_minutes?: number
+          nudge_minutes?: number
+          reassign_on_breach?: boolean
+          workday_start?: string
+          workday_end?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      lead_tasks: {
+        Row: {
+          id: string
+          org_id: string
+          lead_id: string
+          assigned_to: string | null
+          kind: 'call' | 'whatsapp' | 'meeting' | 'site_visit' | 'other'
+          due_at: string
+          note: string | null
+          status: 'open' | 'done' | 'cancelled'
+          created_by: string | null
+          created_at: string
+          completed_at: string | null
+          reminded_at: string | null
+          overdue_alerted_at: string | null
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          lead_id: string
+          assigned_to?: string | null
+          kind?: 'call' | 'whatsapp' | 'meeting' | 'site_visit' | 'other'
+          due_at: string
+          note?: string | null
+          status?: 'open' | 'done' | 'cancelled'
+          created_by?: string | null
+          created_at?: string
+          completed_at?: string | null
+          reminded_at?: string | null
+          overdue_alerted_at?: string | null
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          lead_id?: string
+          assigned_to?: string | null
+          kind?: 'call' | 'whatsapp' | 'meeting' | 'site_visit' | 'other'
+          due_at?: string
+          note?: string | null
+          status?: 'open' | 'done' | 'cancelled'
+          created_by?: string | null
+          created_at?: string
+          completed_at?: string | null
+          reminded_at?: string | null
+          overdue_alerted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'lead_tasks_lead_id_fkey'
+            columns: ['lead_id']
+            isOneToOne: false
+            referencedRelation: 'leads'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'lead_tasks_assigned_to_fkey'
+            columns: ['assigned_to']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
       push_subscriptions: {
         Row: {
           id: string
@@ -2706,7 +2820,22 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      log_lead_outcome: {
+        Args: {
+          p_lead: string
+          p_actor: string
+          p_outcome: string
+          p_new_status: LeadStatus
+          p_note: string | null
+          p_follow_up_at: string | null
+          p_follow_up_kind: string
+        }
+        Returns: Json
+      }
+      process_lead_responses: {
+        Args: { p_now?: string }
+        Returns: Json
+      }
     }
     Enums: {
       org_type: OrgType
