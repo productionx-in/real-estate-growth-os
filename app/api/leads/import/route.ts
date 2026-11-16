@@ -4,6 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { normaliseName } from '@/lib/import/crm-mapping'
 
 const ImportPayloadSchema = z.object({
   orgId: z.string().uuid().optional(),
@@ -16,6 +17,7 @@ const ImportPayloadSchema = z.object({
         email: z.string().email().optional().nullable().or(z.literal('')),
         source: z
           .enum([
+            'website',
             'meta_ads',
             'google_ads',
             '99acres',
@@ -32,6 +34,10 @@ const ImportPayloadSchema = z.object({
         budget_min: z.coerce.number().min(0).optional().nullable(),
         budget_max: z.coerce.number().min(0).optional().nullable(),
         notes: z.string().max(2000).optional().nullable(),
+        created_at: z.string().datetime().optional().nullable(),
+        status: z.enum(['new', 'contacted', 'qualified', 'site_visit_scheduled', 'site_visited', 'negotiation', 'booked', 'lost', 'junk']).default('new'),
+        owner: z.string().max(200).optional().nullable(),
+        project_name: z.string().max(200).optional().nullable(),
       })
     )
     .min(1, 'At least one lead is required')
@@ -172,21 +178,67 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Match salespeople (by name or email) to ACTIVE members of this organisation, and projects by name.
+    // Unmatched values are kept on the lead (custom_fields) and reported back, never guessed.
+    const ownerKeys = new Map<string, string>()
+    if (leads.some((l) => l.owner)) {
+      const { data: members } = await service.from('org_members')
+        .select('profile_id, role, profile:profiles!org_members_profile_id_fkey(full_name, auth_user_id)')
+        .eq('org_id', targetOrgId).eq('status', 'active').neq('role', 'readonly')
+      const authIds = new Map<string, string>()
+      for (const m of members ?? []) {
+        if (m.profile?.full_name) ownerKeys.set(normaliseName(m.profile.full_name), m.profile_id)
+        if (m.profile?.auth_user_id) authIds.set(m.profile.auth_user_id, m.profile_id)
+      }
+      if (leads.some((l) => l.owner?.includes('@')) && authIds.size > 0) {
+        for (let page = 1; page <= 10; page++) {
+          const { data } = await service.auth.admin.listUsers({ page, perPage: 1000 })
+          for (const u of data?.users ?? []) {
+            const pid = authIds.get(u.id)
+            if (pid && u.email) ownerKeys.set(normaliseName(u.email), pid)
+          }
+          if (!data || data.users.length < 1000) break
+        }
+      }
+    }
+    const projectKeys = new Map<string, string>()
+    if (leads.some((l) => l.project_name)) {
+      const { data: projects } = await service.from('projects').select('id, name').eq('org_id', targetOrgId)
+      for (const p of projects ?? []) projectKeys.set(normaliseName(p.name), p.id)
+    }
+
+    const unmatchedOwners = new Set<string>()
+    const unmatchedProjects = new Set<string>()
+    const importedAt = new Date().toISOString()
+
     // Prepare insert records
-    const insertPayload = leads.map((lead) => ({
-      org_id: targetOrgId,
-      project_id: projectId || null,
-      name: lead.name,
-      phone: lead.phone,
-      email: lead.email || null,
-      source: lead.source,
-      priority: lead.priority,
-      budget_min: lead.budget_min ?? null,
-      budget_max: lead.budget_max ?? null,
-      notes: lead.notes || null,
-      status: 'new' as const,
-      custom_fields: { imported_at: new Date().toISOString() },
-    }))
+    const insertPayload = leads.map((lead) => {
+      const ownerId = lead.owner ? ownerKeys.get(normaliseName(lead.owner)) ?? null : null
+      if (lead.owner && !ownerId) unmatchedOwners.add(lead.owner)
+      const rowProject = lead.project_name ? projectKeys.get(normaliseName(lead.project_name)) ?? null : null
+      if (lead.project_name && !rowProject) unmatchedProjects.add(lead.project_name)
+      return {
+        org_id: targetOrgId,
+        project_id: rowProject ?? projectId ?? null,
+        name: lead.name,
+        phone: lead.phone,
+        email: lead.email || null,
+        source: lead.source,
+        priority: lead.priority,
+        budget_min: lead.budget_min ?? null,
+        budget_max: lead.budget_max ?? null,
+        notes: lead.notes || null,
+        status: lead.status,
+        ...(lead.created_at ? { created_at: lead.created_at } : {}),
+        ...(ownerId ? { assigned_to: ownerId } : {}),
+        // imported_at keeps bulk imports quiet: no per-lead alerts or response clocks (migration 20260041).
+        custom_fields: {
+          imported_at: importedAt,
+          ...(lead.owner && !ownerId ? { original_owner: lead.owner } : {}),
+          ...(lead.project_name && !rowProject ? { original_project: lead.project_name } : {}),
+        },
+      }
+    })
 
     const { data: inserted, error: insertError } = await service
       .from('leads')
@@ -217,6 +269,8 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         importedCount,
+        unmatchedOwners: [...unmatchedOwners].slice(0, 50),
+        unmatchedProjects: [...unmatchedProjects].slice(0, 50),
         message: `Successfully imported ${importedCount} leads.`,
       },
       { status: 201 }
