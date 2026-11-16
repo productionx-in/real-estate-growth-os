@@ -50,6 +50,7 @@ async function verifyConnectionAccess(
   const { data: membership } = await service
     .from('org_members')
     .select('role')
+    .eq('status', 'active')
     .eq('org_id', conn.org_id)
     .eq('profile_id', profileId)
     .maybeSingle()

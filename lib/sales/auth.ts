@@ -3,9 +3,11 @@
 
 import { NextResponse } from 'next/server'
 import { authenticateCaller, authorizeOrgAccess, type TenantContext } from '@/lib/auth/tenant'
+import type { MemberRole } from '@/types/database'
 
 export async function authorizeSalesRequest(
-  orgId: string | null | undefined
+  orgId: string | null | undefined,
+  allowedRoles?: readonly MemberRole[]
 ): Promise<
   | { success: true; context: TenantContext }
   | { success: false; response: NextResponse }
@@ -20,7 +22,7 @@ export async function authorizeSalesRequest(
   const authRes = await authenticateCaller()
   if (!authRes.success) return authRes
 
-  const orgAccess = await authorizeOrgAccess(orgId)
+  const orgAccess = await authorizeOrgAccess(orgId, allowedRoles ? [...allowedRoles] : undefined)
   if (!orgAccess.success) return orgAccess
 
   return { success: true, context: orgAccess.context }

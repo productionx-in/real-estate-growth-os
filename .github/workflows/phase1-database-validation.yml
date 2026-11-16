@@ -118,6 +118,14 @@ jobs:
           echo "Running live Supabase Auth AAL2 and Bootstrap CLI test suite..."
           node tests/db-integration/phase1-bootstrap-cli.test.mjs 2>&1 | tee diagnostics/phase1-bootstrap-cli.log
 
+      # 10c. M0 sales tenant-integrity triggers (migration 20260036)
+      - name: Execute M0 Sales Tenant Integrity Tests (Migration 20260036)
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' && steps.pgdriver.outcome == 'success' }}
+        run: |
+          echo "Executing clean database reset for M0 tenant-integrity isolation..."
+          supabase db reset --debug
+          node tests/db-integration/m0-sales-tenant-integrity.test.mjs 2>&1 | tee diagnostics/m0-sales-tenant-integrity.log
+
       # 11. Execute Application Regression Test Suite (Phase 6)
       - name: Execute Application Regression Test Suite (All 27 Tests)
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}

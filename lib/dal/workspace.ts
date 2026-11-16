@@ -4,6 +4,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import type { MemberRole } from '@/types/database'
+import { isActiveMembership } from '@/lib/auth/permissions'
 
 export interface AvailableOrgSummary {
   id: string
@@ -115,7 +116,7 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
   }>
 
   const currentMembership = typedMemberships.find(
-    (m) => (m.org_id === org.id || m.organisation?.slug === orgSlug) && m.status !== 'deactivated'
+    (m) => (m.org_id === org.id || m.organisation?.slug === orgSlug) && isActiveMembership(m.status)
   )
 
   if (!currentMembership) {
@@ -125,7 +126,7 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
   }
 
   const availableOrgs: AvailableOrgSummary[] = typedMemberships
-    .filter((m) => m.organisation && m.organisation.slug && m.status !== 'deactivated')
+    .filter((m) => m.organisation && m.organisation.slug && isActiveMembership(m.status))
     .map((m) => ({
       id: m.organisation!.id,
       name: m.organisation!.name,
