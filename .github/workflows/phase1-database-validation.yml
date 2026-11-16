@@ -118,6 +118,15 @@ jobs:
           echo "Running live Supabase Auth AAL2 and Bootstrap CLI test suite..."
           node tests/db-integration/phase1-bootstrap-cli.test.mjs 2>&1 | tee diagnostics/phase1-bootstrap-cli.log
 
+      # 10b. Subscription catalog & seat purchase RLS regression (migration 20260035)
+      # Runs under the job default shell (bash -euo pipefail), so a failing test cannot be masked by `tee`.
+      - name: Execute Subscription Catalog RLS Regression Tests (Migration 20260035)
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' && steps.pgdriver.outcome == 'success' }}
+        run: |
+          echo "Executing clean database reset for subscription catalog RLS isolation..."
+          supabase db reset --debug
+          node tests/db-integration/subscription-catalog-rls.test.mjs 2>&1 | tee diagnostics/subscription-catalog-rls.log
+
       # 10c. M0 sales tenant-integrity triggers (migration 20260036)
       - name: Execute M0 Sales Tenant Integrity Tests (Migration 20260036)
         if: ${{ !cancelled() && steps.stack.outcome == 'success' && steps.pgdriver.outcome == 'success' }}
