@@ -1,5 +1,5 @@
 // app/api/admin/invitations/retry/route.ts
-// Production X Platform Administration: Super Admin Atomic Invitation Retry & Resend Endpoint
+// REGrow Platform Administration: Super Admin Atomic Invitation Retry & Resend Endpoint
 import { NextResponse, type NextRequest } from 'next/server'
 import crypto from 'node:crypto'
 import { authenticatePlatformAdmin } from '@/lib/auth/platform'
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         orgName,
         role,
         inviteUrl,
-        inviterName: auth.profile?.full_name || 'Production X Super Admin',
+        inviterName: auth.profile?.full_name || 'REGrow Super Admin',
       })
       emailDispatched = true
 

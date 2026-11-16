@@ -116,7 +116,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
           error: 'meta_app_not_configured',
           reconnectAvailable: false,
           message:
-            'Central Production X Meta Developer App credentials are not configured in environment variables (' +
+            'Central REGrow Meta Developer App credentials are not configured in environment variables (' +
             config.missing.join(', ') +
             '). The connection cannot be re-authorized until the developer app is set up.',
           missing: config.missing,

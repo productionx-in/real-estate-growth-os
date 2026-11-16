@@ -2,6 +2,7 @@
 // Approved WhatsApp message template management and parameter formatting.
 
 import type { WhatsAppTemplateAsset } from '@/lib/integrations/types'
+import { PRODUCT_FULL_NAME } from '@/lib/brand'
 
 export interface RenderedTemplateMessage {
   templateName: string
@@ -119,7 +120,7 @@ export const STANDARD_REAL_ESTATE_TEMPLATES: WhatsAppTemplateAsset[] = [
       },
       {
         type: 'FOOTER',
-        text: 'Production X Real Estate OS',
+        text: PRODUCT_FULL_NAME,
       },
       {
         type: 'BUTTONS',

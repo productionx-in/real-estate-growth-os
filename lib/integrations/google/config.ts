@@ -1,6 +1,6 @@
 // lib/integrations/google/config.ts
-// Central Production X Google Developer App & Google Ads Configuration.
-// Production X operates a central Google Cloud OAuth client for customer tenants.
+// Central REGrow Google Developer App & Google Ads Configuration.
+// REGrow operates a central Google Cloud OAuth client for customer tenants.
 // Manages OAuth endpoints, app credentials, Google Ads scopes, and webhook parameters.
 
 export interface GoogleAppConfig {
