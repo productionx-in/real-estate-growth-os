@@ -19,6 +19,7 @@ import {
   Check,
   Plus,
   Compass,
+  Shuffle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { PRODUCT_NAME } from '@/lib/brand'
@@ -122,6 +123,7 @@ function getRoleNavSections(
           { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
           { label: 'Leads CRM', href: `/${orgSlug}/leads`, icon: Users },
           { label: 'Sales Operations', href: `/${orgSlug}/sales`, icon: Briefcase },
+          { label: 'Lead Routing', href: `/${orgSlug}/routing`, icon: Shuffle },
         ],
       },
       {
@@ -149,6 +151,7 @@ function getRoleNavSections(
         { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
         { label: 'Leads CRM', href: `/${orgSlug}/leads`, icon: Users },
         { label: 'Sales & CPs', href: `/${orgSlug}/sales`, icon: Briefcase },
+        { label: 'Lead Routing', href: `/${orgSlug}/routing`, icon: Shuffle },
       ],
     },
     {

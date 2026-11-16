@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { LogOut, Bell, ChevronRight, Building2 } from 'lucide-react'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
+import { DutyToggle } from '@/components/routing/DutyToggle'
 import { createClient } from '@/lib/supabase/client'
 import type { MemberRole } from '@/types/database'
 import type { AvailableOrgSummary } from '@/lib/dal/workspace'
@@ -36,6 +37,7 @@ const SECTION_LABELS: Record<string, string> = {
   analytics: 'Analytics & BI',
   team: 'Team Directory',
   settings: 'Workspace Settings',
+  routing: 'Lead Routing',
   new: 'Create',
   import: 'Bulk Import',
   edit: 'Edit',
@@ -98,6 +100,8 @@ export function Header({
 
       {/* Right — Role context, User profile & Actions */}
       <div className="flex items-center gap-3">
+        {orgId && role !== 'readonly' && <DutyToggle orgId={orgId} />}
+
         {/* Role Pill */}
         <span
           className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${roleBadge.className}`}

@@ -94,6 +94,20 @@ async function main() {
       const lead = await one(`INSERT INTO public.leads (org_id, project_id, name, phone, source) VALUES ($1, $2, 'Buyer', '9811122233', 'website') RETURNING assigned_to`, [org, project])
       assert.ok([exec1, exec2].includes(lead.assigned_to))
     })
+    await test('listRecentRoutingDecisions returns the decision with lead and assignee names, scoped to the organisation', async () => {
+      const r = await dal.listRecentRoutingDecisions(org, 10)
+      assert.equal(r.success, true, r.error)
+      assert.equal(r.data.length, 1)
+      assert.equal(r.data[0].outcome, 'assigned')
+      assert.equal(r.data[0].lead.name, 'Buyer')
+      const lead = await one(`SELECT l.assigned_to, p.full_name FROM public.leads l JOIN public.profiles p ON p.id = l.assigned_to WHERE l.org_id = $1`, [org])
+      assert.deepEqual([r.data[0].assigned_to, r.data[0].assignee.full_name], [lead.assigned_to, lead.full_name])
+      assert.equal((await dal.listRecentRoutingDecisions(other, 10)).data.length, 0)
+    })
+    await test('getOwnDutyStatus: team member sees on duty; a non-member sees null', async () => {
+      assert.deepEqual((await dal.getOwnDutyStatus(org, exec1)).data, { teams: 1, onDuty: true })
+      assert.deepEqual((await dal.getOwnDutyStatus(other, outsider)).data, { teams: 0, onDuty: null })
+    })
     await test('deleting a team that a rule still targets → 409; works after deleting the rule', async () => {
       const blocked = await dal.deleteTeam(org, teamId)
       assert.deepEqual([blocked.success, blocked.status], [false, 409])
@@ -106,6 +120,12 @@ async function main() {
       const rows = (await db.query(`SELECT profile_id, is_on_duty FROM public.team_members WHERE team_id = $1 ORDER BY profile_id`, [teamId])).rows
       assert.equal(rows.find((x) => x.profile_id === exec1).is_on_duty, false)
       assert.equal(rows.find((x) => x.profile_id === exec2).is_on_duty, true)
+      assert.deepEqual((await dal.getOwnDutyStatus(org, exec1)).data, { teams: 1, onDuty: false })
+    })
+    await test('getOwnDutyStatus ignores inactive teams', async () => {
+      assert.equal((await dal.updateTeam(teamId, { orgId: org, isActive: false })).success, true)
+      assert.deepEqual((await dal.getOwnDutyStatus(org, exec2)).data, { teams: 0, onDuty: null })
+      assert.equal((await dal.updateTeam(teamId, { orgId: org, isActive: true })).success, true)
     })
     await test('listTeams returns members with profile names, scoped to the organisation', async () => {
       const r = await dal.listTeams(org)
