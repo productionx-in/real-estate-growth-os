@@ -1,5 +1,5 @@
 // app/api/admin/organisations/provision/route.ts
-// Production X Platform Administration: Super Admin Organization & Subscription Provisioning
+// REGrow Platform Administration: Super Admin Organization & Subscription Provisioning
 import { NextResponse, type NextRequest } from 'next/server'
 import crypto from 'node:crypto'
 import { authenticatePlatformAdmin } from '@/lib/auth/platform'
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
         orgName: name.trim(),
         role: 'Owner & Primary Administrator',
         inviteUrl,
-        inviterName: auth.profile?.full_name || 'Production X Super Admin',
+        inviterName: auth.profile?.full_name || 'REGrow Super Admin',
       })
       emailDispatched = true
 

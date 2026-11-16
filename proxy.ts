@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/types/database'
 
-const PUBLIC_ROUTES = ['/', '/login', '/auth/callback', '/auth/confirm']
+const PUBLIC_ROUTES = ['/', '/pricing', '/demo', '/login', '/auth/callback', '/auth/confirm']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -17,6 +17,12 @@ export async function proxy(request: NextRequest) {
 
   // 2. Allow invitation activation page to load publicly without premature login bounce
   const isInviteRoute = pathname.startsWith('/invite/')
+
+  // 3. API routes are never redirected to the login page. Every /api route authenticates its caller
+  //    itself (session + membership, API key, webhook signature/secret, or job-worker bearer) and
+  //    answers 401/403 as JSON. Redirecting here broke every machine caller — Meta/Google/portal/
+  //    WhatsApp lead webhooks, public form submissions and the job worker — with a 307 to /login.
+  const isApiRoute = pathname === '/api' || pathname.startsWith('/api/')
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -66,6 +72,7 @@ export async function proxy(request: NextRequest) {
 
   // Allow public routes and invite verification
   if (
+    isApiRoute ||
     isInviteRoute ||
     PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith('/auth/'))
   ) {

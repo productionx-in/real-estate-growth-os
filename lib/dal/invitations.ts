@@ -1,5 +1,5 @@
 // lib/dal/invitations.ts
-// Production X: Employee Invitation & Lifecycle Management Engine
+// REGrow: Employee Invitation & Lifecycle Management Engine
 import crypto from 'node:crypto'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getSubscriptionAndSeatUsage } from './subscriptions'
