@@ -26,6 +26,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
       />
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <Header
+          orgId={workspace.org.id}
           orgName={workspace.org.name}
           orgSlug={workspace.org.slug}
           orgType={workspace.org.type}

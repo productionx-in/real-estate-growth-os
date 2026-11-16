@@ -3,11 +3,13 @@
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { LogOut, Bell, ChevronRight, Building2 } from 'lucide-react'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { createClient } from '@/lib/supabase/client'
 import type { MemberRole } from '@/types/database'
 import type { AvailableOrgSummary } from '@/lib/dal/workspace'
 
 export interface HeaderProps {
+  orgId?: string
   orgName?: string
   orgSlug?: string
   orgType?: 'developer' | 'channel_partner'
@@ -40,6 +42,7 @@ const SECTION_LABELS: Record<string, string> = {
 }
 
 export function Header({
+  orgId,
   orgName,
   orgSlug,
   role = 'sales_exec',
@@ -115,13 +118,13 @@ export function Header({
 
         {/* Actions */}
         <div className="flex items-center gap-1">
-          <button
-            className="w-8 h-8 rounded-md flex items-center justify-center text-[var(--foreground-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] transition-colors"
-            title="Notifications"
-            aria-label="Notifications"
-          >
-            <Bell className="w-4 h-4" />
-          </button>
+          {orgId && orgSlug ? (
+            <NotificationBell orgId={orgId} orgSlug={orgSlug} />
+          ) : (
+            <span className="w-8 h-8 rounded-md flex items-center justify-center text-[var(--foreground-muted)]" aria-hidden="true">
+              <Bell className="w-4 h-4" />
+            </span>
+          )}
           <button
             onClick={handleSignOut}
             className="w-8 h-8 rounded-md flex items-center justify-center text-[var(--foreground-muted)] hover:bg-red-50 hover:text-red-600 transition-colors"

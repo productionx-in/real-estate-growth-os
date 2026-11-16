@@ -2510,6 +2510,146 @@ export interface Database {
           }
         ]
       }
+      notifications: {
+        Row: {
+          id: string
+          org_id: string
+          recipient_profile_id: string
+          type: string
+          title: string
+          body: string
+          lead_id: string | null
+          data: Json
+          dedupe_key: string
+          created_at: string
+          read_at: string | null
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          recipient_profile_id: string
+          type: string
+          title: string
+          body: string
+          lead_id?: string | null
+          data?: Json
+          dedupe_key: string
+          created_at?: string
+          read_at?: string | null
+        }
+        Update: {
+          org_id?: string
+          recipient_profile_id?: string
+          type?: string
+          title?: string
+          body?: string
+          lead_id?: string | null
+          data?: Json
+          dedupe_key?: string
+          created_at?: string
+          read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'notifications_lead_id_fkey'
+            columns: ['lead_id']
+            isOneToOne: false
+            referencedRelation: 'leads'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notifications_recipient_profile_id_fkey'
+            columns: ['recipient_profile_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      notification_deliveries: {
+        Row: {
+          id: string
+          notification_id: string
+          channel: string
+          status: string
+          provider_message_id: string | null
+          detail: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          notification_id: string
+          channel: string
+          status: string
+          provider_message_id?: string | null
+          detail?: string | null
+          created_at?: string
+        }
+        Update: {
+          notification_id?: string
+          channel?: string
+          status?: string
+          provider_message_id?: string | null
+          detail?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'notification_deliveries_notification_id_fkey'
+            columns: ['notification_id']
+            isOneToOne: false
+            referencedRelation: 'notifications'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      scheduled_jobs: {
+        Row: {
+          id: string
+          org_id: string | null
+          kind: string
+          payload: Json
+          run_at: string
+          status: string
+          attempts: number
+          max_attempts: number
+          locked_until: string | null
+          last_error: string | null
+          dedupe_key: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id?: string | null
+          kind: string
+          payload?: Json
+          run_at?: string
+          status?: string
+          attempts?: number
+          max_attempts?: number
+          locked_until?: string | null
+          last_error?: string | null
+          dedupe_key?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          org_id?: string | null
+          kind?: string
+          payload?: Json
+          run_at?: string
+          status?: string
+          attempts?: number
+          max_attempts?: number
+          locked_until?: string | null
+          last_error?: string | null
+          dedupe_key?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
