@@ -13,18 +13,29 @@ no production migration/merge/deploy without explicit founder approval.
 
 | ID | Item | Owner | Size | Status | Acceptance criteria |
 |---|---|---|---|---|---|
-| M0-1 | Fix live subscription-catalog exposure (migration 0035) | ENG | M | ✅ PR #2 open, CI green | anon has no privilege on the 3 tables; seat reservation & provisioning unaffected (36 real-DB checks) |
-| M0-2 | CI must not mask failures; fix 3 hidden failing DB suites | ENG | M | ✅ PR #3 open, CI green | pipefail on all steps; all Phase 1 DB suites pass from clean reset on Node 20 |
-| M0-3 | Active-membership enforcement across API + page guard | ENG | M | ✅ PR #4 open | 26 lookups + 3 deny-list checks require `status='active'`; regression guard test |
-| M0-4 | Sales write role gates (readonly refused; CP creation manager+) | ENG | S | ✅ PR #4 open | unit tests on real `lib/auth/permissions.ts` |
-| M0-5 | Cross-tenant FK triggers on 6 sales tables (migration 0036) | ENG | M | ✅ PR #4 open | 24 real-DB checks; fail without migration |
-| M0-6 | **Review & merge** #2 → #3 → #4 (retarget #4 to main) | FND | S | ⏳ needs approval | merged in order; Vercel preview checked |
-| M0-7 | **Apply 0035 (+0036) to production** | FND+ENG | S | ⏳ needs approval | Supabase advisor no longer reports `rls_disabled_in_public` for the 3 tables; read-only verification queries recorded |
+| M0-1 | Fix live subscription-catalog exposure (migration 0035) | ENG | M | ✅ merged (PR #2), live in prod | anon has no privilege on the 3 tables; seat reservation & provisioning unaffected (36 real-DB checks) |
+| M0-2 | CI must not mask failures; fix 3 hidden failing DB suites | ENG | M | ✅ merged (PR #3) | pipefail on all steps; all Phase 1 DB suites pass from clean reset on Node 20 |
+| M0-3 | Active-membership enforcement across API + page guard | ENG | M | ✅ merged (PR #4) | 26 lookups + 3 deny-list checks require `status='active'`; regression guard test |
+| M0-4 | Sales write role gates (readonly refused; CP creation manager+) | ENG | S | ✅ merged (PR #4) | unit tests on real `lib/auth/permissions.ts` |
+| M0-5 | Cross-tenant FK triggers on 6 sales tables (migration 0036) | ENG | M | ✅ merged (PR #4), live in prod | 24 real-DB checks; fail without migration |
+| M0-6 | **Review & merge** #2 → #3 → #4 (retarget #4 to main) | FND | S | ✅ done 2026-11-16 (approved) | merged in order; Vercel production deploys succeeded for 5b555ee, 96eccc3, f1607ac |
+| M0-7 | **Apply 0035 (+0036) to production** | FND+ENG | S | ✅ done 2026-11-16 (auto-applied on merge — see note) | Supabase advisor no longer reports `rls_disabled_in_public` for the 3 tables; read-only verification queries recorded |
 | M0-8 | Enable Supabase leaked-password protection; review 14 mutable-search-path functions | ENG | S | todo | advisor warnings cleared or justified |
 | M0-9 | **Meta Business Verification + App Review** (`leads_retrieval`, `pages_manage_ads`, `pages_show_list`, `pages_read_engagement`, `ads_management` as needed) for app named **REGrow** | FND | — (calendar time) | todo — start now | Business verified; App Review submitted with screencast; privacy policy + data-deletion URLs live on REGrow domain |
 | M0-10 | REGrow WhatsApp Business account + display name + utility templates (`new_lead_alert`, `lead_reassigned`, `followup_due`, `daily_agenda`) | FND | — | todo | templates approved |
 | M0-11 | Decide REGrow production domains & email sending domain (SPF/DKIM/DMARC) | FND | — | todo | domains chosen; DNS configured |
 | M0-12 | Supabase Pro with PITR backups before customer #1 go-live; consider region (prod is `ap-northeast-1`; India users favour `ap-south-1`) | FND+ENG | S | todo | PITR on; region decision recorded |
+
+> **Deployment fact discovered during M0 (2026-11-16):** merging to `main` automatically applies new
+> `supabase/migrations/*` to the **production** database (migration 0035 appeared in
+> `supabase_migrations.schema_migrations` within a minute of merging PR #2; 0036 likewise after PR #4) and Vercel deploys
+> the app to production. There is **no staging step**. Until a staging project exists, every PR that adds a migration
+> must be treated as a production change: real-DB tests in CI, a read-only production pre-check, and explicit founder approval
+> before merge. New backlog item **M0-13**.
+
+| ID | Item | Owner | Size | Status | Acceptance criteria |
+|---|---|---|---|---|---|
+| M0-13 | Create a Supabase **staging** project (or Supabase branching) + Vercel preview env bound to it; require migrations to pass staging before `main` | FND+ENG | M | todo | a PR's migration runs on staging automatically; production only on merge |
 
 ### M0 customer actions (in parallel)
 | ID | Item | Owner |
@@ -107,6 +118,6 @@ no production migration/merge/deploy without explicit founder approval.
 | P2-8 | Hygiene: constant-time cron-secret comparison; receipt numbering via sequence; archive superseded root docs | |
 
 ## Order of work this week
-1. FND: review/merge #2 → #3 → #4; approve production migration window. Start M0-9/M0-10/M0-11 (calendar-time items).
+1. ~~FND: review/merge #2 → #3 → #4~~ (done 2026-11-16). FND: start M0-9/M0-10/M0-11/M0-13 (calendar-time items).
 2. FND+CUS: discovery call (C-1) and data requests (C-2…C-5).
 3. ENG: M0-8, then M1-1, M1-8 (job runner) and M1-9 (source verification) as soon as customer payload samples arrive.
