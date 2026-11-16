@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { MessageSquare, Loader2, ArrowRight, User, Plus } from 'lucide-react'
 import { formatRelative } from '@/lib/utils/format'
 import type { ActivityType } from '@/types/database'
+import { OUTCOME_RULES, type Outcome } from '@/lib/follow-ups/outcomes'
 
 type Activity = {
   id: string
@@ -64,8 +65,19 @@ function activityDescription(activity: Activity): string {
       return meta.new_assignee ? 'Lead assigned to team member' : 'Lead unassigned'
     case 'created':
       return `Lead created via ${meta.source ?? 'unknown'}`
+    case 'call_logged':
+      if (meta.via === 'tap') return 'Started a call'
+      return meta.outcome && OUTCOME_RULES[meta.outcome as Outcome] ? `Call: ${OUTCOME_RULES[meta.outcome as Outcome].label}` : 'Call logged'
+    case 'whatsapp_logged':
+      return 'Opened WhatsApp chat'
+    case 'follow_up_scheduled':
+      return typeof meta.due_at === 'string'
+        ? `Follow-up scheduled for ${new Date(meta.due_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}`
+        : 'Follow-up scheduled'
+    case 'follow_up_completed':
+      return 'Follow-up completed'
     default:
-      return activity.type.replace('_', ' ')
+      return activity.type.replace(/_/g, ' ')
   }
 }
 
