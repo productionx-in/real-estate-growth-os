@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 const EXPECT = [
   { icon: PlayCircle, title: '20-minute walkthrough', body: 'A lead arriving from Meta, routed by your rules, and on a salesperson’s screen in seconds.' },
-  { icon: FileBarChart, title: 'Free lead-leakage audit', body: 'Share last month’s lead export and we show how fast leads were contacted and how many never were — within 48 hours, under NDA.' },
+  { icon: FileBarChart, title: 'Free lead-leakage audit', body: 'Run it yourself in a minute at /leakage-audit — or share last month’s export and we walk you through it on the call.' },
   { icon: CalendarCheck, title: 'A pilot plan, if it fits', body: 'A 30-day pilot with a target agreed up front. No long contract to start.' },
 ]
 
