@@ -145,12 +145,13 @@ jobs:
           node tests/db-integration/m1-routing-dal.test.mjs 2>&1 | tee diagnostics/m1-routing-dal.log
 
       # 10e. M1 notifications outbox, inbox, job queue and scheduler (migration 20260039)
-      - name: Execute M1 Notifications & Job Queue Tests (Migration 20260039)
+      - name: Execute M1 Notifications, Job Queue & Web Push Tests (Migrations 20260039-20260040)
         if: ${{ !cancelled() && steps.stack.outcome == 'success' && steps.pgdriver.outcome == 'success' }}
         run: |
           echo "Executing clean database reset for M1 notifications isolation..."
           supabase db reset --debug
           node tests/db-integration/m1-notifications.test.mjs 2>&1 | tee diagnostics/m1-notifications.log
+          node tests/db-integration/m1-push.test.mjs 2>&1 | tee diagnostics/m1-push.log
 
       # 11. Execute Application Regression Test Suite (Phase 6)
       - name: Execute Application Regression Test Suite (All 27 Tests)

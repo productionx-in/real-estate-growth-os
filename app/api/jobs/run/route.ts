@@ -6,6 +6,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { timingSafeEqual } from 'node:crypto'
 import { createServiceClient } from '@/lib/supabase/server'
 import { runDueJobs } from '@/lib/jobs/runner'
+import '@/lib/notifications/register'
 
 export const dynamic = 'force-dynamic'
 
