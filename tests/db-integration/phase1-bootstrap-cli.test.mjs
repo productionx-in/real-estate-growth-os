@@ -7,6 +7,17 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { createClient } from '@supabase/supabase-js'
 
+// Node.js 20 has no native WebSocket, and @supabase/supabase-js constructs its realtime client
+// eagerly, throwing "Node.js detected but native WebSocket not found" before any work starts.
+// This test suite never opens a realtime channel, so an inert transport is supplied only when
+// native WebSocket is unavailable. On Node.js 22+ the default behaviour is unchanged.
+class UnusedRealtimeTransport {
+  constructor() {
+    throw new Error('Realtime is not used by this test suite')
+  }
+}
+const realtimeCompat = globalThis.WebSocket ? {} : { realtime: { transport: UnusedRealtimeTransport } }
+
 const execFileAsync = promisify(execFile)
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'http://127.0.0.1:54321'
@@ -60,6 +71,7 @@ async function runBootstrapCliTests() {
 
   const adminClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
+    ...realtimeCompat,
   })
 
   // 1. Setup Isolated Target User in Supabase Auth
@@ -85,6 +97,7 @@ async function runBootstrapCliTests() {
   // Create user client to authenticate as target user
   const userClient = createClient(supabaseUrl, anonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
+    ...realtimeCompat,
   })
 
   // 2. Test Failed Authentication: Wrong Primary Password on CLI
@@ -125,7 +138,25 @@ async function runBootstrapCliTests() {
     })
     assert.fail('Bootstrap CLI must reject user without verified TOTP factor')
   } catch (err) {
-    assert.match(err.stderr || err.stdout, /SECURITY VIOLATION.*no verified TOTP factor/)
+    // A numeric non-zero exit code proves the rejection came from the CLI process itself,
+    // not from the assert.fail() above (whose AssertionError would also land in this catch).
+    assert.equal(typeof err.code, 'number', `CLI must exit with a numeric code (got ${err.code}: ${err.message})`)
+    assert.notEqual(err.code, 0, 'CLI must exit non-zero')
+    // Exact message emitted by scripts/bootstrap-super-admin.mjs. The previous pattern
+    // (/SECURITY VIOLATION.*no verified TOTP factor/) never matched the CLI's actual wording.
+    assert.match(
+      err.stderr || err.stdout,
+      /SECURITY VIOLATION: Target user does not have an active verified TOTP MFA factor enrolled\./
+    )
+    // The rejection must have no side effect: no platform admin row and bootstrap still open.
+    const { data: adminRows, error: adminRowsErr } = await adminClient
+      .from('platform_users').select('user_id').eq('user_id', targetUserId)
+    assert.equal(adminRowsErr, null, adminRowsErr?.message)
+    assert.equal(adminRows.length, 0, 'Rejected user must not be granted a platform role')
+    const { data: bootRows, error: bootRowsErr } = await adminClient
+      .from('platform_bootstrap_state').select('is_completed')
+    assert.equal(bootRowsErr, null, bootRowsErr?.message)
+    assert.equal(bootRows.length, 0, 'Rejected bootstrap must not close the bootstrap window')
     console.log('✓ Test 2 Passed: User without enrolled TOTP factor strictly rejected')
   }
 

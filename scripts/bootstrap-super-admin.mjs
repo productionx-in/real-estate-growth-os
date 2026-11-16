@@ -12,6 +12,17 @@
 import crypto from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 
+// Node.js 20 has no native WebSocket, and @supabase/supabase-js constructs its realtime client
+// eagerly, throwing "Node.js detected but native WebSocket not found" before any work starts.
+// This CLI never opens a realtime channel, so an inert transport is supplied only when
+// native WebSocket is unavailable. On Node.js 22+ the default behaviour is unchanged.
+class UnusedRealtimeTransport {
+  constructor() {
+    throw new Error('Realtime is not used by this CLI')
+  }
+}
+const realtimeCompat = globalThis.WebSocket ? {} : { realtime: { transport: UnusedRealtimeTransport } }
+
 async function bootstrapSuperAdmin() {
   console.log('--- Production X Platform Super Admin Bootstrap ---')
 
@@ -64,6 +75,7 @@ async function bootstrapSuperAdmin() {
 
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
+    ...realtimeCompat,
   })
 
   // 2. Resolve exact target identity in auth.users via paginated search
@@ -120,6 +132,7 @@ async function bootstrapSuperAdmin() {
   console.log('Establishing live user client for target authentication assurance...')
   const userClient = createClient(supabaseUrl, anonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
+    ...realtimeCompat,
   })
 
   console.log(`Authenticating target user live via primary credentials: ${normalizedTargetEmail}...`)

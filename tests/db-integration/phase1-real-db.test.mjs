@@ -2,6 +2,7 @@
 // Production X — Phase 1 Real Disposable Database Integration Tests
 // Executes directly against a running PostgreSQL/Supabase database daemon
 import assert from 'node:assert/strict'
+import { installStrictInt8Parser } from './pg-strict-int8.mjs'
 
 const connectionString =
   process.env.DATABASE_URL ||
@@ -23,6 +24,7 @@ async function runRealDbIntegrationTests() {
     process.exit(1)
   }
 
+  installStrictInt8Parser(pg)
   const { Client } = pg.default || pg
   const client = new Client({ connectionString })
   await client.connect()
