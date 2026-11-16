@@ -2,7 +2,8 @@
 // components/layout/Header.tsx
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LogOut, Bell, ChevronRight, Building2 } from 'lucide-react'
+import { LogOut, Bell, ChevronRight, Building2, Menu } from 'lucide-react'
+import { NAV_TOGGLE_EVENT } from '@/components/layout/Sidebar'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { DutyToggle } from '@/components/routing/DutyToggle'
 import { createClient } from '@/lib/supabase/client'
@@ -38,6 +39,7 @@ const SECTION_LABELS: Record<string, string> = {
   team: 'Team Directory',
   settings: 'Workspace Settings',
   routing: 'Lead Routing',
+  today: 'Today',
   new: 'Create',
   import: 'Bulk Import',
   edit: 'Edit',
@@ -81,37 +83,46 @@ export function Header({
   return (
     <header
       style={{ height: 'var(--header-height)' }}
-      className="flex-shrink-0 flex items-center justify-between px-6 bg-[var(--surface)] border-b border-[var(--border)] z-10"
+      className="flex-shrink-0 flex items-center justify-between gap-2 px-3 md:px-6 bg-[var(--surface)] border-b border-[var(--border)] z-10"
     >
       {/* Left — Breadcrumb Navigation */}
-      <div className="flex items-center gap-2 text-xs">
+      <div className="flex items-center gap-2 text-xs min-w-0">
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new Event(NAV_TOGGLE_EVENT))}
+          className="md:hidden w-9 h-9 -ml-1 rounded-md flex items-center justify-center text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
+          aria-label="Open menu"
+          aria-controls="app-sidebar"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
         <Link
           href={`/${orgSlug}`}
-          className="font-medium text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors flex items-center gap-1.5"
+          className="hidden sm:flex font-medium text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors items-center gap-1.5"
         >
           <Building2 className="w-3.5 h-3.5 text-[var(--foreground-subtle)]" />
           <span>{orgName || 'Workspace'}</span>
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-[var(--border)] flex-shrink-0" />
-        <span className="font-semibold text-[var(--foreground)] capitalize">
+        <ChevronRight className="hidden sm:block w-3.5 h-3.5 text-[var(--border)] flex-shrink-0" />
+        <span className="font-semibold text-[var(--foreground)] capitalize truncate text-[13px] sm:text-xs">
           {currentSection}
         </span>
       </div>
 
       {/* Right — Role context, User profile & Actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
         {orgId && role !== 'readonly' && <DutyToggle orgId={orgId} />}
 
         {/* Role Pill */}
         <span
-          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${roleBadge.className}`}
+          className={`hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${roleBadge.className}`}
           title={`Active Workspace Role: ${roleBadge.label}`}
         >
           {roleBadge.label}
         </span>
 
         {/* User Profile */}
-        <div className="flex items-center gap-2 pl-2 border-l border-[var(--border)]">
+        <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-[var(--border)]">
           <div className="w-7 h-7 rounded-full bg-[var(--brand)] text-white flex items-center justify-center text-[11px] font-bold shadow-2xs">
             {initials}
           </div>

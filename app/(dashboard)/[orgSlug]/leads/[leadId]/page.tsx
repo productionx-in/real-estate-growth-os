@@ -10,6 +10,8 @@ import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge'
 import { StatusTransitionPanel } from '@/components/leads/StatusTransitionPanel'
 import type { ComponentProps } from 'react'
 import { ActivityLog } from '@/components/leads/ActivityLog'
+import { LeadWorkPanel } from '@/components/leads/LeadWorkPanel'
+import { listLeadTasks } from '@/lib/dal/follow-ups'
 import { formatDate, formatBudgetRange } from '@/lib/utils/format'
 import type { MemberRole, LeadStatus } from '@/types/database'
 
@@ -74,9 +76,11 @@ export default async function LeadDetailPage({ params }: PageProps) {
     notFound()
   }
 
-  const activities = await getLeadActivities(leadId)
+  const [activities, tasks] = await Promise.all([getLeadActivities(leadId), listLeadTasks(org.id, leadId)])
   const viewerRole: MemberRole = role
   const canEdit = viewerRole !== 'readonly'
+  // Working a lead (calls, outcomes, follow-ups): managers and above, or the salesperson it is assigned to.
+  const canWork = canEdit && (viewerRole !== 'sales_exec' || lead.assigned_to === profile.id)
   const priority = PRIORITY_CONFIG[lead.priority as keyof typeof PRIORITY_CONFIG]
   const assignee = lead.assignee as { id: string; full_name: string } | null
   const project = lead.project as { id: string; name: string; slug: string } | null
@@ -217,9 +221,6 @@ export default async function LeadDetailPage({ params }: PageProps) {
                     Lead Source & Campaign Attribution
                   </h2>
                 </div>
-                <span className="text-[11px] px-2 py-0.5 rounded font-mono bg-blue-50 text-blue-700 border border-blue-200">
-                  Stage 3G Architecture
-                </span>
               </div>
               <dl>
                 {lead.source_platform && (
@@ -338,6 +339,17 @@ export default async function LeadDetailPage({ params }: PageProps) {
 
         {/* ── Right: status transitions ── */}
         <div className="space-y-5">
+          {canWork && (
+            <LeadWorkPanel
+              leadId={leadId}
+              phone={lead.phone}
+              slaState={lead.sla_state}
+              slaDueAt={lead.sla_due_at}
+              assignedAt={lead.assigned_at}
+              firstActionAt={lead.first_action_at}
+              tasks={tasks}
+            />
+          )}
           <StatusTransitionPanel
             leadId={leadId}
             currentStatus={lead.status as LeadStatus}
