@@ -63,9 +63,14 @@ async function runRealDbIntegrationTests() {
     const cpAlphaId = '99999999-9999-9999-9999-999999999999'
 
     // Clean previous test state
+    await client1.query('DELETE FROM public.buyer_audit_logs WHERE org_id IN ($1, $2)', [orgAlphaId, orgBetaId])
+    await client1.query('DELETE FROM public.buyer_documents WHERE org_id IN ($1, $2)', [orgAlphaId, orgBetaId])
+    await client1.query('DELETE FROM public.booking_payments WHERE org_id IN ($1, $2)', [orgAlphaId, orgBetaId])
+    await client1.query('DELETE FROM public.booking_payment_milestones WHERE org_id IN ($1, $2)', [orgAlphaId, orgBetaId])
     await client1.query('DELETE FROM public.channel_partner_commissions WHERE org_id IN ($1, $2)', [orgAlphaId, orgBetaId])
     await client1.query('DELETE FROM public.deals WHERE org_id IN ($1, $2)', [orgAlphaId, orgBetaId])
     await client1.query('DELETE FROM public.bookings WHERE org_id IN ($1, $2)', [orgAlphaId, orgBetaId])
+    await client1.query('DELETE FROM public.buyer_profiles WHERE org_id IN ($1, $2)', [orgAlphaId, orgBetaId])
     await client1.query('DELETE FROM public.inventory_blockings WHERE org_id IN ($1, $2)', [orgAlphaId, orgBetaId])
     await client1.query('DELETE FROM public.inventory_status_history WHERE org_id IN ($1, $2)', [orgAlphaId, orgBetaId])
     await client1.query('DELETE FROM public.inventory_items WHERE org_id IN ($1, $2)', [orgAlphaId, orgBetaId])
@@ -520,6 +525,207 @@ async function runRealDbIntegrationTests() {
     )
 
     console.log('✓ Check 10 Passed: Cross-tenant RPC execution strictly rejected.\n')
+
+    // ------------------------------------------------------------------------
+    // CHECK 11: Buyer 360 Profile Upsert & Statutory Phone Uniqueness
+    // ------------------------------------------------------------------------
+    console.log('CHECK 11: Testing buyer profile creation & phone uniqueness...')
+
+    const buyerRes = await client1.query(`
+      SELECT * FROM public.upsert_buyer_profile_atomic(
+        p_org_id => $1,
+        p_full_name => 'Vikram Sethi',
+        p_phone => '+919988776655',
+        p_email => 'vikram.sethi@example.com',
+        p_pan_number => 'ABCDE1234F',
+        p_aadhaar_number_masked => 'XXXX-XXXX-9876',
+        p_city => 'Bengaluru',
+        p_lead_id => $2,
+        p_actor_id => $3
+      );
+    `, [orgAlphaId, leadAlpha1Id, profileAdminId])
+
+    assert.equal(buyerRes.rowCount, 1)
+    const buyerData = buyerRes.rows[0].upsert_buyer_profile_atomic
+    assert.equal(buyerData.full_name, 'Vikram Sethi')
+    assert.equal(buyerData.phone, '+919988776655')
+    assert.equal(buyerData.pan_number, 'ABCDE1234F')
+    const buyerId = buyerData.id
+
+    // Test upsert updates existing profile
+    const buyerUpdateRes = await client1.query(`
+      SELECT * FROM public.upsert_buyer_profile_atomic(
+        p_org_id => $1,
+        p_full_name => 'Vikram Sethi (Updated)',
+        p_phone => '+919988776655',
+        p_actor_id => $2
+      );
+    `, [orgAlphaId, profileAdminId])
+    assert.equal(buyerUpdateRes.rows[0].upsert_buyer_profile_atomic.full_name, 'Vikram Sethi (Updated)')
+    assert.equal(buyerUpdateRes.rows[0].upsert_buyer_profile_atomic.id, buyerId, 'Must update existing buyer ID')
+
+    console.log('✓ Check 11 Passed: Buyer profile created and updated atomically.\n')
+
+    // ------------------------------------------------------------------------
+    // CHECK 12: Booking Milestone Schedule Generation & Exact Sum Matching
+    // ------------------------------------------------------------------------
+    console.log('CHECK 12: Testing booking milestone schedule generation...')
+
+    // Link booking to buyer
+    await client1.query(`
+      UPDATE public.bookings SET buyer_id = $1 WHERE id = $2;
+    `, [buyerId, bookingRow.booking_id])
+
+    // Generate milestone schedule summing to exact booking total amount
+    const bookingTotal = Number(bookingRow.total_amount)
+    const tokenPart = 500000.00
+    const balancePart = bookingTotal - tokenPart
+
+    const milestonesInput = JSON.stringify([
+      { milestone_name: 'Token Advance', due_date: '2026-02-01', amount_due: tokenPart },
+      { milestone_name: 'Construction Completion', due_date: '2026-06-01', amount_due: balancePart },
+    ])
+
+    const scheduleRes = await client1.query(`
+      SELECT * FROM public.generate_booking_milestone_schedule_atomic(
+        p_org_id => $1,
+        p_booking_id => $2,
+        p_milestones => $3::jsonb,
+        p_actor_id => $4
+      );
+    `, [orgAlphaId, bookingRow.booking_id, milestonesInput, profileAdminId])
+
+    assert.equal(scheduleRes.rowCount, 1)
+    const milestones = scheduleRes.rows[0].generate_booking_milestone_schedule_atomic.milestones
+    assert.equal(milestones.length, 2)
+    const tokenMilestoneId = milestones[0].id
+
+    // Reject unequal milestone sum
+    const invalidMilestonesInput = JSON.stringify([
+      { milestone_name: 'Partial', due_date: '2026-02-01', amount_due: 1000.00 },
+    ])
+    await assert.rejects(
+      async () => {
+        await client1.query(`
+          SELECT * FROM public.generate_booking_milestone_schedule_atomic(
+            p_org_id => $1,
+            p_booking_id => $2,
+            p_milestones => $3::jsonb,
+            p_actor_id => $4
+          );
+        `, [orgAlphaId, bookingRow.booking_id, invalidMilestonesInput, profileAdminId])
+      },
+      /Milestone schedule sum.*does not match booking total amount/
+    )
+
+    console.log('✓ Check 12 Passed: Milestone schedule generated with exact arithmetic enforcement.\n')
+
+    // ------------------------------------------------------------------------
+    // CHECK 13: Customer Payment Recording, Duplicate Check & Atomic Verification
+    // ------------------------------------------------------------------------
+    console.log('CHECK 13: Testing payment recording, duplicate UTR block & atomic verification...')
+
+    // Record unverified customer payment
+    const payRecordRes = await client1.query(`
+      SELECT * FROM public.record_booking_payment_atomic(
+        p_org_id => $1,
+        p_booking_id => $2,
+        p_milestone_id => $3,
+        p_amount => 500000.00,
+        p_payment_method => 'bank_transfer_neft_rtgs',
+        p_reference_number => 'UTR-HDFC-991122',
+        p_actor_id => $4
+      );
+    `, [orgAlphaId, bookingRow.booking_id, tokenMilestoneId, profileAgentId])
+
+    assert.equal(payRecordRes.rowCount, 1)
+    const paymentData = payRecordRes.rows[0].record_booking_payment_atomic
+    assert.equal(paymentData.status, 'unverified')
+    assert.equal(Number(paymentData.amount), 500000.00)
+    assert.ok(paymentData.receipt_number.startsWith('RCP-'))
+    const paymentId = paymentData.id
+
+    // Attempt duplicate UTR in same organisation -> must be blocked
+    await assert.rejects(
+      async () => {
+        await client1.query(`
+          SELECT * FROM public.record_booking_payment_atomic(
+            p_org_id => $1,
+            p_booking_id => $2,
+            p_milestone_id => $3,
+            p_amount => 500000.00,
+            p_payment_method => 'bank_transfer_neft_rtgs',
+            p_reference_number => 'UTR-HDFC-991122',
+            p_actor_id => $4
+          );
+        `, [orgAlphaId, bookingRow.booking_id, tokenMilestoneId, profileAgentId])
+      },
+      /already been recorded in this organisation/
+    )
+
+    // Authorised verification of payment
+    const verifyRes = await client1.query(`
+      SELECT * FROM public.verify_booking_payment_atomic(
+        p_org_id => $1,
+        p_payment_id => $2,
+        p_actor_id => $3
+      );
+    `, [orgAlphaId, paymentId, profileAdminId])
+
+    assert.equal(verifyRes.rowCount, 1)
+    assert.equal(verifyRes.rows[0].verify_booking_payment_atomic.status, 'verified')
+
+    // Verify milestone updated atomically
+    const mCheck = await client1.query(`
+      SELECT * FROM public.booking_payment_milestones WHERE id = $1;
+    `, [tokenMilestoneId])
+    assert.equal(Number(mCheck.rows[0].amount_paid), 500000.00)
+    assert.equal(mCheck.rows[0].status, 'paid')
+
+    // Verify booking total amount received updated atomically
+    const bCheck = await client1.query(`
+      SELECT * FROM public.bookings WHERE id = $1;
+    `, [bookingRow.booking_id])
+    assert.ok(Number(bCheck.rows[0].booking_amount_received) >= 500000.00)
+
+    console.log('✓ Check 13 Passed: Payment recorded, duplicate UTR blocked, and milestone credited upon verification.\n')
+
+    // ------------------------------------------------------------------------
+    // CHECK 14: KYC Document Upload, Verification & Audit Logging
+    // ------------------------------------------------------------------------
+    console.log('CHECK 14: Testing KYC document management and verification...')
+
+    const docInsert = await client1.query(`
+      INSERT INTO public.buyer_documents (
+        org_id, buyer_id, booking_id, document_type, title, file_key, file_name, mime_type, status, created_by
+      ) VALUES (
+        $1, $2, $3, 'pan_card', 'Vikram PAN Card Copy', 'org/buyer/pan.pdf', 'pan.pdf', 'application/pdf', 'pending', $4
+      ) RETURNING id;
+    `, [orgAlphaId, buyerId, bookingRow.booking_id, profileAgentId])
+
+    const docId = docInsert.rows[0].id
+
+    // Verify document via atomic function
+    const docVerifyRes = await client1.query(`
+      SELECT * FROM public.verify_buyer_document_atomic(
+        p_org_id => $1,
+        p_document_id => $2,
+        p_actor_id => $3,
+        p_status => 'verified',
+        p_notes => 'Verified against NSDL database'
+      );
+    `, [orgAlphaId, docId, profileAdminId])
+
+    assert.equal(docVerifyRes.rowCount, 1)
+    assert.equal(docVerifyRes.rows[0].verify_buyer_document_atomic.status, 'verified')
+
+    // Check audit log recorded
+    const auditRes = await client1.query(`
+      SELECT * FROM public.buyer_audit_logs WHERE buyer_id = $1 ORDER BY created_at DESC;
+    `, [buyerId])
+    assert.ok(auditRes.rowCount >= 3, 'Must record audit entries for buyer creation, payment verification, and KYC verification')
+
+    console.log('✓ Check 14 Passed: KYC document verified and immutable audit trail maintained.\n')
 
     console.log('===================================================================')
     console.log('ALL REAL DATABASE INTEGRATION & CONCURRENCY CHECKS PASSED!')

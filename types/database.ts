@@ -962,6 +962,7 @@ export interface Database {
           idempotency_key: string | null
           is_duplicate: boolean
           duplicate_of_id: string | null
+          buyer_id: string | null
           created_at: string
           updated_at: string
         }
@@ -994,6 +995,7 @@ export interface Database {
           idempotency_key?: string | null
           is_duplicate?: boolean
           duplicate_of_id?: string | null
+          buyer_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -1026,6 +1028,7 @@ export interface Database {
           idempotency_key?: string | null
           is_duplicate?: boolean
           duplicate_of_id?: string | null
+          buyer_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -1872,6 +1875,7 @@ export interface Database {
           lead_id: string
           blocking_id: string | null
           channel_partner_id: string | null
+          buyer_id: string | null
           booking_number: string
           booking_date: string
           status: string
@@ -1895,6 +1899,7 @@ export interface Database {
           lead_id: string
           blocking_id?: string | null
           channel_partner_id?: string | null
+          buyer_id?: string | null
           booking_number: string
           booking_date?: string
           status?: string
@@ -1918,6 +1923,7 @@ export interface Database {
           lead_id?: string
           blocking_id?: string | null
           channel_partner_id?: string | null
+          buyer_id?: string | null
           booking_number?: string
           booking_date?: string
           status?: string
@@ -2277,6 +2283,282 @@ export interface Database {
           channel_partner_id?: string | null
           metadata?: Json
           occurred_at?: string
+        }
+        Relationships: []
+      }
+      buyer_profiles: {
+        Row: {
+          id: string
+          org_id: string
+          primary_lead_id: string | null
+          full_name: string
+          email: string | null
+          phone: string
+          alternate_phone: string | null
+          pan_number: string | null
+          aadhaar_number_masked: string | null
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          state: string | null
+          pincode: string | null
+          country: string
+          co_buyers: Json
+          notes: string | null
+          status: 'active' | 'inactive' | 'archived'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          primary_lead_id?: string | null
+          full_name: string
+          email?: string | null
+          phone: string
+          alternate_phone?: string | null
+          pan_number?: string | null
+          aadhaar_number_masked?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          state?: string | null
+          pincode?: string | null
+          country?: string
+          co_buyers?: Json
+          notes?: string | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          primary_lead_id?: string | null
+          full_name?: string
+          email?: string | null
+          phone?: string
+          alternate_phone?: string | null
+          pan_number?: string | null
+          aadhaar_number_masked?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          state?: string | null
+          pincode?: string | null
+          country?: string
+          co_buyers?: Json
+          notes?: string | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      booking_payment_milestones: {
+        Row: {
+          id: string
+          org_id: string
+          booking_id: string
+          milestone_name: string
+          milestone_sequence: number
+          due_date: string
+          amount_due: number
+          amount_paid: number
+          status: string
+          demand_letter_issued: boolean
+          demand_letter_issued_at: string | null
+          demand_letter_reference: string | null
+          payment_records: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          booking_id: string
+          milestone_name: string
+          milestone_sequence?: number
+          due_date: string
+          amount_due: number
+          amount_paid?: number
+          status?: string
+          demand_letter_issued?: boolean
+          demand_letter_issued_at?: string | null
+          demand_letter_reference?: string | null
+          payment_records?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          booking_id?: string
+          milestone_name?: string
+          milestone_sequence?: number
+          due_date?: string
+          amount_due?: number
+          amount_paid?: number
+          status?: string
+          demand_letter_issued?: boolean
+          demand_letter_issued_at?: string | null
+          demand_letter_reference?: string | null
+          payment_records?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      booking_payments: {
+        Row: {
+          id: string
+          org_id: string
+          booking_id: string
+          milestone_id: string | null
+          receipt_number: string
+          amount: number
+          payment_method: string
+          payment_date: string
+          reference_number: string
+          status: string
+          verified_at: string | null
+          verified_by: string | null
+          rejection_reason: string | null
+          receipt_url: string | null
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          booking_id: string
+          milestone_id?: string | null
+          receipt_number: string
+          amount: number
+          payment_method: string
+          payment_date?: string
+          reference_number: string
+          status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          rejection_reason?: string | null
+          receipt_url?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          booking_id?: string
+          milestone_id?: string | null
+          receipt_number?: string
+          amount?: number
+          payment_method?: string
+          payment_date?: string
+          reference_number?: string
+          status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          rejection_reason?: string | null
+          receipt_url?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      buyer_documents: {
+        Row: {
+          id: string
+          org_id: string
+          buyer_id: string
+          booking_id: string | null
+          document_type: string
+          title: string
+          file_key: string
+          file_name: string
+          file_size_bytes: number | null
+          mime_type: string
+          status: string
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+          created_by: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          buyer_id: string
+          booking_id?: string | null
+          document_type: string
+          title: string
+          file_key: string
+          file_name: string
+          file_size_bytes?: number | null
+          mime_type: string
+          status?: string
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          created_by: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          buyer_id?: string
+          booking_id?: string | null
+          document_type?: string
+          title?: string
+          file_key?: string
+          file_name?: string
+          file_size_bytes?: number | null
+          mime_type?: string
+          status?: string
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          created_by?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      buyer_audit_logs: {
+        Row: {
+          id: string
+          org_id: string
+          buyer_id: string
+          actor_id: string
+          action: string
+          details: Json
+          ip_address: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          buyer_id: string
+          actor_id: string
+          action: string
+          details?: Json
+          ip_address?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          org_id?: string
+          buyer_id?: string
+          actor_id?: string
+          action?: string
+          details?: Json
+          ip_address?: string | null
+          created_at?: string
         }
         Relationships: []
       }

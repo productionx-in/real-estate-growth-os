@@ -19,6 +19,7 @@ import {
   Check,
   Plus,
   Compass,
+  UserCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import type { MemberRole } from '@/types/database'
@@ -67,6 +68,7 @@ function getRoleNavSections(
         items: [
           { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
           { label: 'My Leads', href: `/${orgSlug}/leads`, icon: Users },
+          { label: 'Buyers 360', href: `/${orgSlug}/buyers`, icon: UserCheck },
           { label: 'Sales & Visits', href: `/${orgSlug}/sales`, icon: Briefcase },
           { label: 'Inventory Units', href: `/${orgSlug}/inventory`, icon: Layers },
         ],
@@ -82,6 +84,7 @@ function getRoleNavSections(
         items: [
           { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
           { label: 'Projects', href: `/${orgSlug}/projects`, icon: FolderOpen },
+          { label: 'Buyers 360', href: `/${orgSlug}/buyers`, icon: UserCheck },
           { label: 'Inventory Explorer', href: `/${orgSlug}/inventory`, icon: Layers },
           { label: 'Analytics & BI', href: `/${orgSlug}/analytics`, icon: TrendingUp },
         ],
@@ -120,6 +123,7 @@ function getRoleNavSections(
         items: [
           { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
           { label: 'Leads CRM', href: `/${orgSlug}/leads`, icon: Users },
+          { label: 'Buyers 360', href: `/${orgSlug}/buyers`, icon: UserCheck },
           { label: 'Sales Operations', href: `/${orgSlug}/sales`, icon: Briefcase },
         ],
       },
@@ -147,6 +151,7 @@ function getRoleNavSections(
       items: [
         { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
         { label: 'Leads CRM', href: `/${orgSlug}/leads`, icon: Users },
+        { label: 'Buyers 360', href: `/${orgSlug}/buyers`, icon: UserCheck },
         { label: 'Sales & CPs', href: `/${orgSlug}/sales`, icon: Briefcase },
       ],
     },
