@@ -225,10 +225,30 @@ END;
 $$;
 REVOKE ALL ON FUNCTION public.lead_response_clock() FROM PUBLIC, anon, authenticated;
 
+-- Bulk imports (CSV / Sell.Do migration) are historical: they must not start thousands of clocks or alerts.
+-- Imported rows carry custom_fields.imported_at; later reassignments of those leads behave normally.
 DROP TRIGGER IF EXISTS trigger_04_lead_response_clock ON public.leads;
-CREATE TRIGGER trigger_04_lead_response_clock
-  BEFORE INSERT OR UPDATE OF assigned_to ON public.leads
+DROP TRIGGER IF EXISTS trigger_04_lead_response_clock_insert ON public.leads;
+DROP TRIGGER IF EXISTS trigger_04_lead_response_clock_update ON public.leads;
+CREATE TRIGGER trigger_04_lead_response_clock_insert
+  BEFORE INSERT ON public.leads
+  FOR EACH ROW WHEN (NOT coalesce(NEW.custom_fields ? 'imported_at', false))
+  EXECUTE FUNCTION public.lead_response_clock();
+CREATE TRIGGER trigger_04_lead_response_clock_update
+  BEFORE UPDATE OF assigned_to ON public.leads
   FOR EACH ROW EXECUTE FUNCTION public.lead_response_clock();
+
+-- Same rule for the per-lead assignment alerts from 20260039.
+DROP TRIGGER IF EXISTS trg_leads_notify_assignment ON public.leads;
+DROP TRIGGER IF EXISTS trg_leads_notify_assignment_insert ON public.leads;
+DROP TRIGGER IF EXISTS trg_leads_notify_assignment_update ON public.leads;
+CREATE TRIGGER trg_leads_notify_assignment_insert
+  AFTER INSERT ON public.leads
+  FOR EACH ROW WHEN (NOT coalesce(NEW.custom_fields ? 'imported_at', false))
+  EXECUTE FUNCTION public.notify_lead_assignment();
+CREATE TRIGGER trg_leads_notify_assignment_update
+  AFTER UPDATE OF assigned_to ON public.leads
+  FOR EACH ROW EXECUTE FUNCTION public.notify_lead_assignment();
 
 -- Open follow-ups move with the lead when it is reassigned.
 CREATE OR REPLACE FUNCTION public.move_open_tasks_with_lead()
