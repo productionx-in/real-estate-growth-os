@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Bell } from 'lucide-react'
+import { PushAlertsToggle } from './PushAlertsToggle'
 
 interface Item {
   id: string
@@ -97,6 +98,7 @@ export function NotificationBell({ orgId, orgSlug }: { orgId: string; orgSlug: s
               </button>
             )}
           </div>
+          <PushAlertsToggle />
           {items.length === 0 ? (
             <p className="px-3 py-6 text-sm text-center text-[var(--foreground-muted)]">No notifications yet</p>
           ) : (
