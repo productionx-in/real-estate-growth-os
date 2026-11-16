@@ -157,7 +157,7 @@ export function IntegrationCentreView({
               Welcome to the Real Estate Integration Centre
             </h2>
             <p className="text-[13px] text-gray-600 leading-relaxed">
-              Connect your advertising channels directly to your CRM. Production X operates a central,
+              Connect your advertising channels directly to your CRM. REGrow operates a central,
               multi-tenant application architecture (external app registration deferred per DEC-004 &amp; DEC-011).
               Customer leads remain completely private and isolated to <strong>{org.name}</strong>.
             </p>
@@ -181,7 +181,7 @@ export function IntegrationCentreView({
           <div>
             <h3 className="text-[16px] font-bold text-gray-900">Supported Inbound Channels</h3>
             <p className="text-[12px] text-gray-500">
-              Overview of all marketing platforms and lead capture channels supported by Production X.
+              Overview of all marketing platforms and lead capture channels supported by REGrow.
             </p>
           </div>
           <button
