@@ -40,11 +40,14 @@ DECLARE
   v_live      BOOLEAN := NEW.status IN ('scheduled', 'rescheduled', 'checked_in');
   v_moved     BOOLEAN := TG_OP = 'INSERT' OR NEW.scheduled_at IS DISTINCT FROM OLD.scheduled_at;
   v_offset    INTEGER;
-  v_actor     UUID := coalesce(NEW.updated_by, NEW.created_by);
+  v_actor     UUID;
 BEGIN
   SELECT * INTO v_lead FROM public.leads WHERE id = NEW.lead_id;
   SELECT name INTO v_project FROM public.projects WHERE id = NEW.project_id;
   v_owner := coalesce(NEW.assigned_to, v_lead.assigned_to);
+  -- Who did it: the member recorded on the change, else the visit's salesperson. Older callers that
+  -- record no actor still work; an activity row is written only when someone can be named.
+  v_actor := coalesce(NEW.updated_by, NEW.created_by, v_owner);
 
   IF v_live THEN
     -- One open task per live visit, kept at the visit time and with the visit's owner.
@@ -55,7 +58,7 @@ BEGIN
     IF NOT FOUND THEN
       INSERT INTO public.lead_tasks (org_id, lead_id, assigned_to, kind, due_at, note, created_by, site_visit_id)
       VALUES (NEW.org_id, NEW.lead_id, v_owner, 'site_visit', NEW.scheduled_at,
-              left('Site visit · ' || coalesce(v_project, 'project'), 500), NEW.created_by, NEW.id);
+              left('Site visit · ' || coalesce(v_project, 'project'), 500), v_actor, NEW.id);
     END IF;
 
     IF v_lead.status IN ('new', 'contacted', 'qualified') THEN
@@ -63,11 +66,13 @@ BEGIN
     END IF;
 
     IF v_moved AND NEW.status <> 'checked_in' THEN
-      INSERT INTO public.lead_activities (lead_id, actor_id, type, note, metadata)
-      VALUES (NEW.lead_id, v_actor, 'site_visit_scheduled',
-              CASE WHEN TG_OP = 'INSERT' THEN 'Site visit booked' ELSE 'Site visit rescheduled' END
-                || ' · ' || coalesce(v_project, 'project'),
-              jsonb_build_object('site_visit_id', NEW.id, 'scheduled_at', NEW.scheduled_at));
+      IF v_actor IS NOT NULL THEN
+        INSERT INTO public.lead_activities (lead_id, actor_id, type, note, metadata)
+        VALUES (NEW.lead_id, v_actor, 'site_visit_scheduled',
+                CASE WHEN TG_OP = 'INSERT' THEN 'Site visit booked' ELSE 'Site visit rescheduled' END
+                  || ' · ' || coalesce(v_project, 'project'),
+                jsonb_build_object('site_visit_id', NEW.id, 'scheduled_at', NEW.scheduled_at));
+      END IF;
       -- Buyer messages: confirmation now, reminders 24 h and 2 h before (only those still in the future).
       PERFORM public.enqueue_job('site_visit.notify',
         jsonb_build_object('visit_id', NEW.id, 'scheduled_at', NEW.scheduled_at,
@@ -93,20 +98,23 @@ BEGIN
         UPDATE public.leads SET status = 'site_visited', updated_at = now() WHERE id = NEW.lead_id;
       END IF;
       INSERT INTO public.lead_activities (lead_id, actor_id, type, note, metadata)
-      VALUES (NEW.lead_id, v_actor, 'site_visited', 'Visited ' || coalesce(v_project, 'the project'),
-              jsonb_build_object('site_visit_id', NEW.id, 'outcome', NEW.outcome, 'rating', NEW.rating));
+      SELECT NEW.lead_id, v_actor, 'site_visited', 'Visited ' || coalesce(v_project, 'the project'),
+              jsonb_build_object('site_visit_id', NEW.id, 'outcome', NEW.outcome, 'rating', NEW.rating)
+      WHERE v_actor IS NOT NULL;
     ELSIF NEW.status = 'no_show' THEN
       INSERT INTO public.lead_tasks (org_id, lead_id, assigned_to, kind, due_at, note, created_by)
       VALUES (NEW.org_id, NEW.lead_id, v_owner, 'call',
               greatest(now() + interval '2 hours', date_trunc('day', now() AT TIME ZONE 'Asia/Kolkata' + interval '1 day') AT TIME ZONE 'Asia/Kolkata' + interval '10 hours'),
               'Missed site visit — call to rebook', v_actor);
       INSERT INTO public.lead_activities (lead_id, actor_id, type, note, metadata)
-      VALUES (NEW.lead_id, v_actor, 'note_added', 'Did not come for the site visit — call-back scheduled',
-              jsonb_build_object('site_visit_id', NEW.id));
+      SELECT NEW.lead_id, v_actor, 'note_added', 'Did not come for the site visit — call-back scheduled',
+             jsonb_build_object('site_visit_id', NEW.id)
+      WHERE v_actor IS NOT NULL;
     ELSIF NEW.status = 'cancelled' THEN
       INSERT INTO public.lead_activities (lead_id, actor_id, type, note, metadata)
-      VALUES (NEW.lead_id, v_actor, 'note_added', 'Site visit cancelled' || coalesce(' · ' || NEW.cancel_reason, ''),
-              jsonb_build_object('site_visit_id', NEW.id));
+      SELECT NEW.lead_id, v_actor, 'note_added', 'Site visit cancelled' || coalesce(' · ' || NEW.cancel_reason, ''),
+             jsonb_build_object('site_visit_id', NEW.id)
+      WHERE v_actor IS NOT NULL;
     END IF;
   END IF;
   RETURN NEW;
