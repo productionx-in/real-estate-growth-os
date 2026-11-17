@@ -5,6 +5,7 @@ import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { updateProjectMapping, deleteProjectMapping } from '@/lib/dal/integrations'
 import { z } from 'zod'
+import { requireModule } from '@/lib/auth/entitlements'
 
 interface RouteContext {
   params: Promise<{ mappingId: string }>
@@ -49,6 +50,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
         { status: 403 }
       )
     }
+    { const gate = await requireModule(existingMapping.org_id, 'integrations'); if (gate) return gate }
 
     const body = await request.json()
     const parsed = UpdateMappingSchema.safeParse(body)
@@ -124,6 +126,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
         { status: 403 }
       )
     }
+    { const gate = await requireModule(existingMapping.org_id, 'integrations'); if (gate) return gate }
 
     const { success, error } = await deleteProjectMapping(mappingId, existingMapping.org_id)
     if (!success) {

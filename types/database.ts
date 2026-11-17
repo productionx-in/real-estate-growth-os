@@ -2708,6 +2708,12 @@ export interface Database {
           }
         ]
       }
+      org_module_entitlements: {
+        Row: { org_id: string; module: string; enabled: boolean; reason: string | null; updated_by: string | null; updated_at: string }
+        Insert: { org_id: string; module: string; enabled: boolean; reason?: string | null; updated_by?: string | null }
+        Update: { enabled?: boolean; reason?: string | null; updated_by?: string | null }
+        Relationships: []
+      }
       support_access_grants: {
         Row: {
           id: string
@@ -2947,6 +2953,10 @@ export interface Database {
       }
       set_organisation_lifecycle: {
         Args: { p_org: string; p_state: OrgLifecycleState; p_reason: string; p_actor_user: string | null; p_actor_kind?: string; p_actor_label?: string | null }
+        Returns: Json
+      }
+      set_module_entitlement: {
+        Args: { p_org: string; p_module: string; p_enabled: boolean; p_reason: string; p_actor: string; p_label: string }
         Returns: Json
       }
       request_support_access: {

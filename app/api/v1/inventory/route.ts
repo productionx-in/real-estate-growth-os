@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { authenticateDeveloperApiKey } from '@/lib/integrations/api-keys/auth'
 import { createServiceClient } from '@/lib/supabase/server'
 import type { InventoryStatus } from '@/types/database'
+import { requireModule } from '@/lib/auth/entitlements'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,6 +15,7 @@ export async function GET(request: NextRequest) {
     if (!auth.success || !auth.orgId) {
       return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: auth.statusCode || 401 })
     }
+    { const gate = await requireModule(auth.orgId, 'inventory'); if (gate) return gate }
 
     const { searchParams } = new URL(request.url)
     const projectId = searchParams.get('projectId')

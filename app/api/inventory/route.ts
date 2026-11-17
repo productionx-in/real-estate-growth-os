@@ -6,6 +6,7 @@ import { createInventoryItem, getPaginatedInventoryByProject, type InventoryFilt
 import { authorizeProjectAccess } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import type { InventoryStatus, ProjectCategory } from '@/types/database'
+import { requireModule } from '@/lib/auth/entitlements'
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest) {
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'inventory'); if (gate) return gate }
 
     const minPriceParam = searchParams.get('minPrice')
     const maxPriceParam = searchParams.get('maxPrice')
@@ -95,6 +97,7 @@ export async function POST(request: NextRequest) {
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'inventory'); if (gate) return gate }
 
     const service = createServiceClient()
 

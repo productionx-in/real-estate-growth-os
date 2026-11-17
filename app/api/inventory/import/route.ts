@@ -6,6 +6,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { createImportJob, updateImportJob, executeBatchInventoryImport } from '@/lib/dal/import'
 import type { InventoryItemFormValues } from '@/lib/validations/inventory'
 import { z } from 'zod'
+import { requireModule } from '@/lib/auth/entitlements'
 
 const ImportRequestSchema = z.object({
   projectId: z.string().uuid(),
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'inventory'); if (gate) return gate }
 
     const { orgId, profile } = authResult.context
     const profileId = profile.id

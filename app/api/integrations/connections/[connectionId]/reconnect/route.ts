@@ -10,6 +10,7 @@ import { createOAuthState, getMetaAuthorizationUrl } from '@/lib/integrations/me
 import { getGoogleAppConfig, getGoogleOAuthRedirectUri } from '@/lib/integrations/google/config'
 import { createGoogleOAuthState, getGoogleAuthorizationUrl } from '@/lib/integrations/google/oauth'
 import type { Json } from '@/types/database'
+import { requireModule } from '@/lib/auth/entitlements'
 
 interface RouteContext {
   params: Promise<{ connectionId: string }>
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         { status: 403 }
       )
     }
+    { const gate = await requireModule(conn.org_id, 'integrations'); if (gate) return gate }
 
     // Provider: WhatsApp Business Cloud API
     if (conn.provider === 'whatsapp_cloud') {

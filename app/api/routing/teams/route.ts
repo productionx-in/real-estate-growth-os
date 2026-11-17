@@ -7,6 +7,7 @@ import { TeamCreateSchema } from '@/lib/validations/routing'
 import { createTeam, listTeams } from '@/lib/dal/routing'
 import { parseJson, respond, serverError } from '@/lib/routing/http'
 import { auditMember } from '@/lib/dal/org-audit'
+import { requireModule } from '@/lib/auth/entitlements'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,6 +15,7 @@ export async function GET(request: NextRequest) {
     if (!orgId) return NextResponse.json({ error: 'Missing required orgId' }, { status: 400 })
     const auth = await authorizeOrgAccess(orgId)
     if (!auth.success) return auth.response
+    { const gate = await requireModule(auth.context.orgId, 'routing'); if (gate) return gate }
     return respond(await listTeams(orgId))
   } catch (err) {
     return serverError('list teams', err)
@@ -26,6 +28,7 @@ export async function POST(request: NextRequest) {
     if (!input.ok) return input.response
     const auth = await authorizeOrgAccess(input.data.orgId, [...ROUTING_ADMIN_ROLES])
     if (!auth.success) return auth.response
+    { const gate = await requireModule(auth.context.orgId, 'routing'); if (gate) return gate }
     const result = await createTeam(input.data)
     if (result.success) await auditMember(request, auth.context, input.data.orgId, 'routing.team_created', { type: 'routing_team', id: (result.data as { id?: string })?.id ?? null })
     return respond(result, 201)

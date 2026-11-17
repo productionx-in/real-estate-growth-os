@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header'
 import { WorkspaceStateBanner } from '@/components/layout/WorkspaceStateBanner'
 import { SupportAccessBanner } from '@/components/support/SupportAccessBanner'
 import { liveGrantsForOrg } from '@/lib/dal/support-access'
+import { getModules } from '@/lib/auth/entitlements'
 
 interface OrgLayoutProps {
   children: React.ReactNode
@@ -15,6 +16,8 @@ interface OrgLayoutProps {
 export default async function OrgLayout({ children, params }: OrgLayoutProps) {
   const { orgSlug } = await params
   const workspace = await getVerifiedWorkspace(orgSlug)
+  const modules = await getModules(workspace.org.id)
+  const disabledModules = Object.entries(modules).filter(([, on]) => !on).map(([m]) => m)
   const liveSupport = (await liveGrantsForOrg(workspace.org.id)).sort((a, b) => (b.expires_at ?? '').localeCompare(a.expires_at ?? ''))[0]
 
   return (
@@ -27,6 +30,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
         user={workspace.user}
         profile={workspace.profile}
         availableOrgs={workspace.availableOrgs}
+        disabledModules={disabledModules}
       />
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <Header

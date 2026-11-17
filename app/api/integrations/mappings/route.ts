@@ -5,6 +5,7 @@ import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getProjectMappings, createProjectMapping } from '@/lib/dal/integrations'
 import { z } from 'zod'
+import { requireModule } from '@/lib/auth/entitlements'
 
 const CreateMappingSchema = z.object({
   connectionId: z.string().uuid(),
@@ -43,6 +44,7 @@ export async function GET(request: NextRequest) {
         { status: 403 }
       )
     }
+    { const gate = await requireModule(orgId, 'integrations'); if (gate) return gate }
 
     const mappingsRes = await getProjectMappings(orgId, connectionId)
     if (!mappingsRes.schemaAvailable) {
@@ -106,6 +108,7 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       )
     }
+    { const gate = await requireModule(conn.org_id, 'integrations'); if (gate) return gate }
 
     // Tenant protection: Verify target project belongs to the SAME organisation
     const { data: proj } = await service
