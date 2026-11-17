@@ -12,7 +12,8 @@ export type Json =
 export type OrgType = 'developer' | 'channel_partner'
 export type OrgPlan = 'free' | 'growth' | 'enterprise'
 export type MemberRole = 'owner' | 'admin' | 'manager' | 'sales_exec' | 'readonly'
-export type PlatformRole = 'super_admin' | 'sales_rep' | 'finance_admin' | 'support_agent'
+export type SupportGrantStatus = 'pending' | 'approved' | 'denied' | 'revoked' | 'cancelled'
+export type PlatformRole = 'super_admin' | 'sales_rep' | 'finance_admin' | 'support_agent' | 'platform_admin' | 'auditor'
 export type OnboardingRequestStatus = 'draft' | 'pending_approval' | 'approved' | 'provisioned' | 'rejected'
 
 // Standard 5 Project Categories
@@ -2707,6 +2708,36 @@ export interface Database {
           }
         ]
       }
+      support_access_grants: {
+        Row: {
+          id: string
+          org_id: string
+          requested_by: string
+          requested_by_label: string
+          reason: string
+          access_level: 'read_only'
+          duration_minutes: number
+          status: SupportGrantStatus
+          emergency: boolean
+          decided_by_profile: string | null
+          decided_by_user: string | null
+          decided_at: string | null
+          decision_note: string | null
+          expires_at: string | null
+          revoked_at: string | null
+          revoked_by_user: string | null
+          created_at: string
+        }
+        Insert: {
+          org_id: string
+          requested_by: string
+          requested_by_label: string
+          reason: string
+          duration_minutes: number
+        }
+        Update: Partial<{ status: SupportGrantStatus }>
+        Relationships: []
+      }
       org_audit_logs: {
         Row: {
           id: string
@@ -2917,6 +2948,26 @@ export interface Database {
       set_organisation_lifecycle: {
         Args: { p_org: string; p_state: OrgLifecycleState; p_reason: string; p_actor_user: string | null; p_actor_kind?: string; p_actor_label?: string | null }
         Returns: Json
+      }
+      request_support_access: {
+        Args: { p_org: string; p_user: string; p_label: string; p_reason: string; p_minutes: number }
+        Returns: string
+      }
+      decide_support_access: {
+        Args: { p_grant: string; p_profile: string; p_user: string; p_label: string; p_approve: boolean; p_note?: string | null }
+        Returns: Json
+      }
+      emergency_support_access: {
+        Args: { p_grant: string; p_user: string; p_label: string; p_reason: string; p_minutes: number }
+        Returns: Json
+      }
+      end_support_access: {
+        Args: { p_grant: string; p_side: 'customer' | 'platform'; p_user: string; p_profile: string | null; p_label: string }
+        Returns: string
+      }
+      active_support_grant: {
+        Args: { p_org: string; p_user: string }
+        Returns: string | null
       }
       revoke_user_sessions: {
         Args: { p_auth_user: string }
