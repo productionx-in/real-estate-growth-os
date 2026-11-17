@@ -1,21 +1,7 @@
 // components/shared/LoadingSkeleton.tsx
-import { cn } from '@/lib/utils/cn'
 
-interface SkeletonProps {
-  className?: string
-  style?: React.CSSProperties
-}
-
-export function Skeleton({ className }: SkeletonProps) {
-  return (
-    <div
-      className={cn(
-        'animate-pulse rounded bg-[var(--surface-hover)]',
-        className
-      )}
-    />
-  )
-}
+export { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export function TableSkeleton({ rows = 5 }: { rows?: number }) {
   return (
