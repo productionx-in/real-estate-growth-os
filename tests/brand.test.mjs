@@ -47,9 +47,10 @@ await test('invitation email copy uses REGrow (real adapter, network stubbed)', 
   assert.equal(sent.length, 1)
   const email = sent[0]
   assert.match(email.from, /^REGrow </)
-  assert.equal(email.subject, "You've been invited to join Acme Developers on REGrow")
+  assert.equal(email.subject, 'Asha invited you to Acme Developers on REGrow')
   assert.match(email.html, /REGrow by INFYN Group/)
-  assert.match(email.text, /on REGrow\./)
+  assert.match(email.text, /Join Acme Developers on REGrow/)
+  assert.match(email.text, /REGrow by INFYN Group/)
   for (const field of ['from', 'subject', 'html', 'text']) {
     assert.ok(!/Production X/i.test(email[field] || ''), `${field} must not mention Production X`)
   }
