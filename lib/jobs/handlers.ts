@@ -3,6 +3,7 @@
 // returning normally marks the job done.
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getChannelAdapters, type NotificationRecord } from '@/lib/notifications/channels'
+import { siteVisitNotify } from '@/lib/jobs/site-visit-notify'
 
 export interface JobRow {
   id: string
@@ -56,4 +57,5 @@ async function dispatchNotification(job: JobRow, db: Db): Promise<void> {
 
 export const JOB_HANDLERS: Record<string, JobHandler> = {
   'notification.dispatch': dispatchNotification,
+  'site_visit.notify': siteVisitNotify,
 }

@@ -24,6 +24,7 @@ import {
   Gauge,
   ScrollText,
   LifeBuoy,
+  CalendarDays,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { PRODUCT_NAME } from '@/lib/brand'
@@ -59,7 +60,7 @@ export interface SidebarProps {
 
 /** First path segment after the org slug → module key. Core pages are not listed. */
 const MODULE_OF_SEGMENT: Record<string, string> = {
-  sales: 'sales', inventory: 'inventory', routing: 'routing', integrations: 'integrations', analytics: 'analytics',
+  sales: 'sales', visits: 'sales', inventory: 'inventory', routing: 'routing', integrations: 'integrations', analytics: 'analytics',
 }
 
 const ROLE_DISPLAY_NAMES: Record<MemberRole, string> = {
@@ -82,6 +83,7 @@ function getRoleNavSections(
         title: 'MY PIPELINE',
         items: [
           { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
+          { label: 'Site visits', href: `/${orgSlug}/visits`, icon: CalendarDays },
           { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
           { label: 'My Leads', href: `/${orgSlug}/leads`, icon: Users },
           { label: 'Sales & Visits', href: `/${orgSlug}/sales`, icon: Briefcase },
@@ -113,6 +115,7 @@ function getRoleNavSections(
         title: 'BROKERAGE CRM',
         items: [
           { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
+          { label: 'Site visits', href: `/${orgSlug}/visits`, icon: CalendarDays },
           { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
           { label: 'Referred Leads', href: `/${orgSlug}/leads`, icon: Users },
           { label: 'Deals & Commissions', href: `/${orgSlug}/sales`, icon: Briefcase },
@@ -141,6 +144,7 @@ function getRoleNavSections(
         title: 'SALES & CRM',
         items: [
           { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
+          { label: 'Site visits', href: `/${orgSlug}/visits`, icon: CalendarDays },
           { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
           { label: 'Leads CRM', href: `/${orgSlug}/leads`, icon: Users },
           { label: 'Sales Operations', href: `/${orgSlug}/sales`, icon: Briefcase },
@@ -171,6 +175,7 @@ function getRoleNavSections(
       title: 'SALES & CRM',
       items: [
         { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
+          { label: 'Site visits', href: `/${orgSlug}/visits`, icon: CalendarDays },
         { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
         { label: 'Leads CRM', href: `/${orgSlug}/leads`, icon: Users },
         { label: 'Sales & CPs', href: `/${orgSlug}/sales`, icon: Briefcase },
