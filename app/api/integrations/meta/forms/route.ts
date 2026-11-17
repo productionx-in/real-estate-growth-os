@@ -7,6 +7,7 @@ import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { decryptCredential } from '@/lib/integrations/crypto'
 import { fetchPageLeadForms } from '@/lib/integrations/meta/client'
+import { requireModule } from '@/lib/auth/entitlements'
 
 export async function GET(request: NextRequest) {
   try {
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
         { status: 403 }
       )
     }
+    { const gate = await requireModule(conn.org_id, 'integrations'); if (gate) return gate }
 
     if (conn.status !== 'connected') {
       return NextResponse.json(

@@ -5,6 +5,7 @@ import { InventoryStatusChangeSchema } from '@/lib/validations/inventory'
 import { transitionInventoryStatus } from '@/lib/dal/inventory'
 import { authorizeInventoryAccess } from '@/lib/auth/tenant'
 import type { MemberRole } from '@/types/database'
+import { requireModule } from '@/lib/auth/entitlements'
 
 export async function POST(
   request: NextRequest,
@@ -31,6 +32,7 @@ export async function POST(
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'inventory'); if (gate) return gate }
 
     const result = await transitionInventoryStatus(
       inventoryId,

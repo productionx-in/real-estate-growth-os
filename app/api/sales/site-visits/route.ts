@@ -4,6 +4,7 @@ import { getSiteVisits, scheduleSiteVisit, updateSiteVisit } from '@/lib/dal/sal
 import { authorizeSalesRequest } from '@/lib/sales/auth'
 import { SALES_WRITE_ROLES } from '@/lib/auth/permissions'
 import type { SiteVisitStatus } from '@/lib/sales/types'
+import { requireModule } from '@/lib/auth/entitlements'
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,6 +12,7 @@ export async function GET(request: NextRequest) {
     const orgId = searchParams.get('orgId')
     const auth = await authorizeSalesRequest(orgId)
     if (!auth.success) return auth.response
+    { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
 
     const projectId = searchParams.get('projectId') || undefined
     const leadId = searchParams.get('leadId') || undefined
@@ -29,6 +31,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const auth = await authorizeSalesRequest(body.orgId, SALES_WRITE_ROLES)
     if (!auth.success) return auth.response
+    { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
 
     if (!body.projectId || !body.leadId || !body.scheduledAt) {
       return NextResponse.json(
@@ -65,6 +68,7 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json()
     const auth = await authorizeSalesRequest(body.orgId, SALES_WRITE_ROLES)
     if (!auth.success) return auth.response
+    { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
 
     if (!body.id) {
       return NextResponse.json({ error: 'Missing site visit id' }, { status: 400 })

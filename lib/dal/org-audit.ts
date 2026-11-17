@@ -110,6 +110,7 @@ export const AUDIT_AREAS = {
   project: 'Projects',
   organisation: 'Workspace status',
   support: 'Support access',
+  module: 'Modules',
 } as const
 export type AuditArea = keyof typeof AUDIT_AREAS
 
@@ -180,6 +181,8 @@ const ACTION_LABELS: Record<string, string> = {
   'lead.deleted': 'Deleted a lead',
   'project.deleted': 'Deleted a project',
   'organisation.lifecycle_changed': 'Workspace status changed',
+  'module.enabled': 'Module switched on',
+  'module.disabled': 'Module switched off',
   'support.access_requested': 'REGrow support asked for access',
   'support.access_approved': 'Approved support access',
   'support.access_denied': 'Denied support access',

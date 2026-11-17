@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createChannelPartner, getChannelPartners, getCommissions } from '@/lib/dal/sales'
 import { authorizeSalesRequest } from '@/lib/sales/auth'
 import { CHANNEL_PARTNER_ADMIN_ROLES } from '@/lib/auth/permissions'
+import { requireModule } from '@/lib/auth/entitlements'
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,6 +11,7 @@ export async function GET(request: NextRequest) {
     const orgId = searchParams.get('orgId')
     const auth = await authorizeSalesRequest(orgId)
     if (!auth.success) return auth.response
+    { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
 
     const view = searchParams.get('view') // 'partners' or 'commissions'
     const tier = searchParams.get('tier') || undefined
@@ -34,6 +36,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const auth = await authorizeSalesRequest(body.orgId, CHANNEL_PARTNER_ADMIN_ROLES)
     if (!auth.success) return auth.response
+    { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
 
     if (!body.firmName || !body.contactPerson || !body.phone) {
       return NextResponse.json(
