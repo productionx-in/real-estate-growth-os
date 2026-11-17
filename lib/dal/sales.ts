@@ -30,6 +30,8 @@ export async function scheduleSiteVisit(params: {
   visitorCount?: number
   cabRequired?: boolean
   cabDetails?: Record<string, unknown>
+  /** The member booking the visit (recorded on the visit and its activity). */
+  actorId?: string | null
 }): Promise<{ success: boolean; data?: SiteVisit; error?: string }> {
   const service = createServiceClient()
 
@@ -47,6 +49,7 @@ export async function scheduleSiteVisit(params: {
         cab_required: params.cabRequired || false,
         cab_details: (params.cabDetails || {}) as import('@/types/database').Json,
         status: 'scheduled',
+        created_by: params.actorId ?? null,
       })
       .select('*')
       .single()
@@ -69,6 +72,8 @@ export async function updateSiteVisit(
     rating?: number | null
     checkedInAt?: string | null
     completedAt?: string | null
+    /** The member making the change (recorded on the visit and its activity). */
+    actorId?: string | null
   }
 ): Promise<{ success: boolean; data?: SiteVisit; error?: string }> {
   const service = createServiceClient()
@@ -83,6 +88,7 @@ export async function updateSiteVisit(
         ...(updates.rating !== undefined && { rating: updates.rating }),
         ...(updates.checkedInAt !== undefined && { checked_in_at: updates.checkedInAt }),
         ...(updates.completedAt !== undefined && { completed_at: updates.completedAt }),
+        ...(updates.actorId && { updated_by: updates.actorId }),
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)

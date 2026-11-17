@@ -10,7 +10,8 @@ import { createJiti } from 'jiti'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const MODULE_DIRS = { 'app/api/sales': 'sales', 'app/api/inventory': 'inventory', 'app/api/v1/inventory': 'inventory',
-  'app/api/routing': 'routing', 'app/api/integrations': 'integrations', 'app/api/analytics': 'analytics' }
+  'app/api/routing': 'routing', 'app/api/integrations': 'integrations', 'app/api/analytics': 'analytics',
+  'app/api/site-visits': 'sales' }
 const EXEMPT = new Set([
   'app/api/integrations/google/callback/route.ts', // OAuth return from Google: completes a connection already started
   'app/api/integrations/meta/callback/route.ts', // OAuth return from Meta

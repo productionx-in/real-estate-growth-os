@@ -92,6 +92,8 @@ export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: Projec
     status: defaultValues?.status ?? 'planning',
     city: defaultValues?.city ?? 'Hyderabad',
     location: defaultValues?.location ?? '',
+    latitude: defaultValues?.latitude ?? null,
+    longitude: defaultValues?.longitude ?? null,
     description: defaultValues?.description ?? '',
     rera_number: defaultValues?.rera_number ?? '',
     total_area_value: defaultValues?.total_area_value ?? undefined,
@@ -618,6 +620,24 @@ export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: Projec
               className={inputClass}
               placeholder="e.g. Kokapet, Gachibowli, Mokila, Tellapur"
             />
+          </div>
+
+          <div className="space-y-1 md:col-span-2">
+            <label className="block text-[13px] font-medium text-[var(--foreground)]">Site location (for visit check-in)</label>
+            <div className="flex flex-wrap items-center gap-2">
+              <input type="number" step="any" inputMode="decimal" aria-label="Latitude" placeholder="Latitude e.g. 17.4065"
+                value={form.latitude ?? ''} onChange={(e) => set('latitude', e.target.value === '' ? null : Number(e.target.value))}
+                className={`${inputClass} max-w-[11rem]`} />
+              <input type="number" step="any" inputMode="decimal" aria-label="Longitude" placeholder="Longitude e.g. 78.3420"
+                value={form.longitude ?? ''} onChange={(e) => set('longitude', e.target.value === '' ? null : Number(e.target.value))}
+                className={`${inputClass} max-w-[11rem]`} />
+              <button type="button"
+                onClick={() => navigator.geolocation?.getCurrentPosition((p) => { set('latitude', Number(p.coords.latitude.toFixed(6))); set('longitude', Number(p.coords.longitude.toFixed(6))) })}
+                className="rounded-md border border-[var(--border)] px-3 py-1.5 text-[12px] font-medium hover:bg-[var(--surface-hover)]">
+                Use my current location
+              </button>
+            </div>
+            <p className="text-[12px] text-[var(--foreground-subtle)]">Optional. When set, a site-visit check-in more than 500 m away is flagged.</p>
           </div>
         </div>
       </div>
