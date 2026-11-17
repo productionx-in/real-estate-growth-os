@@ -9,6 +9,7 @@ import {
   generateWebhookSecretForConnection,
   invalidatePreviousWebhookSecret,
 } from '@/lib/dal/integrations'
+import { auditMember } from '@/lib/dal/org-audit'
 
 interface RouteContext {
   params: Promise<{ connectionId: string }>
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
           { status: 400 }
         )
       }
+      await auditMember(request, authResult.auth, conn.org_id, 'integration.webhook_secret_invalidated', { type: 'integration', id: connectionId })
       return NextResponse.json({
         success: true,
         message: 'Previous webhook secret has been immediately invalidated and purged.',
@@ -86,6 +88,12 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         { status: 400 }
       )
     }
+    // The secret itself is never written to the audit trail.
+    await auditMember(request, authResult.auth, conn.org_id, 'integration.webhook_secret_rotated', { type: 'integration', id: connectionId }, {
+      provider: conn.provider,
+      immediate_revocation: immediateRevocation,
+      grace_period_minutes: immediateRevocation ? 0 : gracePeriodMinutes,
+    })
 
     return NextResponse.json({
       success: true,
@@ -140,6 +148,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
         { status: 400 }
       )
     }
+    await auditMember(request, authResult.auth, conn.org_id, 'integration.webhook_secret_invalidated', { type: 'integration', id: connectionId })
 
     return NextResponse.json({
       success: true,

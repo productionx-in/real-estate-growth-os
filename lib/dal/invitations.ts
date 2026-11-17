@@ -31,6 +31,38 @@ export interface ValidatedInvitation {
   expiresAt: string
 }
 
+/**
+ * The acting member must be an ACTIVE owner or administrator of this organisation. A deactivated or suspended
+ * membership keeps its role column, so the status check is what stops a removed admin from still acting.
+ */
+async function getActiveManager(orgId: string, actorProfileId: string): Promise<{ role: MemberRole } | null> {
+  const service = createServiceClient()
+  const { data } = await service
+    .from('org_members')
+    .select('role, status')
+    .eq('org_id', orgId)
+    .eq('profile_id', actorProfileId)
+    .maybeSingle()
+  if (!data || data.status !== 'active' || !['owner', 'admin'].includes(data.role)) return null
+  return { role: data.role as MemberRole }
+}
+
+async function countActiveOwners(orgId: string): Promise<number> {
+  const service = createServiceClient()
+  const { count } = await service
+    .from('org_members')
+    .select('*', { count: 'exact', head: true })
+    .eq('org_id', orgId)
+    .eq('role', 'owner')
+    .eq('status', 'active')
+  return count ?? 0
+}
+
+/** Ownership is granted only by an owner. */
+export function canGrantRole(actorRole: MemberRole, role: MemberRole): boolean {
+  return role !== 'owner' || actorRole === 'owner'
+}
+
 export function hashInvitationToken(token: string): string {
   return crypto.createHash('sha256').update(token.trim()).digest('hex')
 }
@@ -44,6 +76,15 @@ export async function createEmployeeInvitation(
 ): Promise<{ success: boolean; invitation?: EmployeeInvitation; plaintextToken?: string; error?: string }> {
   const service = createServiceClient()
   const normalizedEmail = email.trim().toLowerCase()
+
+  // 0. The inviter must be an active owner or admin; only an owner can invite another owner.
+  const inviter = await getActiveManager(orgId, inviterProfileId)
+  if (!inviter) {
+    return { success: false, error: 'Insufficient permissions. Only owners and administrators can invite employees.' }
+  }
+  if (!canGrantRole(inviter.role, role)) {
+    return { success: false, error: 'Only an owner can invite another owner.' }
+  }
 
   // 1. Verify seat availability
   const seatUsage = await getSubscriptionAndSeatUsage(orgId)
@@ -172,14 +213,14 @@ export async function acceptEmployeeInvitation(
   token: string,
   userProfileId: string,
   authUserId: string
-): Promise<{ success: boolean; orgSlug?: string; error?: string; status?: number }> {
+): Promise<{ success: boolean; orgSlug?: string; orgId?: string; role?: MemberRole; invitationId?: string; error?: string; status?: number }> {
   const service = createServiceClient()
   const tokenHash = hashInvitationToken(token)
 
   // 1. Verify invitation is valid, pending, and not expired
   const { data: invite, error: fetchError } = await service
     .from('org_invitations')
-    .select('id, org_id, email, role, status, expires_at, organisation:organisations(slug)')
+    .select('id, org_id, email, role, status, expires_at, organisation:organisations(slug, lifecycle_state)')
     .eq('token_hash', tokenHash)
     .maybeSingle()
 
@@ -208,6 +249,11 @@ export async function acceptEmployeeInvitation(
   }
 
   const org = Array.isArray(invite.organisation) ? invite.organisation[0] : invite.organisation
+
+  // 1c. A suspended or closed workspace takes no new members until it is reactivated.
+  if (org?.lifecycle_state === 'suspended' || org?.lifecycle_state === 'deactivated') {
+    return { success: false, status: 403, error: 'This workspace is not accepting new members right now. Contact its administrator.' }
+  }
 
   // 2. Link member to existing organisation (or reactivate if previously deactivated)
   const { data: existingMembership } = await service
@@ -253,7 +299,7 @@ export async function acceptEmployeeInvitation(
     })
     .eq('id', invite.id)
 
-  return { success: true, orgSlug: org?.slug }
+  return { success: true, orgSlug: org?.slug, orgId: invite.org_id, role: invite.role as MemberRole, invitationId: invite.id }
 }
 
 export async function revokeEmployeeInvitation(
@@ -263,15 +309,7 @@ export async function revokeEmployeeInvitation(
 ): Promise<{ success: boolean; error?: string }> {
   const service = createServiceClient()
 
-  // Verify actor has permission in org
-  const { data: actorMembership } = await service
-    .from('org_members')
-    .select('role')
-    .eq('org_id', orgId)
-    .eq('profile_id', actorProfileId)
-    .maybeSingle()
-
-  if (!actorMembership || !['owner', 'admin'].includes(actorMembership.role)) {
+  if (!(await getActiveManager(orgId, actorProfileId))) {
     return { success: false, error: 'Insufficient permissions. Only owners and administrators can revoke invitations.' }
   }
 
@@ -289,6 +327,43 @@ export async function revokeEmployeeInvitation(
   return { success: true }
 }
 
+/** Signs a person out everywhere when they no longer have any active membership. */
+export async function revokeSessionsIfNoActiveMembership(profileId: string): Promise<boolean> {
+  const service = createServiceClient()
+  const { count } = await service
+    .from('org_members')
+    .select('*', { count: 'exact', head: true })
+    .eq('profile_id', profileId)
+    .eq('status', 'active')
+  if ((count ?? 0) > 0) return false
+  const { data: profile } = await service.from('profiles').select('auth_user_id').eq('id', profileId).maybeSingle()
+  if (!profile?.auth_user_id) return false
+  const { error } = await service.rpc('revoke_user_sessions', { p_auth_user: profile.auth_user_id })
+  if (error) {
+    console.error('Failed to revoke sessions for deactivated member:', error.message)
+    return false
+  }
+  return true
+}
+
+/**
+ * After an organisation is deactivated: signs out each member it blocked who has no other active workspace.
+ * Returns how many people were signed out.
+ */
+export async function revokeSessionsForDeactivatedOrg(orgId: string): Promise<number> {
+  const service = createServiceClient()
+  const { data: blocked } = await service
+    .from('org_members')
+    .select('profile_id')
+    .eq('org_id', orgId)
+    .eq('lifecycle_suspended', true)
+  let revoked = 0
+  for (const m of blocked ?? []) {
+    if (await revokeSessionsIfNoActiveMembership(m.profile_id)) revoked++
+  }
+  return revoked
+}
+
 export interface DeactivationOptions {
   orgId: string
   memberId: string
@@ -297,19 +372,20 @@ export interface DeactivationOptions {
   targetProfileId?: string
 }
 
-export async function deactivateMember(options: DeactivationOptions): Promise<{ success: boolean; error?: string; reassignedCount?: number }> {
+export async function deactivateMember(options: DeactivationOptions): Promise<{
+  success: boolean
+  error?: string
+  reassignedCount?: number
+  sessionsRevoked?: boolean
+  targetProfileId?: string
+  targetRole?: MemberRole
+}> {
   const { orgId, memberId, actorProfileId, reassignmentMode, targetProfileId } = options
   const service = createServiceClient()
 
-  // 1. Verify actor is owner or admin
-  const { data: actorMembership } = await service
-    .from('org_members')
-    .select('role')
-    .eq('org_id', orgId)
-    .eq('profile_id', actorProfileId)
-    .maybeSingle()
-
-  if (!actorMembership || !['owner', 'admin'].includes(actorMembership.role)) {
+  // 1. Verify actor is an active owner or admin
+  const actor = await getActiveManager(orgId, actorProfileId)
+  if (!actor) {
     return { success: false, error: 'Only owners and administrators can deactivate members.' }
   }
 
@@ -331,14 +407,10 @@ export async function deactivateMember(options: DeactivationOptions): Promise<{ 
   }
 
   if (targetMember.role === 'owner') {
-    const { count: ownerCount } = await service
-      .from('org_members')
-      .select('*', { count: 'exact', head: true })
-      .eq('org_id', orgId)
-      .eq('role', 'owner')
-      .eq('status', 'active')
-
-    if ((ownerCount ?? 0) <= 1) {
+    if (actor.role !== 'owner') {
+      return { success: false, error: 'Only an owner can deactivate another owner.' }
+    }
+    if ((await countActiveOwners(orgId)) <= 1) {
       return { success: false, error: 'Cannot deactivate the sole owner of the organisation. Please transfer ownership first.' }
     }
   }
@@ -390,7 +462,12 @@ export async function deactivateMember(options: DeactivationOptions): Promise<{ 
     return { success: false, error: deactivateErr.message }
   }
 
-  return { success: true, reassignedCount }
+  // 5. End the person's signed-in sessions when this was their last active workspace. Access to this
+  //    organisation is already refused on every request; this also stops an open tab from lingering. People
+  //    who still belong to another organisation keep their sessions there.
+  const sessionsRevoked = await revokeSessionsIfNoActiveMembership(targetMember.profile_id)
+
+  return { success: true, reassignedCount, sessionsRevoked, targetProfileId: targetMember.profile_id, targetRole: targetMember.role as MemberRole }
 }
 
 export async function changeMemberRole(
@@ -398,19 +475,33 @@ export async function changeMemberRole(
   memberId: string,
   newRole: MemberRole,
   actorProfileId: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; previousRole?: MemberRole; targetProfileId?: string }> {
   const service = createServiceClient()
 
-  // Verify actor is owner or admin
-  const { data: actorMembership } = await service
-    .from('org_members')
-    .select('role')
-    .eq('org_id', orgId)
-    .eq('profile_id', actorProfileId)
-    .maybeSingle()
-
-  if (!actorMembership || !['owner', 'admin'].includes(actorMembership.role)) {
+  // Verify actor is an active owner or admin
+  const actor = await getActiveManager(orgId, actorProfileId)
+  if (!actor) {
     return { success: false, error: 'Only owners and administrators can change member roles.' }
+  }
+
+  const { data: target } = await service
+    .from('org_members')
+    .select('id, profile_id, role, status')
+    .eq('id', memberId)
+    .eq('org_id', orgId)
+    .maybeSingle()
+  if (!target) {
+    return { success: false, error: 'Member not found in this organisation.' }
+  }
+  if (target.profile_id === actorProfileId) {
+    return { success: false, error: 'You cannot change your own role. Ask another owner or administrator.' }
+  }
+  // Ownership is granted and removed only by an owner, and the last active owner cannot be demoted.
+  if ((target.role === 'owner' || newRole === 'owner') && actor.role !== 'owner') {
+    return { success: false, error: 'Only an owner can grant or remove the owner role.' }
+  }
+  if (target.role === 'owner' && newRole !== 'owner' && target.status === 'active' && (await countActiveOwners(orgId)) <= 1) {
+    return { success: false, error: 'The organisation needs at least one owner. Make someone else an owner first.' }
   }
 
   const { error } = await service
@@ -423,5 +514,5 @@ export async function changeMemberRole(
     return { success: false, error: error.message }
   }
 
-  return { success: true }
+  return { success: true, previousRole: target.role as MemberRole, targetProfileId: target.profile_id }
 }
