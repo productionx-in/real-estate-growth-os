@@ -180,6 +180,13 @@ const ACTION_LABELS: Record<string, string> = {
   'lead.deleted': 'Deleted a lead',
   'project.deleted': 'Deleted a project',
   'organisation.lifecycle_changed': 'Workspace status changed',
+  'support.access_requested': 'REGrow support asked for access',
+  'support.access_approved': 'Approved support access',
+  'support.access_denied': 'Denied support access',
+  'support.access_revoked': 'Ended support access',
+  'support.access_cancelled': 'Support withdrew its request',
+  'support.emergency_access': 'Emergency support access granted',
+  'support.data_viewed': 'Support viewed the workspace overview',
 }
 
 export function describeAuditAction(action: string): string {
