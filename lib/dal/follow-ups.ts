@@ -99,7 +99,7 @@ export interface MyDayLead {
   assignee: { id: string; full_name: string } | null
 }
 
-const LEAD_COLUMNS = 'id, name, phone, status, source, created_at, sla_due_at, sla_state, next_follow_up_at, project:projects(name), assignee:profiles!leads_assigned_to_fkey(id, full_name)'
+export const LEAD_COLUMNS = 'id, name, phone, status, source, created_at, sla_due_at, sla_state, next_follow_up_at, project:projects(name), assignee:profiles!leads_assigned_to_fkey(id, full_name)'
 
 /**
  * The salesperson's day: new leads waiting for a first call, overdue follow-ups, today's follow-ups.
@@ -133,7 +133,7 @@ export async function getMyDay(orgId: string, profileId: string | null, timezone
   }
 }
 
-function tzOffsetMinutes(timeZone: string, at: Date): number {
+export function tzOffsetMinutes(timeZone: string, at: Date): number {
   const parts = new Intl.DateTimeFormat('en-US', { timeZone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
     .formatToParts(at).reduce<Record<string, string>>((a, p) => ({ ...a, [p.type]: p.value }), {})
   const asUtc = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second)

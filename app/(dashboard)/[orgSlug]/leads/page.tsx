@@ -10,18 +10,20 @@ import { ExportLeadsButton } from '@/components/leads/ExportLeadsButton'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import type { LeadStatus, LeadSource } from '@/types/database'
+import { applyFocus, FOCI, isFocus } from '@/lib/dal/action-board'
 
 export const metadata: Metadata = { title: 'Leads' }
 export const dynamic = 'force-dynamic'
 
 interface PageProps {
   params: Promise<{ orgSlug: string }>
-  searchParams: Promise<{ status?: string; source?: string; scope?: string }>
+  searchParams: Promise<{ status?: string; source?: string; scope?: string; focus?: string }>
 }
 
 export default async function LeadsPage({ params, searchParams }: PageProps) {
   const { orgSlug } = await params
-  const { status, source, scope } = await searchParams
+  const { status, source, scope, focus: rawFocus } = await searchParams
+  const focus = isFocus(rawFocus) ? rawFocus : null
 
   const { org, role, profile, isManager } = await getVerifiedWorkspace(orgSlug)
   const service = createServiceClient()
@@ -50,6 +52,10 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
     }
   }
 
+  if (focus) {
+    // Same definitions as the home dashboard, so the count there matches this list.
+    query = applyFocus(query, focus, new Date())
+  }
   if (status) query = query.eq('status', status as LeadStatus)
   if (source) query = query.eq('source', source as LeadSource)
 
@@ -85,7 +91,7 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
     </>
   )
 
-  const pageTitle = role === 'sales_exec' ? 'My Leads' : 'Leads'
+  const pageTitle = focus ? FOCI[focus] : role === 'sales_exec' ? 'My Leads' : 'Leads'
   const pageDescription =
     role === 'sales_exec'
       ? `${leads?.length ?? 0} direct customer enquiries assigned to you for ${org.name}`
