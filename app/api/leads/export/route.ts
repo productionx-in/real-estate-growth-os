@@ -5,7 +5,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 import Papa from 'papaparse'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
-import type { LeadStatus, LeadSource, MemberRole } from '@/types/database'
+import type { MemberRole } from '@/types/database'
+import { applyLeadFilters, parseLeadSearch } from '@/lib/leads/view-filters'
 import { auditMember } from '@/lib/dal/org-audit'
 
 interface LeadExportRecord {
@@ -28,8 +29,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const orgSlug = searchParams.get('orgSlug')
-    const status = searchParams.get('status')
-    const source = searchParams.get('source')
+    // The same filters as the leads page, so the file matches what the user is looking at.
+    const { filters } = parseLeadSearch(Object.fromEntries(searchParams.entries()))
 
     if (!orgSlug) {
       return NextResponse.json({ error: 'orgSlug query param is required' }, { status: 400 })
@@ -85,12 +86,8 @@ export async function GET(request: NextRequest) {
       .eq('org_id', org.id)
       .order('created_at', { ascending: false })
 
-    if (role === 'sales_exec') {
-      query = query.eq('assigned_to', auth.profile.id)
-    }
-
-    if (status) query = query.eq('status', status as LeadStatus)
-    if (source) query = query.eq('source', source as LeadSource)
+    // A sales executive is always limited to their own leads, whatever the filters say.
+    query = applyLeadFilters(query, filters, { role, profileId: auth.profile.id }, new Date())
 
     const { data: leads, error: fetchError } = await query
 
@@ -117,7 +114,7 @@ export async function GET(request: NextRequest) {
     // Exports take customer contact data out of REGrow, so every one is recorded.
     await auditMember(request, auth, org.id, 'lead.exported', { type: 'lead_export' }, {
       rows: rows.length,
-      filters: { status: status ?? null, source: source ?? null },
+      filters,
       scope: role === 'sales_exec' ? 'own' : 'organisation',
     })
 

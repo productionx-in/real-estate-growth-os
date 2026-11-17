@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { updateLeadStatus } from '@/lib/dal/leads'
 import type { LeadStatus } from '@/types/database'
+import { canTransition } from '@/lib/leads/transitions'
 
 const StatusSchema = z.object({
   status: z.enum([
@@ -13,15 +14,6 @@ const StatusSchema = z.object({
   note: z.string().max(500).optional(),
 })
 
-// Allowed transitions — mirrors the client-side config
-const ALLOWED: Partial<Record<LeadStatus, LeadStatus[]>> = {
-  new: ['contacted', 'junk'],
-  contacted: ['qualified', 'junk'],
-  qualified: ['site_visit_scheduled', 'lost'],
-  site_visit_scheduled: ['site_visited', 'lost'],
-  site_visited: ['negotiation', 'lost'],
-  negotiation: ['booked', 'lost'],
-}
 
 export async function POST(
   request: NextRequest,
@@ -50,8 +42,7 @@ export async function POST(
     if (!lead) return NextResponse.json({ error: 'Lead not found' }, { status: 404 })
 
     // Validate transition is allowed
-    const allowed = ALLOWED[lead.status as LeadStatus] ?? []
-    if (!allowed.includes(parsed.data.status as LeadStatus)) {
+    if (!canTransition(lead.status as LeadStatus, parsed.data.status as LeadStatus)) {
       return NextResponse.json(
         { error: `Cannot transition from '${lead.status}' to '${parsed.data.status}'` },
         { status: 400 }
