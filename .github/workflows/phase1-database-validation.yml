@@ -168,6 +168,7 @@ jobs:
           node tests/db-integration/p3b-entitlements.test.mjs 2>&1 | tee diagnostics/p3b-entitlements.log
           node tests/db-integration/p7-function-grants.test.mjs 2>&1 | tee diagnostics/p7-function-grants.log
           node tests/db-integration/p8-action-board.test.mjs 2>&1 | tee diagnostics/p8-action-board.log
+          node tests/db-integration/p9-site-visits.test.mjs 2>&1 | tee diagnostics/p9-site-visits.log
 
       # 11. Execute Application Regression Test Suite (Phase 6)
       - name: Execute Application Regression Test Suite (All 27 Tests)

@@ -45,6 +45,8 @@ export default async function EditProjectPage({ params }: PageProps) {
     status: project.status,
     city: project.city ?? '',
     location: project.location ?? '',
+    latitude: project.latitude ?? null,
+    longitude: project.longitude ?? null,
     description: project.description ?? '',
     rera_number: project.rera_number ?? '',
     total_area_value: project.total_area_value ?? undefined,
