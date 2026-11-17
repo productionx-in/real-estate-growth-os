@@ -4,6 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { LeadSchema } from '@/lib/validations/lead'
 import { authorizeLeadAccess } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
+import { auditMember } from '@/lib/dal/org-audit'
 
 export async function PUT(
   request: NextRequest,
@@ -101,7 +102,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ leadId: string }> }
 ) {
   try {
@@ -123,6 +124,11 @@ export async function DELETE(
     if (delError) {
       return NextResponse.json({ error: delError.message }, { status: 500 })
     }
+
+    await auditMember(request, authResult.context, authResult.context.orgId, 'lead.deleted', { type: 'lead', id: leadId }, {
+      status: authResult.context.lead.status,
+      project_id: authResult.context.lead.project_id,
+    })
 
     return NextResponse.json({ success: true })
   } catch {

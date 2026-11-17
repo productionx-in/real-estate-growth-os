@@ -5,6 +5,7 @@ import { ProjectSchema } from '@/lib/validations/project'
 import { getProjectById, updateProject } from '@/lib/dal/projects'
 import { authorizeProjectAccess } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
+import { auditMember } from '@/lib/dal/org-audit'
 
 interface RouteParams {
   params: Promise<{ projectId: string }>
@@ -81,6 +82,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    await auditMember(request, authResult.context, authResult.context.orgId, 'project.deleted', { type: 'project', id: projectId }, {
+      name: authResult.context.project.name,
+    })
 
     return NextResponse.json({ success: true })
   } catch {

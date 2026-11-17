@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { deactivateMember } from '@/lib/dal/invitations'
+import { recordOrgAudit, requestOrigin } from '@/lib/dal/org-audit'
 import { z } from 'zod'
 
 const DeactivateSchema = z.object({
@@ -60,6 +61,25 @@ export async function POST(request: NextRequest) {
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 })
     }
+
+    await recordOrgAudit({
+      orgId: targetOrgId,
+      action: 'member.deactivated',
+      actorUserId: auth.user.id,
+      actorProfileId: auth.profile.id,
+      actorLabel: auth.profile.full_name,
+      targetType: 'member',
+      targetId: memberId,
+      metadata: {
+        profile_id: result.targetProfileId,
+        role: result.targetRole,
+        reassignment: reassignmentMode,
+        reassigned_to: reassignmentMode === 'reassign_to_member' ? targetProfileId ?? null : null,
+        leads_reassigned: result.reassignedCount ?? 0,
+        sessions_revoked: result.sessionsRevoked ?? false,
+      },
+      ...requestOrigin(request),
+    })
 
     return NextResponse.json(
       {

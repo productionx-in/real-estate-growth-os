@@ -5,6 +5,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { createEmployeeInvitation } from '@/lib/dal/invitations'
 import { getEmailAdapter } from '@/lib/email/adapter'
 import type { MemberRole } from '@/types/database'
+import { recordOrgAudit, requestOrigin } from '@/lib/dal/org-audit'
 import { z } from 'zod'
 import { isActiveMembership } from '@/lib/auth/permissions'
 
@@ -82,6 +83,18 @@ export async function POST(request: NextRequest) {
         { status: result.error?.includes('Seat limit reached') ? 409 : 400 }
       )
     }
+
+    await recordOrgAudit({
+      orgId: targetOrgId,
+      action: 'invitation.created',
+      actorUserId: auth.user.id,
+      actorProfileId: auth.profile.id,
+      actorLabel: auth.profile.full_name,
+      targetType: 'invitation',
+      targetId: result.invitation?.id,
+      metadata: { email: email.trim().toLowerCase(), role, expires_in_days: expiresInDays },
+      ...requestOrigin(request),
+    })
 
     const { data: orgData } = await service
       .from('organisations')

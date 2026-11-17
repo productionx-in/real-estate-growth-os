@@ -6,6 +6,7 @@ import { ROUTING_ADMIN_ROLES } from '@/lib/auth/permissions'
 import { TeamCreateSchema } from '@/lib/validations/routing'
 import { createTeam, listTeams } from '@/lib/dal/routing'
 import { parseJson, respond, serverError } from '@/lib/routing/http'
+import { auditMember } from '@/lib/dal/org-audit'
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +26,9 @@ export async function POST(request: NextRequest) {
     if (!input.ok) return input.response
     const auth = await authorizeOrgAccess(input.data.orgId, [...ROUTING_ADMIN_ROLES])
     if (!auth.success) return auth.response
-    return respond(await createTeam(input.data), 201)
+    const result = await createTeam(input.data)
+    if (result.success) await auditMember(request, auth.context, input.data.orgId, 'routing.team_created', { type: 'routing_team', id: (result.data as { id?: string })?.id ?? null })
+    return respond(result, 201)
   } catch (err) {
     return serverError('create team', err)
   }

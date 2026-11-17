@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { revokeEmployeeInvitation } from '@/lib/dal/invitations'
+import { recordOrgAudit, requestOrigin } from '@/lib/dal/org-audit'
 import { z } from 'zod'
 
 const RevokeSchema = z.object({
@@ -51,6 +52,17 @@ export async function POST(request: NextRequest) {
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 })
     }
+
+    await recordOrgAudit({
+      orgId: targetOrgId,
+      action: 'invitation.revoked',
+      actorUserId: auth.user.id,
+      actorProfileId: auth.profile.id,
+      actorLabel: auth.profile.full_name,
+      targetType: 'invitation',
+      targetId: invitationId,
+      ...requestOrigin(request),
+    })
 
     return NextResponse.json({ success: true, message: 'Invitation revoked and seat released.' }, { status: 200 })
   } catch (err) {

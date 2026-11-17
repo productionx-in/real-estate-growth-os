@@ -10,6 +10,7 @@ import {
   getProjectMappings,
 } from '@/lib/dal/integrations'
 import { z } from 'zod'
+import { auditMember } from '@/lib/dal/org-audit'
 
 const UpdateConnectionSchema = z.object({
   name: z.string().min(2).max(100).optional(),
@@ -140,6 +141,10 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     if (error || !connection) {
       return NextResponse.json({ error: error ?? 'Failed to update connection' }, { status: 400 })
     }
+    await auditMember(request, authResult.auth, access.orgId, 'integration.updated', { type: 'integration', id: connectionId }, {
+      fields: Object.keys(parsed.data).filter((k) => (parsed.data as Record<string, unknown>)[k] !== undefined),
+      status: parsed.data.status,
+    })
 
     const mappingsRes = await getProjectMappings(access.orgId, connectionId)
     const mappings = mappingsRes.mappings
@@ -175,6 +180,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
     if (!success) {
       return NextResponse.json({ error: error ?? 'Failed to disconnect connection' }, { status: 400 })
     }
+    await auditMember(request, authResult.auth, access.orgId, 'integration.disconnected', { type: 'integration', id: connectionId })
 
     return NextResponse.json({
       success: true,

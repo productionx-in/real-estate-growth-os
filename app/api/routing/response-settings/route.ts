@@ -5,6 +5,7 @@ import { ROUTING_ADMIN_ROLES } from '@/lib/auth/permissions'
 import { ResponseSettingsSchema } from '@/lib/validations/follow-ups'
 import { getResponseSettings, saveResponseSettings } from '@/lib/dal/follow-ups'
 import { parseJson, respond, serverError } from '@/lib/routing/http'
+import { auditMember } from '@/lib/dal/org-audit'
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +25,9 @@ export async function PUT(request: NextRequest) {
     if (!input.ok) return input.response
     const auth = await authorizeOrgAccess(input.data.orgId, [...ROUTING_ADMIN_ROLES])
     if (!auth.success) return auth.response
-    return respond(await saveResponseSettings(input.data))
+    const result = await saveResponseSettings(input.data)
+    if (result.success) await auditMember(request, auth.context, input.data.orgId, 'routing.response_settings_updated', { type: 'response_settings', id: input.data.orgId }, { ...input.data, orgId: undefined })
+    return respond(result)
   } catch (err) {
     return serverError('save response settings', err)
   }
