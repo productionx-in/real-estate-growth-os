@@ -2,6 +2,7 @@
 // components/ui/dropdown-menu.tsx — Radix DropdownMenu: arrow-key navigation, typeahead, Escape, focus return.
 import * as React from 'react'
 import * as Menu from '@radix-ui/react-dropdown-menu'
+import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 export const DropdownMenu = Menu.Root
@@ -31,6 +32,26 @@ export function DropdownMenuItem({ className, destructive, ...props }: React.Com
       )}
       {...props}
     />
+  )
+}
+
+/** A toggle inside a menu (role menuitemcheckbox). Keeps the menu open so several can be ticked. */
+export function DropdownMenuCheckboxItem({ className, children, onSelect, ...props }: React.ComponentPropsWithoutRef<typeof Menu.CheckboxItem>) {
+  return (
+    <Menu.CheckboxItem
+      onSelect={(e) => { e.preventDefault(); onSelect?.(e) }}
+      className={cn(
+        'group relative flex cursor-pointer select-none items-center gap-2 rounded-md py-1.5 pl-8 pr-2.5 text-[13px] text-foreground outline-none',
+        'data-[highlighted]:bg-surface-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        className
+      )}
+      {...props}
+    >
+      <span className="absolute left-2.5 flex size-4 items-center justify-center rounded border border-strong group-data-[state=checked]:border-brand group-data-[state=checked]:bg-brand">
+        <Menu.ItemIndicator><Check aria-hidden className="size-3 text-brand-foreground" /></Menu.ItemIndicator>
+      </span>
+      {children}
+    </Menu.CheckboxItem>
   )
 }
 

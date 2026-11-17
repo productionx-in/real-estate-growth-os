@@ -9,47 +9,18 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import type { LeadStatus } from '@/types/database'
 import { DEFAULT_RESPONSE_SETTINGS, LEAD_COLUMNS, tzOffsetMinutes, type MyDayLead } from './follow-ups'
+import { CLOSED_STATUSES, IN_PROGRESS, FOCI, isFocus, applyFocus, type Focus } from '@/lib/leads/view-filters'
+// The focus definitions live with the lead filters (client-safe); re-exported for existing callers.
+export { CLOSED_STATUSES, FOCI, isFocus, applyFocus, type Focus }
 
-export const CLOSED_STATUSES: LeadStatus[] = ['booked', 'lost', 'junk']
-const IN_PROGRESS: LeadStatus[] = ['contacted', 'qualified', 'site_visit_scheduled', 'site_visited', 'negotiation']
 export const FUNNEL: { status: LeadStatus; label: string }[] = [
   { status: 'new', label: 'New' }, { status: 'contacted', label: 'Contacted' }, { status: 'qualified', label: 'Qualified' },
   { status: 'site_visit_scheduled', label: 'Visit scheduled' }, { status: 'site_visited', label: 'Visited' },
   { status: 'negotiation', label: 'Negotiating' }, { status: 'booked', label: 'Booked' },
 ]
 
-export const FOCI = {
-  waiting: 'Waiting for a first call',
-  unassigned: 'Nobody assigned',
-  overdue: 'Follow-up overdue',
-  no_next_step: 'No next step',
-  visited: 'Visited, not booked',
-} as const
-export type Focus = keyof typeof FOCI
-export const isFocus = (v: unknown): v is Focus => typeof v === 'string' && v in FOCI
-
 export const PERIODS = { today: 'Today', '7d': 'Last 7 days', '30d': 'Last 30 days' } as const
 export type Period = keyof typeof PERIODS
-
-/** Narrows a leads query to one focus. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase builder generics differ per select()
-export function applyFocus<Q extends { is: any; not: any; lt: any; lte: any; in: any; eq: any }>(
-  q: Q, focus: Focus, now: Date
-): Q {
-  const open = `(${CLOSED_STATUSES.join(',')})`
-  switch (focus) {
-    case 'waiting':
-      return q.is('first_action_at', null).not('status', 'in', open)
-    case 'unassigned':
-      return q.is('assigned_to', null).not('status', 'in', open)
-    case 'overdue':
-      return q.lt('next_follow_up_at', now.toISOString()).not('status', 'in', open)
-    case 'no_next_step':
-      return q.in('status', IN_PROGRESS).is('next_follow_up_at', null)
-    case 'visited':
-      return q.eq('status', 'site_visited')
-  }
-}
 
 export async function getResponseMinutes(orgId: string): Promise<{ minutes: number; timezone: string }> {
   const db = createServiceClient()
