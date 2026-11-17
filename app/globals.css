@@ -1,52 +1,209 @@
 @import "tailwindcss";
 
-/* ─── Design tokens ──────────────────────────────────────────────────────── */
+/* ─── Design tokens ──────────────────────────────────────────────────────────
+   Three layers (Core-Skills design-system):
+     1. Primitives  — raw palette. Never used directly in components.
+     2. Semantic    — what a colour is FOR (surface, text, brand, status). Components use these.
+     3. Tailwind    — @theme inline exposes the semantic layer as utilities: bg-surface, text-muted,
+                      border-default, bg-brand, text-danger …
+   Existing names (--surface, --foreground-muted, --brand …) are kept so every current screen keeps working.
+   Dark theme: opt-in with <html data-theme="dark"> until every module is on tokens (Phase 5); following the
+   operating-system setting before then would leave hard-coded colours light on a dark page.
+   Text contrast: every text token is ≥ 4.5:1 on --surface and --background (WCAG AA). */
+
 :root {
-  /* Neutral background — premium enterprise feel */
-  --background: #f8f9fa;
-  --surface: #ffffff;
-  --surface-hover: #f1f3f5;
+  /* 1. Primitives */
+  --gray-0: #ffffff;
+  --gray-25: #fcfcfd;
+  --gray-50: #f8f9fa;
+  --gray-100: #f1f3f5;
+  --gray-150: #eaedf0;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-850: #18202b;
+  --gray-900: #111827;
+  --gray-950: #0b111b;
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-300: #93c5fd;
+  --blue-400: #60a5fa;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8; /* REGrow brand */
+  --blue-800: #1e40af;
+  --blue-900: #1e3a8a;
+  --green-50: #f0fdf4;
+  --green-400: #4ade80;
+  --green-700: #15803d;
+  --amber-50: #fffbeb;
+  --amber-400: #fbbf24;
+  --amber-700: #b45309;
+  --red-50: #fef2f2;
+  --red-400: #f87171;
+  --red-600: #dc2626;
+  --red-700: #b91c1c;
 
-  /* Text */
-  --foreground: #111827;
-  --foreground-muted: #6b7280;
-  --foreground-subtle: #9ca3af;
+  /* 2. Semantic — light */
+  --background: var(--gray-50);
+  --surface: var(--gray-0);
+  --surface-muted: var(--gray-25);
+  --surface-hover: var(--gray-100);
+  --surface-sunken: var(--gray-100);
+  --overlay: rgb(17 24 39 / 0.45);
 
-  /* Brand */
-  --brand: #1d4ed8;
-  --brand-hover: #1e40af;
-  --brand-light: #eff6ff;
+  --foreground: var(--gray-900);
+  --foreground-muted: var(--gray-600);
+  --foreground-subtle: var(--gray-500);
+  --foreground-inverse: var(--gray-0);
 
-  /* Borders */
-  --border: #e5e7eb;
-  --border-strong: #d1d5db;
+  --brand: var(--blue-700);
+  --brand-hover: var(--blue-800);
+  --brand-dark: var(--blue-900);
+  --brand-light: var(--blue-50);
+  --brand-foreground: var(--gray-0);
 
-  /* Status colors */
-  --success: #16a34a;
-  --success-bg: #f0fdf4;
-  --warning: #d97706;
-  --warning-bg: #fffbeb;
-  --danger: #dc2626;
-  --danger-bg: #fef2f2;
-  --info: #2563eb;
-  --info-bg: #eff6ff;
+  --border: var(--gray-200);
+  --border-strong: var(--gray-300);
+  --focus-ring: var(--blue-600);
 
-  /* Layout */
+  --success: var(--green-700);
+  --success-bg: var(--green-50);
+  --warning: var(--amber-700);
+  --warning-bg: var(--amber-50);
+  --danger: var(--red-600);
+  --danger-hover: var(--red-700);
+  --danger-bg: var(--red-50);
+  --danger-foreground: var(--gray-0);
+  --info: var(--blue-600);
+  --info-bg: var(--blue-50);
+
+  --sidebar-active-bg: var(--blue-50);
+  --sidebar-active-text: var(--blue-700);
+
+  --shadow-sm: 0 1px 2px rgb(17 24 39 / 0.06);
+  --shadow-md: 0 4px 12px rgb(17 24 39 / 0.08), 0 1px 3px rgb(17 24 39 / 0.06);
+  --shadow-lg: 0 16px 40px rgb(17 24 39 / 0.16);
+
+  /* Layout and shape */
   --sidebar-width: 240px;
   --header-height: 56px;
+  --radius-sm: 4px;
   --radius: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  color-scheme: light;
 }
 
+/* 2. Semantic — dark (opt-in) */
+:root[data-theme="dark"] {
+  --background: var(--gray-950);
+  --surface: var(--gray-900);
+  --surface-muted: var(--gray-850);
+  --surface-hover: var(--gray-800);
+  --surface-sunken: var(--gray-950);
+  --overlay: rgb(0 0 0 / 0.6);
+
+  --foreground: var(--gray-100);
+  --foreground-muted: var(--gray-300);
+  --foreground-subtle: var(--gray-400);
+  --foreground-inverse: var(--gray-900);
+
+  /* Lighter fills on a dark page: buttons carry dark text so both text-on-fill and brand-as-text pass AA. */
+  --brand: var(--blue-400);
+  --brand-hover: var(--blue-300);
+  --brand-dark: var(--blue-300);
+  --brand-light: rgb(59 130 246 / 0.14);
+  --brand-foreground: var(--gray-950);
+
+  --border: var(--gray-800);
+  --border-strong: var(--gray-700);
+  --focus-ring: var(--blue-400);
+
+  --success: var(--green-400);
+  --success-bg: rgb(74 222 128 / 0.12);
+  --warning: var(--amber-400);
+  --warning-bg: rgb(251 191 36 / 0.12);
+  --danger: var(--red-400);
+  --danger-hover: var(--red-400);
+  --danger-bg: rgb(248 113 113 / 0.12);
+  --danger-foreground: var(--gray-950);
+  --info: var(--blue-400);
+  --info-bg: rgb(96 165 250 / 0.12);
+
+  --sidebar-active-bg: rgb(59 130 246 / 0.16);
+  --sidebar-active-text: var(--blue-300);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.45);
+  --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.55);
+
+  color-scheme: dark;
+}
+
+/* 3. Tailwind utilities from the semantic layer */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-overlay: var(--overlay);
+  --color-muted: var(--foreground-muted);
+  --color-subtle: var(--foreground-subtle);
+  --color-inverse: var(--foreground-inverse);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-light: var(--brand-light);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-default: var(--border);
+  --color-strong: var(--border-strong);
+  --color-ring: var(--focus-ring);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 
 /* ─── Base resets ────────────────────────────────────────────────────────── */
 * {
   box-sizing: border-box;
+}
+
+/* Keyboard focus is always visible; mouse clicks don't draw a ring. */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 body {
