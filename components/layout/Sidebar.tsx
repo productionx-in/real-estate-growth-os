@@ -23,6 +23,7 @@ import {
   ListChecks,
   Gauge,
   ScrollText,
+  LifeBuoy,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { PRODUCT_NAME } from '@/lib/brand'
@@ -118,6 +119,7 @@ function getRoleNavSections(
             ? [
                 { label: 'Settings', href: `/${orgSlug}/settings`, icon: Settings },
                 { label: 'Audit log', href: `/${orgSlug}/audit-log`, icon: ScrollText },
+                { label: 'Support access', href: `/${orgSlug}/support-access`, icon: LifeBuoy },
               ]
             : []),
         ],
@@ -189,6 +191,7 @@ function getRoleNavSections(
         { label: 'Team', href: `/${orgSlug}/team`, icon: UserCircle },
         { label: 'Settings', href: `/${orgSlug}/settings`, icon: Settings },
         { label: 'Audit log', href: `/${orgSlug}/audit-log`, icon: ScrollText },
+        { label: 'Support access', href: `/${orgSlug}/support-access`, icon: LifeBuoy },
       ],
     },
   ]

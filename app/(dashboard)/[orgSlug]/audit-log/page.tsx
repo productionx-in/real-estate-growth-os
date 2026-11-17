@@ -43,6 +43,15 @@ function detail(row: OrgAuditRow): string {
       return [s(m.provider), s(m.name)].filter(Boolean).join(' · ')
     case 'project.deleted':
       return s(m.name)
+    case 'support.access_requested':
+      return `${s(m.duration_minutes)} min · ${s(m.reason)}`
+    case 'support.emergency_access':
+      return s(m.reason)
+    case 'support.access_approved':
+    case 'support.access_denied':
+    case 'support.access_revoked':
+    case 'support.access_cancelled':
+      return s(m.requested_by)
     case 'organisation.lifecycle_changed':
       return `${s(m.from)} → ${s(m.to)}${m.reason ? ` · ${s(m.reason)}` : ''}`
     default:

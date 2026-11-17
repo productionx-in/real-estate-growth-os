@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import type { Json } from '@/types/database'
 
-export type PlatformRole = 'super_admin' | 'sales_rep' | 'finance_admin' | 'support_agent'
+export type PlatformRole = 'super_admin' | 'sales_rep' | 'finance_admin' | 'support_agent' | 'platform_admin' | 'auditor'
 
 export interface PlatformUserRecord {
   id: string
@@ -206,4 +206,43 @@ export async function logPlatformAction(params: {
     console.error('CRITICAL AUDIT FAILURE: Unhandled exception in logPlatformAction:', err)
     return { success: false, error: errorMsg }
   }
+}
+
+/** Every platform role may open the console; what each can do inside is checked per action. */
+export const CONSOLE_ROLES: PlatformRole[] = ['super_admin', 'platform_admin', 'support_agent', 'finance_admin', 'sales_rep', 'auditor']
+/** Roles that may read the platform audit trail. */
+export const PLATFORM_AUDIT_READERS: PlatformRole[] = ['super_admin', 'auditor']
+
+export type ConsoleAccess =
+  | { state: 'signed_out' }
+  | { state: 'not_staff' }
+  | { state: 'mfa_required'; role: PlatformRole }
+  | { state: 'ok'; userId: string; email?: string; label: string; role: PlatformRole }
+
+/**
+ * For console PAGES (server components). Same checks as authenticatePlatformAdmin — active platform user,
+ * and an MFA-verified (AAL2) session for every console screen — but returns a state for the page to render.
+ */
+export async function getConsoleAccess(): Promise<ConsoleAccess> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { state: 'signed_out' }
+  const service = createServiceClient()
+  const { data: pu } = await service
+    .from('platform_users')
+    .select('role')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .maybeSingle()
+  if (!pu) return { state: 'not_staff' }
+  const role = pu.role as PlatformRole
+  let aal: string | null = null
+  try {
+    aal = (await supabase.auth.mfa.getAuthenticatorAssuranceLevel()).data?.currentLevel ?? null
+  } catch {
+    aal = null
+  }
+  if (aal !== 'aal2') return { state: 'mfa_required', role }
+  const { data: profile } = await service.from('profiles').select('full_name').eq('auth_user_id', user.id).maybeSingle()
+  return { state: 'ok', userId: user.id, email: user.email, label: profile?.full_name || user.email || 'REGrow staff', role }
 }
