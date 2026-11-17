@@ -6,6 +6,7 @@ import { InventoryItemSchema } from '@/lib/validations/inventory'
 import { authorizeInventoryAccess } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import type { Json } from '@/types/database'
+import { requireModule } from '@/lib/auth/entitlements'
 
 export async function GET(
   _request: NextRequest,
@@ -19,6 +20,7 @@ export async function GET(
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'inventory'); if (gate) return gate }
 
     const item = await getInventoryById(inventoryId)
     if (!item) return NextResponse.json({ error: 'Item not found' }, { status: 404 })
@@ -50,6 +52,7 @@ export async function PUT(
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'inventory'); if (gate) return gate }
 
     const body = await request.json()
     const parsed = InventoryItemSchema.safeParse(body)
@@ -168,6 +171,7 @@ export async function DELETE(
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'inventory'); if (gate) return gate }
 
     const service = createServiceClient()
     const { error: delError } = await service

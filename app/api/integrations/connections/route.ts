@@ -11,6 +11,7 @@ import {
 } from '@/lib/dal/integrations'
 import { z } from 'zod'
 import { auditMember } from '@/lib/dal/org-audit'
+import { requireModule } from '@/lib/auth/entitlements'
 
 const CreateConnectionSchema = z.object({
   orgId: z.string().uuid().optional(),
@@ -103,6 +104,7 @@ export async function GET(request: NextRequest) {
         { status: 403 }
       )
     }
+    { const gate = await requireModule(tenant.orgId, 'integrations'); if (gate) return gate }
 
     const { searchParams } = new URL(request.url)
     const providerFilter = searchParams.get('provider')
@@ -172,6 +174,7 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       )
     }
+    { const gate = await requireModule(tenant.orgId, 'integrations'); if (gate) return gate }
 
     if (!['owner', 'admin', 'manager'].includes(tenant.role)) {
       return NextResponse.json(

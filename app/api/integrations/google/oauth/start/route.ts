@@ -7,6 +7,7 @@ import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getGoogleAppConfig, getGoogleOAuthRedirectUri } from '@/lib/integrations/google/config'
 import { createGoogleOAuthState, getGoogleAuthorizationUrl } from '@/lib/integrations/google/oauth'
+import { requireModule } from '@/lib/auth/entitlements'
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,6 +40,7 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       )
     }
+    { const gate = await requireModule(orgId, 'integrations'); if (gate) return gate }
 
     // Check central Google App configuration
     const config = getGoogleAppConfig()

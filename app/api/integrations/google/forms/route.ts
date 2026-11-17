@@ -6,6 +6,7 @@ import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchGoogleLeadForms } from '@/lib/integrations/google/client'
 import { decryptCredential } from '@/lib/integrations/crypto'
+import { requireModule } from '@/lib/auth/entitlements'
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,6 +46,7 @@ export async function GET(request: NextRequest) {
     if (!membership) {
       return NextResponse.json({ error: 'Forbidden. You do not belong to this organisation.' }, { status: 403 })
     }
+    { const gate = await requireModule(conn.org_id, 'integrations'); if (gate) return gate }
 
     if (conn.status !== 'connected' || !conn.credential_ref) {
       return NextResponse.json(

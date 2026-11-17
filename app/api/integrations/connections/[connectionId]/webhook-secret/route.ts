@@ -10,6 +10,7 @@ import {
   invalidatePreviousWebhookSecret,
 } from '@/lib/dal/integrations'
 import { auditMember } from '@/lib/dal/org-audit'
+import { requireModule } from '@/lib/auth/entitlements'
 
 interface RouteContext {
   params: Promise<{ connectionId: string }>
@@ -49,6 +50,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         { status: 403 }
       )
     }
+    { const gate = await requireModule(conn.org_id, 'integrations'); if (gate) return gate }
 
     let body: Record<string, unknown> = {}
     try {
@@ -140,6 +142,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
         { status: 403 }
       )
     }
+    { const gate = await requireModule(conn.org_id, 'integrations'); if (gate) return gate }
 
     const result = await invalidatePreviousWebhookSecret(connectionId, conn.org_id)
     if (!result.success) {

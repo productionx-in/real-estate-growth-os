@@ -11,6 +11,8 @@ import { LifecycleControl } from '@/components/platform/LifecycleControl'
 import { SupportRequestForm } from '@/components/platform/SupportRequestForm'
 import { GrantActions } from '@/components/platform/GrantActions'
 import { GrantStatusBadge } from '@/components/platform/GrantStatusBadge'
+import { ModuleToggles } from '@/components/platform/ModuleToggles'
+import { getModules, MODULES } from '@/lib/auth/entitlements'
 
 export const metadata: Metadata = { title: 'Organisation' }
 
@@ -33,6 +35,7 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
   const { count: members } = await service.from('org_members').select('*', { count: 'exact', head: true }).eq('org_id', orgId).eq('status', 'active')
 
   const grants = await listGrantsForOrg(orgId, 20)
+  const modules = await getModules(orgId)
   const isSupport = (SUPPORT_REQUEST_ROLES as readonly string[]).includes(access.role)
   const isSuper = access.role === 'super_admin'
   const mine = grants.filter((g) => g.requested_by === access.userId)
@@ -79,6 +82,18 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <div>
+            <CardTitle>Modules</CardTitle>
+            <CardDescription>Leads, projects, team, settings and the audit log are always included.</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <ModuleToggles orgId={org.id} modules={modules} labels={{ ...MODULES }} canEdit={access.role === 'super_admin' || access.role === 'platform_admin'} />
+        </CardContent>
+      </Card>
 
       {overview && (overview.ok ? (
         <Card>

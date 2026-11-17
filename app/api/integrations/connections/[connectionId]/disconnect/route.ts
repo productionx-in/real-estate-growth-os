@@ -5,6 +5,7 @@ import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { disconnectIntegrationConnection } from '@/lib/dal/integrations'
 import { auditMember } from '@/lib/dal/org-audit'
+import { requireModule } from '@/lib/auth/entitlements'
 
 interface RouteContext {
   params: Promise<{ connectionId: string }>
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
         { status: 403 }
       )
     }
+    { const gate = await requireModule(conn.org_id, 'integrations'); if (gate) return gate }
 
     const { success, error } = await disconnectIntegrationConnection(connectionId, conn.org_id)
     if (!success) {

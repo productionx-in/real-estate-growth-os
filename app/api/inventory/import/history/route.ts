@@ -3,6 +3,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { authorizeProjectAccess } from '@/lib/auth/tenant'
 import { getProjectImportHistory } from '@/lib/dal/import'
+import { requireModule } from '@/lib/auth/entitlements'
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,6 +18,7 @@ export async function GET(request: NextRequest) {
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'inventory'); if (gate) return gate }
 
     const history = await getProjectImportHistory(projectId, authResult.context.orgId)
     return NextResponse.json({ history })
