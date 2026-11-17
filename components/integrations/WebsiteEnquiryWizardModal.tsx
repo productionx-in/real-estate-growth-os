@@ -14,6 +14,8 @@ import {
 } from 'lucide-react'
 import type { IntegrationConnectionRecord } from '@/lib/integrations/types'
 import { generateFormEmbedSnippets } from '@/lib/integrations/forms/generator'
+import { WebsiteCapturePanel } from '@/components/integrations/WebsiteCapturePanel'
+import { Alert } from '@/components/ui'
 
 interface ProjectOption {
   id: string
@@ -33,17 +35,19 @@ interface WebsiteEnquiryWizardModalProps {
 export function WebsiteEnquiryWizardModal({
   isOpen,
   onClose,
+  orgId,
   projects,
   existingConnection,
+  onConnectionCreated,
 }: WebsiteEnquiryWizardModalProps) {
-  const [activeTab, setActiveTab] = useState<'snippets' | 'test' | 'settings'>('snippets')
+  const [activeTab, setActiveTab] = useState<'capture' | 'snippets' | 'test' | 'settings'>('capture')
   const [snippetType, setSnippetType] = useState<'script' | 'iframe' | 'api'>('script')
 
   // Form configuration state
   const [selectedProjectId, setSelectedProjectId] = useState<string>(projects[0]?.id || '')
   const [formTitle, setFormTitle] = useState('Enquire Now')
   const [buttonText, setButtonText] = useState('Schedule Site Visit')
-  const [allowedDomains, setAllowedDomains] = useState(() => {
+  const [allowedDomains] = useState(() => {
     const meta = existingConnection?.metadata as Record<string, unknown> | undefined
     if (meta && Array.isArray(meta.allowedDomains)) {
       return meta.allowedDomains.join(', ')
@@ -60,11 +64,12 @@ export function WebsiteEnquiryWizardModal({
   const [testLoading, setTestLoading] = useState(false)
   const [testResponse, setTestResponse] = useState<Record<string, unknown> | null>(null)
 
-  // Connection ID resolution (use existing or fallback)
-  const connectionId = existingConnection?.id || 'conn_website_default'
+  // The real website connection, or none yet (set up on the Capture tab). Never a placeholder id.
+  const connectionId = existingConnection?.id ?? null
 
   const snippets = generateFormEmbedSnippets({
-    connectionId,
+    connectionId: connectionId ?? '',
+    appUrl: typeof window !== 'undefined' ? window.location.origin : undefined,
     projectId: selectedProjectId || undefined,
     projectName: projects.find((p) => p.id === selectedProjectId)?.name,
     formTitle,
@@ -144,7 +149,19 @@ export function WebsiteEnquiryWizardModal({
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-6 pt-3 border-b border-default flex items-center gap-6 text-sm font-medium">
+        <div className="px-6 pt-3 border-b border-default flex items-center gap-6 overflow-x-auto text-sm font-medium">
+          <button
+            onClick={() => setActiveTab('capture')}
+            className={`pb-3 flex shrink-0 items-center gap-2 border-b-2 transition cursor-pointer ${
+              activeTab === 'capture'
+                ? 'border-brand text-brand font-semibold'
+                : 'border-transparent text-subtle hover:text-muted'
+            }`}
+          >
+            <Globe className="w-4 h-4" />
+            Capture your forms
+          </button>
+
           <button
             onClick={() => setActiveTab('snippets')}
             className={`pb-3 flex items-center gap-2 border-b-2 transition cursor-pointer ${
@@ -184,8 +201,17 @@ export function WebsiteEnquiryWizardModal({
 
         {/* Content Body */}
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
+          {/* TAB 0: Capture the site's own forms */}
+          {activeTab === 'capture' && orgId && (
+            <WebsiteCapturePanel orgId={orgId} projects={projects} onSaved={() => onConnectionCreated?.()} />
+          )}
+
+          {(activeTab === 'snippets' || activeTab === 'test') && !connectionId && (
+            <Alert tone="info">Set up your website on the “Capture your forms” tab first — the form widget uses the same website settings.</Alert>
+          )}
+
           {/* TAB 1: Embed Snippets */}
-          {activeTab === 'snippets' && (
+          {activeTab === 'snippets' && connectionId && (
             <div className="space-y-5">
               {/* Configuration Controls */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-surface-muted rounded-xl border border-default">
@@ -310,7 +336,7 @@ export function WebsiteEnquiryWizardModal({
           )}
 
           {/* TAB 2: Live Test Console */}
-          {activeTab === 'test' && (
+          {activeTab === 'test' && connectionId && (
             <div className="space-y-4">
               <p className="text-xs text-muted">
                 Test the public submission endpoint directly from this console. This sends a real
@@ -416,16 +442,10 @@ export function WebsiteEnquiryWizardModal({
                   Origin Domain Whitelist (CORS & Domain Protection)
                 </h4>
                 <p className="text-xs text-subtle">
-                  Restrict enquiry submissions strictly to your approved developer domains. Leave
-                  blank to accept submissions from any domain.
+                  Enquiries are accepted only from the domains listed on the “Capture your forms” tab
+                  (the capture script and the form widget share them).
                 </p>
-                <input
-                  type="text"
-                  placeholder="e.g. developer.com, *.projectsite.in"
-                  value={allowedDomains}
-                  onChange={(e) => setAllowedDomains(e.target.value)}
-                  className="w-full text-xs px-3 py-2 border border-strong rounded-lg text-foreground"
-                />
+                <p className="text-xs font-medium text-foreground">{allowedDomains || 'No domains yet — website enquiries are off.'}</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
