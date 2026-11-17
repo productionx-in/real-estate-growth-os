@@ -79,7 +79,7 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl max-w-md w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
         <button
           type="button"
@@ -90,7 +90,7 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
         </button>
 
         <div className="mb-5">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[var(--brand)] mb-3">
+          <div className="w-10 h-10 rounded-xl bg-brand-light border border-brand/30 flex items-center justify-center text-[var(--brand)] mb-3">
             <Mail className="w-5 h-5" />
           </div>
           <h2 className="text-[16px] font-bold text-[var(--foreground)]">Invite Team Member</h2>
@@ -100,14 +100,14 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-[var(--danger-bg)] border border-red-100 text-[12px] text-[var(--danger)] flex items-start gap-2">
+          <div className="mb-4 p-3 rounded-lg bg-[var(--danger-bg)] border border-danger/30 text-[12px] text-[var(--danger)] flex items-start gap-2">
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
         {isLimitReached && !inviteUrl && (
-          <div className="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-[12px] text-amber-800 flex items-start gap-2">
+          <div className="mb-4 p-3 rounded-lg bg-warning-bg border border-warning/30 text-[12px] text-warning flex items-start gap-2">
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold">Seat Quota Reached</p>
@@ -120,12 +120,12 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
 
         {inviteUrl ? (
           <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px]">
+            <div className="p-4 rounded-xl bg-success-bg border border-success/30 text-success text-[13px]">
               <div className="flex items-center gap-2 font-semibold">
-                <Check className="w-4 h-4 text-emerald-600" />
+                <Check className="w-4 h-4 text-success" />
                 <span>Invitation Created & Seat Reserved</span>
               </div>
-              <p className="text-[12px] text-emerald-700 mt-1 leading-relaxed">
+              <p className="text-[12px] text-success mt-1 leading-relaxed">
                 Share this secure activation link with <strong>{email}</strong>. The employee will join your workspace directly without creating a new organisation.
               </p>
             </div>
@@ -139,7 +139,7 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
                   type="text"
                   readOnly
                   value={inviteUrl}
-                  className="w-full px-3 py-2 text-[12px] font-mono bg-gray-50 border border-[var(--border)] rounded-md text-[var(--foreground)]"
+                  className="w-full px-3 py-2 text-[12px] font-mono bg-surface-muted border border-[var(--border)] rounded-md text-[var(--foreground)]"
                 />
                 <button
                   type="button"

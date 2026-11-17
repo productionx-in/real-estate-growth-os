@@ -118,7 +118,7 @@ export default async function SelectOrgPage() {
                       <span className="text-[var(--brand)] font-medium">{m.role}</span>
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-[var(--brand)] group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="w-4 h-4 text-subtle group-hover:text-[var(--brand)] group-hover:translate-x-0.5 transition-all" />
                 </Link>
               )
             })}
@@ -127,7 +127,7 @@ export default async function SelectOrgPage() {
           <div className="mt-5 pt-4 border-t border-[var(--border)]">
             <Link
               href="/create-org"
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-semibold text-[var(--brand)] bg-blue-50/50 hover:bg-blue-50 border border-blue-200 rounded-lg transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-semibold text-[var(--brand)] bg-brand-light/50 hover:bg-brand-light border border-brand/30 rounded-lg transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               Create Another Workspace

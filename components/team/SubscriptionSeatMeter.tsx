@@ -26,13 +26,13 @@ export function SubscriptionSeatMeter({ seatUsage, isAdmin }: SubscriptionSeatMe
     <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 shadow-2xs mb-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-[var(--brand)]">
+          <div className="w-10 h-10 rounded-lg bg-brand-light border border-brand/30 flex items-center justify-center text-[var(--brand)]">
             <Users className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-[14px] font-bold text-[var(--foreground)]">Subscription Seats</h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-[var(--brand)] border border-blue-200">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-light text-[var(--brand)] border border-brand/30">
                 {planName}
               </span>
             </div>
@@ -64,7 +64,7 @@ export function SubscriptionSeatMeter({ seatUsage, isAdmin }: SubscriptionSeatMe
 
       {/* Progress Bar */}
       <div className="pt-4">
-        <div className="w-full h-2.5 rounded-full bg-gray-100 overflow-hidden flex">
+        <div className="w-full h-2.5 rounded-full bg-surface-hover overflow-hidden flex">
           <div
             style={{ width: `${occupiedPercent}%` }}
             className="h-full bg-[var(--brand)] transition-all duration-300"
@@ -88,13 +88,13 @@ export function SubscriptionSeatMeter({ seatUsage, isAdmin }: SubscriptionSeatMe
               <span>Reserved Invites ({reservedSeats})</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-gray-200" />
+              <span className="w-2 h-2 rounded-full bg-surface-hover" />
               <span>Available ({availableSeats})</span>
             </span>
           </div>
 
           {isLimitReached && (
-            <span className="text-amber-700 font-semibold flex items-center gap-1">
+            <span className="text-warning font-semibold flex items-center gap-1">
               <AlertTriangle className="w-3.5 h-3.5" />
               <span>Seat quota reached</span>
             </span>

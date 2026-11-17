@@ -76,7 +76,7 @@ export function CreateOrgForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700">
+        <div className="p-3.5 rounded-lg bg-danger-bg border border-danger/30 text-xs text-danger">
           {error}
         </div>
       )}
@@ -84,7 +84,7 @@ export function CreateOrgForm() {
       {/* Workspace Name */}
       <div>
         <label className="block text-xs font-semibold text-[var(--foreground)] mb-1.5">
-          Organisation or Brand Name <span className="text-red-500">*</span>
+          Organisation or Brand Name <span className="text-danger">*</span>
         </label>
         <input
           type="text"
@@ -103,7 +103,7 @@ export function CreateOrgForm() {
       {/* Business Type */}
       <div>
         <label className="block text-xs font-semibold text-[var(--foreground)] mb-2">
-          Select Your Business Model <span className="text-red-500">*</span>
+          Select Your Business Model <span className="text-danger">*</span>
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {ORG_TYPES.map((t) => {
@@ -117,7 +117,7 @@ export function CreateOrgForm() {
                 className={cn(
                   'relative p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between',
                   isSelected
-                    ? 'border-[var(--brand)] bg-blue-50/40 text-[var(--brand)] shadow-xs'
+                    ? 'border-[var(--brand)] bg-brand-light/40 text-[var(--brand)] shadow-xs'
                     : 'border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] text-[var(--foreground)]'
                 )}
               >
@@ -159,20 +159,20 @@ export function CreateOrgForm() {
       </div>
 
       {/* Starter Data Checkbox */}
-      <div className="p-3.5 rounded-xl border border-blue-100 bg-blue-50/50 flex items-start gap-3">
+      <div className="p-3.5 rounded-xl border border-brand/30 bg-brand-light/50 flex items-start gap-3">
         <input
           type="checkbox"
           id="seedDemo"
           checked={seedDemoData}
           onChange={(e) => setSeedDemoData(e.target.checked)}
-          className="mt-0.5 w-4 h-4 rounded text-[var(--brand)] focus:ring-blue-400"
+          className="mt-0.5 w-4 h-4 rounded text-[var(--brand)] focus:ring-ring"
         />
         <label htmlFor="seedDemo" className="cursor-pointer text-xs leading-relaxed text-[var(--foreground)]">
-          <span className="font-semibold text-blue-900 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+          <span className="font-semibold text-brand flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-brand" />
             Populate with starter sample projects & inventory
           </span>
-          <span className="block text-[11px] text-blue-700 mt-0.5">
+          <span className="block text-[11px] text-brand mt-0.5">
             Includes sample apartments with tower matrices, plotted development layouts, and sample leads pipeline so you can test all features right away.
           </span>
         </label>

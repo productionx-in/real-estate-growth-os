@@ -30,17 +30,17 @@ const SOURCE_LABELS: Record<(typeof LEAD_SOURCES)[number], string> = {
 }
 
 const OUTCOME_LABELS: Record<string, { label: string; className: string }> = {
-  assigned: { label: 'Assigned', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  sticky: { label: 'Returning buyer', className: 'bg-blue-50 text-blue-700 border-blue-200' },
-  no_matching_rule: { label: 'No rule matched', className: 'bg-amber-50 text-amber-800 border-amber-200' },
-  no_available_member: { label: 'Nobody available', className: 'bg-red-50 text-red-700 border-red-200' },
+  assigned: { label: 'Assigned', className: 'bg-success-bg text-success border-success/30' },
+  sticky: { label: 'Returning buyer', className: 'bg-brand-light text-brand border-brand/30' },
+  no_matching_rule: { label: 'No rule matched', className: 'bg-warning-bg text-warning border-warning/30' },
+  no_available_member: { label: 'Nobody available', className: 'bg-danger-bg text-danger border-danger/30' },
 }
 
 const card = 'bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 shadow-2xs'
 const input = 'px-2.5 py-1.5 text-[12px] rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-blue-200'
 const btn = 'px-3 py-1.5 text-[12px] font-semibold rounded-lg border transition-colors disabled:opacity-50'
-const btnPrimary = `${btn} bg-blue-600 text-white border-blue-600 hover:bg-blue-700`
-const btnGhost = `${btn} bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-gray-50`
+const btnPrimary = `${btn} bg-brand text-brand-foreground border-brand hover:bg-brand`
+const btnGhost = `${btn} bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-surface-muted`
 
 async function call(method: string, url: string, body?: unknown): Promise<string | null> {
   try {
@@ -92,7 +92,7 @@ export function RoutingSettingsClient({ orgId, orgSlug, data, loadError }: {
   return (
     <div className="max-w-5xl space-y-6">
       {error && (
-        <div role="alert" className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-[12px] flex items-center gap-2">
+        <div role="alert" className="p-3 rounded-xl bg-danger-bg border border-danger/30 text-danger text-[12px] flex items-center gap-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{error}</span>
         </div>
@@ -100,7 +100,7 @@ export function RoutingSettingsClient({ orgId, orgSlug, data, loadError }: {
 
       {/* Status */}
       <div className={`${card} flex items-start gap-3`}>
-        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${activeRules.length ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${activeRules.length ? 'bg-success-bg text-success' : 'bg-warning-bg text-warning'}`}>
           <Zap className="w-4 h-4" />
         </div>
         <div className="text-[12px] text-[var(--foreground-muted)]">
@@ -219,7 +219,7 @@ export function RoutingSettingsClient({ orgId, orgSlug, data, loadError }: {
                     {rule.is_active ? 'Pause' : 'Resume'}
                   </button>
                   <button type="button" className={btnGhost} disabled={busy} onClick={() => setEditingRule(rule)}>Edit</button>
-                  <button type="button" className={`${btn} text-red-600 border-red-200 hover:bg-red-50`} disabled={busy}
+                  <button type="button" className={`${btn} text-danger border-danger/30 hover:bg-danger-bg`} disabled={busy}
                     aria-label={`Delete rule ${rule.name}`}
                     onClick={() => { if (confirm(`Delete rule “${rule.name}”?`)) run('DELETE', `/api/routing/rules/${rule.id}?${q}`) }}>
                     <Trash2 className="w-3.5 h-3.5" />
@@ -252,13 +252,13 @@ export function RoutingSettingsClient({ orgId, orgSlug, data, loadError }: {
               </thead>
               <tbody>
                 {data.decisions.map((d) => {
-                  const outcome = OUTCOME_LABELS[d.outcome] ?? { label: d.outcome, className: 'bg-gray-50 text-gray-700 border-gray-200' }
+                  const outcome = OUTCOME_LABELS[d.outcome] ?? { label: d.outcome, className: 'bg-surface-muted text-muted border-default' }
                   const detail = (d.detail ?? {}) as { rule_name?: string; team_name?: string }
                   return (
                     <tr key={d.id} className="border-b border-[var(--border)] last:border-0">
                       <td className="py-2 pr-3 whitespace-nowrap text-[var(--foreground-muted)]">{new Date(d.decided_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</td>
                       <td className="py-2 pr-3">
-                        {d.lead ? <Link className="text-blue-600 hover:underline" href={`/${orgSlug}/leads/${d.lead.id}`}>{d.lead.name}</Link> : <span className="text-[var(--foreground-muted)]">Deleted lead</span>}
+                        {d.lead ? <Link className="text-brand hover:underline" href={`/${orgSlug}/leads/${d.lead.id}`}>{d.lead.name}</Link> : <span className="text-[var(--foreground-muted)]">Deleted lead</span>}
                       </td>
                       <td className="py-2 pr-3"><span className={`inline-flex px-2 py-0.5 rounded-full border text-[11px] font-medium ${outcome.className}`}>{outcome.label}</span></td>
                       <td className="py-2 pr-3">{d.assignee?.full_name ?? '—'}</td>
@@ -316,7 +316,7 @@ function TeamCard({ team, orgId, members, busy, run, q }: {
 
   return (
     <div className="border border-[var(--border)] rounded-lg">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border)] bg-gray-50/60 rounded-t-lg">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border)] bg-surface-muted/60 rounded-t-lg">
         <div className="text-[13px] font-semibold text-[var(--foreground)]">
           {team.name}
           {!team.is_active && <span className="ml-2 text-[11px] font-normal text-[var(--foreground-muted)]">(inactive — gets no leads)</span>}
@@ -326,7 +326,7 @@ function TeamCard({ team, orgId, members, busy, run, q }: {
             onClick={() => run('PATCH', base, { orgId, isActive: !team.is_active })}>
             {team.is_active ? 'Deactivate' : 'Activate'}
           </button>
-          <button type="button" className={`${btn} text-red-600 border-red-200 hover:bg-red-50`} disabled={busy}
+          <button type="button" className={`${btn} text-danger border-danger/30 hover:bg-danger-bg`} disabled={busy}
             aria-label={`Delete team ${team.name}`}
             onClick={() => { if (confirm(`Delete team “${team.name}”? Rules that use it must be removed first.`)) run('DELETE', `${base}?${q}`) }}>
             <Trash2 className="w-3.5 h-3.5" />
@@ -370,7 +370,7 @@ function TeamCard({ team, orgId, members, busy, run, q }: {
                     onChange={(e) => save(m, { isOnDuty: e.target.checked })} />
                 </td>
                 <td className="px-3 py-2 text-right">
-                  <button type="button" className="text-[12px] text-red-600 hover:underline disabled:opacity-50" disabled={busy}
+                  <button type="button" className="text-[12px] text-danger hover:underline disabled:opacity-50" disabled={busy}
                     onClick={() => run('DELETE', `${base}/members?${q}&profileId=${encodeURIComponent(m.profile_id)}`)}>
                     Remove
                   </button>
@@ -423,7 +423,7 @@ function RuleForm({ rule, orgId, teams, projects, nextPriority, busy, onCancel, 
 
   return (
     <form
-      className="mb-4 p-4 border border-blue-200 bg-blue-50/30 rounded-lg space-y-3"
+      className="mb-4 p-4 border border-brand/30 bg-brand-light/30 rounded-lg space-y-3"
       onSubmit={(e) => {
         e.preventDefault()
         const body: Record<string, unknown> = {

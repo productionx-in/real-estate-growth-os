@@ -71,7 +71,7 @@ export function DeactivateMemberModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl max-w-md w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
         <button
           type="button"
@@ -82,7 +82,7 @@ export function DeactivateMemberModal({
         </button>
 
         <div className="mb-5">
-          <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center text-[var(--danger)] mb-3">
+          <div className="w-10 h-10 rounded-xl bg-danger-bg border border-danger/30 flex items-center justify-center text-[var(--danger)] mb-3">
             <UserX className="w-5 h-5" />
           </div>
           <h2 className="text-[16px] font-bold text-[var(--foreground)]">Deactivate Team Member</h2>
@@ -92,16 +92,16 @@ export function DeactivateMemberModal({
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-[var(--danger-bg)] border border-red-100 text-[12px] text-[var(--danger)]">
+          <div className="mb-4 p-3 rounded-lg bg-[var(--danger-bg)] border border-danger/30 text-[12px] text-[var(--danger)]">
             {error}
           </div>
         )}
 
-        <div className="mb-5 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[12px] flex items-start gap-2.5">
-          <AlertTriangle className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+        <div className="mb-5 p-3.5 rounded-xl bg-warning-bg border border-warning/30 text-warning text-[12px] flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="font-semibold">Historical Activity Preservation</p>
-            <p className="text-[11px] text-amber-800 leading-relaxed">
+            <p className="text-[11px] text-warning leading-relaxed">
               Deactivation immediately terminates login access to this workspace and releases 1 subscription seat. All historical lead call logs, notes, past site visits, and booking attributions will remain permanently intact.
             </p>
           </div>
@@ -171,7 +171,7 @@ export function DeactivateMemberModal({
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-[var(--danger)] text-white text-[13px] font-medium rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+              className="px-4 py-2 bg-[var(--danger)] text-white text-[13px] font-medium rounded-md hover:bg-danger transition-colors disabled:opacity-50 flex items-center gap-1.5"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               <span>{loading ? 'Deactivating…' : 'Confirm Deactivation'}</span>

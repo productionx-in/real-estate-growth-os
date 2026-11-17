@@ -25,11 +25,11 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  planning: 'bg-gray-100 text-gray-700 border-gray-200',
-  pre_launch: 'bg-blue-50 text-blue-700 border-blue-200',
-  launched: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  planning: 'bg-surface-hover text-muted border-default',
+  pre_launch: 'bg-brand-light text-brand border-brand/30',
+  launched: 'bg-success-bg text-success border-success/30',
   ongoing: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-  completed: 'bg-gray-100 text-gray-500 border-gray-200',
+  completed: 'bg-surface-hover text-subtle border-default',
 }
 
 export default async function ProjectsPage({ params }: PageProps) {
@@ -76,14 +76,14 @@ export default async function ProjectsPage({ params }: PageProps) {
                       {project.name}
                     </h3>
                     {project.code && (
-                      <span className="font-mono text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded mt-1 inline-block">
+                      <span className="font-mono text-[10px] text-brand bg-brand-light px-1.5 py-0.2 rounded mt-1 inline-block">
                         {project.code}
                       </span>
                     )}
                   </div>
                   <span
                     className={`flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${
-                      STATUS_COLORS[project.status] ?? 'bg-gray-100 text-gray-600 border-gray-200'
+                      STATUS_COLORS[project.status] ?? 'bg-surface-hover text-muted border-default'
                     }`}
                   >
                     {STATUS_LABEL[project.status] ?? project.status}
@@ -98,7 +98,7 @@ export default async function ProjectsPage({ params }: PageProps) {
 
                   {(project.location || project.city) && (
                     <div className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                      <MapPin className="w-3.5 h-3.5 text-subtle" />
                       <span>{[project.location, project.city].filter(Boolean).join(', ')}</span>
                     </div>
                   )}

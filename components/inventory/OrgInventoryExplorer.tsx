@@ -91,28 +91,28 @@ export function OrgInventoryExplorer({
           <div className="text-xl font-bold text-[var(--foreground)] mt-1">{items.length}</div>
         </div>
 
-        <div className="bg-emerald-50/50 border border-emerald-200/60 rounded-xl p-3.5 shadow-2xs">
-          <div className="text-[11px] font-medium text-emerald-800 uppercase tracking-wide flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+        <div className="bg-success-bg/50 border border-success/60 rounded-xl p-3.5 shadow-2xs">
+          <div className="text-[11px] font-medium text-success uppercase tracking-wide flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-success" />
             Available
           </div>
-          <div className="text-xl font-bold text-emerald-700 mt-1">{metrics.available}</div>
+          <div className="text-xl font-bold text-success mt-1">{metrics.available}</div>
         </div>
 
-        <div className="bg-amber-50/50 border border-amber-200/60 rounded-xl p-3.5 shadow-2xs">
-          <div className="text-[11px] font-medium text-amber-800 uppercase tracking-wide flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-amber-600" />
+        <div className="bg-warning-bg/50 border border-warning/60 rounded-xl p-3.5 shadow-2xs">
+          <div className="text-[11px] font-medium text-warning uppercase tracking-wide flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5 text-warning" />
             On Hold
           </div>
-          <div className="text-xl font-bold text-amber-700 mt-1">{metrics.on_hold}</div>
+          <div className="text-xl font-bold text-warning mt-1">{metrics.on_hold}</div>
         </div>
 
-        <div className="bg-blue-50/50 border border-blue-200/60 rounded-xl p-3.5 shadow-2xs">
-          <div className="text-[11px] font-medium text-blue-800 uppercase tracking-wide flex items-center gap-1">
-            <CheckCheck className="w-3.5 h-3.5 text-blue-600" />
+        <div className="bg-brand-light/50 border border-brand/60 rounded-xl p-3.5 shadow-2xs">
+          <div className="text-[11px] font-medium text-brand uppercase tracking-wide flex items-center gap-1">
+            <CheckCheck className="w-3.5 h-3.5 text-brand" />
             Booked
           </div>
-          <div className="text-xl font-bold text-blue-700 mt-1">{metrics.booked}</div>
+          <div className="text-xl font-bold text-brand mt-1">{metrics.booked}</div>
         </div>
 
         <div className="bg-purple-50/50 border border-purple-200/60 rounded-xl p-3.5 shadow-2xs">
@@ -123,12 +123,12 @@ export function OrgInventoryExplorer({
           <div className="text-xl font-bold text-purple-700 mt-1">{metrics.sold}</div>
         </div>
 
-        <div className="bg-rose-50/50 border border-rose-200/60 rounded-xl p-3.5 shadow-2xs">
-          <div className="text-[11px] font-medium text-rose-800 uppercase tracking-wide flex items-center gap-1">
-            <Ban className="w-3.5 h-3.5 text-rose-600" />
+        <div className="bg-danger-bg/50 border border-danger/60 rounded-xl p-3.5 shadow-2xs">
+          <div className="text-[11px] font-medium text-danger uppercase tracking-wide flex items-center gap-1">
+            <Ban className="w-3.5 h-3.5 text-danger" />
             Blocked
           </div>
-          <div className="text-xl font-bold text-rose-700 mt-1">{metrics.blocked}</div>
+          <div className="text-xl font-bold text-danger mt-1">{metrics.blocked}</div>
         </div>
       </div>
 
@@ -248,10 +248,10 @@ export function OrgInventoryExplorer({
                     <div className="text-[11px] text-[var(--foreground-muted)] flex items-center gap-1 mt-0.5">
                       <span>{projectUnits.length} units</span>
                       <span>·</span>
-                      <span className="text-emerald-700 font-medium">{available} avail</span>
+                      <span className="text-success font-medium">{available} avail</span>
                     </div>
                   </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[var(--brand)] group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                  <ArrowRight className="w-3.5 h-3.5 text-subtle group-hover:text-[var(--brand)] group-hover:translate-x-0.5 transition-all flex-shrink-0" />
                 </Link>
               )
             })}

@@ -21,7 +21,7 @@ const mins = (m: number | null) => (m === null ? '—' : m < 1 ? '< 1 min' : m <
 const pctText = (v: number | null) => (v === null ? '—' : `${v}%`)
 
 function Tile({ label, value, hint, tone = 'neutral' }: { label: string; value: string; hint?: string; tone?: 'good' | 'bad' | 'neutral' }) {
-  const color = tone === 'good' ? 'text-emerald-700' : tone === 'bad' ? 'text-red-700' : 'text-[var(--foreground)]'
+  const color = tone === 'good' ? 'text-success' : tone === 'bad' ? 'text-danger' : 'text-[var(--foreground)]'
   return (
     <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4">
       <p className="text-[12px] text-[var(--foreground-muted)]">{label}</p>
@@ -58,8 +58,8 @@ function Table({ title, rows, labelFor, quality }: { title: string; rows: Report
                     <td className="py-2 px-2 text-right tabular-nums">{r.leads}</td>
                     <td className="py-2 px-2 text-right tabular-nums">{mins(r.median_min)}</td>
                     <td className="py-2 px-2 text-right tabular-nums">{mins(r.p90_min)}</td>
-                    <td className={`py-2 px-2 text-right tabular-nums ${onTime !== null && onTime < 80 ? 'text-red-700 font-semibold' : ''}`}>{pctText(onTime)}</td>
-                    <td className={`py-2 px-2 text-right tabular-nums ${r.never_contacted > 0 ? 'text-red-700 font-semibold' : ''}`}>{r.never_contacted}</td>
+                    <td className={`py-2 px-2 text-right tabular-nums ${onTime !== null && onTime < 80 ? 'text-danger font-semibold' : ''}`}>{pctText(onTime)}</td>
+                    <td className={`py-2 px-2 text-right tabular-nums ${r.never_contacted > 0 ? 'text-danger font-semibold' : ''}`}>{r.never_contacted}</td>
                     {quality && <>
                       <td className="py-2 px-2 text-right tabular-nums">{pctText(pct(r.junk, r.leads))}</td>
                       <td className="py-2 px-2 text-right tabular-nums">{pctText(pct(r.qualified_plus, r.leads))}</td>
@@ -123,13 +123,13 @@ export default async function SpeedToLeadPage({ params, searchParams }: { params
                   <div key={h} role="listitem" className="flex-1 flex flex-col items-center justify-end h-full"
                     aria-label={`${h}:00 — ${n} leads${row?.median_min != null ? `, median response ${mins(row.median_min)}` : ''}`}
                     title={`${h}:00 — ${n} leads${row?.median_min != null ? `, median ${mins(row.median_min)}` : ''}`}>
-                    <div className={`w-full rounded-t ${slow ? 'bg-amber-400' : 'bg-blue-500'}`} style={{ height: `${(n / peak) * 100}%`, minHeight: n ? 2 : 0 }} />
+                    <div className={`w-full rounded-t ${slow ? 'bg-amber-400' : 'bg-brand'}`} style={{ height: `${(n / peak) * 100}%`, minHeight: n ? 2 : 0 }} />
                   </div>
                 )
               })}
             </div>
             <div className="flex justify-between text-[10px] text-[var(--foreground-subtle)] mt-1"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>11 PM</span></div>
-            <p className="mt-2 text-[11px] text-[var(--foreground-muted)]"><span className="inline-block w-2 h-2 rounded-sm bg-blue-500 mr-1" />answered on target <span className="inline-block w-2 h-2 rounded-sm bg-amber-400 ml-3 mr-1" />median slower than target · {report.timezone}</p>
+            <p className="mt-2 text-[11px] text-[var(--foreground-muted)]"><span className="inline-block w-2 h-2 rounded-sm bg-brand mr-1" />answered on target <span className="inline-block w-2 h-2 rounded-sm bg-amber-400 ml-3 mr-1" />median slower than target · {report.timezone}</p>
           </section>
         )}
 

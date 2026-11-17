@@ -159,7 +159,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
   if (successCount !== null) {
     return (
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-8 text-center max-w-xl mx-auto space-y-4">
-        <div className="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center mx-auto">
+        <div className="w-12 h-12 rounded-full bg-success-bg text-success flex items-center justify-center mx-auto">
           <CheckCircle2 className="w-6 h-6" />
         </div>
         <h2 className="text-lg font-semibold text-[var(--foreground)]">
@@ -170,7 +170,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
           Imported leads keep their original date and stage, and do not trigger new-lead alerts.
         </p>
         {(unmatched.owners.length > 0 || unmatched.projects.length > 0) && (
-          <div className="text-left text-[12px] bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
+          <div className="text-left text-[12px] bg-warning-bg border border-warning/30 rounded-lg p-3 space-y-1">
             {unmatched.owners.length > 0 && (
               <p><strong>Salespeople not found in this workspace</strong> (those leads were shared among the team instead): {unmatched.owners.slice(0, 10).join(', ')}{unmatched.owners.length > 10 ? '…' : ''}</p>
             )}
@@ -212,7 +212,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
         <button
           type="button"
           onClick={handleDownloadTemplate}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-[var(--brand)] bg-[var(--brand-light)] border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-[var(--brand)] bg-[var(--brand-light)] border border-brand/30 rounded-md hover:bg-brand-light transition-colors"
         >
           <Download className="w-3.5 h-3.5" />
           Download Template
@@ -220,7 +220,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
       </div>
 
       {error && (
-        <div className="p-3.5 rounded-lg bg-[var(--danger-bg)] border border-red-200 text-[13px] text-[var(--danger)] flex items-start gap-2.5">
+        <div className="p-3.5 rounded-lg bg-[var(--danger-bg)] border border-danger/30 text-[13px] text-[var(--danger)] flex items-start gap-2.5">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -261,7 +261,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
           <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
             <div className="flex items-center justify-between border-b border-[var(--border)] pb-4 mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 text-[var(--brand)] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-brand-light text-[var(--brand)] flex items-center justify-center">
                   <FileText className="w-4 h-4" />
                 </div>
                 <div>
@@ -276,12 +276,12 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
 
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-3 text-[12px]">
-                  <span className="inline-flex items-center gap-1 text-green-700 bg-green-50 px-2 py-0.5 rounded font-medium">
+                  <span className="inline-flex items-center gap-1 text-success bg-success-bg px-2 py-0.5 rounded font-medium">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     {validCount} valid
                   </span>
                   {invalidCount > 0 && (
-                    <span className="inline-flex items-center gap-1 text-red-700 bg-red-50 px-2 py-0.5 rounded font-medium">
+                    <span className="inline-flex items-center gap-1 text-danger bg-danger-bg px-2 py-0.5 rounded font-medium">
                       <AlertCircle className="w-3.5 h-3.5" />
                       {invalidCount} invalid
                     </span>
@@ -332,7 +332,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
             <div className="max-h-72 overflow-y-auto">
               <table className="w-full text-[12px]">
                 <thead>
-                  <tr className="border-b border-[var(--border)] bg-gray-50/50">
+                  <tr className="border-b border-[var(--border)] bg-surface-muted/50">
                     <th className="px-3 py-2 text-left w-12 font-medium text-[var(--foreground-muted)]">#</th>
                     <th className="px-3 py-2 text-left font-medium text-[var(--foreground-muted)]">Status</th>
                     <th className="px-3 py-2 text-left font-medium text-[var(--foreground-muted)]">Name</th>
@@ -348,7 +348,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
                       key={row.rowIndex}
                       className={cn(
                         'border-b border-[var(--border)] last:border-0 transition-colors',
-                        row.isValid ? 'hover:bg-[var(--surface-hover)]' : 'bg-red-50/40'
+                        row.isValid ? 'hover:bg-[var(--surface-hover)]' : 'bg-danger-bg/40'
                       )}
                     >
                       <td className="px-3 py-2 text-[var(--foreground-subtle)] font-mono">
@@ -356,20 +356,20 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
                       </td>
                       <td className="px-3 py-2">
                         {row.isValid ? (
-                          <span className="inline-flex items-center text-green-700 gap-1 font-medium">
+                          <span className="inline-flex items-center text-success gap-1 font-medium">
                             <CheckCircle2 className="w-3.5 h-3.5" /> Valid
                           </span>
                         ) : (
-                          <span className="inline-flex items-center text-red-600 gap-1 font-medium" title={row.errors.join(', ')}>
+                          <span className="inline-flex items-center text-danger gap-1 font-medium" title={row.errors.join(', ')}>
                             <AlertCircle className="w-3.5 h-3.5" /> Invalid
                           </span>
                         )}
                       </td>
                       <td className="px-3 py-2 font-medium text-[var(--foreground)]">
-                        {row.data.name || <span className="text-red-500 italic">Missing</span>}
+                        {row.data.name || <span className="text-danger italic">Missing</span>}
                       </td>
                       <td className="px-3 py-2 text-[var(--foreground-muted)]">
-                        {row.data.phone || <span className="text-red-500 italic">Missing</span>}
+                        {row.data.phone || <span className="text-danger italic">Missing</span>}
                       </td>
                       <td className="px-3 py-2 text-[var(--foreground-muted)]">
                         {row.data.email || '—'}

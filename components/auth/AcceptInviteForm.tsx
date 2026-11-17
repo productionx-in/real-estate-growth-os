@@ -146,23 +146,23 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
   return (
     <div className="space-y-5">
       {/* Invitation Context Banner */}
-      <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200 text-[13px] space-y-2">
-        <div className="flex items-center gap-2 font-semibold text-blue-900">
+      <div className="p-4 rounded-xl bg-brand-light/70 border border-brand/30 text-[13px] space-y-2">
+        <div className="flex items-center gap-2 font-semibold text-brand">
           <ShieldCheck className="w-4 h-4 text-[var(--brand)]" />
           <span>Verified Organisation Invitation</span>
         </div>
-        <div className="text-[12px] text-blue-800 space-y-1">
+        <div className="text-[12px] text-brand space-y-1">
           <p>
             <strong>{invitation.inviterName}</strong> has invited you to join <strong>{invitation.orgName}</strong> as a <strong>{ROLE_LABELS[invitation.role] ?? invitation.role}</strong>.
           </p>
-          <p className="text-[11px] text-blue-700">
+          <p className="text-[11px] text-brand">
             Work email: <span className="font-mono font-medium">{invitation.email}</span>
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="p-3 rounded-lg bg-[var(--danger-bg)] border border-red-100 text-[12px] text-[var(--danger)] flex items-start gap-2">
+        <div className="p-3 rounded-lg bg-[var(--danger-bg)] border border-danger/30 text-[12px] text-[var(--danger)] flex items-start gap-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -170,7 +170,7 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
 
       {currentUser ? (
         <div className="space-y-4 pt-2">
-          <div className="p-3 rounded-lg bg-gray-50 border border-[var(--border)] text-[12px] text-[var(--foreground-muted)]">
+          <div className="p-3 rounded-lg bg-surface-muted border border-[var(--border)] text-[12px] text-[var(--foreground-muted)]">
             Signed in as <strong className="text-[var(--foreground)]">{currentUser.email}</strong>
           </div>
 
@@ -209,7 +209,7 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
               type="email"
               readOnly
               value={invitation.email}
-              className="w-full px-3 py-2 text-[13px] bg-gray-50 border border-[var(--border)] rounded-md text-[var(--foreground-muted)] font-mono cursor-not-allowed"
+              className="w-full px-3 py-2 text-[13px] bg-surface-muted border border-[var(--border)] rounded-md text-[var(--foreground-muted)] font-mono cursor-not-allowed"
             />
             <p className="text-[11px] text-[var(--foreground-subtle)] mt-1">
               This invitation is locked to this email address.

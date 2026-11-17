@@ -197,12 +197,12 @@ export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: Projec
   return (
     <form onSubmit={handleSubmit} noValidate className="max-w-5xl space-y-6">
       {serverError && (
-        <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center justify-between">
+        <div className="p-3.5 rounded-lg bg-danger-bg border border-danger/30 text-xs text-danger flex items-center justify-between">
           <span>{serverError}</span>
           <button
             type="button"
             onClick={() => setServerError(null)}
-            className="text-red-500 hover:text-red-700 font-bold"
+            className="text-danger hover:text-danger font-bold"
           >
             ✕
           </button>
@@ -219,17 +219,17 @@ export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: Projec
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2 space-y-1">
             <label className="block text-[13px] font-medium text-[var(--foreground)]">
-              Project Name <span className="text-red-500">*</span>
+              Project Name <span className="text-danger">*</span>
             </label>
             <input
               type="text"
               required
               value={form.name}
               onChange={(e) => set('name', e.target.value)}
-              className={cn(inputClass, errors.name && 'border-red-400')}
+              className={cn(inputClass, errors.name && 'border-danger')}
               placeholder="e.g. Otho Greenview Heights, Palm County"
             />
-            {errors.name && <p className="text-[11px] text-red-500">{errors.name}</p>}
+            {errors.name && <p className="text-[11px] text-danger">{errors.name}</p>}
           </div>
 
           <div className="space-y-1">
@@ -352,7 +352,7 @@ export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: Projec
                   className={cn(
                     'text-left p-3 rounded-xl border transition-all flex flex-col justify-between',
                     selected
-                      ? 'border-[var(--brand)] bg-blue-50/50 shadow-2xs'
+                      ? 'border-[var(--brand)] bg-brand-light/50 shadow-2xs'
                       : 'border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)]'
                   )}
                 >
@@ -575,7 +575,7 @@ export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: Projec
                   className={cn(
                     'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5',
                     active
-                      ? 'bg-blue-50 text-[var(--brand)] border-blue-200 shadow-2xs'
+                      ? 'bg-brand-light text-[var(--brand)] border-brand/30 shadow-2xs'
                       : 'bg-[var(--surface)] text-[var(--foreground-muted)] border-[var(--border)] hover:bg-[var(--surface-hover)]'
                   )}
                 >

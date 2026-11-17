@@ -47,9 +47,9 @@ const STATUS_OPTIONS = [
 ] as const
 
 const PRIORITY_OPTIONS = [
-  { value: 'low', label: 'Low', color: 'bg-gray-100 text-gray-600 border-gray-200' },
-  { value: 'medium', label: 'Medium', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-  { value: 'high', label: 'High', color: 'bg-red-50 text-red-700 border-red-200' },
+  { value: 'low', label: 'Low', color: 'bg-surface-hover text-muted border-default' },
+  { value: 'medium', label: 'Medium', color: 'bg-warning-bg text-warning border-warning/30' },
+  { value: 'high', label: 'High', color: 'bg-danger-bg text-danger border-danger/30' },
 ] as const
 
 function FieldError({ message }: { message?: string }) {
@@ -164,7 +164,7 @@ export function LeadForm({ orgSlug, orgId, projects, defaultValues, leadId }: Le
             </h2>
 
             {serverError && (
-              <div className="mb-4 p-3 rounded-md bg-[var(--danger-bg)] border border-red-100 text-[13px] text-[var(--danger)]">
+              <div className="mb-4 p-3 rounded-md bg-[var(--danger-bg)] border border-danger/30 text-[13px] text-[var(--danger)]">
                 {serverError}
               </div>
             )}

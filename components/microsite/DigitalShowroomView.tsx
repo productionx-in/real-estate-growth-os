@@ -57,17 +57,17 @@ export function DigitalShowroomView({
   }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans">
+    <div className="min-h-screen bg-surface text-foreground font-sans">
       {/* Top Navbar */}
-      <header className="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur-xs z-50">
+      <header className="border-b border-default sticky top-0 bg-surface/95 backdrop-blur-xs z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div>
             <div className="text-lg font-bold tracking-tight">{projectName}</div>
-            <div className="text-xs text-gray-400">by {developerName}</div>
+            <div className="text-xs text-subtle">by {developerName}</div>
           </div>
           <div className="flex items-center gap-4">
             {reraId && (
-              <span className="hidden sm:inline-block text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded font-medium">
+              <span className="hidden sm:inline-block text-xs bg-surface-hover text-muted px-2 py-1 rounded font-medium">
                 RERA: {reraId}
               </span>
             )}
@@ -83,7 +83,7 @@ export function DigitalShowroomView({
       </header>
 
       {/* Hero Section */}
-      <section className="relative bg-gray-900 text-white py-20 px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-foreground text-inverse py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center space-y-4">
           <span className="inline-block uppercase tracking-widest text-xs font-semibold text-indigo-300">
             Official Digital Showroom
@@ -92,7 +92,7 @@ export function DigitalShowroomView({
             {microsite.title}
           </h1>
           {microsite.tagline && (
-            <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-subtle max-w-2xl mx-auto">
               {microsite.tagline}
             </p>
           )}
@@ -103,10 +103,10 @@ export function DigitalShowroomView({
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
         {/* Virtual Tour & Master Plan Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900">3D Virtual Tour & Walkthrough</h2>
+          <div className="bg-surface-muted rounded-xl p-6 border border-default space-y-4">
+            <h2 className="text-lg font-bold text-foreground">3D Virtual Tour & Walkthrough</h2>
             {microsite.virtual_tour_url ? (
-              <div className="aspect-video w-full rounded-lg overflow-hidden border border-gray-200 bg-gray-900">
+              <div className="aspect-video w-full rounded-lg overflow-hidden border border-default bg-foreground">
                 <iframe
                   src={microsite.virtual_tour_url}
                   className="w-full h-full"
@@ -115,16 +115,16 @@ export function DigitalShowroomView({
                 />
               </div>
             ) : (
-              <div className="aspect-video w-full rounded-lg bg-gray-100 flex items-center justify-center text-sm text-gray-500 border border-dashed border-gray-300">
+              <div className="aspect-video w-full rounded-lg bg-surface-hover flex items-center justify-center text-sm text-subtle border border-dashed border-strong">
                 Virtual tour experience available at project sales lounge
               </div>
             )}
           </div>
 
-          <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900">Master Layout & Master Plan</h2>
+          <div className="bg-surface-muted rounded-xl p-6 border border-default space-y-4">
+            <h2 className="text-lg font-bold text-foreground">Master Layout & Master Plan</h2>
             {microsite.master_plan_url ? (
-              <div className="aspect-video w-full rounded-lg overflow-hidden border border-gray-200 bg-gray-900">
+              <div className="aspect-video w-full rounded-lg overflow-hidden border border-default bg-foreground">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={microsite.master_plan_url}
@@ -133,7 +133,7 @@ export function DigitalShowroomView({
                 />
               </div>
             ) : (
-              <div className="aspect-video w-full rounded-lg bg-gray-100 flex items-center justify-center text-sm text-gray-500 border border-dashed border-gray-300">
+              <div className="aspect-video w-full rounded-lg bg-surface-hover flex items-center justify-center text-sm text-subtle border border-dashed border-strong">
                 Master layout plan approved by municipal authorities
               </div>
             )}
@@ -143,14 +143,14 @@ export function DigitalShowroomView({
         {/* Features & Amenities */}
         {microsite.features && microsite.features.length > 0 && (
           <section className="space-y-6">
-            <h2 className="text-2xl font-bold tracking-tight text-gray-900 text-center">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground text-center">
               Curated Amenities & Highlights
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {microsite.features.map((feature, idx) => (
                 <div
                   key={idx}
-                  className="p-4 bg-gray-50 rounded-lg border border-gray-100 text-center font-medium text-sm text-gray-800"
+                  className="p-4 bg-surface-muted rounded-lg border border-default text-center font-medium text-sm text-foreground"
                 >
                   ✓ {feature}
                 </div>
@@ -160,25 +160,25 @@ export function DigitalShowroomView({
         )}
 
         {/* Enquiry / Lead Capture Section */}
-        <section id="enquire" className="max-w-xl mx-auto bg-gray-50 rounded-2xl p-8 border border-gray-200">
+        <section id="enquire" className="max-w-xl mx-auto bg-surface-muted rounded-2xl p-8 border border-default">
           <div className="text-center space-y-2 mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Schedule a VIP Site Visit</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-2xl font-bold text-foreground">Schedule a VIP Site Visit</h2>
+            <p className="text-sm text-subtle">
               Direct developer enquiry. Complimentary pick-up available across Hyderabad.
             </p>
           </div>
 
           {status === 'success' ? (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-6 text-center space-y-2">
-              <div className="text-emerald-700 font-bold text-lg">Thank You!</div>
-              <p className="text-sm text-emerald-600">
+            <div className="bg-success-bg border border-success/30 rounded-lg p-6 text-center space-y-2">
+              <div className="text-success font-bold text-lg">Thank You!</div>
+              <p className="text-sm text-success">
                 Your enquiry has been received. Our sales relationship manager will connect shortly.
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
+                <label className="block text-xs font-semibold text-muted uppercase mb-1">
                   Full Name
                 </label>
                 <input
@@ -187,12 +187,12 @@ export function DigitalShowroomView({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Ramesh Varma"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-strong rounded-md text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
+                <label className="block text-xs font-semibold text-muted uppercase mb-1">
                   Phone Number
                 </label>
                 <input
@@ -201,12 +201,12 @@ export function DigitalShowroomView({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+91 98765 43210"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-strong rounded-md text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
+                <label className="block text-xs font-semibold text-muted uppercase mb-1">
                   Email Address (Optional)
                 </label>
                 <input
@@ -214,12 +214,12 @@ export function DigitalShowroomView({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="ramesh@example.com"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-strong rounded-md text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               {errorMessage && (
-                <div className="text-xs text-red-600 bg-red-50 p-2 rounded border border-red-200">
+                <div className="text-xs text-danger bg-danger-bg p-2 rounded border border-danger/30">
                   {errorMessage}
                 </div>
               )}
@@ -238,7 +238,7 @@ export function DigitalShowroomView({
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 py-8 text-center text-xs text-gray-400">
+      <footer className="border-t border-default py-8 text-center text-xs text-subtle">
         <div>
           © {new Date().getFullYear()} {developerName}. All rights reserved.
         </div>

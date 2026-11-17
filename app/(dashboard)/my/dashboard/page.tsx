@@ -151,7 +151,7 @@ export default async function MyDashboardPage({ searchParams }: PageProps) {
   })
 
   const PRIORITY_DOT: Record<string, string> = {
-    high: 'bg-red-500',
+    high: 'bg-danger',
     medium: 'bg-amber-400',
     low: 'bg-gray-300',
   }
@@ -162,18 +162,18 @@ export default async function MyDashboardPage({ searchParams }: PageProps) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span>Welcome back, {profile.full_name.split(' ')[0]}</span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-success-bg text-success border border-success/30">
               {activeOrg.name} · {role === 'sales_exec' ? 'Sales Executive' : 'Manager'}
             </span>
           </div>
           {memberships.length > 1 && (
             <Link
               href="/select-org?redirectTo=/my/dashboard"
-              className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-muted bg-surface border border-default rounded-lg hover:bg-surface-muted shadow-2xs"
             >
-              <Building2 className="w-3.5 h-3.5 text-gray-500" />
+              <Building2 className="w-3.5 h-3.5 text-subtle" />
               <span>Switch Workspace</span>
-              <ChevronsUpDown className="w-3.5 h-3.5 text-gray-400" />
+              <ChevronsUpDown className="w-3.5 h-3.5 text-subtle" />
             </Link>
           )}
         </div>

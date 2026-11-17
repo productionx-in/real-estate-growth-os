@@ -129,7 +129,7 @@ export default async function AuditLogPage({
                       <td className="py-2.5 px-3">
                         <span className="font-medium">{r.actor_label ?? 'Unknown'}</span>
                         {ACTOR_KIND[r.actor_kind] && (
-                          <span className="ml-1.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                          <span className="ml-1.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold bg-warning-bg text-warning border border-warning/30">
                             {ACTOR_KIND[r.actor_kind]}
                           </span>
                         )}

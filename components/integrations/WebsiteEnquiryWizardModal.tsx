@@ -120,37 +120,37 @@ export function WebsiteEnquiryWizardModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/60 backdrop-blur-xs">
+      <div className="bg-surface rounded-2xl shadow-2xl border border-default w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+        <div className="px-6 py-5 border-b border-default flex items-center justify-between bg-surface-muted/50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
               <Globe className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900">Website Enquiry Form Integration</h2>
-              <p className="text-xs text-slate-500">
+              <h2 className="text-base font-bold text-foreground">Website Enquiry Form Integration</h2>
+              <p className="text-xs text-subtle">
                 Embed responsive enquiry widgets on project websites with spam defense & CRM routing.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+            className="p-2 text-subtle hover:text-muted rounded-lg hover:bg-surface-hover transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-6 pt-3 border-b border-slate-200 flex items-center gap-6 text-sm font-medium">
+        <div className="px-6 pt-3 border-b border-default flex items-center gap-6 text-sm font-medium">
           <button
             onClick={() => setActiveTab('snippets')}
             className={`pb-3 flex items-center gap-2 border-b-2 transition cursor-pointer ${
               activeTab === 'snippets'
                 ? 'border-purple-600 text-purple-700 font-semibold'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                : 'border-transparent text-subtle hover:text-muted'
             }`}
           >
             <Code2 className="w-4 h-4" />
@@ -162,7 +162,7 @@ export function WebsiteEnquiryWizardModal({
             className={`pb-3 flex items-center gap-2 border-b-2 transition cursor-pointer ${
               activeTab === 'test'
                 ? 'border-purple-600 text-purple-700 font-semibold'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                : 'border-transparent text-subtle hover:text-muted'
             }`}
           >
             <Send className="w-4 h-4" />
@@ -174,7 +174,7 @@ export function WebsiteEnquiryWizardModal({
             className={`pb-3 flex items-center gap-2 border-b-2 transition cursor-pointer ${
               activeTab === 'settings'
                 ? 'border-purple-600 text-purple-700 font-semibold'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                : 'border-transparent text-subtle hover:text-muted'
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
@@ -188,15 +188,15 @@ export function WebsiteEnquiryWizardModal({
           {activeTab === 'snippets' && (
             <div className="space-y-5">
               {/* Configuration Controls */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-surface-muted rounded-xl border border-default">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Route to Project
                   </label>
                   <select
                     value={selectedProjectId}
                     onChange={(e) => setSelectedProjectId(e.target.value)}
-                    className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-800"
+                    className="w-full text-xs px-2.5 py-1.5 border border-strong rounded-lg bg-surface text-foreground"
                   >
                     <option value="">Default (Unassigned)</option>
                     {projects.map((p) => (
@@ -208,26 +208,26 @@ export function WebsiteEnquiryWizardModal({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Form Title
                   </label>
                   <input
                     type="text"
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
-                    className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-800"
+                    className="w-full text-xs px-2.5 py-1.5 border border-strong rounded-lg bg-surface text-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Button Label
                   </label>
                   <input
                     type="text"
                     value={buttonText}
                     onChange={(e) => setButtonText(e.target.value)}
-                    className="w-full text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-800"
+                    className="w-full text-xs px-2.5 py-1.5 border border-strong rounded-lg bg-surface text-foreground"
                   />
                 </div>
               </div>
@@ -239,7 +239,7 @@ export function WebsiteEnquiryWizardModal({
                   className={`px-3 py-1.5 text-xs rounded-lg font-medium transition cursor-pointer ${
                     snippetType === 'script'
                       ? 'bg-purple-100 text-purple-800 border border-purple-300'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      : 'bg-surface-hover text-muted hover:bg-surface-hover'
                   }`}
                 >
                   Inline Widget (Script Tag)
@@ -249,7 +249,7 @@ export function WebsiteEnquiryWizardModal({
                   className={`px-3 py-1.5 text-xs rounded-lg font-medium transition cursor-pointer ${
                     snippetType === 'iframe'
                       ? 'bg-purple-100 text-purple-800 border border-purple-300'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      : 'bg-surface-hover text-muted hover:bg-surface-hover'
                   }`}
                 >
                   Sandbox (iframe)
@@ -259,7 +259,7 @@ export function WebsiteEnquiryWizardModal({
                   className={`px-3 py-1.5 text-xs rounded-lg font-medium transition cursor-pointer ${
                     snippetType === 'api'
                       ? 'bg-purple-100 text-purple-800 border border-purple-300'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      : 'bg-surface-hover text-muted hover:bg-surface-hover'
                   }`}
                 >
                   Custom REST API (JavaScript Fetch)
@@ -267,9 +267,9 @@ export function WebsiteEnquiryWizardModal({
               </div>
 
               {/* Code Snippet Box */}
-              <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-900 text-slate-100 font-mono text-xs">
-                <div className="flex items-center justify-between px-4 py-2 bg-slate-800/80 border-b border-slate-700">
-                  <span className="text-[11px] text-slate-400">
+              <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-foreground text-slate-100 font-mono text-xs">
+                <div className="flex items-center justify-between px-4 py-2 bg-foreground/80 border-b border-slate-700">
+                  <span className="text-[11px] text-subtle">
                     {snippetType === 'script'
                       ? 'HTML + embed.js'
                       : snippetType === 'iframe'
@@ -299,7 +299,7 @@ export function WebsiteEnquiryWizardModal({
                 </pre>
               </div>
 
-              <div className="text-xs text-slate-500 bg-purple-50/50 border border-purple-100 rounded-lg p-3">
+              <div className="text-xs text-subtle bg-purple-50/50 border border-purple-100 rounded-lg p-3">
                 <p className="font-semibold text-purple-900 mb-0.5">Automated Ingestion Features:</p>
                 <p>
                   Includes automatic UTM parameter tracking, honeypot spam protection, submission
@@ -312,14 +312,14 @@ export function WebsiteEnquiryWizardModal({
           {/* TAB 2: Live Test Console */}
           {activeTab === 'test' && (
             <div className="space-y-4">
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-muted">
                 Test the public submission endpoint directly from this console. This sends a real
                 payload to <code className="text-purple-700 bg-purple-50 px-1 py-0.5 rounded">/api/forms/submit</code>.
               </p>
 
               <form onSubmit={handleRunLiveTest} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Customer Name *
                   </label>
                   <input
@@ -327,12 +327,12 @@ export function WebsiteEnquiryWizardModal({
                     required
                     value={testName}
                     onChange={(e) => setTestName(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg"
+                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Phone Number *
                   </label>
                   <input
@@ -340,31 +340,31 @@ export function WebsiteEnquiryWizardModal({
                     required
                     value={testPhone}
                     onChange={(e) => setTestPhone(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg"
+                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Email Address
                   </label>
                   <input
                     type="email"
                     value={testEmail}
                     onChange={(e) => setTestEmail(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg"
+                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Unit Preference
                   </label>
                   <input
                     type="text"
                     value={testUnit}
                     onChange={(e) => setTestUnit(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg"
+                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg"
                   />
                 </div>
 
@@ -387,20 +387,20 @@ export function WebsiteEnquiryWizardModal({
               </form>
 
               {testResponse && (
-                <div className="mt-4 p-4 rounded-xl border border-slate-200 bg-slate-50 font-mono text-xs">
+                <div className="mt-4 p-4 rounded-xl border border-default bg-surface-muted font-mono text-xs">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-slate-700">API Response:</span>
+                    <span className="font-bold text-muted">API Response:</span>
                     <span
                       className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
                         testResponse.success
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-rose-100 text-rose-800'
+                          ? 'bg-success-bg text-success'
+                          : 'bg-danger-bg text-danger'
                       }`}
                     >
                       HTTP {String(testResponse.httpStatus || 200)}
                     </span>
                   </div>
-                  <pre className="text-slate-800 overflow-x-auto text-[11px]">
+                  <pre className="text-foreground overflow-x-auto text-[11px]">
                     {JSON.stringify(testResponse, null, 2)}
                   </pre>
                 </div>
@@ -411,11 +411,11 @@ export function WebsiteEnquiryWizardModal({
           {/* TAB 3: Protection & Settings */}
           {activeTab === 'settings' && (
             <div className="space-y-4">
-              <div className="border border-slate-200 rounded-xl p-4 bg-white space-y-3">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              <div className="border border-default rounded-xl p-4 bg-surface space-y-3">
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
                   Origin Domain Whitelist (CORS & Domain Protection)
                 </h4>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-subtle">
                   Restrict enquiry submissions strictly to your approved developer domains. Leave
                   blank to accept submissions from any domain.
                 </p>
@@ -424,47 +424,47 @@ export function WebsiteEnquiryWizardModal({
                   placeholder="e.g. developer.com, *.projectsite.in"
                   value={allowedDomains}
                   onChange={(e) => setAllowedDomains(e.target.value)}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg text-slate-800"
+                  className="w-full text-xs px-3 py-2 border border-strong rounded-lg text-foreground"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <div className="p-3.5 bg-surface-muted rounded-xl border border-default space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                    <ShieldCheck className="w-4 h-4 text-success" />
                     Honeypot Trap
                   </div>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-subtle">
                     Hidden inputs catch automated bot scrapers without human CAPTCHA friction.
                   </p>
                 </div>
 
-                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
-                    <ShieldCheck className="w-4 h-4 text-blue-600" />
+                <div className="p-3.5 bg-surface-muted rounded-xl border border-default space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                    <ShieldCheck className="w-4 h-4 text-brand" />
                     Speed Check
                   </div>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-subtle">
                     Submissions completed under 1.2s are rejected as automated bot scripts.
                   </p>
                 </div>
 
-                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                <div className="p-3.5 bg-surface-muted rounded-xl border border-default space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-bold text-foreground">
                     <ShieldCheck className="w-4 h-4 text-purple-600" />
                     Distributed Rate Limit
                   </div>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-subtle">
                     15 submissions per 5 min per client IP; 120 per min per connection.
                   </p>
                 </div>
 
-                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
-                    <ShieldCheck className="w-4 h-4 text-amber-600" />
+                <div className="p-3.5 bg-surface-muted rounded-xl border border-default space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                    <ShieldCheck className="w-4 h-4 text-warning" />
                     Non-Destructive Deduplication
                   </div>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-subtle">
                     Preserves duplicate enquiry history while keeping CRM contacts clean.
                   </p>
                 </div>
@@ -474,10 +474,10 @@ export function WebsiteEnquiryWizardModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50/50 flex items-center justify-end">
+        <div className="px-6 py-4 border-t border-default bg-surface-muted/50 flex items-center justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+            className="px-4 py-2 text-xs font-medium text-muted hover:text-foreground hover:bg-surface-hover rounded-lg transition cursor-pointer"
           >
             Close
           </button>

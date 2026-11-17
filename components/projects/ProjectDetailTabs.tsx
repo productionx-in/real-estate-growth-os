@@ -198,7 +198,7 @@ export function ProjectDetailTabs({
                 <dt className="text-[var(--foreground-muted)] text-[11px] uppercase tracking-wide">
                   Project Code
                 </dt>
-                <dd className="font-mono text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded inline-block mt-0.5">
+                <dd className="font-mono text-xs font-semibold text-brand bg-brand-light px-2 py-0.5 rounded inline-block mt-0.5">
                   {project.code || 'N/A'}
                 </dd>
               </div>
@@ -208,7 +208,7 @@ export function ProjectDetailTabs({
                   Location / Micro-market
                 </dt>
                 <dd className="font-medium text-[var(--foreground)] mt-0.5 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                  <MapPin className="w-3.5 h-3.5 text-subtle" />
                   {project.location || 'N/A'}, {project.city || 'Hyderabad'}
                 </dd>
               </div>
@@ -238,7 +238,7 @@ export function ProjectDetailTabs({
           {/* Card 2: Regulatory & Timeline */}
           <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 space-y-4">
             <h3 className="text-[14px] font-semibold text-[var(--foreground)] flex items-center gap-2 border-b border-[var(--border)] pb-2.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <ShieldCheck className="w-4 h-4 text-success" />
               RERA & Approvals
             </h3>
 
@@ -247,7 +247,7 @@ export function ProjectDetailTabs({
                 <dt className="text-[var(--foreground-muted)] text-[11px] uppercase tracking-wide">
                   RERA Registration
                 </dt>
-                <dd className="font-mono text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded inline-block mt-0.5">
+                <dd className="font-mono text-xs font-semibold text-success bg-success-bg px-2 py-0.5 rounded inline-block mt-0.5">
                   {project.rera_number || 'Awaiting RERA'}
                 </dd>
               </div>
@@ -266,7 +266,7 @@ export function ProjectDetailTabs({
                   Launch Date
                 </dt>
                 <dd className="font-medium text-[var(--foreground)] mt-0.5 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                  <Calendar className="w-3.5 h-3.5 text-subtle" />
                   {project.launch_date ? formatDate(project.launch_date) : 'N/A'}
                 </dd>
               </div>
@@ -276,7 +276,7 @@ export function ProjectDetailTabs({
                   Expected Completion
                 </dt>
                 <dd className="font-medium text-[var(--foreground)] mt-0.5 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                  <Calendar className="w-3.5 h-3.5 text-subtle" />
                   {project.completion_date ? formatDate(project.completion_date) : 'N/A'}
                 </dd>
               </div>
@@ -295,7 +295,7 @@ export function ProjectDetailTabs({
           {/* Card 3: Narrative & Description */}
           <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 space-y-4">
             <h3 className="text-[14px] font-semibold text-[var(--foreground)] flex items-center gap-2 border-b border-[var(--border)] pb-2.5">
-              <FileText className="w-4 h-4 text-blue-600" />
+              <FileText className="w-4 h-4 text-brand" />
               Project Description
             </h3>
 
@@ -328,14 +328,14 @@ export function ProjectDetailTabs({
           {Array.isArray(project.amenities) && project.amenities.length > 0 && (
             <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 space-y-4 md:col-span-2 lg:col-span-3">
               <h3 className="text-[14px] font-semibold text-[var(--foreground)] flex items-center gap-2 border-b border-[var(--border)] pb-2.5">
-                <Sparkles className="w-4 h-4 text-amber-500" />
+                <Sparkles className="w-4 h-4 text-warning" />
                 Featured Amenities & Highlights
               </h3>
               <div className="flex flex-wrap gap-2">
                 {project.amenities.map((amenity, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200"
+                    className="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-medium bg-success-bg text-success border border-success/30"
                   >
                     ✓ {amenity}
                   </span>

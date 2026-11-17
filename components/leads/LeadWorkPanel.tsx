@@ -26,9 +26,9 @@ interface Props {
 }
 
 const TONE: Record<string, string> = {
-  positive: 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100',
+  positive: 'border-success/30 bg-success-bg text-success hover:bg-success-bg',
   neutral: 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-hover)]',
-  negative: 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100',
+  negative: 'border-danger/30 bg-danger-bg text-danger hover:bg-danger-bg',
 }
 
 /** Quick follow-up choices, computed in India time (the product's market). */
@@ -75,18 +75,18 @@ function ResponseClock({ slaState, slaDueAt, assignedAt, firstActionAt }: Pick<P
   const now = useNow(1000)
   if (slaState === 'met' && firstActionAt && assignedAt) {
     const mins = Math.max(0, Math.round((new Date(firstActionAt).getTime() - new Date(assignedAt).getTime()) / 60_000))
-    return <p className="text-[12px] text-emerald-700 flex items-center gap-1.5"><Check className="w-3.5 h-3.5" />First contact {mins < 1 ? 'within a minute' : `after ${mins} min`}</p>
+    return <p className="text-[12px] text-success flex items-center gap-1.5"><Check className="w-3.5 h-3.5" />First contact {mins < 1 ? 'within a minute' : `after ${mins} min`}</p>
   }
   if (slaState === 'breached') {
-    return <p className="text-[12px] font-semibold text-red-700 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />Response time missed — call now</p>
+    return <p className="text-[12px] font-semibold text-danger flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />Response time missed — call now</p>
   }
   if ((slaState === 'pending' || slaState === 'nudged') && slaDueAt && now !== null) {
     const left = Math.round((new Date(slaDueAt).getTime() - now) / 1000)
-    if (left <= 0) return <p className="text-[12px] font-semibold text-red-700 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />Response time missed — call now</p>
+    if (left <= 0) return <p className="text-[12px] font-semibold text-danger flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />Response time missed — call now</p>
     const mm = Math.floor(left / 60), ss = String(left % 60).padStart(2, '0')
     const urgent = left < 120
     return (
-      <p className={`text-[13px] font-semibold flex items-center gap-1.5 ${urgent ? 'text-red-700' : 'text-amber-700'}`} aria-live="polite">
+      <p className={`text-[13px] font-semibold flex items-center gap-1.5 ${urgent ? 'text-danger' : 'text-warning'}`} aria-live="polite">
         <Clock className={`w-4 h-4 ${urgent ? 'animate-pulse' : ''}`} />
         {left > 3600 ? `Call by ${fmt(slaDueAt)}` : `Call within ${mm}:${ss}`}
       </p>
@@ -168,7 +168,7 @@ export function LeadWorkPanel({ leadId, phone, slaState, slaDueAt, assignedAt, f
           <Phone className="w-4 h-4" /> Call
         </button>
         <button type="button" onClick={() => contact('whatsapp')}
-          className="inline-flex items-center justify-center gap-2 py-2.5 text-[14px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">
+          className="inline-flex items-center justify-center gap-2 py-2.5 text-[14px] font-semibold text-success-foreground bg-success hover:bg-success rounded-lg">
           <MessageCircle className="w-4 h-4" /> WhatsApp
         </button>
       </div>
@@ -214,7 +214,7 @@ export function LeadWorkPanel({ leadId, phone, slaState, slaDueAt, assignedAt, f
         </div>
       )}
 
-      {error && <p role="alert" className="text-[12px] text-red-700 bg-red-50 border border-red-200 rounded-lg px-2.5 py-1.5">{error}</p>}
+      {error && <p role="alert" className="text-[12px] text-danger bg-danger-bg border border-danger/30 rounded-lg px-2.5 py-1.5">{error}</p>}
 
       <div>
         <div className="flex items-center justify-between mb-1.5">
@@ -238,10 +238,10 @@ export function LeadWorkPanel({ leadId, phone, slaState, slaDueAt, assignedAt, f
             {open.map((t) => {
               const overdue = now !== null && new Date(t.due_at).getTime() < now
               return (
-                <li key={t.id} className={`flex items-center gap-2 text-[12px] px-2.5 py-2 rounded-lg border ${overdue ? 'border-red-200 bg-red-50' : 'border-[var(--border)]'}`}>
+                <li key={t.id} className={`flex items-center gap-2 text-[12px] px-2.5 py-2 rounded-lg border ${overdue ? 'border-danger/30 bg-danger-bg' : 'border-[var(--border)]'}`}>
                   <span className="flex-1 min-w-0">
                     <span className="font-medium capitalize">{t.kind.replace('_', ' ')}</span>{' · '}
-                    <span className={overdue ? 'text-red-700 font-medium' : 'text-[var(--foreground-muted)]'}>{overdue ? 'Overdue · ' : ''}{fmt(t.due_at)}</span>
+                    <span className={overdue ? 'text-danger font-medium' : 'text-[var(--foreground-muted)]'}>{overdue ? 'Overdue · ' : ''}{fmt(t.due_at)}</span>
                     {t.note && <span className="block text-[11px] text-[var(--foreground-muted)] truncate">{t.note}</span>}
                   </span>
                   <button type="button" title="Move to tomorrow" aria-label="Move to tomorrow" disabled={busy}
@@ -249,7 +249,7 @@ export function LeadWorkPanel({ leadId, phone, slaState, slaDueAt, assignedAt, f
                     className="p-1 rounded hover:bg-[var(--surface-hover)]"><TimerReset className="w-3.5 h-3.5" /></button>
                   <button type="button" title="Mark done" aria-label="Mark done" disabled={busy}
                     onClick={() => send(`/api/leads/${leadId}/tasks/${t.id}`, 'PATCH', { status: 'done' })}
-                    className="p-1 rounded hover:bg-emerald-50 text-emerald-700"><Check className="w-3.5 h-3.5" /></button>
+                    className="p-1 rounded hover:bg-success-bg text-success"><Check className="w-3.5 h-3.5" /></button>
                 </li>
               )
             })}

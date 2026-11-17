@@ -23,15 +23,15 @@ interface ActivityLogProps {
 }
 
 const ACTIVITY_ICONS: Partial<Record<ActivityType, React.ReactNode>> = {
-  created: <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center"><Plus className="w-3 h-3 text-blue-600" /></div>,
-  note_added: <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center"><MessageSquare className="w-3 h-3 text-gray-600" /></div>,
+  created: <div className="w-6 h-6 rounded-full bg-brand-light flex items-center justify-center"><Plus className="w-3 h-3 text-brand" /></div>,
+  note_added: <div className="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center"><MessageSquare className="w-3 h-3 text-muted" /></div>,
   status_changed: <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center"><ArrowRight className="w-3 h-3 text-indigo-600" /></div>,
-  assigned: <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center"><User className="w-3 h-3 text-green-600" /></div>,
+  assigned: <div className="w-6 h-6 rounded-full bg-success-bg flex items-center justify-center"><User className="w-3 h-3 text-success" /></div>,
 }
 
 function ActivityItem({ activity }: { activity: Activity }) {
   const icon = ACTIVITY_ICONS[activity.type] ?? (
-    <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
+    <div className="w-6 h-6 rounded-full bg-surface-hover flex items-center justify-center">
       <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
     </div>
   )

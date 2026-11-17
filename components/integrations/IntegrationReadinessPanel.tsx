@@ -31,7 +31,7 @@ const PROVIDERS: ProviderItem[] = [
     name: 'Meta Lead Ads (Facebook & Instagram)',
     category: 'Paid Social Ads',
     status: 'Not Connected (Readiness Mode)',
-    badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
+    badgeColor: 'bg-warning-bg text-warning border-warning/30',
     description:
       'Configured for real-time webhook ingestion of lead generation form submissions from Facebook Pages and Instagram Business accounts.',
     routingCapabilities: ['Campaign ID Mapping', 'Lead Form ID Mapping', 'Account Default Project'],
@@ -47,7 +47,7 @@ const PROVIDERS: ProviderItem[] = [
     name: 'Google Ads (Lead Form Submissions)',
     category: 'Search & Display Ads',
     status: 'Not Connected (Readiness Mode)',
-    badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
+    badgeColor: 'bg-warning-bg text-warning border-warning/30',
     description:
       'Configured to receive lead form extension payloads from Google Search, Display, Discovery, and YouTube campaigns.',
     routingCapabilities: ['Campaign ID Mapping', 'Google Form ID Mapping', 'Account Default Project'],
@@ -63,7 +63,7 @@ const PROVIDERS: ProviderItem[] = [
     name: 'Website Enquiry Forms & Microsites',
     category: 'First-Party Web',
     status: 'Not Connected (Readiness Mode)',
-    badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
+    badgeColor: 'bg-brand-light text-brand border-brand/30',
     description:
       'Inbound REST ingestion endpoint for official developer websites, project landing pages, and interactive floor plan enquiry widgets.',
     routingCapabilities: ['Project Slug / ID Mapping', 'Landing Page URL Mapping', 'UTM Source Tracking'],
@@ -79,7 +79,7 @@ const PROVIDERS: ProviderItem[] = [
     name: 'WhatsApp Business Cloud API',
     category: 'Direct Messaging',
     status: 'Not Connected (Readiness Mode)',
-    badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    badgeColor: 'bg-success-bg text-success border-success/30',
     description:
       'Engineered for incoming click-to-WhatsApp ad leads, catalogue enquiries, and inbound customer conversations via Meta Cloud API.',
     routingCapabilities: ['Phone Number Mapping', 'Initial Keyword / Campaign Mapping', 'Default Project'],
@@ -129,8 +129,8 @@ export function IntegrationReadinessPanel() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
-            <Radio className="w-3 h-3 text-amber-600 animate-pulse" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-warning-bg text-warning border border-warning/30">
+            <Radio className="w-3 h-3 text-warning animate-pulse" />
             Readiness Mode
           </span>
         </div>
@@ -140,7 +140,7 @@ export function IntegrationReadinessPanel() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="p-3 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg space-y-1">
           <div className="flex items-center gap-1.5 text-[12px] font-semibold text-[var(--foreground)]">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <ShieldCheck className="w-3.5 h-3.5 text-success" />
             Non-Destructive Deduplication
           </div>
           <p className="text-[11px] text-[var(--foreground-muted)] leading-relaxed">
@@ -151,7 +151,7 @@ export function IntegrationReadinessPanel() {
 
         <div className="p-3 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg space-y-1">
           <div className="flex items-center gap-1.5 text-[12px] font-semibold text-[var(--foreground)]">
-            <Workflow className="w-3.5 h-3.5 text-blue-600" />
+            <Workflow className="w-3.5 h-3.5 text-brand" />
             Multi-Account Project Routing
           </div>
           <p className="text-[11px] text-[var(--foreground-muted)] leading-relaxed">
@@ -188,7 +188,7 @@ export function IntegrationReadinessPanel() {
                 onClick={() => setSelectedProvider(provider.id)}
                 className={`text-left p-3.5 rounded-lg border transition-all ${
                   isSelected
-                    ? 'bg-blue-50/40 border-[var(--brand)] ring-1 ring-[var(--brand)]'
+                    ? 'bg-brand-light/40 border-[var(--brand)] ring-1 ring-[var(--brand)]'
                     : 'bg-[var(--surface)] border-[var(--border)] hover:bg-[var(--surface-hover)]'
                 }`}
               >
@@ -236,7 +236,7 @@ export function IntegrationReadinessPanel() {
               <ul className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {activeProvider.routingCapabilities.map((cap, i) => (
                   <li key={i} className="flex items-center gap-1.5 text-[var(--foreground-muted)] bg-[var(--surface)] p-2 rounded border border-[var(--border)]">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-success flex-shrink-0" />
                     <span>{cap}</span>
                   </li>
                 ))}
@@ -245,7 +245,7 @@ export function IntegrationReadinessPanel() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
               <div className="p-3 bg-[var(--surface)] rounded border border-[var(--border)] space-y-1">
-                <span className="text-[11px] font-semibold text-blue-700 block uppercase">
+                <span className="text-[11px] font-semibold text-brand block uppercase">
                   1. Verified Provider Contract
                 </span>
                 <p className="text-[11px] text-[var(--foreground-muted)] leading-relaxed">
@@ -254,7 +254,7 @@ export function IntegrationReadinessPanel() {
               </div>
 
               <div className="p-3 bg-[var(--surface)] rounded border border-[var(--border)] space-y-1">
-                <span className="text-[11px] font-semibold text-emerald-700 block uppercase">
+                <span className="text-[11px] font-semibold text-success block uppercase">
                   2. Proposed OS Architecture
                 </span>
                 <p className="text-[11px] text-[var(--foreground-muted)] leading-relaxed">
@@ -263,7 +263,7 @@ export function IntegrationReadinessPanel() {
               </div>
 
               <div className="p-3 bg-[var(--surface)] rounded border border-[var(--border)] space-y-1">
-                <span className="text-[11px] font-semibold text-amber-700 block uppercase">
+                <span className="text-[11px] font-semibold text-warning block uppercase">
                   3. Future Stage 4 Requirements
                 </span>
                 <p className="text-[11px] text-[var(--foreground-muted)] leading-relaxed">
@@ -275,7 +275,7 @@ export function IntegrationReadinessPanel() {
 
           <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between text-[11px] text-[var(--foreground-muted)]">
             <span className="flex items-center gap-1">
-              <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+              <AlertCircle className="w-3.5 h-3.5 text-warning" />
               All live network bindings and credential storage are deferred to Stage 4.
             </span>
             <span className="text-[var(--foreground-subtle)] font-mono">Stage 3G Architectural Readiness</span>
