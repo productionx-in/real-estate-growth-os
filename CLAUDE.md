@@ -29,6 +29,9 @@ Invoke by name when the task is known (`/ui-ux-pro-max`, `/postgres-patterns`). 
   through an audited, time-limited support grant. No impersonation.
 - Post-sign-in redirects go through `safeRedirectPath` (`lib/auth/safe-redirect.ts`).
 - Passwords follow `lib/auth/password-policy.ts`.
+- UI: build from `components/ui` and semantic tokens (`bg-surface`, `text-muted`, `text-danger`…) in
+  `app/globals.css`; no raw palette classes (`bg-blue-600`). `tests/design-tokens.test.mjs` enforces it.
+  Gallery: `/dev/ui` (not in production).
 
 ## Tests
 

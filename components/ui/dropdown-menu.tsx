@@ -1,0 +1,43 @@
+'use client'
+// components/ui/dropdown-menu.tsx — Radix DropdownMenu: arrow-key navigation, typeahead, Escape, focus return.
+import * as React from 'react'
+import * as Menu from '@radix-ui/react-dropdown-menu'
+import { cn } from '@/lib/utils/cn'
+
+export const DropdownMenu = Menu.Root
+export const DropdownMenuTrigger = Menu.Trigger
+export const DropdownMenuGroup = Menu.Group
+
+export function DropdownMenuContent({ className, sideOffset = 6, ...props }: React.ComponentPropsWithoutRef<typeof Menu.Content>) {
+  return (
+    <Menu.Portal>
+      <Menu.Content
+        sideOffset={sideOffset}
+        className={cn('z-50 min-w-44 rounded-lg border border-default bg-surface p-1 shadow-md', className)}
+        {...props}
+      />
+    </Menu.Portal>
+  )
+}
+
+export function DropdownMenuItem({ className, destructive, ...props }: React.ComponentPropsWithoutRef<typeof Menu.Item> & { destructive?: boolean }) {
+  return (
+    <Menu.Item
+      className={cn(
+        'flex cursor-pointer select-none items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] outline-none',
+        'data-[highlighted]:bg-surface-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:size-4',
+        destructive ? 'text-danger' : 'text-foreground',
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export function DropdownMenuLabel({ className, ...props }: React.ComponentPropsWithoutRef<typeof Menu.Label>) {
+  return <Menu.Label className={cn('px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-subtle', className)} {...props} />
+}
+
+export function DropdownMenuSeparator({ className, ...props }: React.ComponentPropsWithoutRef<typeof Menu.Separator>) {
+  return <Menu.Separator className={cn('my-1 h-px bg-[var(--border)]', className)} {...props} />
+}
