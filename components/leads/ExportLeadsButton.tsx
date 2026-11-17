@@ -5,23 +5,20 @@ import { Download, Loader2 } from 'lucide-react'
 
 interface ExportLeadsButtonProps {
   orgSlug: string
-  currentStatus?: string
-  currentSource?: string
+  /** The current filters as a query string (from toLeadSearch), so the file matches the screen. */
+  filterQuery?: string
 }
 
-export function ExportLeadsButton({
-  orgSlug,
-  currentStatus,
-  currentSource,
-}: ExportLeadsButtonProps) {
+export function ExportLeadsButton({ orgSlug, filterQuery = '' }: ExportLeadsButtonProps) {
   const [downloading, setDownloading] = useState(false)
 
   async function handleExport() {
     setDownloading(true)
     try {
-      const params = new URLSearchParams({ orgSlug })
-      if (currentStatus) params.set('status', currentStatus)
-      if (currentSource) params.set('source', currentSource)
+      const params = new URLSearchParams(filterQuery.replace(/^\?/, ''))
+      params.delete('view')
+      params.delete('layout')
+      params.set('orgSlug', orgSlug)
 
       const response = await fetch(`/api/leads/export?${params.toString()}`)
       if (!response.ok) {

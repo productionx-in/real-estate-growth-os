@@ -8,6 +8,7 @@ import { formatDate } from '@/lib/utils/format'
 import { LeadStatusBadge } from './LeadStatusBadge'
 import { AssignLeadDialog } from './AssignLeadDialog'
 import type { LeadStatus, LeadSource } from '@/types/database'
+import { SOURCE_LABELS } from '@/lib/leads/view-filters'
 
 type LeadRow = {
   id: string
@@ -28,20 +29,6 @@ interface LeadsTableProps {
   orgId: string
   /** Current user's role — determines whether assign button appears */
   viewerRole: 'owner' | 'admin' | 'manager' | 'sales_exec' | 'readonly'
-}
-
-const SOURCE_LABELS: Record<string, string> = {
-  website: 'Website',
-  meta_ads: 'Meta Ads',
-  google_ads: 'Google Ads',
-  '99acres': '99acres',
-  housing: 'Housing.com',
-  magicbricks: 'Magicbricks',
-  whatsapp: 'WhatsApp',
-  referral: 'Referral',
-  walk_in: 'Walk-in',
-  csv_import: 'CSV Import',
-  other: 'Other',
 }
 
 const MANAGER_ROLES = ['owner', 'admin', 'manager']
