@@ -3,7 +3,7 @@
 // Validates session, loads organization, verifies membership, and provides tenant context.
 import { redirect } from 'next/navigation'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import type { MemberRole } from '@/types/database'
+import type { MemberRole, OrgLifecycleState } from '@/types/database'
 import { isActiveMembership } from '@/lib/auth/permissions'
 
 export interface AvailableOrgSummary {
@@ -32,6 +32,8 @@ export interface VerifiedWorkspace {
     type: 'developer' | 'channel_partner'
     plan?: string
     created_at?: string
+    lifecycle_state: OrgLifecycleState
+    lifecycle_changed_at: string | null
   }
   role: MemberRole
   isManager: boolean
@@ -58,7 +60,7 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
   // 2. Fetch organisation by slug
   const { data: org } = await service
     .from('organisations')
-    .select('id, name, slug, type, plan, created_at')
+    .select('id, name, slug, type, plan, created_at, lifecycle_state, lifecycle_changed_at')
     .eq('slug', orgSlug)
     .maybeSingle()
 
@@ -149,6 +151,8 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
       type: org.type as 'developer' | 'channel_partner',
       plan: org.plan,
       created_at: org.created_at,
+      lifecycle_state: (org.lifecycle_state ?? 'active') as OrgLifecycleState,
+      lifecycle_changed_at: org.lifecycle_changed_at ?? null,
     },
     role,
     isManager,

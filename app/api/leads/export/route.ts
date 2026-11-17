@@ -6,6 +6,7 @@ import Papa from 'papaparse'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import type { LeadStatus, LeadSource, MemberRole } from '@/types/database'
+import { auditMember } from '@/lib/dal/org-audit'
 
 interface LeadExportRecord {
   id: string
@@ -112,6 +113,13 @@ export async function GET(request: NextRequest) {
       Notes: lead.notes ?? '',
       'Created At': lead.created_at,
     }))
+
+    // Exports take customer contact data out of REGrow, so every one is recorded.
+    await auditMember(request, auth, org.id, 'lead.exported', { type: 'lead_export' }, {
+      rows: rows.length,
+      filters: { status: status ?? null, source: source ?? null },
+      scope: role === 'sales_exec' ? 'own' : 'organisation',
+    })
 
     const csv = Papa.unparse(rows)
     const filename = `${orgSlug}-leads-${new Date().toISOString().split('T')[0]}.csv`

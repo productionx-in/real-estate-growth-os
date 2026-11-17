@@ -4,6 +4,7 @@ import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { changeMemberRole } from '@/lib/dal/invitations'
 import type { MemberRole } from '@/types/database'
+import { recordOrgAudit, requestOrigin } from '@/lib/dal/org-audit'
 import { z } from 'zod'
 
 const RoleSchema = z.object({
@@ -53,6 +54,18 @@ export async function POST(request: NextRequest) {
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 })
     }
+
+    await recordOrgAudit({
+      orgId: targetOrgId,
+      action: 'member.role_changed',
+      actorUserId: auth.user.id,
+      actorProfileId: auth.profile.id,
+      actorLabel: auth.profile.full_name,
+      targetType: 'member',
+      targetId: memberId,
+      metadata: { profile_id: result.targetProfileId, from: result.previousRole, to: role },
+      ...requestOrigin(request),
+    })
 
     return NextResponse.json({ success: true, message: 'Role updated successfully.' }, { status: 200 })
   } catch (err) {

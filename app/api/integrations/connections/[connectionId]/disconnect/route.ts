@@ -4,6 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { disconnectIntegrationConnection } from '@/lib/dal/integrations'
+import { auditMember } from '@/lib/dal/org-audit'
 
 interface RouteContext {
   params: Promise<{ connectionId: string }>
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     if (!success) {
       return NextResponse.json({ error: error ?? 'Failed to disconnect integration' }, { status: 400 })
     }
+    await auditMember(request, authResult.auth, conn.org_id, 'integration.disconnected', { type: 'integration', id: connectionId })
 
     return NextResponse.json({
       success: true,
