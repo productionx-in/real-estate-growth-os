@@ -106,7 +106,7 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
               !scope || scope === 'all'
                 ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                : 'text-gray-600 hover:bg-gray-100'
+                : 'text-muted hover:bg-surface-hover'
             }`}
           >
             All Organisation Leads
@@ -116,7 +116,7 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
               scope === 'my'
                 ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                : 'text-gray-600 hover:bg-gray-100'
+                : 'text-muted hover:bg-surface-hover'
             }`}
           >
             My Assigned Leads
@@ -126,7 +126,7 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
               scope === 'unassigned'
                 ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                : 'text-gray-600 hover:bg-gray-100'
+                : 'text-muted hover:bg-surface-hover'
             }`}
           >
             Unassigned Queue

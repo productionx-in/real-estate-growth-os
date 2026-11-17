@@ -73,7 +73,7 @@ export function InventoryStatusDialog({
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-50"
+        className="fixed inset-0 bg-overlay backdrop-blur-[1px] z-50"
         onClick={onClose}
       />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -98,7 +98,7 @@ export function InventoryStatusDialog({
 
           <div className="p-5 space-y-4">
             {error && (
-              <div className="p-3 rounded-lg bg-[var(--danger-bg)] border border-red-200 text-[12px] text-[var(--danger)] flex items-start gap-2">
+              <div className="p-3 rounded-lg bg-[var(--danger-bg)] border border-danger/30 text-[12px] text-[var(--danger)] flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
@@ -129,7 +129,7 @@ export function InventoryStatusDialog({
                         onClick={() => setSelectedStatus(st)}
                         className={`flex items-center justify-between p-2.5 rounded-lg border text-[13px] font-medium transition-all ${
                           isSelected
-                            ? 'border-[var(--brand)] bg-[var(--brand-light)] text-[var(--brand)] ring-1 ring-blue-500'
+                            ? 'border-[var(--brand)] bg-[var(--brand-light)] text-[var(--brand)] ring-1 ring-ring'
                             : 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-hover)]'
                         }`}
                       >

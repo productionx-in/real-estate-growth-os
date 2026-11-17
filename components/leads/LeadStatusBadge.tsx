@@ -8,7 +8,7 @@ const STATUS_CONFIG: Record<
 > = {
   new: {
     label: 'New',
-    className: 'bg-blue-50 text-blue-700 border-blue-100',
+    className: 'bg-brand-light text-brand border-brand/30',
   },
   contacted: {
     label: 'Contacted',
@@ -20,27 +20,27 @@ const STATUS_CONFIG: Record<
   },
   site_visit_scheduled: {
     label: 'Visit Scheduled',
-    className: 'bg-orange-50 text-orange-700 border-orange-100',
+    className: 'bg-warning-bg text-warning border-warning/30',
   },
   site_visited: {
     label: 'Site Visited',
-    className: 'bg-amber-50 text-amber-700 border-amber-100',
+    className: 'bg-warning-bg text-warning border-warning/30',
   },
   negotiation: {
     label: 'Negotiation',
-    className: 'bg-yellow-50 text-yellow-700 border-yellow-100',
+    className: 'bg-warning-bg text-warning border-warning/30',
   },
   booked: {
     label: 'Booked',
-    className: 'bg-green-50 text-green-700 border-green-100',
+    className: 'bg-success-bg text-success border-success/30',
   },
   lost: {
     label: 'Lost',
-    className: 'bg-red-50 text-red-600 border-red-100',
+    className: 'bg-danger-bg text-danger border-danger/30',
   },
   junk: {
     label: 'Junk',
-    className: 'bg-gray-100 text-gray-500 border-gray-200',
+    className: 'bg-surface-hover text-subtle border-default',
   },
 }
 

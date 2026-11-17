@@ -224,12 +224,12 @@ export function ConnectionDetailsModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-gray-50/50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-surface-muted/50">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-2xs">
+            <div className="w-9 h-9 rounded-xl bg-brand flex items-center justify-center text-brand-foreground shadow-2xs">
               <FacebookIcon className="w-5 h-5" />
             </div>
             <div>
@@ -238,12 +238,12 @@ export function ConnectionDetailsModal({
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
                     isConnected
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      ? 'bg-success-bg text-success border-success/30'
                       : isError
-                      ? 'bg-red-50 text-red-700 border-red-200'
+                      ? 'bg-danger-bg text-danger border-danger/30'
                       : isDisabled
-                      ? 'bg-gray-100 text-gray-700 border-gray-200'
-                      : 'bg-amber-50 text-amber-700 border-amber-200'
+                      ? 'bg-surface-hover text-muted border-default'
+                      : 'bg-warning-bg text-warning border-warning/30'
                   }`}
                 >
                   {isConnected
@@ -263,20 +263,20 @@ export function ConnectionDetailsModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-1.5 text-subtle hover:text-muted rounded-lg hover:bg-surface-hover transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-[var(--border)] bg-gray-50/20 px-6 text-[13px] font-medium">
+        <div className="flex border-b border-[var(--border)] bg-surface-muted/20 px-6 text-[13px] font-medium">
           <button
             onClick={() => setActiveTab('mappings')}
             className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-2 ${
               activeTab === 'mappings'
-                ? 'border-blue-600 text-blue-600 font-semibold'
-                : 'border-transparent text-gray-500 hover:text-gray-900'
+                ? 'border-brand text-brand font-semibold'
+                : 'border-transparent text-subtle hover:text-foreground'
             }`}
           >
             <Layers className="w-4 h-4" />
@@ -286,8 +286,8 @@ export function ConnectionDetailsModal({
             onClick={() => setActiveTab('assets')}
             className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-2 ${
               activeTab === 'assets'
-                ? 'border-blue-600 text-blue-600 font-semibold'
-                : 'border-transparent text-gray-500 hover:text-gray-900'
+                ? 'border-brand text-brand font-semibold'
+                : 'border-transparent text-subtle hover:text-foreground'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -297,8 +297,8 @@ export function ConnectionDetailsModal({
             onClick={() => setActiveTab('settings')}
             className={`py-3 px-3 border-b-2 transition-colors flex items-center gap-2 ${
               activeTab === 'settings'
-                ? 'border-blue-600 text-blue-600 font-semibold'
-                : 'border-transparent text-gray-500 hover:text-gray-900'
+                ? 'border-brand text-brand font-semibold'
+                : 'border-transparent text-subtle hover:text-foreground'
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
@@ -309,15 +309,15 @@ export function ConnectionDetailsModal({
         {/* Body */}
         <div className="p-6 overflow-y-auto flex-1 space-y-4">
           {actionError && (
-            <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-[13px] flex items-start gap-2.5">
-              <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0 text-red-600" />
+            <div className="p-3.5 rounded-xl bg-danger-bg border border-danger/30 text-danger text-[13px] flex items-start gap-2.5">
+              <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0 text-danger" />
               <span>{actionError}</span>
             </div>
           )}
 
           {actionSuccess && (
-            <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] flex items-start gap-2.5">
-              <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0 text-emerald-600" />
+            <div className="p-3.5 rounded-xl bg-success-bg border border-success/30 text-success text-[13px] flex items-start gap-2.5">
+              <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0 text-success" />
               <span>{actionSuccess}</span>
             </div>
           )}
@@ -327,15 +327,15 @@ export function ConnectionDetailsModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-[14px] font-bold text-gray-900">Project Routing Rules</h3>
-                  <p className="text-[12px] text-gray-600">
+                  <h3 className="text-[14px] font-bold text-foreground">Project Routing Rules</h3>
+                  <p className="text-[12px] text-muted">
                     Control which real estate project each Meta form routes into. Updating a mapping
                     does not delete past leads.
                   </p>
                 </div>
                 <button
                   onClick={() => setIsAddingMapping(!isAddingMapping)}
-                  className="px-3 py-1.5 text-[12px] font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-1.5"
+                  className="px-3 py-1.5 text-[12px] font-medium text-brand bg-brand-light border border-brand/30 rounded-lg hover:bg-brand-light transition-colors flex items-center gap-1.5"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Add Manual Form Mapping
@@ -344,11 +344,11 @@ export function ConnectionDetailsModal({
 
               {/* Add Mapping Drawer */}
               {isAddingMapping && (
-                <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/40 space-y-3">
-                  <h4 className="text-[13px] font-semibold text-blue-950">Add Lead Form Mapping</h4>
+                <div className="p-4 rounded-xl border border-brand/30 bg-brand-light/40 space-y-3">
+                  <h4 className="text-[13px] font-semibold text-brand">Add Lead Form Mapping</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-[11px] font-medium text-gray-700 mb-1">
+                      <label className="block text-[11px] font-medium text-muted mb-1">
                         Meta Form ID or Campaign ID
                       </label>
                       <input
@@ -356,11 +356,11 @@ export function ConnectionDetailsModal({
                         value={newFormId}
                         onChange={(e) => setNewFormId(e.target.value)}
                         placeholder="e.g. 10928374652"
-                        className="w-full px-3 py-1.5 text-[12px] rounded-lg border border-gray-300 bg-white"
+                        className="w-full px-3 py-1.5 text-[12px] rounded-lg border border-strong bg-surface"
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-medium text-gray-700 mb-1">
+                      <label className="block text-[11px] font-medium text-muted mb-1">
                         Form Label / Description
                       </label>
                       <input
@@ -368,17 +368,17 @@ export function ConnectionDetailsModal({
                         value={newFormDescription}
                         onChange={(e) => setNewFormDescription(e.target.value)}
                         placeholder="e.g. VIP Phase 2 Form"
-                        className="w-full px-3 py-1.5 text-[12px] rounded-lg border border-gray-300 bg-white"
+                        className="w-full px-3 py-1.5 text-[12px] rounded-lg border border-strong bg-surface"
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-medium text-gray-700 mb-1">
+                      <label className="block text-[11px] font-medium text-muted mb-1">
                         Destination Project
                       </label>
                       <select
                         value={newFormProjectId}
                         onChange={(e) => setNewFormProjectId(e.target.value)}
-                        className="w-full px-3 py-1.5 text-[12px] rounded-lg border border-gray-300 bg-white"
+                        className="w-full px-3 py-1.5 text-[12px] rounded-lg border border-strong bg-surface"
                       >
                         {projects.map((p) => (
                           <option key={p.id} value={p.id}>
@@ -391,14 +391,14 @@ export function ConnectionDetailsModal({
                   <div className="flex justify-end gap-2 pt-1">
                     <button
                       onClick={() => setIsAddingMapping(false)}
-                      className="px-3 py-1 text-[12px] text-gray-600 hover:text-gray-900"
+                      className="px-3 py-1 text-[12px] text-muted hover:text-foreground"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleCreateNewMapping}
                       disabled={isUpdating}
-                      className="px-4 py-1 text-[12px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                      className="px-4 py-1 text-[12px] font-medium text-brand-foreground bg-brand rounded-lg hover:bg-brand"
                     >
                       Save Rule
                     </button>
@@ -407,9 +407,9 @@ export function ConnectionDetailsModal({
               )}
 
               {/* Mappings Table */}
-              <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+              <div className="border border-default rounded-xl overflow-hidden bg-surface shadow-2xs">
                 <table className="w-full text-left text-[12px]">
-                  <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-semibold">
+                  <thead className="bg-surface-muted border-b border-default text-muted font-semibold">
                     <tr>
                       <th className="py-2.5 px-4">Identifier / Form</th>
                       <th className="py-2.5 px-4">Type</th>
@@ -417,24 +417,24 @@ export function ConnectionDetailsModal({
                       <th className="py-2.5 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-default">
                     {connection.mappings && connection.mappings.length > 0 ? (
                       connection.mappings.map((mapping) => {
                         const currentVal = editingMappings[mapping.id] ?? mapping.project_id
                         const hasChanged = currentVal !== mapping.project_id
 
                         return (
-                          <tr key={mapping.id} className="hover:bg-gray-50/60 transition-colors">
+                          <tr key={mapping.id} className="hover:bg-surface-muted/60 transition-colors">
                             <td className="py-3 px-4">
-                              <p className="font-semibold text-gray-900">
+                              <p className="font-semibold text-foreground">
                                 {mapping.description || mapping.external_identifier_value}
                               </p>
-                              <p className="text-[11px] text-gray-500 font-mono">
+                              <p className="text-[11px] text-subtle font-mono">
                                 ID: {mapping.external_identifier_value}
                               </p>
                             </td>
                             <td className="py-3 px-4">
-                              <span className="capitalize px-2 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-700 font-medium">
+                              <span className="capitalize px-2 py-0.5 rounded-full text-[11px] bg-surface-hover text-muted font-medium">
                                 {mapping.external_identifier_type.replace('_', ' ')}
                               </span>
                             </td>
@@ -448,7 +448,7 @@ export function ConnectionDetailsModal({
                                       [mapping.id]: e.target.value,
                                     }))
                                   }
-                                  className="px-2.5 py-1 text-[12px] rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-1 focus:ring-blue-500"
+                                  className="px-2.5 py-1 text-[12px] rounded-lg border border-strong bg-surface text-foreground focus:ring-1 focus:ring-ring"
                                 >
                                   {projects.map((proj) => (
                                     <option key={proj.id} value={proj.id}>
@@ -461,7 +461,7 @@ export function ConnectionDetailsModal({
                                     onClick={() => handleUpdateMappingProject(mapping.id, currentVal)}
                                     disabled={isUpdating}
                                     title="Save project change"
-                                    className="p-1 rounded-md text-emerald-600 hover:bg-emerald-50 border border-emerald-300"
+                                    className="p-1 rounded-md text-success hover:bg-success-bg border border-success/30"
                                   >
                                     <Save className="w-3.5 h-3.5" />
                                   </button>
@@ -473,7 +473,7 @@ export function ConnectionDetailsModal({
                                 onClick={() => handleDeleteMapping(mapping.id)}
                                 disabled={isUpdating}
                                 title="Delete mapping"
-                                className="p-1 text-gray-400 hover:text-red-600 rounded-md hover:bg-red-50 transition-colors"
+                                className="p-1 text-subtle hover:text-danger rounded-md hover:bg-danger-bg transition-colors"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -483,7 +483,7 @@ export function ConnectionDetailsModal({
                       })
                     ) : (
                       <tr>
-                        <td colSpan={4} className="py-8 text-center text-gray-500">
+                        <td colSpan={4} className="py-8 text-center text-subtle">
                           No project mappings configured yet. Click &quot;Add Manual Form Mapping&quot; to route
                           incoming Meta forms.
                         </td>
@@ -499,8 +499,8 @@ export function ConnectionDetailsModal({
           {activeTab === 'assets' && (
             <div className="space-y-4">
               <div>
-                <h3 className="text-[14px] font-bold text-gray-900">Connected Facebook Pages</h3>
-                <p className="text-[12px] text-gray-600">
+                <h3 className="text-[14px] font-bold text-foreground">Connected Facebook Pages</h3>
+                <p className="text-[12px] text-muted">
                   Business Pages currently authorized through this Meta connection.
                 </p>
               </div>
@@ -510,40 +510,40 @@ export function ConnectionDetailsModal({
                   pages.map((page) => (
                     <div
                       key={page.id}
-                      className="p-4 rounded-xl border border-gray-200 bg-white space-y-3 shadow-2xs"
+                      className="p-4 rounded-xl border border-default bg-surface space-y-3 shadow-2xs"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-[13px]">
+                          <div className="w-8 h-8 rounded-lg bg-brand-light text-brand flex items-center justify-center font-bold text-[13px]">
                             FP
                           </div>
                           <div>
-                            <p className="text-[13px] font-semibold text-gray-900">{page.name}</p>
-                            <p className="text-[11px] text-gray-500">
+                            <p className="text-[13px] font-semibold text-foreground">{page.name}</p>
+                            <p className="text-[11px] text-subtle">
                               {page.category || 'Real Estate'} • Page ID: {page.id}
                             </p>
                           </div>
                         </div>
-                        <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-success-bg text-success border border-success/30">
                           Active & Synced
                         </span>
                       </div>
 
                       {page.forms && page.forms.length > 0 && (
-                        <div className="pt-2 border-t border-gray-100 space-y-1.5 pl-2">
-                          <p className="text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                        <div className="pt-2 border-t border-default space-y-1.5 pl-2">
+                          <p className="text-[11px] font-semibold text-muted uppercase tracking-wider">
                             Active Lead Forms on this Page ({page.forms.length})
                           </p>
                           {page.forms.map((form) => (
                             <div
                               key={form.id}
-                              className="text-[12px] text-gray-700 flex items-center justify-between py-0.5"
+                              className="text-[12px] text-muted flex items-center justify-between py-0.5"
                             >
                               <span className="flex items-center gap-1.5">
-                                <FileText className="w-3.5 h-3.5 text-gray-400" />
+                                <FileText className="w-3.5 h-3.5 text-subtle" />
                                 {form.name}
                               </span>
-                              <span className="text-[11px] text-gray-400 font-mono">
+                              <span className="text-[11px] text-subtle font-mono">
                                 Form ID: {form.id}
                               </span>
                             </div>
@@ -553,7 +553,7 @@ export function ConnectionDetailsModal({
                     </div>
                   ))
                 ) : (
-                  <div className="p-6 text-center text-gray-500 border border-dashed border-gray-300 rounded-xl">
+                  <div className="p-6 text-center text-subtle border border-dashed border-strong rounded-xl">
                     No Facebook Pages listed in connection metadata.
                   </div>
                 )}
@@ -564,31 +564,31 @@ export function ConnectionDetailsModal({
           {/* TAB 3: CONNECTION HEALTH & SETTINGS */}
           {activeTab === 'settings' && (
             <div className="space-y-4">
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3 text-[12px]">
-                <h4 className="font-bold text-gray-900 text-[13px] flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <div className="bg-surface-muted border border-default rounded-xl p-4 space-y-3 text-[12px]">
+                <h4 className="font-bold text-foreground text-[13px] flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-success" />
                   Connection Security Summary
                 </h4>
-                <div className="grid grid-cols-2 gap-3 text-gray-700">
+                <div className="grid grid-cols-2 gap-3 text-muted">
                   <div>
-                    <span className="text-gray-500 block">Integration Provider</span>
-                    <span className="font-semibold text-gray-900">Meta Lead Ads</span>
+                    <span className="text-subtle block">Integration Provider</span>
+                    <span className="font-semibold text-foreground">Meta Lead Ads</span>
                   </div>
                   <div>
-                    <span className="text-gray-500 block">Status</span>
-                    <span className="font-semibold capitalize text-gray-900">
+                    <span className="text-subtle block">Status</span>
+                    <span className="font-semibold capitalize text-foreground">
                       {connection.status}
                     </span>
                   </div>
                   <div>
-                    <span className="text-gray-500 block">Credential Storage</span>
-                    <span className="font-semibold text-gray-700">
+                    <span className="text-subtle block">Credential Storage</span>
+                    <span className="font-semibold text-muted">
                       OAuth Handshake Pending (Stage 4B)
                     </span>
                   </div>
                   <div>
-                    <span className="text-gray-500 block">Lead Data Privacy</span>
-                    <span className="font-semibold text-emerald-700">
+                    <span className="text-subtle block">Lead Data Privacy</span>
+                    <span className="font-semibold text-success">
                       Strict Multi-Tenant Isolation
                     </span>
                   </div>
@@ -596,22 +596,22 @@ export function ConnectionDetailsModal({
               </div>
 
               {connection.last_error && (
-                <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-900 text-[13px] space-y-1">
-                  <p className="font-semibold flex items-center gap-1.5 text-red-950">
-                    <AlertTriangle className="w-4 h-4 text-red-600" />
+                <div className="p-4 rounded-xl bg-danger-bg border border-danger/30 text-danger text-[13px] space-y-1">
+                  <p className="font-semibold flex items-center gap-1.5 text-danger">
+                    <AlertTriangle className="w-4 h-4 text-danger" />
                     Last Reported Sync Issue
                   </p>
-                  <p className="text-red-800 text-[12px]">{connection.last_error}</p>
+                  <p className="text-danger text-[12px]">{connection.last_error}</p>
                 </div>
               )}
 
               {/* Actions Area */}
-              <div className="pt-3 border-t border-gray-200 flex items-center justify-between">
+              <div className="pt-3 border-t border-default flex items-center justify-between">
                 <div>
                   <button
                     onClick={handleReconnect}
                     disabled={isUpdating}
-                    className="px-4 py-2 text-[12px] font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-colors flex items-center gap-1.5"
+                    className="px-4 py-2 text-[12px] font-medium text-brand bg-brand-light border border-brand/30 rounded-xl hover:bg-brand-light transition-colors flex items-center gap-1.5"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     Refresh & Test Connection
@@ -622,26 +622,26 @@ export function ConnectionDetailsModal({
                   {!showDisconnectConfirm ? (
                     <button
                       onClick={() => setShowDisconnectConfirm(true)}
-                      className="px-4 py-2 text-[12px] font-medium text-red-600 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-colors flex items-center gap-1.5"
+                      className="px-4 py-2 text-[12px] font-medium text-danger bg-danger-bg border border-danger/30 rounded-xl hover:bg-danger-bg transition-colors flex items-center gap-1.5"
                     >
                       <PowerOff className="w-3.5 h-3.5" />
                       Disconnect Integration
                     </button>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-red-600 font-medium">
+                      <span className="text-[11px] text-danger font-medium">
                         Confirm disconnect? Historical leads will be preserved.
                       </span>
                       <button
                         onClick={() => setShowDisconnectConfirm(false)}
-                        className="px-2.5 py-1 text-[11px] text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100"
+                        className="px-2.5 py-1 text-[11px] text-muted border border-strong rounded-lg hover:bg-surface-hover"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handleDisconnect}
                         disabled={isUpdating}
-                        className="px-3 py-1 text-[11px] font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 shadow-2xs"
+                        className="px-3 py-1 text-[11px] font-medium text-danger-foreground bg-danger rounded-lg hover:bg-danger shadow-2xs"
                       >
                         Yes, Disconnect
                       </button>

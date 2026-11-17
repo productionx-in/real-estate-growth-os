@@ -123,7 +123,7 @@ export function HierarchyNodeSelector({
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 text-xs rounded-lg border border-red-200 bg-red-50 text-red-700">
+      <div className="flex items-center gap-2 px-3 py-2 text-xs rounded-lg border border-danger/30 bg-danger-bg text-danger">
         <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
         <span>Hierarchy unavailable</span>
       </div>

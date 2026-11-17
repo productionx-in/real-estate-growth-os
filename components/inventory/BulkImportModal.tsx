@@ -266,19 +266,19 @@ export function BulkImportModal({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-50 transition-opacity" onClick={onClose} />
+      <div className="fixed inset-0 bg-overlay backdrop-blur-[1px] z-50 transition-opacity" onClick={onClose} />
 
       <div className="fixed inset-4 sm:inset-10 lg:inset-y-12 lg:inset-x-32 z-50 bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in-50 duration-200">
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-[var(--border)] flex items-center justify-between bg-[var(--surface-hover)]">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-blue-50 text-[var(--brand)] border border-blue-200">
+            <div className="p-2 rounded-xl bg-brand-light text-[var(--brand)] border border-brand/30">
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-[var(--foreground)] flex items-center gap-2">
                 <span>Bulk Inventory Import</span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-light text-brand">
                   {PROJECT_CATEGORY_LABELS[projectCategory]}
                 </span>
               </h2>
@@ -325,7 +325,7 @@ export function BulkImportModal({
         {/* Modal Body */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
           {generalError && (
-            <div className="p-3.5 rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs flex items-center gap-2">
+            <div className="p-3.5 rounded-xl border border-danger/30 bg-danger-bg text-danger text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{generalError}</span>
             </div>
@@ -338,12 +338,12 @@ export function BulkImportModal({
               {step === 'upload' && (
                 <div className="space-y-6">
                   {/* Download Template Banner */}
-                  <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="p-4 rounded-xl border border-brand/30 bg-brand-light/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div>
-                      <h4 className="text-xs font-bold text-blue-950 uppercase tracking-wider">
+                      <h4 className="text-xs font-bold text-brand uppercase tracking-wider">
                         Download Standard Templates
                       </h4>
-                      <p className="text-xs text-blue-800 mt-0.5">
+                      <p className="text-xs text-brand mt-0.5">
                         Includes formatted column headers tailored for {PROJECT_CATEGORY_LABELS[projectCategory]} with example data.
                       </p>
                     </div>
@@ -352,7 +352,7 @@ export function BulkImportModal({
                       <a
                         href={`/api/inventory/import/template?category=${projectCategory}&format=csv`}
                         download
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-800 bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand bg-surface border border-brand/30 rounded-lg hover:bg-brand-light transition-colors shadow-2xs"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>CSV Template</span>
@@ -360,7 +360,7 @@ export function BulkImportModal({
                       <a
                         href={`/api/inventory/import/template?category=${projectCategory}&format=xlsx`}
                         download
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-700 rounded-lg hover:bg-blue-800 transition-colors shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-brand rounded-lg hover:bg-brand-hover transition-colors shadow-2xs"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Excel (.xlsx) Template</span>
@@ -382,7 +382,7 @@ export function BulkImportModal({
                       }
                     }}
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-[var(--border)] hover:border-[var(--brand)] rounded-2xl p-10 text-center cursor-pointer transition-colors bg-[var(--surface-hover)]/40 hover:bg-blue-50/20"
+                    className="border-2 border-dashed border-[var(--border)] hover:border-[var(--brand)] rounded-2xl p-10 text-center cursor-pointer transition-colors bg-[var(--surface-hover)]/40 hover:bg-brand-light/20"
                   >
                     <input
                       ref={fileInputRef}
@@ -395,7 +395,7 @@ export function BulkImportModal({
                         }
                       }}
                     />
-                    <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200 text-[var(--brand)] flex items-center justify-center mx-auto mb-3">
+                    <div className="w-12 h-12 rounded-full bg-brand-light border border-brand/30 text-[var(--brand)] flex items-center justify-center mx-auto mb-3">
                       <UploadCloud className="w-6 h-6" />
                     </div>
                     <p className="text-sm font-bold text-[var(--foreground)]">
@@ -511,17 +511,17 @@ export function BulkImportModal({
                       <span className="text-[11px] text-[var(--foreground-muted)] block font-medium">Total Rows</span>
                       <span className="text-xl font-bold text-[var(--foreground)] mt-0.5 block">{validationResult.totalRows}</span>
                     </div>
-                    <div className="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/50">
-                      <span className="text-[11px] text-emerald-800 block font-medium">Valid Rows</span>
-                      <span className="text-xl font-bold text-emerald-700 mt-0.5 block">{validationResult.validRowsCount}</span>
+                    <div className="p-3.5 rounded-xl border border-success/30 bg-success-bg/50">
+                      <span className="text-[11px] text-success block font-medium">Valid Rows</span>
+                      <span className="text-xl font-bold text-success mt-0.5 block">{validationResult.validRowsCount}</span>
                     </div>
-                    <div className="p-3.5 rounded-xl border border-red-200 bg-red-50/50">
-                      <span className="text-[11px] text-red-800 block font-medium">Invalid Rows</span>
-                      <span className="text-xl font-bold text-red-700 mt-0.5 block">{validationResult.invalidRowsCount}</span>
+                    <div className="p-3.5 rounded-xl border border-danger/30 bg-danger-bg/50">
+                      <span className="text-[11px] text-danger block font-medium">Invalid Rows</span>
+                      <span className="text-xl font-bold text-danger mt-0.5 block">{validationResult.invalidRowsCount}</span>
                     </div>
-                    <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/50">
-                      <span className="text-[11px] text-amber-800 block font-medium">Duplicates / Warnings</span>
-                      <span className="text-xl font-bold text-amber-700 mt-0.5 block">
+                    <div className="p-3.5 rounded-xl border border-warning/30 bg-warning-bg/50">
+                      <span className="text-[11px] text-warning block font-medium">Duplicates / Warnings</span>
+                      <span className="text-xl font-bold text-warning mt-0.5 block">
                         {validationResult.duplicateInFileCount + validationResult.duplicateInProjectCount}
                       </span>
                     </div>
@@ -540,7 +540,7 @@ export function BulkImportModal({
                       <button
                         type="button"
                         onClick={handleDownloadErrorReport}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-danger bg-danger-bg border border-danger/30 rounded-lg hover:bg-danger-bg transition-colors shadow-2xs"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Download Error Report ({validationResult.invalidRowsCount})</span>
@@ -563,15 +563,15 @@ export function BulkImportModal({
                       </thead>
                       <tbody className="divide-y divide-[var(--border)]">
                         {validationResult.rows.slice(0, 100).map((r) => (
-                          <tr key={r.rowNumber} className={r.isValid ? 'hover:bg-emerald-50/20' : 'bg-red-50/30'}>
+                          <tr key={r.rowNumber} className={r.isValid ? 'hover:bg-success-bg/20' : 'bg-danger-bg/30'}>
                             <td className="px-3 py-2 text-[var(--foreground-muted)] font-mono">{r.rowNumber}</td>
                             <td className="px-3 py-2">
                               {r.isValid ? (
-                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700">
+                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-success">
                                   <CheckCircle2 className="w-3.5 h-3.5" /> Ready
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-700">
+                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-danger">
                                   <AlertCircle className="w-3.5 h-3.5" /> Error
                                 </span>
                               )}
@@ -581,15 +581,15 @@ export function BulkImportModal({
                             <td className="px-3 py-2">{r.data.area_value} {r.data.area_unit}</td>
                             <td className="px-3 py-2 text-xs">
                               {r.errors.length > 0 ? (
-                                <span className="text-red-700 font-medium">
+                                <span className="text-danger font-medium">
                                   {r.errors.map((e) => e.message).join(' | ')}
                                 </span>
                               ) : r.warnings.length > 0 ? (
-                                <span className="text-amber-700">
+                                <span className="text-warning">
                                   {r.warnings.map((w) => w.message).join('; ')}
                                 </span>
                               ) : (
-                                <span className="text-emerald-700">Passed all checks</span>
+                                <span className="text-success">Passed all checks</span>
                               )}
                             </td>
                           </tr>
@@ -632,7 +632,7 @@ export function BulkImportModal({
                   <p className="text-xs text-[var(--foreground-muted)] max-w-md mx-auto">
                     Inserting validated units into the database in atomic chunks (100 units / chunk) with constraint verification. Please do not close this window.
                   </p>
-                  <div className="max-w-md mx-auto bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                  <div className="max-w-md mx-auto bg-surface-hover rounded-full h-2.5 overflow-hidden">
                     <div className="bg-[var(--brand)] h-2.5 rounded-full animate-pulse w-full" />
                   </div>
                 </div>
@@ -641,7 +641,7 @@ export function BulkImportModal({
               {/* Step 5: Completed */}
               {step === 'completed' && importResult && (
                 <div className="py-10 text-center space-y-4">
-                  <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                  <div className="w-14 h-14 rounded-full bg-success-bg text-success flex items-center justify-center mx-auto">
                     <CheckCircle2 className="w-8 h-8" />
                   </div>
 
@@ -651,14 +651,14 @@ export function BulkImportModal({
                   </p>
 
                   <div className="flex items-center justify-center gap-4 py-2">
-                    <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-                      <span className="text-xs text-emerald-800 block">Successfully Added</span>
-                      <span className="text-xl font-bold text-emerald-700">{importResult.successfulCount} units</span>
+                    <div className="p-3 bg-success-bg rounded-xl border border-success/30">
+                      <span className="text-xs text-success block">Successfully Added</span>
+                      <span className="text-xl font-bold text-success">{importResult.successfulCount} units</span>
                     </div>
                     {importResult.failedCount > 0 && (
-                      <div className="p-3 bg-red-50 rounded-xl border border-red-200">
-                        <span className="text-xs text-red-800 block">Failed / Skipped</span>
-                        <span className="text-xl font-bold text-red-700">{importResult.failedCount} units</span>
+                      <div className="p-3 bg-danger-bg rounded-xl border border-danger/30">
+                        <span className="text-xs text-danger block">Failed / Skipped</span>
+                        <span className="text-xl font-bold text-danger">{importResult.failedCount} units</span>
                       </div>
                     )}
                   </div>
@@ -712,9 +712,9 @@ export function BulkImportModal({
                     <div key={h.id} className="p-4 space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-blue-600" />
+                          <FileText className="w-4 h-4 text-brand" />
                           <span className="font-bold text-[var(--foreground)]">{h.file_name}</span>
-                          <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-gray-100 text-gray-700">
+                          <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-surface-hover text-muted">
                             {h.file_type}
                           </span>
                           <span className="text-xs text-[var(--foreground-muted)] font-mono">({h.reference_id})</span>
@@ -723,10 +723,10 @@ export function BulkImportModal({
                         <span
                           className={`text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
                             h.status === 'completed'
-                              ? 'bg-emerald-100 text-emerald-800'
+                              ? 'bg-success-bg text-success'
                               : h.status === 'partial'
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-red-100 text-red-800'
+                              ? 'bg-warning-bg text-warning'
+                              : 'bg-danger-bg text-danger'
                           }`}
                         >
                           {h.status}
@@ -738,11 +738,11 @@ export function BulkImportModal({
                           <span>
                             Total: <strong>{h.total_rows}</strong>
                           </span>
-                          <span className="text-emerald-700">
+                          <span className="text-success">
                             Success: <strong>{h.successful_rows}</strong>
                           </span>
                           {h.failed_rows > 0 && (
-                            <span className="text-red-700">
+                            <span className="text-danger">
                               Failed: <strong>{h.failed_rows}</strong>
                             </span>
                           )}

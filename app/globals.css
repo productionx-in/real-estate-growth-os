@@ -73,8 +73,10 @@
 
   --success: var(--green-700);
   --success-bg: var(--green-50);
+  --success-foreground: var(--gray-0);
   --warning: var(--amber-700);
   --warning-bg: var(--amber-50);
+  --warning-foreground: var(--gray-0);
   --danger: var(--red-600);
   --danger-hover: var(--red-700);
   --danger-bg: var(--red-50);
@@ -127,8 +129,10 @@
 
   --success: var(--green-400);
   --success-bg: rgb(74 222 128 / 0.12);
+  --success-foreground: var(--gray-950);
   --warning: var(--amber-400);
   --warning-bg: rgb(251 191 36 / 0.12);
+  --warning-foreground: var(--gray-950);
   --danger: var(--red-400);
   --danger-hover: var(--red-400);
   --danger-bg: rgb(248 113 113 / 0.12);
@@ -167,8 +171,10 @@
   --color-ring: var(--focus-ring);
   --color-success: var(--success);
   --color-success-bg: var(--success-bg);
+  --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-bg: var(--warning-bg);
+  --color-warning-foreground: var(--warning-foreground);
   --color-danger: var(--danger);
   --color-danger-hover: var(--danger-hover);
   --color-danger-bg: var(--danger-bg);

@@ -68,11 +68,11 @@ export function ResponseSettingsCard({ orgId, initial }: { orgId: string; initia
             <span className="text-[var(--foreground-muted)]">Applies to leads routed by a rule; the next available, on-duty member gets it and a fresh clock starts.</span></span>
         </label>
         <div className="flex items-center gap-3 lg:justify-end">
-          {state === 'saved' && <span className="text-[12px] text-emerald-700">Saved</span>}
-          <button type="submit" disabled={state === 'saving'} className="px-4 py-1.5 text-[12px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50">Save rules</button>
+          {state === 'saved' && <span className="text-[12px] text-success">Saved</span>}
+          <button type="submit" disabled={state === 'saving'} className="px-4 py-1.5 text-[12px] font-semibold text-brand-foreground bg-brand hover:bg-brand rounded-lg disabled:opacity-50">Save rules</button>
         </div>
       </form>
-      {error && <p role="alert" className="mt-3 text-[12px] text-red-700">{error}</p>}
+      {error && <p role="alert" className="mt-3 text-[12px] text-danger">{error}</p>}
     </section>
   )
 }

@@ -11,7 +11,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const BASELINE_RAW_PALETTE = 2119 // measured at the start of Phase 2; lower it when you migrate a module
+const BASELINE_RAW_PALETTE = 380 // 2119 at the start of Phase 2; 380 after the Phase 5 token migration. Only ever lower it.
 
 let passed = 0
 function test(name, fn) { fn(); passed++; console.log(`  ✓ ${name}`) }
@@ -71,7 +71,7 @@ test('text colours meet WCAG AA (4.5:1) on background and surface, light and dar
         if (r < 4.5) failures.push(`${name}: ${fg} on ${bg} = ${r.toFixed(2)}:1`)
       }
     }
-    for (const [fg, bg] of [['--brand-foreground', '--brand'], ['--danger-foreground', '--danger']]) {
+    for (const [fg, bg] of [['--brand-foreground', '--brand'], ['--danger-foreground', '--danger'], ['--success-foreground', '--success'], ['--warning-foreground', '--warning']]) {
       const r = contrast(resolve(theme, theme[fg]), resolve(theme, theme[bg]))
       if (r < 4.5) failures.push(`${name}: ${fg} on ${bg} = ${r.toFixed(2)}:1`)
     }

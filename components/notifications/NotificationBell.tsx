@@ -83,7 +83,7 @@ export function NotificationBell({ orgId, orgSlug }: { orgId: string; orgSlug: s
       >
         <Bell className="w-4 h-4" />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[10px] font-semibold leading-4 text-center">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-danger text-danger-foreground text-[10px] font-semibold leading-4 text-center">
             {unread > 99 ? '99+' : unread}
           </span>
         )}
@@ -93,7 +93,7 @@ export function NotificationBell({ orgId, orgSlug }: { orgId: string; orgSlug: s
           <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border)]">
             <span className="text-sm font-semibold">Notifications</span>
             {unread > 0 && (
-              <button onClick={() => markRead({ all: true })} className="text-xs text-blue-600 hover:underline">
+              <button onClick={() => markRead({ all: true })} className="text-xs text-brand hover:underline">
                 Mark all read
               </button>
             )}
@@ -104,7 +104,7 @@ export function NotificationBell({ orgId, orgSlug }: { orgId: string; orgSlug: s
           ) : (
             <ul>
               {items.map((n) => (
-                <li key={n.id} className={n.read_at ? '' : 'bg-blue-50/60'}>
+                <li key={n.id} className={n.read_at ? '' : 'bg-brand-light/60'}>
                   <Link
                     href={n.lead_id ? `/${orgSlug}/leads/${n.lead_id}` : `/${orgSlug}/leads`}
                     onClick={() => { if (!n.read_at) markRead({ ids: [n.id] }); setOpen(false) }}

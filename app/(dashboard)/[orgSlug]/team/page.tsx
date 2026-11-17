@@ -43,7 +43,7 @@ export default async function TeamPage({ params }: PageProps) {
   if (membersError) {
     return (
       <PageShell title="Team" description="Manage workspace members and sales executive roles">
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+        <div className="p-4 rounded-xl bg-danger-bg border border-danger/30 text-danger text-xs flex items-center gap-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>Failed to load organisation team members: {membersError.message}</span>
         </div>

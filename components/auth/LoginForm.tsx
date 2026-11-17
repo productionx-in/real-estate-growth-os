@@ -92,18 +92,18 @@ export function LoginForm() {
         </div>
 
         {error && (
-          <div className="p-3 rounded-md bg-[var(--danger-bg)] border border-red-100 text-[13px] text-[var(--danger)]">
+          <div className="p-3 rounded-md bg-[var(--danger-bg)] border border-danger/30 text-[13px] text-[var(--danger)]">
             {error}
           </div>
         )}
 
         {resetSuccess ? (
-          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] space-y-2">
+          <div className="p-4 rounded-xl bg-success-bg border border-success/30 text-success text-[13px] space-y-2">
             <div className="flex items-center gap-2 font-semibold">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <CheckCircle2 className="w-4 h-4 text-success" />
               <span>Password Reset Email Sent</span>
             </div>
-            <p className="text-[12px] text-emerald-700 leading-relaxed">
+            <p className="text-[12px] text-success leading-relaxed">
               If an active account exists for <strong>{email}</strong>, check your inbox for instructions to reset your password.
             </p>
           </div>
@@ -142,11 +142,11 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSignIn} className="space-y-4">
       {searchParams.get('notice') === 'closed_saas' && (
-        <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-[13px] flex items-start gap-2.5">
-          <Shield className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+        <div className="p-3.5 rounded-xl bg-brand-light border border-brand/30 text-brand text-[13px] flex items-start gap-2.5">
+          <Shield className="w-4 h-4 text-brand mt-0.5 shrink-0" />
           <div>
-            <div className="font-semibold text-blue-950">Closed-SaaS Platform</div>
-            <div className="text-[12px] text-blue-700 mt-0.5 leading-relaxed">
+            <div className="font-semibold text-brand">Closed-SaaS Platform</div>
+            <div className="text-[12px] text-brand mt-0.5 leading-relaxed">
               Public self-service registration is disabled. REGrow workspaces are provisioned by invitation or through our sales team. Please sign in to an existing account.
             </div>
           </div>
@@ -154,7 +154,7 @@ export function LoginForm() {
       )}
 
       {error && (
-        <div className="p-3 rounded-md bg-[var(--danger-bg)] border border-red-100 text-[13px] text-[var(--danger)]">
+        <div className="p-3 rounded-md bg-[var(--danger-bg)] border border-danger/30 text-[13px] text-[var(--danger)]">
           {error}
         </div>
       )}
@@ -213,8 +213,8 @@ export function LoginForm() {
 
       {/* Enterprise Organization-Controlled SaaS Notice */}
       <div className="pt-3 mt-4 border-t border-[var(--border)]">
-        <div className="p-3 rounded-lg bg-gray-50 border border-gray-100 text-[11px] text-[var(--foreground-muted)] space-y-1">
-          <div className="flex items-center gap-1.5 font-semibold text-gray-700">
+        <div className="p-3 rounded-lg bg-surface-muted border border-default text-[11px] text-[var(--foreground-muted)] space-y-1">
+          <div className="flex items-center gap-1.5 font-semibold text-muted">
             <Shield className="w-3.5 h-3.5 text-[var(--brand)]" />
             <span>Organisation-Controlled SaaS</span>
           </div>

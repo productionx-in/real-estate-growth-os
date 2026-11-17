@@ -64,7 +64,7 @@ export function ResetPasswordForm() {
   }
   if (done) {
     return (
-      <p role="status" className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-2">
+      <p role="status" className="p-4 rounded-xl bg-success-bg border border-success/30 text-success text-sm flex items-center gap-2">
         <CheckCircle2 className="w-4 h-4" />Password updated. Taking you to your workspace…
       </p>
     )
@@ -91,7 +91,7 @@ export function ResetPasswordForm() {
           value={confirm} onChange={(e) => setConfirm(e.target.value)}
           className="w-full px-3 py-2.5 text-base sm:text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100" />
       </div>
-      {error && <p role="alert" className="p-3 rounded-md bg-[var(--danger-bg)] border border-red-100 text-sm text-[var(--danger)]">{error}</p>}
+      {error && <p role="alert" className="p-3 rounded-md bg-[var(--danger-bg)] border border-danger/30 text-sm text-[var(--danger)]">{error}</p>}
       <button type="submit" disabled={busy}
         className="w-full py-2.5 px-4 text-sm font-semibold text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 flex items-center justify-center gap-2">
         {busy && <Loader2 className="w-4 h-4 animate-spin" />}Save new password
