@@ -39,6 +39,23 @@ enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
 
+# Branded auth emails, generated from lib/email/layout.ts by scripts/build-auth-email-templates.mjs.
+[auth.email.template.confirmation]
+subject = "Confirm your email for REGrow"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Reset your REGrow password"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.magic_link]
+subject = "Your REGrow sign-in link"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.email_change]
+subject = "Confirm your new email for REGrow"
+content_path = "./supabase/templates/email_change.html"
+
 [auth.mfa]
 max_enrolled_factors = 10
 
