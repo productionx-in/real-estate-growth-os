@@ -3,6 +3,7 @@
 
 import type { InboundLeadPayload } from '@/lib/integrations/types'
 import type { EnquirySubmissionInput } from './types'
+import { safeHttpUrl } from '@/lib/integrations/website/attribution'
 
 const RESTRICTED_KEYS = new Set([
   'org_id',
@@ -34,8 +35,9 @@ export function normalizeWebsiteEnquiry(
     utm_campaign: input.utmCampaign || null,
     utm_term: input.utmTerm || null,
     utm_content: input.utmContent || null,
-    landing_page_url: input.pageUrl || null,
-    referrer_url: input.referrer || null,
+    // Only http(s) URLs are kept: these are shown as links to staff, so javascript: or data: must never pass.
+    landing_page_url: safeHttpUrl(input.pageUrl),
+    referrer_url: safeHttpUrl(input.referrer),
     unit_preference: input.unitPreference || null,
     budget_range: input.budget || null,
     schedule_site_visit: Boolean(input.scheduleSiteVisit),
@@ -102,7 +104,7 @@ export function normalizeWebsiteEnquiry(
       : null,
     externalLeadId: input.externalLeadId ? String(input.externalLeadId).trim() : undefined,
     idempotencyToken: input.idempotencyToken ? String(input.idempotencyToken).trim() : undefined,
-    sourceUrl: input.pageUrl ? input.pageUrl.trim() : null,
+    sourceUrl: safeHttpUrl(input.pageUrl),
     notes: combinedNotes,
     sourceMetadata: {
       ...sourceMetadata,

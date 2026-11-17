@@ -31,7 +31,7 @@ async function check(method, pathname, expectRedirectTo) {
 
 console.log('PROXY ROUTING (anonymous caller)')
 for (const p of ['/api/webhooks/meta', '/api/webhooks/google/abc', '/api/webhooks/portals/99acres/abc', '/api/webhooks/whatsapp/abc',
-  '/api/webhooks/inbound/abc', '/api/forms/submit', '/api/public/onboarding-requests', '/api/jobs/run', '/api/v1/leads', '/api/leads']) {
+  '/api/webhooks/inbound/abc', '/api/forms/submit', '/api/capture', '/api/public/onboarding-requests', '/api/jobs/run', '/api/v1/leads', '/api/leads']) {
   await check('POST', p, null)
 }
 await check('GET', '/api/webhooks/meta', null)
@@ -40,6 +40,11 @@ await check('GET', '/login', null)
 await check('GET', '/pricing', null)
 await check('GET', '/demo', null)
 await check('GET', '/leakage-audit', null)
+// Scripts and pages loaded by visitors of customers' websites (never signed in to REGrow)
+await check('GET', '/capture.js', null)
+await check('GET', '/forms/embed.js', null)
+await check('GET', '/forms/view', null)
+await check('GET', '/capture.jsx', '/login') // exact paths only
 await check('GET', '/acme/leads', '/login')
 await check('GET', '/select-org', '/login')
 await check('GET', '/apiary', '/login') // only the /api prefix is exempt, not look-alike paths
