@@ -57,6 +57,8 @@ export async function createProject(orgId: string, values: ProjectFormValues) {
       status: values.status,
       city: values.city || null,
       location: values.location || null,
+      latitude: values.latitude ?? null,
+      longitude: values.longitude ?? null,
       description: values.description || null,
       rera_number: values.rera_number || null,
       total_area_value: values.total_area_value || null,
@@ -86,6 +88,8 @@ export async function updateProject(projectId: string, values: Partial<ProjectFo
   if (values.status !== undefined) payload.status = values.status
   if (values.city !== undefined) payload.city = values.city || null
   if (values.location !== undefined) payload.location = values.location || null
+  if (values.latitude !== undefined) payload.latitude = values.latitude
+  if (values.longitude !== undefined) payload.longitude = values.longitude
   if (values.description !== undefined) payload.description = values.description || null
   if (values.rera_number !== undefined) payload.rera_number = values.rera_number || null
   if (values.total_area_value !== undefined) payload.total_area_value = values.total_area_value || null

@@ -672,6 +672,8 @@ export interface Database {
           specifications: Json
           created_at: string
           updated_at: string
+          latitude: number | null
+          longitude: number | null
         }
         Insert: {
           id?: string
@@ -697,6 +699,8 @@ export interface Database {
           specifications?: Json
           created_at?: string
           updated_at?: string
+          latitude?: number | null
+          longitude?: number | null
         }
         Update: {
           id?: string
@@ -722,6 +726,8 @@ export interface Database {
           specifications?: Json
           created_at?: string
           updated_at?: string
+          latitude?: number | null
+          longitude?: number | null
         }
         Relationships: [
           {
@@ -1751,6 +1757,14 @@ export interface Database {
           completed_at: string | null
           created_at: string
           updated_at: string
+          accompanied_by: string | null
+          meeting_link: string | null
+          cancel_reason: string | null
+          checkin_lat: number | null
+          checkin_lng: number | null
+          checkin_distance_m: number | null
+          created_by: string | null
+          updated_by: string | null
         }
         Insert: {
           id?: string
@@ -1770,6 +1784,14 @@ export interface Database {
           completed_at?: string | null
           created_at?: string
           updated_at?: string
+          accompanied_by?: string | null
+          meeting_link?: string | null
+          cancel_reason?: string | null
+          checkin_lat?: number | null
+          checkin_lng?: number | null
+          checkin_distance_m?: number | null
+          created_by?: string | null
+          updated_by?: string | null
         }
         Update: {
           id?: string
@@ -1789,6 +1811,14 @@ export interface Database {
           completed_at?: string | null
           created_at?: string
           updated_at?: string
+          accompanied_by?: string | null
+          meeting_link?: string | null
+          cancel_reason?: string | null
+          checkin_lat?: number | null
+          checkin_lng?: number | null
+          checkin_distance_m?: number | null
+          created_by?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -2660,6 +2690,7 @@ export interface Database {
           completed_at: string | null
           reminded_at: string | null
           overdue_alerted_at: string | null
+          site_visit_id: string | null
         }
         Insert: {
           id?: string
@@ -2675,6 +2706,7 @@ export interface Database {
           completed_at?: string | null
           reminded_at?: string | null
           overdue_alerted_at?: string | null
+          site_visit_id?: string | null
         }
         Update: {
           id?: string
@@ -2690,6 +2722,7 @@ export interface Database {
           completed_at?: string | null
           reminded_at?: string | null
           overdue_alerted_at?: string | null
+          site_visit_id?: string | null
         }
         Relationships: [
           {

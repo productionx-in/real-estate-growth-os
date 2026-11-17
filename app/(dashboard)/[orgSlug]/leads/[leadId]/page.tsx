@@ -14,6 +14,9 @@ import { LeadWorkPanel } from '@/components/leads/LeadWorkPanel'
 import { listLeadTasks } from '@/lib/dal/follow-ups'
 import { formatDate, formatBudgetRange } from '@/lib/utils/format'
 import type { MemberRole, LeadStatus } from '@/types/database'
+import { createServiceClient } from '@/lib/supabase/server'
+import { getModules } from '@/lib/auth/entitlements'
+import { ScheduleVisitDialog } from '@/components/visits/ScheduleVisitDialog'
 
 export const metadata: Metadata = { title: 'Lead Detail' }
 
@@ -76,7 +79,14 @@ export default async function LeadDetailPage({ params }: PageProps) {
     notFound()
   }
 
-  const [activities, tasks] = await Promise.all([getLeadActivities(leadId), listLeadTasks(org.id, leadId)])
+  const service = createServiceClient()
+  const [activities, tasks, visitProjects, visitAgents] = await Promise.all([
+    getLeadActivities(leadId), listLeadTasks(org.id, leadId),
+    service.from('projects').select('id, name').eq('org_id', org.id).order('name'),
+    service.from('org_members').select('profile_id, profile:profiles!org_members_profile_id_fkey(full_name)').eq('org_id', org.id).eq('status', 'active').in('role', ['owner', 'admin', 'manager', 'sales_exec']),
+  ])
+  const salesOn = (await getModules(org.id)).sales
+  type AgentRow = { profile_id: string; profile: { full_name: string } | { full_name: string }[] | null }
   const viewerRole: MemberRole = role
   const canEdit = viewerRole !== 'readonly'
   // Working a lead (calls, outcomes, follow-ups): managers and above, or the salesperson it is assigned to.
@@ -108,6 +118,17 @@ export default async function LeadDetailPage({ params }: PageProps) {
       }
       actions={
         canEdit ? (
+          <>
+          {canWork && salesOn && (
+            <ScheduleVisitDialog
+              fixedLead={{ id: lead.id, label: lead.name }}
+              projects={(visitProjects.data ?? []).map((p) => ({ id: p.id, label: p.name }))}
+              agents={((visitAgents.data ?? []) as AgentRow[]).map((m) => ({ id: m.profile_id, label: (Array.isArray(m.profile) ? m.profile[0]?.full_name : m.profile?.full_name) ?? 'Unknown' }))}
+              defaultProjectId={lead.project_id}
+              defaultAgentId={lead.assigned_to ?? profile.id}
+              canPickAgent={viewerRole !== 'sales_exec'}
+            />
+          )}
           <Link
             href={`/${orgSlug}/leads/${leadId}/edit`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] transition-colors"
@@ -115,6 +136,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
             <Pencil className="w-3.5 h-3.5" />
             Edit
           </Link>
+          </>
         ) : undefined
       }
     >

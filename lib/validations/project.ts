@@ -17,6 +17,9 @@ export const ProjectSchema = z.object({
   status: z.enum(['planning', 'pre_launch', 'launched', 'ongoing', 'completed']),
   city: z.string().max(80).optional().or(z.literal('')),
   location: z.string().max(200).optional().or(z.literal('')),
+  // Site coordinates: used to check that a site-visit check-in happened at the project.
+  latitude: z.number().min(-90).max(90).nullable().optional(),
+  longitude: z.number().min(-180).max(180).nullable().optional(),
   description: z.string().max(2000).optional().or(z.literal('')),
   rera_number: z.string().max(80).optional().or(z.literal('')),
   total_area_value: z.number().positive().optional().nullable(),
