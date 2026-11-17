@@ -258,6 +258,17 @@ async function main() {
       assert.ok((await sessions(both)) >= 1)
     })
 
+    await test('deactivating an organisation signs out only the members with no other workspace', async () => {
+      const closing = await mkOrg('closing'); createdOrgs.push(closing)
+      const solo = await mkUser('solo'), shared = await mkUser('shared')
+      await join(closing, solo, 'owner'); await join(closing, shared, 'sales_exec'); await join(other, shared, 'sales_exec')
+      await signIn(solo); await signIn(shared)
+      await lifecycle(closing, 'deactivated', 'Contract ended')
+      assert.equal(await dal.revokeSessionsForDeactivatedOrg(closing), 1)
+      assert.equal(await sessions(solo), 0)
+      assert.ok((await sessions(shared)) >= 1)
+    })
+
     // ---------------------------------------------------------------- onboarding requests
     await test('public demo requests are stored without a requesting user; platform ones still need one', async () => {
       const base = [`Acme ${RUN}`, 'developer', `lead-${RUN}@acme.test`, 'Asha', 'developer_legacy_v1', 5]

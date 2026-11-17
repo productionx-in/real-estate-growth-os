@@ -346,6 +346,24 @@ export async function revokeSessionsIfNoActiveMembership(profileId: string): Pro
   return true
 }
 
+/**
+ * After an organisation is deactivated: signs out each member it blocked who has no other active workspace.
+ * Returns how many people were signed out.
+ */
+export async function revokeSessionsForDeactivatedOrg(orgId: string): Promise<number> {
+  const service = createServiceClient()
+  const { data: blocked } = await service
+    .from('org_members')
+    .select('profile_id')
+    .eq('org_id', orgId)
+    .eq('lifecycle_suspended', true)
+  let revoked = 0
+  for (const m of blocked ?? []) {
+    if (await revokeSessionsIfNoActiveMembership(m.profile_id)) revoked++
+  }
+  return revoked
+}
+
 export interface DeactivationOptions {
   orgId: string
   memberId: string

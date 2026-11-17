@@ -11,7 +11,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { authenticatePlatformAdmin, logPlatformAction } from '@/lib/auth/platform'
 import { createServiceClient } from '@/lib/supabase/server'
-import { revokeSessionsIfNoActiveMembership } from '@/lib/dal/invitations'
+import { revokeSessionsForDeactivatedOrg } from '@/lib/dal/invitations'
 import { requestOrigin } from '@/lib/dal/org-audit'
 import { z } from 'zod'
 
@@ -60,17 +60,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     const result = data as { from: string; to: string; members_changed: number; unchanged: boolean }
 
     // Deactivation: sign out anyone who now has no active workspace at all.
-    let sessionsRevoked = 0
-    if (state === 'deactivated' && !result.unchanged) {
-      const { data: members } = await service
-        .from('org_members')
-        .select('profile_id')
-        .eq('org_id', orgId)
-        .eq('lifecycle_suspended', true)
-      for (const m of members ?? []) {
-        if (await revokeSessionsIfNoActiveMembership(m.profile_id)) sessionsRevoked++
-      }
-    }
+    const sessionsRevoked =
+      state === 'deactivated' && !result.unchanged ? await revokeSessionsForDeactivatedOrg(orgId) : 0
 
     const origin = requestOrigin(request)
     const audit = await logPlatformAction({
