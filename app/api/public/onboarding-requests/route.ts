@@ -146,6 +146,7 @@ export async function POST(request: NextRequest) {
         requested_seats: requestedSeats,
         requested_billing_cycle: 'annual',
         status: 'draft',
+        source: 'public',
       })
 
     if (insertErr) {

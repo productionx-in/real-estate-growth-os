@@ -10,6 +10,7 @@ import {
   createProjectMapping,
 } from '@/lib/dal/integrations'
 import { z } from 'zod'
+import { auditMember } from '@/lib/dal/org-audit'
 
 const CreateConnectionSchema = z.object({
   orgId: z.string().uuid().optional(),
@@ -211,6 +212,11 @@ export async function POST(request: NextRequest) {
         { status: isSchemaError ? 503 : 400 }
       )
     }
+
+    await auditMember(request, authResult.auth, tenant.orgId, 'integration.connected', { type: 'integration', id: connection.id }, {
+      provider: parsed.data.provider,
+      name: parsed.data.name,
+    })
 
     // Process initial mappings if provided
     const createdMappings = []

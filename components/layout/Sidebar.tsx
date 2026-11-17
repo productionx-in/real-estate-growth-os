@@ -22,6 +22,7 @@ import {
   Shuffle,
   ListChecks,
   Gauge,
+  ScrollText,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { PRODUCT_NAME } from '@/lib/brand'
@@ -114,7 +115,10 @@ function getRoleNavSections(
         items: [
           { label: 'Agency Team', href: `/${orgSlug}/team`, icon: UserCircle },
           ...(role === 'owner' || role === 'admin'
-            ? [{ label: 'Settings', href: `/${orgSlug}/settings`, icon: Settings }]
+            ? [
+                { label: 'Settings', href: `/${orgSlug}/settings`, icon: Settings },
+                { label: 'Audit log', href: `/${orgSlug}/audit-log`, icon: ScrollText },
+              ]
             : []),
         ],
       },
@@ -184,6 +188,7 @@ function getRoleNavSections(
       items: [
         { label: 'Team', href: `/${orgSlug}/team`, icon: UserCircle },
         { label: 'Settings', href: `/${orgSlug}/settings`, icon: Settings },
+        { label: 'Audit log', href: `/${orgSlug}/audit-log`, icon: ScrollText },
       ],
     },
   ]

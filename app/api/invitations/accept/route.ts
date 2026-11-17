@@ -2,6 +2,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { acceptEmployeeInvitation } from '@/lib/dal/invitations'
+import { recordOrgAudit, requestOrigin } from '@/lib/dal/org-audit'
 import { z } from 'zod'
 
 const AcceptSchema = z.object({
@@ -26,6 +27,20 @@ export async function POST(request: NextRequest) {
     const result = await acceptEmployeeInvitation(parsed.data.token, auth.profile.id, auth.user.id)
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: result.status ?? 400 })
+    }
+
+    if (result.orgId) {
+      await recordOrgAudit({
+        orgId: result.orgId,
+        action: 'invitation.accepted',
+        actorUserId: auth.user.id,
+        actorProfileId: auth.profile.id,
+        actorLabel: auth.profile.full_name,
+        targetType: 'invitation',
+        targetId: result.invitationId,
+        metadata: { role: result.role },
+        ...requestOrigin(request),
+      })
     }
 
     return NextResponse.json(

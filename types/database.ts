@@ -59,6 +59,8 @@ export type LeadStatus =
   | 'junk'
 
 export type LeadPriority = 'low' | 'medium' | 'high'
+export type OrgLifecycleState = 'pending_setup' | 'active' | 'grace' | 'suspended' | 'deactivated'
+
 export type ActivityType =
   | 'created'
   | 'status_changed'
@@ -175,8 +177,9 @@ export interface Database {
       }
       customer_onboarding_requests: {
         Row: {
+          source: 'platform' | 'public'
           id: string
-          requested_by: string
+          requested_by: string | null
           company_name: string
           company_type: OrgType
           admin_email: string
@@ -198,6 +201,7 @@ export interface Database {
           updated_at: string
         }
         Insert: {
+          source?: 'platform' | 'public'
           id?: string
           requested_by?: string | null
           company_name: string
@@ -221,8 +225,9 @@ export interface Database {
           updated_at?: string
         }
         Update: {
+          source?: 'platform' | 'public'
           id?: string
-          requested_by?: string
+          requested_by?: string | null
           company_name?: string
           company_type?: OrgType
           admin_email?: string
@@ -367,6 +372,9 @@ export interface Database {
       }
       organisations: {
         Row: {
+          lifecycle_state: OrgLifecycleState
+          lifecycle_reason: string | null
+          lifecycle_changed_at: string | null
           id: string
           name: string
           slug: string
@@ -378,6 +386,9 @@ export interface Database {
           updated_at: string
         }
         Insert: {
+          lifecycle_state?: OrgLifecycleState
+          lifecycle_reason?: string | null
+          lifecycle_changed_at?: string | null
           id?: string
           name: string
           slug: string
@@ -389,6 +400,9 @@ export interface Database {
           updated_at?: string
         }
         Update: {
+          lifecycle_state?: OrgLifecycleState
+          lifecycle_reason?: string | null
+          lifecycle_changed_at?: string | null
           id?: string
           name?: string
           slug?: string
@@ -433,6 +447,8 @@ export interface Database {
       }
       org_members: {
         Row: {
+          lifecycle_saved_role: MemberRole | null
+          lifecycle_suspended: boolean
           id: string
           org_id: string
           profile_id: string
@@ -444,6 +460,8 @@ export interface Database {
           deactivated_by: string | null
         }
         Insert: {
+          lifecycle_saved_role?: MemberRole | null
+          lifecycle_suspended?: boolean
           id?: string
           org_id: string
           profile_id: string
@@ -455,6 +473,8 @@ export interface Database {
           deactivated_by?: string | null
         }
         Update: {
+          lifecycle_saved_role?: MemberRole | null
+          lifecycle_suspended?: boolean
           id?: string
           org_id?: string
           profile_id?: string
@@ -2687,6 +2707,64 @@ export interface Database {
           }
         ]
       }
+      org_audit_logs: {
+        Row: {
+          id: string
+          org_id: string
+          actor_kind: 'member' | 'platform' | 'support' | 'system'
+          actor_user_id: string | null
+          actor_profile_id: string | null
+          actor_label: string | null
+          action: string
+          target_type: string | null
+          target_id: string | null
+          metadata: Json
+          ip_address: string | null
+          user_agent: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          actor_kind: 'member' | 'platform' | 'support' | 'system'
+          actor_user_id?: string | null
+          actor_profile_id?: string | null
+          actor_label?: string | null
+          action: string
+          target_type?: string | null
+          target_id?: string | null
+          metadata?: Json
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+        Update: never
+        Relationships: []
+      }
+      organisation_state_events: {
+        Row: {
+          id: string
+          org_id: string
+          from_state: string
+          to_state: string
+          reason: string
+          actor_user_id: string | null
+          actor_kind: 'platform' | 'system' | 'member'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          from_state: string
+          to_state: string
+          reason: string
+          actor_user_id?: string | null
+          actor_kind: 'platform' | 'system' | 'member'
+          created_at?: string
+        }
+        Update: never
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           id: string
@@ -2835,6 +2913,14 @@ export interface Database {
       lead_response_report: {
         Args: { p_org: string; p_from: string; p_to: string }
         Returns: Json
+      }
+      set_organisation_lifecycle: {
+        Args: { p_org: string; p_state: OrgLifecycleState; p_reason: string; p_actor_user: string | null; p_actor_kind?: string; p_actor_label?: string | null }
+        Returns: Json
+      }
+      revoke_user_sessions: {
+        Args: { p_auth_user: string }
+        Returns: number
       }
       process_lead_responses: {
         Args: { p_now?: string }

@@ -5,6 +5,7 @@ import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { normaliseName } from '@/lib/import/crm-mapping'
+import { auditMember } from '@/lib/dal/org-audit'
 
 const ImportPayloadSchema = z.object({
   orgId: z.string().uuid().optional(),
@@ -264,6 +265,12 @@ export async function POST(request: NextRequest) {
         metadata: { batch_size: importedCount },
       })
     }
+
+    await auditMember(request, auth, targetOrgId, 'lead.imported', { type: 'lead_import' }, {
+      imported: importedCount,
+      unmatched_owners: unmatchedOwners.size,
+      unmatched_projects: unmatchedProjects.size,
+    })
 
     return NextResponse.json(
       {
