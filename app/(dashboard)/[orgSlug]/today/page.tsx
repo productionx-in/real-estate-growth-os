@@ -28,9 +28,9 @@ export default async function TodayPage({ params, searchParams }: PageProps) {
   const day = await getMyDay(org.id, team ? null : profile.id)
 
   const sections = [
-    { key: 'waiting' as const, title: 'Call now', hint: 'New leads nobody has contacted yet', icon: PhoneIncoming, tone: 'text-red-600 bg-red-50', leads: day.waiting },
-    { key: 'overdue' as const, title: 'Overdue follow-ups', hint: 'Promised calls that slipped', icon: AlarmClock, tone: 'text-amber-700 bg-amber-50', leads: day.overdue },
-    { key: 'today' as const, title: 'Later today', hint: 'Follow-ups due before midnight', icon: CalendarCheck, tone: 'text-blue-700 bg-blue-50', leads: day.today },
+    { key: 'waiting' as const, title: 'Call now', hint: 'New leads nobody has contacted yet', icon: PhoneIncoming, tone: 'text-danger bg-danger-bg', leads: day.waiting },
+    { key: 'overdue' as const, title: 'Overdue follow-ups', hint: 'Promised calls that slipped', icon: AlarmClock, tone: 'text-warning bg-warning-bg', leads: day.overdue },
+    { key: 'today' as const, title: 'Later today', hint: 'Follow-ups due before midnight', icon: CalendarCheck, tone: 'text-brand bg-brand-light', leads: day.today },
   ]
   const total = day.waiting.length + day.overdue.length + day.today.length
 

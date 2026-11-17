@@ -365,22 +365,22 @@ export function InventoryViewManager({
             label: 'Available',
             value: metrics.available,
             statusKey: 'available',
-            color: 'border-emerald-200 bg-emerald-50/50',
-            text: 'text-emerald-700',
+            color: 'border-success/30 bg-success-bg/50',
+            text: 'text-success',
           },
           {
             label: 'On Hold',
             value: metrics.on_hold,
             statusKey: 'on_hold',
-            color: 'border-amber-200 bg-amber-50/50',
-            text: 'text-amber-700',
+            color: 'border-warning/30 bg-warning-bg/50',
+            text: 'text-warning',
           },
           {
             label: 'Booked',
             value: metrics.booked,
             statusKey: 'booked',
-            color: 'border-blue-200 bg-blue-50/50',
-            text: 'text-blue-700',
+            color: 'border-brand/30 bg-brand-light/50',
+            text: 'text-brand',
           },
           {
             label: 'Sold',
@@ -393,8 +393,8 @@ export function InventoryViewManager({
             label: 'Blocked',
             value: metrics.blocked,
             statusKey: 'blocked',
-            color: 'border-gray-200 bg-gray-50',
-            text: 'text-gray-700',
+            color: 'border-default bg-surface-muted',
+            text: 'text-muted',
           },
         ].map((card) => {
           const isSelected = selectedStatus === card.statusKey
@@ -404,7 +404,7 @@ export function InventoryViewManager({
               type="button"
               onClick={() => handleStatusChange(card.statusKey)}
               className={`p-3 rounded-xl border text-left transition-all ${card.color} ${
-                isSelected ? 'ring-2 ring-blue-500 shadow-xs' : 'hover:opacity-90'
+                isSelected ? 'ring-2 ring-ring shadow-xs' : 'hover:opacity-90'
               }`}
             >
               <span className="text-[11px] font-semibold text-[var(--foreground-muted)] uppercase tracking-wider block">
@@ -484,14 +484,14 @@ export function InventoryViewManager({
               onClick={() => setShowAdvancedFilters((prev) => !prev)}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${
                 showAdvancedFilters || activeFiltersCount > 0
-                  ? 'bg-blue-50 border-blue-200 text-blue-700'
+                  ? 'bg-brand-light border-brand/30 text-brand'
                   : 'bg-[var(--surface)] border-[var(--border)] text-[var(--foreground-muted)] hover:text-[var(--foreground)]'
               }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
               <span>Filters</span>
               {activeFiltersCount > 0 && (
-                <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">
+                <span className="w-4 h-4 rounded-full bg-brand text-brand-foreground text-[10px] flex items-center justify-center font-bold">
                   {activeFiltersCount}
                 </span>
               )}
@@ -505,7 +505,7 @@ export function InventoryViewManager({
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--foreground-muted)] hover:text-red-600 transition-colors"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--foreground-muted)] hover:text-danger transition-colors"
                 title="Reset all filters"
               >
                 <RotateCcw className="w-3 h-3" />
@@ -550,7 +550,7 @@ export function InventoryViewManager({
                   className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-lg hover:bg-[var(--surface-hover)] transition-colors shadow-2xs"
                   title="Bulk import inventory using CSV or Excel"
                 >
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600" />
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-brand" />
                   <span>Import</span>
                 </button>
 

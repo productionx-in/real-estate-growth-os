@@ -225,7 +225,7 @@ export function InventoryTable({
                     <div className="flex items-center gap-1.5">
                       <span>{item.unit_number}</span>
                       {item.is_corner_plot && (
-                        <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-medium">
+                        <span className="text-[10px] bg-warning-bg text-warning px-1.5 py-0.5 rounded font-medium">
                           Corner
                         </span>
                       )}
@@ -235,8 +235,8 @@ export function InventoryTable({
                   {/* Hierarchy Breadcrumb / Location */}
                   <td className="px-4 py-3 text-[var(--foreground-muted)] max-w-xs">
                     {item.hierarchy_path ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-blue-700 bg-blue-50/60 px-2 py-0.5 rounded">
-                        <Layers className="w-3 h-3 text-blue-500 shrink-0" />
+                      <span className="inline-flex items-center gap-1 text-[11px] text-brand bg-brand-light/60 px-2 py-0.5 rounded">
+                        <Layers className="w-3 h-3 text-brand shrink-0" />
                         <span className="truncate">{item.hierarchy_path}</span>
                       </span>
                     ) : item.tower_name || item.floor_number !== null ? (
@@ -255,7 +255,7 @@ export function InventoryTable({
 
                   {/* Category */}
                   <td className="px-4 py-3">
-                    <span className="inline-block text-[11px] font-medium px-2 py-0.5 rounded bg-gray-100 text-gray-700">
+                    <span className="inline-block text-[11px] font-medium px-2 py-0.5 rounded bg-surface-hover text-muted">
                       {PROJECT_CATEGORY_LABELS[item.category] || item.category}
                     </span>
                   </td>
@@ -296,7 +296,7 @@ export function InventoryTable({
                       <button
                         type="button"
                         onClick={() => setSelectedIndex(idx)}
-                        className="p-1.5 rounded-md text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-gray-100 transition-colors"
+                        className="p-1.5 rounded-md text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-surface-hover transition-colors"
                         title="View unit details"
                         aria-label="View unit details"
                       >
@@ -305,7 +305,7 @@ export function InventoryTable({
                       <button
                         type="button"
                         onClick={() => setEditItem(item)}
-                        className="p-1.5 rounded-md text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-gray-100 transition-colors"
+                        className="p-1.5 rounded-md text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-surface-hover transition-colors"
                         title="Edit unit details"
                         aria-label="Edit unit details"
                       >
@@ -314,7 +314,7 @@ export function InventoryTable({
                       <button
                         type="button"
                         onClick={() => setStatusItem(item)}
-                        className="p-1.5 rounded-md text-[var(--brand)] hover:bg-blue-50 transition-colors"
+                        className="p-1.5 rounded-md text-[var(--brand)] hover:bg-brand-light transition-colors"
                         title="Change status"
                         aria-label="Change status"
                       >

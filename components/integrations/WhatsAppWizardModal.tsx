@@ -141,37 +141,37 @@ export function WhatsAppWizardModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/60 backdrop-blur-xs">
+      <div className="bg-surface rounded-2xl shadow-2xl border border-default w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+        <div className="px-6 py-5 border-b border-default flex items-center justify-between bg-surface-muted/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-success-bg text-success flex items-center justify-center font-bold">
               <MessageCircle className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900">WhatsApp Business Cloud API Integration</h2>
-              <p className="text-xs text-slate-500">
+              <h2 className="text-base font-bold text-foreground">WhatsApp Business Cloud API Integration</h2>
+              <p className="text-xs text-subtle">
                 Click-to-WhatsApp Ads attribution, conversation history &amp; CRM lead ingestion.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+            className="p-2 text-subtle hover:text-muted rounded-lg hover:bg-surface-hover transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-6 pt-3 border-b border-slate-200 flex items-center gap-6 text-sm font-medium">
+        <div className="px-6 pt-3 border-b border-default flex items-center gap-6 text-sm font-medium">
           <button
             onClick={() => setActiveTab('overview')}
             className={`pb-3 flex items-center gap-2 border-b-2 transition cursor-pointer ${
               activeTab === 'overview'
-                ? 'border-emerald-600 text-emerald-700 font-semibold'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                ? 'border-success text-success font-semibold'
+                : 'border-transparent text-subtle hover:text-muted'
             }`}
           >
             <PhoneCall className="w-4 h-4" />
@@ -182,8 +182,8 @@ export function WhatsAppWizardModal({
             onClick={() => setActiveTab('templates')}
             className={`pb-3 flex items-center gap-2 border-b-2 transition cursor-pointer ${
               activeTab === 'templates'
-                ? 'border-emerald-600 text-emerald-700 font-semibold'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                ? 'border-success text-success font-semibold'
+                : 'border-transparent text-subtle hover:text-muted'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -194,8 +194,8 @@ export function WhatsAppWizardModal({
             onClick={() => setActiveTab('consent')}
             className={`pb-3 flex items-center gap-2 border-b-2 transition cursor-pointer ${
               activeTab === 'consent'
-                ? 'border-emerald-600 text-emerald-700 font-semibold'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                ? 'border-success text-success font-semibold'
+                : 'border-transparent text-subtle hover:text-muted'
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
@@ -206,8 +206,8 @@ export function WhatsAppWizardModal({
             onClick={() => setActiveTab('test')}
             className={`pb-3 flex items-center gap-2 border-b-2 transition cursor-pointer ${
               activeTab === 'test'
-                ? 'border-emerald-600 text-emerald-700 font-semibold'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                ? 'border-success text-success font-semibold'
+                : 'border-transparent text-subtle hover:text-muted'
             }`}
           >
             <Send className="w-4 h-4" />
@@ -220,11 +220,11 @@ export function WhatsAppWizardModal({
           {/* TAB 1: Overview & Number Discovery */}
           {activeTab === 'overview' && (
             <div className="space-y-5">
-              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2.5">
-                <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="p-3.5 bg-warning-bg border border-warning/30 rounded-xl text-xs text-warning flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />
                 <div>
                   <span className="font-bold">Provider Setup Status: Deferred per DEC-004 &amp; DEC-013.</span>
-                  <p className="mt-0.5 text-amber-800">
+                  <p className="mt-0.5 text-warning">
                     The platform code and Cloud API architecture are verified. Live WhatsApp Business Account
                     registration and phone number verification will occur during final deployment.
                   </p>
@@ -233,49 +233,49 @@ export function WhatsAppWizardModal({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     WhatsApp Business Account ID (WABA)
                   </label>
                   <input
                     type="text"
                     value={wabaId}
                     onChange={(e) => setWabaId(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-800"
+                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg bg-surface-muted text-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Phone Number ID
                   </label>
                   <input
                     type="text"
                     value={phoneNumberId}
                     onChange={(e) => setPhoneNumberId(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-800"
+                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg bg-surface-muted text-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Display Phone Number
                   </label>
                   <input
                     type="text"
                     value={displayPhone}
                     onChange={(e) => setDisplayPhone(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg text-slate-800"
+                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg text-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Default Project Routing
                   </label>
                   <select
                     value={selectedProjectId}
                     onChange={(e) => setSelectedProjectId(e.target.value)}
-                    className="w-full text-xs px-2.5 py-2 border border-slate-300 rounded-lg bg-white text-slate-800"
+                    className="w-full text-xs px-2.5 py-2 border border-strong rounded-lg bg-surface text-foreground"
                   >
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -287,20 +287,20 @@ export function WhatsAppWizardModal({
               </div>
 
               {/* Webhook Configuration Box */}
-              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-2">
+              <div className="border border-default rounded-xl p-4 bg-surface-muted space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700">Webhook Callback URL:</span>
+                  <span className="text-xs font-bold text-muted">Webhook Callback URL:</span>
                   <button
                     onClick={() =>
                       handleCopy(`https://app.productionx.com/api/webhooks/whatsapp/${connectionId}`)
                     }
-                    className="text-[11px] text-emerald-700 flex items-center gap-1 hover:underline cursor-pointer"
+                    className="text-[11px] text-success flex items-center gap-1 hover:underline cursor-pointer"
                   >
-                    {isCopied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                    {isCopied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
                     <span>{isCopied ? 'Copied' : 'Copy URL'}</span>
                   </button>
                 </div>
-                <code className="block p-2 rounded bg-white border border-slate-200 text-xs font-mono text-slate-800 break-all">
+                <code className="block p-2 rounded bg-surface border border-default text-xs font-mono text-foreground break-all">
                   https://app.productionx.com/api/webhooks/whatsapp/{connectionId}
                 </code>
               </div>
@@ -310,27 +310,27 @@ export function WhatsAppWizardModal({
           {/* TAB 2: Approved Templates */}
           {activeTab === 'templates' && (
             <div className="space-y-4">
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-muted">
                 Meta requires pre-approved message templates for business-initiated outreach outside the
                 24-hour customer service window.
               </p>
 
               <div className="space-y-3">
                 {STANDARD_REAL_ESTATE_TEMPLATES.map((tpl) => (
-                  <div key={tpl.id} className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
+                  <div key={tpl.id} className="p-4 rounded-xl border border-default bg-surface space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-900 font-mono">{tpl.name}</span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                        <span className="text-xs font-bold text-foreground font-mono">{tpl.name}</span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-success-bg text-success">
                           {tpl.status}
                         </span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-surface-hover text-muted">
                           {tpl.category}
                         </span>
                       </div>
-                      <span className="text-[11px] text-slate-400">Language: {tpl.language}</span>
+                      <span className="text-[11px] text-subtle">Language: {tpl.language}</span>
                     </div>
-                    <div className="p-3 bg-slate-50 rounded-lg text-xs font-mono text-slate-700 whitespace-pre-wrap">
+                    <div className="p-3 bg-surface-muted rounded-lg text-xs font-mono text-muted whitespace-pre-wrap">
                       {tpl.components.find((c) => c.type === 'BODY')?.text || 'Template Body'}
                     </div>
                   </div>
@@ -342,11 +342,11 @@ export function WhatsAppWizardModal({
           {/* TAB 3: Consent & Compliance */}
           {activeTab === 'consent' && (
             <div className="space-y-4">
-              <div className="border border-slate-200 rounded-xl p-4 bg-white space-y-2">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              <div className="border border-default rounded-xl p-4 bg-surface space-y-2">
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
                   Automated Opt-Out &amp; STOP Processing
                 </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <p className="text-xs text-muted leading-relaxed">
                   In compliance with Meta WhatsApp policy and TRAI/DND guidelines, any incoming message
                   matching opt-out keywords immediately flags the lead as opted-out and blocks all outbound
                   automated messages.
@@ -355,7 +355,7 @@ export function WhatsAppWizardModal({
                   {['STOP', 'UNSUBSCRIBE', 'CANCEL', 'QUIT', 'OPT OUT', 'END', 'REVOKE'].map((kw) => (
                     <span
                       key={kw}
-                      className="px-2 py-1 rounded bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-mono font-semibold"
+                      className="px-2 py-1 rounded bg-danger-bg border border-danger/30 text-danger text-[11px] font-mono font-semibold"
                     >
                       {kw}
                     </span>
@@ -363,11 +363,11 @@ export function WhatsAppWizardModal({
                 </div>
               </div>
 
-              <div className="border border-slate-200 rounded-xl p-4 bg-white space-y-2">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              <div className="border border-default rounded-xl p-4 bg-surface space-y-2">
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
                   24-Hour Customer Service Window
                 </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <p className="text-xs text-muted leading-relaxed">
                   Free-form messages can only be sent within 24 hours of the home buyer&apos;s last inbound message.
                   Outside this window, only pre-approved WhatsApp templates can be dispatched.
                 </p>
@@ -378,14 +378,14 @@ export function WhatsAppWizardModal({
           {/* TAB 4: Live Test Console */}
           {activeTab === 'test' && (
             <div className="space-y-4">
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-muted">
                 Simulate an incoming Click-to-WhatsApp Ads message. This verifies lead creation,
                 campaign attribution, and conversation association.
               </p>
 
               <form onSubmit={handleRunLiveTest} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Buyer Name *
                   </label>
                   <input
@@ -393,12 +393,12 @@ export function WhatsAppWizardModal({
                     required
                     value={testBuyerName}
                     onChange={(e) => setTestBuyerName(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg text-slate-800"
+                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg text-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Buyer WhatsApp Number *
                   </label>
                   <input
@@ -406,12 +406,12 @@ export function WhatsAppWizardModal({
                     required
                     value={testPhone}
                     onChange={(e) => setTestPhone(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg text-slate-800"
+                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg text-foreground"
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Inbound Message Text
                   </label>
                   <input
@@ -419,31 +419,31 @@ export function WhatsAppWizardModal({
                     required
                     value={testMessage}
                     onChange={(e) => setTestMessage(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg text-slate-800"
+                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg text-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Click-to-WhatsApp Ad Headline (Referral)
                   </label>
                   <input
                     type="text"
                     value={testAdHeadline}
                     onChange={(e) => setTestAdHeadline(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg text-slate-800"
+                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg text-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-semibold text-muted mb-1">
                     Ad ID (Campaign Attribution)
                   </label>
                   <input
                     type="text"
                     value={testAdId}
                     onChange={(e) => setTestAdId(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg text-slate-800"
+                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg text-foreground"
                   />
                 </div>
 
@@ -451,7 +451,7 @@ export function WhatsAppWizardModal({
                   <button
                     type="submit"
                     disabled={testLoading}
-                    className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg text-xs shadow-sm transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                    className="w-full py-2.5 px-4 bg-success hover:bg-success text-success-foreground font-medium rounded-lg text-xs shadow-sm transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                   >
                     {testLoading ? 'Processing Inbound Event...' : 'Simulate Inbound WhatsApp Event'}
                   </button>
@@ -459,20 +459,20 @@ export function WhatsAppWizardModal({
               </form>
 
               {testResponse && (
-                <div className="mt-4 p-4 rounded-xl border border-slate-200 bg-slate-50 font-mono text-xs">
+                <div className="mt-4 p-4 rounded-xl border border-default bg-surface-muted font-mono text-xs">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-slate-700">Webhook Dispatch Outcome:</span>
+                    <span className="font-bold text-muted">Webhook Dispatch Outcome:</span>
                     <span
                       className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
                         testResponse.success
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-rose-100 text-rose-800'
+                          ? 'bg-success-bg text-success'
+                          : 'bg-danger-bg text-danger'
                       }`}
                     >
                       HTTP {String(testResponse.httpStatus || 200)}
                     </span>
                   </div>
-                  <pre className="text-slate-800 overflow-x-auto text-[11px]">
+                  <pre className="text-foreground overflow-x-auto text-[11px]">
                     {JSON.stringify(testResponse, null, 2)}
                   </pre>
                 </div>
@@ -482,10 +482,10 @@ export function WhatsAppWizardModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50/50 flex items-center justify-end">
+        <div className="px-6 py-4 border-t border-default bg-surface-muted/50 flex items-center justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+            className="px-4 py-2 text-xs font-medium text-muted hover:text-foreground hover:bg-surface-hover rounded-lg transition cursor-pointer"
           >
             Close
           </button>

@@ -114,7 +114,7 @@ export function StatusTransitionPanel({ leadId, currentStatus }: StatusTransitio
               className={cn(
                 'w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-[13px] font-medium transition-colors disabled:opacity-60',
                 to === 'lost' || to === 'junk'
-                  ? 'border-red-100 bg-red-50 text-red-700 hover:bg-red-100'
+                  ? 'border-danger/30 bg-danger-bg text-danger hover:bg-danger-bg'
                   : 'border-[var(--border)] bg-[var(--surface-hover)] text-[var(--foreground)] hover:border-[var(--brand)] hover:bg-[var(--brand-light)] hover:text-[var(--brand)]'
               )}
             >

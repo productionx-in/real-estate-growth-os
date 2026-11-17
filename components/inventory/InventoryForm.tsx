@@ -363,7 +363,7 @@ export function InventoryForm({
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-50"
+        className="fixed inset-0 bg-overlay backdrop-blur-[1px] z-50"
         onClick={onClose}
       />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
@@ -371,7 +371,7 @@ export function InventoryForm({
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-[var(--surface-muted)]">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-blue-50 text-[var(--brand)] border border-blue-100">
+              <div className="p-2 rounded-lg bg-brand-light text-[var(--brand)] border border-brand/30">
                 <Building2 className="w-4 h-4" />
               </div>
               <div>
@@ -394,22 +394,22 @@ export function InventoryForm({
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6 text-xs">
             {error && (
-              <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-start gap-2.5">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-600" />
+              <div className="p-3.5 rounded-xl bg-danger-bg border border-danger/30 text-danger text-xs flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-danger" />
                 <span>{error}</span>
               </div>
             )}
 
             {successNotice && (
-              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2.5">
-                <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-600" />
+              <div className="p-3.5 rounded-xl bg-success-bg border border-success/30 text-success text-xs flex items-center gap-2.5">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-success" />
                 <span>{successNotice}</span>
               </div>
             )}
 
             {/* Mixed-Use Dynamic Component Selection */}
             {isMixedUseProject && (
-              <div className="p-3.5 rounded-xl bg-blue-50/50 border border-blue-100 space-y-2">
+              <div className="p-3.5 rounded-xl bg-brand-light/50 border border-brand/30 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-[var(--brand)] flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5" />
@@ -429,7 +429,7 @@ export function InventoryForm({
                         onClick={() => switchCategory(cat.value)}
                         className={`px-3 py-1.5 rounded-lg border text-center font-medium transition-all ${
                           selected
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                            ? 'bg-brand text-brand-foreground border-brand shadow-2xs'
                             : 'bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-hover)]'
                         }`}
                       >
@@ -451,7 +451,7 @@ export function InventoryForm({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-medium text-[var(--foreground)]">
-                    {unitNumberLabel} <span className="text-red-500">*</span>
+                    {unitNumberLabel} <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
@@ -630,7 +630,7 @@ export function InventoryForm({
                       id="isCornerPlot"
                       checked={isCornerPlot}
                       onChange={(e) => setIsCornerPlot(e.target.checked)}
-                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
+                      className="w-4 h-4 rounded text-brand focus:ring-ring border-strong"
                     />
                     <label htmlFor="isCornerPlot" className="font-medium text-[var(--foreground)] cursor-pointer">
                       Corner Plot (Premium)
@@ -750,7 +750,7 @@ export function InventoryForm({
                 <div className="space-y-1">
                   <label className="font-medium text-[var(--foreground)]">
                     {unitCategory === 'plotted_developments' ? 'Plot Area' : 'Primary Saleable Area'}{' '}
-                    <span className="text-red-500">*</span>
+                    <span className="text-danger">*</span>
                   </label>
                   <div className="flex gap-2">
                     <input

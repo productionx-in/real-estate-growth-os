@@ -75,7 +75,7 @@ export function TodayList({ kind, leads, orgSlug, showAssignee }: {
                 <p className="text-[12px] text-[var(--foreground-muted)] truncate">
                   {[l.project?.name, SOURCE[l.source] ?? l.source, showAssignee ? l.assignee?.full_name : null].filter(Boolean).join(' · ')}
                 </p>
-                {when && <p className={`text-[12px] font-medium ${urgent ? 'text-red-700' : 'text-[var(--foreground-muted)]'}`}>{when}</p>}
+                {when && <p className={`text-[12px] font-medium ${urgent ? 'text-danger' : 'text-[var(--foreground-muted)]'}`}>{when}</p>}
               </div>
               <ChevronRight className="w-4 h-4 text-[var(--foreground-subtle)] flex-shrink-0" />
             </Link>

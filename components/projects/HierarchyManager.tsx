@@ -385,7 +385,7 @@ export function HierarchyManager({
               <span className="w-6 inline-block" />
             )}
 
-            <div className="p-1.5 rounded-md bg-blue-50 text-[var(--brand)] border border-blue-100 flex-shrink-0">
+            <div className="p-1.5 rounded-md bg-brand-light text-[var(--brand)] border border-brand/30 flex-shrink-0">
               <Icon className="w-4 h-4" />
             </div>
 
@@ -395,7 +395,7 @@ export function HierarchyManager({
                   {node.name}
                 </span>
                 {node.code && (
-                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 border border-gray-200">
+                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-surface-hover text-muted border border-default">
                     {node.code}
                   </span>
                 )}
@@ -419,12 +419,12 @@ export function HierarchyManager({
                   {totalUnits} {totalUnits === 1 ? 'unit' : 'units'}
                 </span>
                 {bd.available > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium">
+                  <span className="px-1.5 py-0.5 rounded-full bg-success-bg text-success border border-success/30 font-medium">
                     {bd.available} avail
                   </span>
                 )}
                 {bd.booked > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-medium">
+                  <span className="px-1.5 py-0.5 rounded-full bg-brand-light text-brand border border-brand/30 font-medium">
                     {bd.booked} booked
                   </span>
                 )}
@@ -434,12 +434,12 @@ export function HierarchyManager({
                   </span>
                 )}
                 {bd.on_hold > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-medium">
+                  <span className="px-1.5 py-0.5 rounded-full bg-warning-bg text-warning border border-warning/30 font-medium">
                     {bd.on_hold} hold
                   </span>
                 )}
                 {bd.blocked > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 font-medium">
+                  <span className="px-1.5 py-0.5 rounded-full bg-danger-bg text-danger border border-danger/30 font-medium">
                     {bd.blocked} blocked
                   </span>
                 )}
@@ -457,7 +457,7 @@ export function HierarchyManager({
               <button
                 type="button"
                 onClick={() => onSelectNodeForInventory(node.id, node.name)}
-                className="text-[11px] inline-flex items-center gap-1 px-2 py-1 rounded text-[var(--brand)] hover:bg-blue-50 transition-colors"
+                className="text-[11px] inline-flex items-center gap-1 px-2 py-1 rounded text-[var(--brand)] hover:bg-brand-light transition-colors"
                 title="Filter Inventory tab by this node"
               >
                 <span>View Units</span>
@@ -470,7 +470,7 @@ export function HierarchyManager({
                 <button
                   type="button"
                   onClick={() => openCreateChild(node)}
-                  className="p-1 rounded text-[var(--foreground-muted)] hover:text-[var(--brand)] hover:bg-blue-50 transition-colors"
+                  className="p-1 rounded text-[var(--foreground-muted)] hover:text-[var(--brand)] hover:bg-brand-light transition-colors"
                   title={`Add child node under ${node.name}`}
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -491,7 +491,7 @@ export function HierarchyManager({
                     setDeleteConfirmNode({ id: node.id, name: node.name })
                     setDeleteError(null)
                   }}
-                  className="p-1 rounded text-[var(--foreground-muted)] hover:text-red-600 hover:bg-red-50 transition-colors"
+                  className="p-1 rounded text-[var(--foreground-muted)] hover:text-danger hover:bg-danger-bg transition-colors"
                   title={`Delete ${node.name}`}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -515,14 +515,14 @@ export function HierarchyManager({
     <div className="space-y-4">
       {/* Toast Alert Banner */}
       {actionSuccess && (
-        <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between">
+        <div className="p-3 rounded-lg bg-success-bg border border-success/30 text-success text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <CheckCircle2 className="w-4 h-4 text-success" />
             <span>{actionSuccess}</span>
           </div>
           <button
             onClick={() => setActionSuccess(null)}
-            className="text-emerald-600 hover:text-emerald-900"
+            className="text-success hover:text-success"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -593,14 +593,14 @@ export function HierarchyManager({
 
           <div className="p-3 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
             <span className="text-[var(--foreground-muted)] block text-[11px]">Total Assigned Units</span>
-            <span className="text-base font-semibold text-emerald-700 mt-0.5 block">
+            <span className="text-base font-semibold text-success mt-0.5 block">
               {data.total_project_units - data.unassigned_units_count}
             </span>
           </div>
 
           <div className="p-3 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
             <span className="text-[var(--foreground-muted)] block text-[11px]">Unassigned Units</span>
-            <span className="text-base font-semibold text-amber-600 mt-0.5 block">
+            <span className="text-base font-semibold text-warning mt-0.5 block">
               {data.unassigned_units_count}
             </span>
           </div>
@@ -621,15 +621,15 @@ export function HierarchyManager({
           <p className="text-xs text-[var(--foreground-muted)]">Loading hierarchy structure...</p>
         </div>
       ) : error ? (
-        <div className="p-6 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs space-y-3">
+        <div className="p-6 rounded-xl bg-danger-bg border border-danger/30 text-danger text-xs space-y-3">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-600" />
+            <AlertCircle className="w-4 h-4 text-danger" />
             <span className="font-semibold">Unable to load hierarchy</span>
           </div>
           <p>{error}</p>
           <button
             onClick={refreshHierarchy}
-            className="px-3 py-1 rounded bg-red-600 text-white font-medium hover:bg-red-700 transition-colors"
+            className="px-3 py-1 rounded bg-danger text-danger-foreground font-medium hover:bg-danger transition-colors"
           >
             Retry
           </button>
@@ -640,7 +640,7 @@ export function HierarchyManager({
         </div>
       ) : (
         <div className="p-12 text-center rounded-xl bg-[var(--surface)] border border-[var(--border)] space-y-4">
-          <div className="w-12 h-12 rounded-full bg-blue-50 text-[var(--brand)] flex items-center justify-center mx-auto">
+          <div className="w-12 h-12 rounded-full bg-brand-light text-[var(--brand)] flex items-center justify-center mx-auto">
             <FolderTree className="w-6 h-6" />
           </div>
           <div className="max-w-sm mx-auto space-y-1">
@@ -664,7 +664,7 @@ export function HierarchyManager({
 
       {/* MODAL: Add / Edit Hierarchy Node */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
           <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)] bg-[var(--surface-muted)]">
@@ -694,8 +694,8 @@ export function HierarchyManager({
             {/* Modal Body / Form */}
             <form onSubmit={handleSubmitForm} className="p-5 space-y-4 text-xs">
               {formError && (
-                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-[11px] flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                <div className="p-3 rounded-lg bg-danger-bg border border-danger/30 text-danger text-[11px] flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-danger flex-shrink-0" />
                   <span>{formError}</span>
                 </div>
               )}
@@ -703,7 +703,7 @@ export function HierarchyManager({
               {/* Node Name */}
               <div className="space-y-1">
                 <label className="font-medium text-[var(--foreground)]">
-                  Node Name <span className="text-red-500">*</span>
+                  Node Name <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -718,7 +718,7 @@ export function HierarchyManager({
               {/* Node Type Selection */}
               <div className="space-y-1">
                 <label className="font-medium text-[var(--foreground)]">
-                  Node Type <span className="text-red-500">*</span>
+                  Node Type <span className="text-danger">*</span>
                 </label>
                 <div className="flex gap-2">
                   <select
@@ -742,7 +742,7 @@ export function HierarchyManager({
 
               {/* Mixed-Use Component Category Selector */}
               {formData.node_type.toLowerCase() === 'component' && (
-                <div className="space-y-1 p-2.5 rounded-lg bg-blue-50/50 border border-blue-100">
+                <div className="space-y-1 p-2.5 rounded-lg bg-brand-light/50 border border-brand/30">
                   <label className="font-medium text-[var(--brand)]">Component Classification</label>
                   <select
                     value={formData.component_type}
@@ -822,9 +822,9 @@ export function HierarchyManager({
 
       {/* CONFIRMATION DIALOG: Safe Delete Node */}
       {deleteConfirmNode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
           <div className="w-full max-w-sm bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden p-5 space-y-4">
-            <div className="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+            <div className="w-10 h-10 rounded-full bg-danger-bg text-danger flex items-center justify-center mx-auto">
               <Trash2 className="w-5 h-5" />
             </div>
 
@@ -838,8 +838,8 @@ export function HierarchyManager({
             </div>
 
             {deleteError && (
-              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-[11px] flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+              <div className="p-3 rounded-lg bg-danger-bg border border-danger/30 text-danger text-[11px] flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-danger flex-shrink-0" />
                 <span>{deleteError}</span>
               </div>
             )}
@@ -856,7 +856,7 @@ export function HierarchyManager({
                 type="button"
                 onClick={handleDeleteNode}
                 disabled={deleting}
-                className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-danger text-danger-foreground font-medium hover:bg-danger transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
               >
                 {deleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 Delete Node

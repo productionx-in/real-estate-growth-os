@@ -169,7 +169,7 @@ export async function WorkspaceOverview({
                       >
                         {lead.name}
                       </Link>
-                      <span className="text-[11px] px-2 py-0.2 rounded-full font-medium bg-gray-100 text-gray-700 capitalize">
+                      <span className="text-[11px] px-2 py-0.2 rounded-full font-medium bg-surface-hover text-muted capitalize">
                         {lead.status.replace(/_/g, ' ')}
                       </span>
                     </div>
@@ -208,7 +208,7 @@ export async function WorkspaceOverview({
               <span className="text-xs font-semibold text-[var(--foreground)] group-hover:text-[var(--brand)]">
                 Browse Available Units to Pitch
               </span>
-              <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[var(--brand)]" />
+              <ArrowRight className="w-3.5 h-3.5 text-subtle group-hover:text-[var(--brand)]" />
             </div>
             <p className="text-[11px] text-[var(--foreground-muted)] mt-1">
               Check live floor matrices, unit specifications, and pricing to advise prospective buyers.
@@ -223,7 +223,7 @@ export async function WorkspaceOverview({
               <span className="text-xs font-semibold text-[var(--foreground)] group-hover:text-[var(--brand)]">
                 Site Visit Management
               </span>
-              <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[var(--brand)]" />
+              <ArrowRight className="w-3.5 h-3.5 text-subtle group-hover:text-[var(--brand)]" />
             </div>
             <p className="text-[11px] text-[var(--foreground-muted)] mt-1">
               Review scheduled tours, visitor arrival times, and VIP cab arrangements.
@@ -302,7 +302,7 @@ export async function WorkspaceOverview({
               <span className="text-xs font-semibold text-[var(--foreground)] group-hover:text-[var(--brand)]">
                 Project & Tower Management
               </span>
-              <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[var(--brand)] group-hover:translate-x-0.5 transition-all" />
+              <ArrowRight className="w-3.5 h-3.5 text-subtle group-hover:text-[var(--brand)] group-hover:translate-x-0.5 transition-all" />
             </div>
             <p className="text-[11px] text-[var(--foreground-muted)] mt-1">
               Configure towers, phases, blocks, floor matrices and master layouts.
@@ -317,7 +317,7 @@ export async function WorkspaceOverview({
               <span className="text-xs font-semibold text-[var(--foreground)] group-hover:text-[var(--brand)]">
                 Visual Inventory Explorer
               </span>
-              <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[var(--brand)] group-hover:translate-x-0.5 transition-all" />
+              <ArrowRight className="w-3.5 h-3.5 text-subtle group-hover:text-[var(--brand)] group-hover:translate-x-0.5 transition-all" />
             </div>
             <p className="text-[11px] text-[var(--foreground-muted)] mt-1">
               Dual view: interactive tower/floor matrix & structured search table.
@@ -332,7 +332,7 @@ export async function WorkspaceOverview({
               <span className="text-xs font-semibold text-[var(--foreground)] group-hover:text-[var(--brand)]">
                 Leads CRM & Pipelines
               </span>
-              <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[var(--brand)] group-hover:translate-x-0.5 transition-all" />
+              <ArrowRight className="w-3.5 h-3.5 text-subtle group-hover:text-[var(--brand)] group-hover:translate-x-0.5 transition-all" />
             </div>
             <p className="text-[11px] text-[var(--foreground-muted)] mt-1">
               Track customer inquiries, schedule site visits, and import CSV batches.

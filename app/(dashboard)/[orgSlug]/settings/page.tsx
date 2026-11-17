@@ -54,7 +54,7 @@ export default async function SettingsPage({ params }: PageProps) {
             <div className="flex gap-3">
               <dt className="w-28 text-[12px] font-medium text-[var(--foreground-muted)]">Plan</dt>
               <dd>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 capitalize border border-blue-200">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-brand-light text-brand capitalize border border-brand/30">
                   {org.plan ?? 'growth'}
                 </span>
               </dd>
@@ -68,9 +68,9 @@ export default async function SettingsPage({ params }: PageProps) {
         </div>
 
         {/* Integration Centre Link */}
-        <div className="bg-[var(--surface)] border border-blue-200/80 rounded-xl p-5 shadow-2xs flex items-center justify-between">
+        <div className="bg-[var(--surface)] border border-brand/80 rounded-xl p-5 shadow-2xs flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-2xs">
+            <div className="w-10 h-10 rounded-xl bg-brand-light text-brand flex items-center justify-center shadow-2xs">
               <Plug className="w-5 h-5" />
             </div>
             <div>
@@ -82,7 +82,7 @@ export default async function SettingsPage({ params }: PageProps) {
           </div>
           <Link
             href={`/${orgSlug}/integrations`}
-            className="px-4 py-2 text-[12px] font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors flex items-center gap-1.5"
+            className="px-4 py-2 text-[12px] font-semibold text-brand bg-brand-light hover:bg-brand-light border border-brand/30 rounded-xl transition-colors flex items-center gap-1.5"
           >
             Open Integration Centre
             <ArrowRight className="w-3.5 h-3.5" />

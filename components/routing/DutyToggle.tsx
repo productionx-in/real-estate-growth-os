@@ -50,10 +50,10 @@ export function DutyToggle({ orgId }: { orgId: string }) {
       disabled={busy}
       title={onDuty ? 'You are receiving new leads. Click to pause.' : 'You are not receiving new leads. Click to resume.'}
       className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium border transition-colors disabled:opacity-60 ${
-        onDuty ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-600 border-gray-200'
+        onDuty ? 'bg-success-bg text-success border-success/30' : 'bg-surface-hover text-muted border-default'
       }`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${onDuty ? 'bg-emerald-500' : 'bg-gray-400'}`} aria-hidden="true" />
+      <span className={`w-1.5 h-1.5 rounded-full ${onDuty ? 'bg-success' : 'bg-gray-400'}`} aria-hidden="true" />
       {onDuty ? 'On duty' : 'Off duty'}
     </button>
   )

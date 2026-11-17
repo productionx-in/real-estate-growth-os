@@ -286,7 +286,7 @@ export function Sidebar({
   return (
     <>
     {mobileOpen && (
-      <div className="fixed inset-0 z-30 bg-black/40 md:hidden" aria-hidden="true" onClick={() => setMobileOpen(false)} />
+      <div className="fixed inset-0 z-30 bg-overlay md:hidden" aria-hidden="true" onClick={() => setMobileOpen(false)} />
     )}
     <aside
       id="app-sidebar"
@@ -328,7 +328,7 @@ export function Sidebar({
               <p className="text-[11px] text-[var(--foreground-muted)] truncate leading-tight mt-0.5 flex items-center gap-1">
                 <span className="capitalize">{orgType === 'channel_partner' ? 'Channel Partner' : 'Developer'}</span>
                 <span>•</span>
-                <span className="text-[10px] text-gray-500 font-medium">{roleName}</span>
+                <span className="text-[10px] text-subtle font-medium">{roleName}</span>
               </p>
             </div>
           </div>
@@ -438,7 +438,7 @@ export function Sidebar({
               {PRODUCT_NAME}
             </p>
           </div>
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 capitalize border border-gray-200">
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-hover text-muted capitalize border border-default">
             {roleName}
           </span>
         </div>

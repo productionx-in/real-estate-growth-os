@@ -209,7 +209,7 @@ export function InventoryVisualView({
                   <span className="text-[var(--foreground)] font-medium">
                     {INVENTORY_STATUS_LABELS[st]}
                   </span>
-                  <span className="text-[10px] text-[var(--foreground-muted)] px-1.5 py-0.5 rounded-full bg-gray-100 font-semibold">
+                  <span className="text-[10px] text-[var(--foreground-muted)] px-1.5 py-0.5 rounded-full bg-surface-hover font-semibold">
                     {count}
                   </span>
                 </div>
@@ -240,7 +240,7 @@ export function InventoryVisualView({
                 className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
                   selectedSubCategory === 'all'
                     ? 'bg-purple-700 text-white shadow-2xs'
-                    : 'bg-white text-purple-800 border border-purple-200 hover:bg-purple-100/50'
+                    : 'bg-surface text-purple-800 border border-purple-200 hover:bg-purple-100/50'
                 }`}
               >
                 All Components ({items.length})
@@ -256,7 +256,7 @@ export function InventoryVisualView({
                     className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
                       isActive
                         ? 'bg-purple-700 text-white shadow-2xs'
-                        : 'bg-white text-purple-800 border border-purple-200 hover:bg-purple-100/50'
+                        : 'bg-surface text-purple-800 border border-purple-200 hover:bg-purple-100/50'
                     }`}
                   >
                     <span>{PROJECT_CATEGORY_LABELS[cat] || cat}</span>
@@ -289,15 +289,15 @@ export function InventoryVisualView({
                     onClick={() => setSelectedGroupName(g.name)}
                     className={`p-3 rounded-xl border text-left transition-all ${
                       isSelected
-                        ? 'bg-blue-50/70 border-blue-400 ring-2 ring-blue-500/20 shadow-xs'
+                        ? 'bg-brand-light/70 border-brand ring-2 ring-ring/20 shadow-xs'
                         : 'bg-[var(--surface)] border-[var(--border)] hover:bg-[var(--surface-hover)]'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {activeLayoutCategory === 'apartments' && <Building2 className="w-4 h-4 text-[var(--brand)]" />}
-                        {activeLayoutCategory === 'plotted_developments' && <Grid className="w-4 h-4 text-emerald-600" />}
-                        {activeLayoutCategory === 'commercial_sale' && <Store className="w-4 h-4 text-amber-600" />}
+                        {activeLayoutCategory === 'plotted_developments' && <Grid className="w-4 h-4 text-success" />}
+                        {activeLayoutCategory === 'commercial_sale' && <Store className="w-4 h-4 text-warning" />}
                         {activeLayoutCategory === 'villas_gated_communities' && <Home className="w-4 h-4 text-indigo-600" />}
                         {activeLayoutCategory === 'mixed_use' && <Layers className="w-4 h-4 text-purple-600" />}
                         <span className="font-bold text-xs text-[var(--foreground)] truncate">
@@ -312,15 +312,15 @@ export function InventoryVisualView({
                     {/* Status 5-count bar: All 5 statuses explicitly shown */}
                     <div className="mt-2.5 pt-2 border-t border-[var(--border)] grid grid-cols-5 gap-1 text-[10px] text-center">
                       <div className="flex flex-col">
-                        <span className="text-emerald-700 font-bold">{g.available}</span>
+                        <span className="text-success font-bold">{g.available}</span>
                         <span className="text-[9px] text-[var(--foreground-muted)]">Avail</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-amber-700 font-bold">{g.on_hold}</span>
+                        <span className="text-warning font-bold">{g.on_hold}</span>
                         <span className="text-[9px] text-[var(--foreground-muted)]">Hold</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-blue-700 font-bold">{g.booked}</span>
+                        <span className="text-brand font-bold">{g.booked}</span>
                         <span className="text-[9px] text-[var(--foreground-muted)]">Bkd</span>
                       </div>
                       <div className="flex flex-col">
@@ -328,7 +328,7 @@ export function InventoryVisualView({
                         <span className="text-[9px] text-[var(--foreground-muted)]">Sold</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-gray-600 font-bold">{g.blocked}</span>
+                        <span className="text-muted font-bold">{g.blocked}</span>
                         <span className="text-[9px] text-[var(--foreground-muted)]">Blkd</span>
                       </div>
                     </div>
@@ -356,7 +356,7 @@ export function InventoryVisualView({
                   Vertical architectural layout stacked top floor to ground floor. Click any unit to view details.
                 </p>
               </div>
-              <span className="text-xs font-semibold text-[var(--foreground-muted)] px-2.5 py-1 bg-gray-100 rounded-lg">
+              <span className="text-xs font-semibold text-[var(--foreground-muted)] px-2.5 py-1 bg-surface-hover rounded-lg">
                 {activeGroupItems.length} units total
               </span>
             </div>
@@ -372,7 +372,7 @@ export function InventoryVisualView({
                         <span className="font-bold text-[var(--foreground)]">
                           {floor === 0 ? 'Ground Floor' : `Floor ${floor}`}
                         </span>
-                        <span className="text-[10px] text-emerald-700 font-medium">
+                        <span className="text-[10px] text-success font-medium">
                           {floorAvail} of {units.length} avail
                         </span>
                       </div>
@@ -388,7 +388,7 @@ export function InventoryVisualView({
                               key={unit.id}
                               type="button"
                               onClick={() => setSelectedUnitIndex(globalIdx !== -1 ? globalIdx : null)}
-                              className={`p-2.5 rounded-lg border text-left transition-all hover:scale-[1.02] hover:shadow-xs focus:ring-2 focus:ring-blue-500/20 ${style.bg} ${style.border}`}
+                              className={`p-2.5 rounded-lg border text-left transition-all hover:scale-[1.02] hover:shadow-xs focus:ring-2 focus:ring-ring/20 ${style.bg} ${style.border}`}
                             >
                               <div className="flex items-center justify-between">
                                 <span className="font-bold text-xs text-[var(--foreground)] truncate">
@@ -431,15 +431,15 @@ export function InventoryVisualView({
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pb-3 border-b border-[var(--border)]">
               <div>
                 <h3 className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2">
-                  <Grid className="w-4 h-4 text-emerald-600" />
+                  <Grid className="w-4 h-4 text-success" />
                   <span>{activeGroup} • Plotted Layout Grid</span>
                 </h3>
                 <p className="text-xs text-[var(--foreground-muted)] flex items-center gap-1.5 mt-0.5">
-                  <Info className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                  <Info className="w-3.5 h-3.5 text-brand shrink-0" />
                   <span>Structured plot layout view. Grouped by block / sector. Click any plot for specifications.</span>
                 </p>
               </div>
-              <span className="text-xs font-semibold text-[var(--foreground-muted)] px-2.5 py-1 bg-gray-100 rounded-lg shrink-0">
+              <span className="text-xs font-semibold text-[var(--foreground-muted)] px-2.5 py-1 bg-surface-hover rounded-lg shrink-0">
                 {activeGroupItems.length} plots in {activeGroup}
               </span>
             </div>
@@ -485,7 +485,7 @@ export function InventoryVisualView({
                           {plot.facing || 'East'}
                         </span>
                         {plot.is_corner_plot && (
-                          <span className="text-[9px] font-bold text-amber-900 bg-amber-200/80 px-1 py-0.2 rounded">
+                          <span className="text-[9px] font-bold text-warning bg-warning-bg/80 px-1 py-0.2 rounded">
                             Corner
                           </span>
                         )}
@@ -521,7 +521,7 @@ export function InventoryVisualView({
                   Cluster & street arrangement with villa typologies, extents, and availability
                 </p>
               </div>
-              <span className="text-xs font-semibold text-[var(--foreground-muted)] px-2.5 py-1 bg-gray-100 rounded-lg">
+              <span className="text-xs font-semibold text-[var(--foreground-muted)] px-2.5 py-1 bg-surface-hover rounded-lg">
                 {activeGroupItems.length} villas in {activeGroup}
               </span>
             </div>
@@ -606,7 +606,7 @@ export function InventoryVisualView({
                   Click any inventory unit to inspect specifications and availability
                 </p>
               </div>
-              <span className="text-xs font-semibold text-[var(--foreground-muted)] px-2.5 py-1 bg-gray-100 rounded-lg">
+              <span className="text-xs font-semibold text-[var(--foreground-muted)] px-2.5 py-1 bg-surface-hover rounded-lg">
                 {activeGroupItems.length} units
               </span>
             </div>
@@ -647,7 +647,7 @@ export function InventoryVisualView({
         )}
 
         {/* Site Plan / Floor Plan Future Upload Notice */}
-        <div className="p-3.5 bg-gray-50 border border-[var(--border)] rounded-xl flex items-center justify-between text-xs text-[var(--foreground-muted)]">
+        <div className="p-3.5 bg-surface-muted border border-[var(--border)] rounded-xl flex items-center justify-between text-xs text-[var(--foreground-muted)]">
           <div className="flex items-center gap-2">
             <MapIcon className="w-4 h-4 text-[var(--foreground-subtle)]" />
             <span>
