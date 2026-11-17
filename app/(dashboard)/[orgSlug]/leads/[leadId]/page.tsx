@@ -48,9 +48,9 @@ const PLATFORM_LABELS: Record<string, string> = {
 }
 
 const PRIORITY_CONFIG = {
-  low: { label: 'Low', className: 'bg-gray-100 text-gray-600' },
-  medium: { label: 'Medium', className: 'bg-amber-50 text-amber-700' },
-  high: { label: 'High', className: 'bg-red-50 text-red-700' },
+  low: { label: 'Low', className: 'bg-surface-hover text-muted' },
+  medium: { label: 'Medium', className: 'bg-warning-bg text-warning' },
+  high: { label: 'High', className: 'bg-danger-bg text-danger' },
 }
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -131,11 +131,11 @@ export default async function LeadDetailPage({ params }: PageProps) {
 
       {/* Duplicate Alert Banner if flagged */}
       {lead.is_duplicate && (
-        <div className="mb-5 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div className="text-[13px] text-amber-900 space-y-1">
+        <div className="mb-5 p-4 bg-warning-bg border border-warning/30 rounded-lg flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+          <div className="text-[13px] text-warning space-y-1">
             <p className="font-semibold">Flagged as Potential Duplicate Record</p>
-            <p className="text-[12px] text-amber-800 leading-relaxed">
+            <p className="text-[12px] text-warning leading-relaxed">
               This lead was ingested with matching contact details or external ID. In accordance with
               production data integrity rules, the record was retained without destructive merging or overwriting.
             </p>
@@ -143,7 +143,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
               <div className="pt-1">
                 <Link
                   href={`/${orgSlug}/leads/${lead.duplicate_of_id}`}
-                  className="inline-flex items-center gap-1 text-[12px] font-medium text-amber-800 underline hover:text-amber-950"
+                  className="inline-flex items-center gap-1 text-[12px] font-medium text-warning underline hover:text-warning"
                 >
                   View Canonical Original Lead ({lead.duplicate_of_id.slice(0, 8)}...)
                   <ExternalLink className="w-3 h-3" />
@@ -187,7 +187,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
                     {project.name}
                   </Link>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-amber-700 text-[12px] bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                  <span className="inline-flex items-center gap-1 text-warning text-[12px] bg-warning-bg px-2 py-0.5 rounded border border-warning/30">
                     <Radio className="w-3 h-3" />
                     Unmapped / Direct Org Lead
                   </span>
@@ -308,11 +308,11 @@ export default async function LeadDetailPage({ params }: PageProps) {
                   label="Deduplication"
                   value={
                     lead.is_duplicate ? (
-                      <span className="text-amber-700 font-medium">
+                      <span className="text-warning font-medium">
                         Duplicate (Reference: {lead.duplicate_of_id?.slice(0, 8)}...)
                       </span>
                     ) : (
-                      <span className="text-emerald-700 font-medium">Original Record</span>
+                      <span className="text-success font-medium">Original Record</span>
                     )
                   }
                 />

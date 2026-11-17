@@ -45,7 +45,7 @@ export default async function InvitePage({ params }: PageProps) {
             </>
           ) : (
             <div className="text-center py-4 space-y-4">
-              <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 mx-auto">
+              <div className="w-12 h-12 rounded-full bg-warning-bg border border-warning/30 flex items-center justify-center text-warning mx-auto">
                 <AlertTriangle className="w-6 h-6" />
               </div>
               <div className="space-y-1">

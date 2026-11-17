@@ -129,7 +129,7 @@ export function InventoryDetailDrawer({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-40 transition-opacity"
+        className="fixed inset-0 bg-overlay backdrop-blur-[1px] z-40 transition-opacity"
         onClick={onClose}
       />
 
@@ -162,7 +162,7 @@ export function InventoryDetailDrawer({
                 </button>
               </div>
             )}
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-brand-light text-brand">
               {PROJECT_CATEGORY_LABELS[category] || category}
             </span>
             {isMixedUse && (
@@ -171,7 +171,7 @@ export function InventoryDetailDrawer({
               </span>
             )}
             {item.is_corner_plot && (
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-warning-bg text-warning">
                 Corner Plot
               </span>
             )}
@@ -214,8 +214,8 @@ export function InventoryDetailDrawer({
                 </p>
 
                 {item.hierarchy_path ? (
-                  <p className="text-xs text-blue-700 bg-blue-50/70 border border-blue-100 rounded-md px-2.5 py-1 flex items-center gap-1.5 font-medium">
-                    <Layers className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                  <p className="text-xs text-brand bg-brand-light/70 border border-brand/30 rounded-md px-2.5 py-1 flex items-center gap-1.5 font-medium">
+                    <Layers className="w-3.5 h-3.5 text-brand shrink-0" />
                     <span>{item.hierarchy_path}</span>
                   </p>
                 ) : item.tower_name || item.floor_number !== null ? (
@@ -366,7 +366,7 @@ export function InventoryDetailDrawer({
                 )}
                 <div className="p-3 rounded-lg border border-[var(--border)] bg-[var(--surface)]">
                   <span className="text-[var(--foreground-muted)] block text-[11px]">Corner Plot</span>
-                  <span className={`font-semibold mt-0.5 block ${item.is_corner_plot ? 'text-amber-700' : 'text-[var(--foreground)]'}`}>
+                  <span className={`font-semibold mt-0.5 block ${item.is_corner_plot ? 'text-warning' : 'text-[var(--foreground)]'}`}>
                     {item.is_corner_plot ? 'Yes (Corner)' : 'Regular Plot'}
                   </span>
                 </div>
@@ -489,15 +489,15 @@ export function InventoryDetailDrawer({
           {/* SECTION C: Pricing Details */}
           <div className="space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--foreground-muted)] flex items-center gap-1.5">
-              <DollarSign className="w-3.5 h-3.5 text-emerald-600" /> Pricing & Commercials
+              <DollarSign className="w-3.5 h-3.5 text-success" /> Pricing & Commercials
             </h3>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 rounded-xl border border-[var(--border)] bg-emerald-50/30">
+              <div className="p-4 rounded-xl border border-[var(--border)] bg-success-bg/30">
                 <span className="text-xs text-[var(--foreground-muted)] font-medium block">
                   Total Price
                 </span>
-                <span className="text-xl font-bold text-emerald-700 mt-1 block">
+                <span className="text-xl font-bold text-success mt-1 block">
                   {item.total_price ? formatCurrency(Number(item.total_price)) : 'Price on Request'}
                 </span>
               </div>
@@ -536,17 +536,17 @@ export function InventoryDetailDrawer({
           {/* SECTION D: Internal Information (Restricted) */}
           <div className="space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--foreground-muted)] flex items-center gap-1.5">
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-600" /> Internal Information
+              <ShieldAlert className="w-3.5 h-3.5 text-warning" /> Internal Information
             </h3>
 
             {item.internal_notes ? (
-              <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/40 space-y-1.5">
+              <div className="p-4 rounded-xl border border-warning/30 bg-warning-bg/40 space-y-1.5">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-200/80 text-amber-900">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-warning-bg/80 text-warning">
                     Restricted • Team Only
                   </span>
                 </div>
-                <p className="text-xs text-amber-950 leading-relaxed whitespace-pre-wrap pt-1 font-mono">
+                <p className="text-xs text-warning leading-relaxed whitespace-pre-wrap pt-1 font-mono">
                   {item.internal_notes}
                 </p>
               </div>

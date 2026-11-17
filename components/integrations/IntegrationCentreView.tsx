@@ -120,19 +120,19 @@ export function IntegrationCentreView({
     <div className="max-w-6xl space-y-8 pb-12">
       {/* Schema / Migration Readiness Notice */}
       {!schemaAvailable && (
-        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-[13px] flex items-start gap-3 shadow-2xs">
-          <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0 font-bold">
+        <div className="p-4 rounded-2xl bg-warning-bg border border-warning/30 text-warning text-[13px] flex items-start gap-3 shadow-2xs">
+          <div className="w-8 h-8 rounded-xl bg-warning-bg text-warning flex items-center justify-center flex-shrink-0 font-bold">
             !
           </div>
           <div>
-            <h4 className="font-bold text-amber-950">Database Schema Notice: Migration 20260015 Pending</h4>
-            <p className="text-amber-800 text-[12px] mt-0.5 leading-relaxed">
+            <h4 className="font-bold text-warning">Database Schema Notice: Migration 20260015 Pending</h4>
+            <p className="text-warning text-[12px] mt-0.5 leading-relaxed">
               The CRM integration tables (`integration_connections` and `integration_project_mappings`)
               have not been applied to this database environment. The Integration Centre is currently
               running in safe architectural preview mode. Database writes will remain deferred until
               Migration 20260015 is officially applied.
               {schemaError && (
-                <span className="block mt-1 text-[11px] font-mono text-amber-900 bg-amber-100/60 p-1.5 rounded border border-amber-300">
+                <span className="block mt-1 text-[11px] font-mono text-warning bg-warning-bg/60 p-1.5 rounded border border-warning/30">
                   {schemaError}
                 </span>
               )}
@@ -142,21 +142,21 @@ export function IntegrationCentreView({
       )}
 
       {/* Top Banner: Central Provider Architecture & Tenant Privacy Guarantee */}
-      <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-transparent border border-blue-200/80 rounded-2xl p-6 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-transparent border border-brand/80 rounded-2xl p-6 relative overflow-hidden">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1.5 max-w-3xl">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-light text-brand border border-brand/30">
                 <ShieldCheck className="w-3.5 h-3.5" />
                 Verified Multi-Tenant Lead Pipeline
               </span>
-              <span className="text-[12px] text-gray-500">•</span>
-              <span className="text-[12px] text-gray-600 font-medium">Central Developer App Architecture</span>
+              <span className="text-[12px] text-subtle">•</span>
+              <span className="text-[12px] text-muted font-medium">Central Developer App Architecture</span>
             </div>
-            <h2 className="text-[18px] font-bold text-gray-900">
+            <h2 className="text-[18px] font-bold text-foreground">
               Welcome to the Real Estate Integration Centre
             </h2>
-            <p className="text-[13px] text-gray-600 leading-relaxed">
+            <p className="text-[13px] text-muted leading-relaxed">
               Connect your advertising channels directly to your CRM. REGrow operates a central,
               multi-tenant application architecture (external app registration deferred per DEC-004 &amp; DEC-011).
               Customer leads remain completely private and isolated to <strong>{org.name}</strong>.
@@ -166,7 +166,7 @@ export function IntegrationCentreView({
           {canManage && (
             <button
               onClick={() => setIsWizardOpen(true)}
-              className="px-4 py-2.5 text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-sm flex items-center gap-2 flex-shrink-0 cursor-pointer"
+              className="px-4 py-2.5 text-[13px] font-semibold text-brand-foreground bg-brand hover:bg-brand rounded-xl transition-all shadow-sm flex items-center gap-2 flex-shrink-0 cursor-pointer"
             >
               <FacebookIcon className="w-4 h-4" />
               Preview Meta Wizard (App Pending)
@@ -179,15 +179,15 @@ export function IntegrationCentreView({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-[16px] font-bold text-gray-900">Supported Inbound Channels</h3>
-            <p className="text-[12px] text-gray-500">
+            <h3 className="text-[16px] font-bold text-foreground">Supported Inbound Channels</h3>
+            <p className="text-[12px] text-subtle">
               Overview of all marketing platforms and lead capture channels supported by REGrow.
             </p>
           </div>
           <button
             onClick={refreshData}
             disabled={isRefreshing}
-            className="px-3 py-1.5 text-[12px] font-medium text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            className="px-3 py-1.5 text-[12px] font-medium text-muted hover:text-foreground bg-surface border border-default rounded-lg hover:bg-surface-muted transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh Status
@@ -196,17 +196,17 @@ export function IntegrationCentreView({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* 1. Meta Lead Ads */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4 hover:border-blue-300 transition-all shadow-2xs flex flex-col justify-between">
+          <div className="bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-brand/30 transition-all shadow-2xs flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-2xs">
+                <div className="w-10 h-10 rounded-xl bg-brand-light text-brand flex items-center justify-center shadow-2xs">
                   <FacebookIcon className="w-5 h-5" />
                 </div>
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
                     activeMetaConnections.length > 0
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      : 'bg-gray-100 text-gray-700 border-gray-200'
+                      ? 'bg-success-bg text-success border-success/30'
+                      : 'bg-surface-hover text-muted border-default'
                   }`}
                 >
                   {activeMetaConnections.length > 0
@@ -218,31 +218,31 @@ export function IntegrationCentreView({
               </div>
 
               <div>
-                <h4 className="text-[14px] font-bold text-gray-900">Meta Lead Ads</h4>
-                <p className="text-[11px] text-gray-500">Facebook &amp; Instagram Lead Generation</p>
+                <h4 className="text-[14px] font-bold text-foreground">Meta Lead Ads</h4>
+                <p className="text-[11px] text-subtle">Facebook &amp; Instagram Lead Generation</p>
               </div>
 
-              <p className="text-[12px] text-gray-600 leading-relaxed">
+              <p className="text-[12px] text-muted leading-relaxed">
                 Stream buyer submissions instantly from Facebook &amp; Instagram lead forms directly into
                 your development projects.
               </p>
 
-              <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
+              <div className="space-y-1.5 pt-2 border-t border-default text-[11px] text-subtle">
                 <div className="flex justify-between">
                   <span>Implementation:</span>
-                  <span className="font-semibold text-gray-900">Code Verified (Stage 4B)</span>
+                  <span className="font-semibold text-foreground">Code Verified (Stage 4B)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Provider Setup:</span>
-                  <span className="text-amber-700 font-medium">Central Meta App Deferred (DEC-004)</span>
+                  <span className="text-warning font-medium">Central Meta App Deferred (DEC-004)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Connection Status:</span>
                   <span
                     className={
                       activeMetaConnections.length > 0
-                        ? 'text-emerald-700 font-medium'
-                        : 'text-gray-700 font-medium'
+                        ? 'text-success font-medium'
+                        : 'text-muted font-medium'
                     }
                   >
                     {activeMetaConnections.length > 0
@@ -257,7 +257,7 @@ export function IntegrationCentreView({
               {activeMetaConnections.length > 0 ? (
                 <button
                   onClick={() => setSelectedConnection(activeMetaConnections[0])}
-                  className="w-full py-2 px-3 text-[12px] font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-2 px-3 text-[12px] font-medium text-brand bg-brand-light hover:bg-brand-light border border-brand/30 rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Sliders className="w-3.5 h-3.5" />
                   Manage Connection &amp; Mappings
@@ -265,13 +265,13 @@ export function IntegrationCentreView({
               ) : canManage ? (
                 <button
                   onClick={() => setIsWizardOpen(true)}
-                  className="w-full py-2 px-3 text-[12px] font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-2 px-3 text-[12px] font-medium text-brand bg-brand-light hover:bg-brand-light border border-brand/30 rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Preview Connection Wizard (App Pending)
                 </button>
               ) : (
-                <div className="text-[11px] text-center text-gray-400 py-1.5">
+                <div className="text-[11px] text-center text-subtle py-1.5">
                   Manager access required to connect
                 </div>
               )}
@@ -279,39 +279,39 @@ export function IntegrationCentreView({
           </div>
 
           {/* 2. Google Ads */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4 hover:border-gray-300 transition-all shadow-2xs flex flex-col justify-between">
+          <div className="bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all shadow-2xs flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-2xs">
+                <div className="w-10 h-10 rounded-xl bg-warning-bg text-warning flex items-center justify-center shadow-2xs">
                   <Search className="w-5 h-5" />
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-hover text-muted border border-default">
                   Not Connected
                 </span>
               </div>
 
               <div>
-                <h4 className="text-[14px] font-bold text-gray-900">Google Ads</h4>
-                <p className="text-[11px] text-gray-500">Search, Display &amp; YouTube Lead Forms</p>
+                <h4 className="text-[14px] font-bold text-foreground">Google Ads</h4>
+                <p className="text-[11px] text-subtle">Search, Display &amp; YouTube Lead Forms</p>
               </div>
 
-              <p className="text-[12px] text-gray-600 leading-relaxed">
+              <p className="text-[12px] text-muted leading-relaxed">
                 Receive lead form submissions directly from Google Search campaigns, Display ads, and
                 Performance Max extensions.
               </p>
 
-              <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
+              <div className="space-y-1.5 pt-2 border-t border-default text-[11px] text-subtle">
                 <div className="flex justify-between">
                   <span>Implementation:</span>
-                  <span className="font-semibold text-gray-900">Code Verified (Stage 4D)</span>
+                  <span className="font-semibold text-foreground">Code Verified (Stage 4D)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Provider Setup:</span>
-                  <span className="text-amber-700 font-medium">Google Cloud Project Pending (DEC-011)</span>
+                  <span className="text-warning font-medium">Google Cloud Project Pending (DEC-011)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Connection Status:</span>
-                  <span className="text-gray-700 font-medium">Not Connected • Credentials Pending</span>
+                  <span className="text-muted font-medium">Not Connected • Credentials Pending</span>
                 </div>
               </div>
             </div>
@@ -319,7 +319,7 @@ export function IntegrationCentreView({
             <div className="pt-3">
               <button
                 disabled
-                className="w-full py-2 px-3 text-[12px] font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-xl cursor-not-allowed text-center"
+                className="w-full py-2 px-3 text-[12px] font-medium text-subtle bg-surface-muted border border-default rounded-xl cursor-not-allowed text-center"
               >
                 Developer App Registration Pending (Stage 4D)
               </button>
@@ -327,7 +327,7 @@ export function IntegrationCentreView({
           </div>
 
           {/* 3. Website Enquiry Forms */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4 hover:border-gray-300 transition-all shadow-2xs flex flex-col justify-between">
+          <div className="bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all shadow-2xs flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
                 <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-2xs">
@@ -336,8 +336,8 @@ export function IntegrationCentreView({
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
                     websiteConnection?.status === 'connected'
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      : 'bg-gray-100 text-gray-700 border-gray-200'
+                      ? 'bg-success-bg text-success border-success/30'
+                      : 'bg-surface-hover text-muted border-default'
                   }`}
                 >
                   {websiteConnection?.status === 'connected' ? 'Connected' : 'Not Connected'}
@@ -345,31 +345,31 @@ export function IntegrationCentreView({
               </div>
 
               <div>
-                <h4 className="text-[14px] font-bold text-gray-900">Website Enquiries</h4>
-                <p className="text-[11px] text-gray-500">Project Microsites &amp; Interactive Floorplans</p>
+                <h4 className="text-[14px] font-bold text-foreground">Website Enquiries</h4>
+                <p className="text-[11px] text-subtle">Project Microsites &amp; Interactive Floorplans</p>
               </div>
 
-              <p className="text-[12px] text-gray-600 leading-relaxed">
+              <p className="text-[12px] text-muted leading-relaxed">
                 Connect official developer websites, project landing pages, and interactive floorplan
                 widgets with built-in anti-spam &amp; honeypot traps.
               </p>
 
-              <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
+              <div className="space-y-1.5 pt-2 border-t border-default text-[11px] text-subtle">
                 <div className="flex justify-between">
                   <span>Implementation:</span>
-                  <span className="font-semibold text-emerald-700">Code Verified (Stage 4E)</span>
+                  <span className="font-semibold text-success">Code Verified (Stage 4E)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Provider Setup:</span>
-                  <span className="text-emerald-700 font-medium">SaaS Native REST &amp; Embed Runtime</span>
+                  <span className="text-success font-medium">SaaS Native REST &amp; Embed Runtime</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Connection Status:</span>
                   <span
                     className={
                       websiteConnection?.status === 'connected'
-                        ? 'text-emerald-700 font-medium'
-                        : 'text-gray-700 font-medium'
+                        ? 'text-success font-medium'
+                        : 'text-muted font-medium'
                     }
                   >
                     {websiteConnection?.status === 'connected' ? 'Active & Receiving' : 'Not Connected'}
@@ -390,17 +390,17 @@ export function IntegrationCentreView({
           </div>
 
           {/* 4. WhatsApp Business */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4 hover:border-gray-300 transition-all shadow-2xs flex flex-col justify-between">
+          <div className="bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all shadow-2xs flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-2xs">
+                <div className="w-10 h-10 rounded-xl bg-success-bg text-success flex items-center justify-center shadow-2xs">
                   <MessageCircle className="w-5 h-5" />
                 </div>
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${
                     whatsappConnection?.status === 'connected'
-                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                      : 'bg-gray-100 text-gray-700 border border-gray-200'
+                      ? 'bg-success-bg text-success border border-success/30'
+                      : 'bg-surface-hover text-muted border border-default'
                   }`}
                 >
                   {whatsappConnection?.status === 'connected' ? 'Connected' : 'Not Connected'}
@@ -408,27 +408,27 @@ export function IntegrationCentreView({
               </div>
 
               <div>
-                <h4 className="text-[14px] font-bold text-gray-900">WhatsApp Business</h4>
-                <p className="text-[11px] text-gray-500">Click-to-WhatsApp Ads &amp; Catalogues</p>
+                <h4 className="text-[14px] font-bold text-foreground">WhatsApp Business</h4>
+                <p className="text-[11px] text-subtle">Click-to-WhatsApp Ads &amp; Catalogues</p>
               </div>
 
-              <p className="text-[12px] text-gray-600 leading-relaxed">
+              <p className="text-[12px] text-muted leading-relaxed">
                 Capture prospective home buyers who reach out via Click-to-WhatsApp ads or property
                 brochure download chats.
               </p>
 
-              <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
+              <div className="space-y-1.5 pt-2 border-t border-default text-[11px] text-subtle">
                 <div className="flex justify-between">
                   <span>Implementation:</span>
-                  <span className="font-semibold text-emerald-700">Code Verified (Stage 4F)</span>
+                  <span className="font-semibold text-success">Code Verified (Stage 4F)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Provider Setup:</span>
-                  <span className="text-amber-700 font-medium">Meta Cloud API &amp; Phone Verification Pending</span>
+                  <span className="text-warning font-medium">Meta Cloud API &amp; Phone Verification Pending</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Connection Status:</span>
-                  <span className="text-gray-700 font-medium">
+                  <span className="text-muted font-medium">
                     {whatsappConnection?.status === 'connected' ? 'Connected (Live Routing)' : 'Not Connected (Meta App Pending)'}
                   </span>
                 </div>
@@ -439,7 +439,7 @@ export function IntegrationCentreView({
               <button
                 onClick={() => setIsWhatsAppWizardOpen(true)}
                 disabled={!canManage}
-                className="w-full py-2 px-3 text-[12px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition cursor-pointer text-center"
+                className="w-full py-2 px-3 text-[12px] font-semibold text-success bg-success-bg hover:bg-success-bg border border-success/30 rounded-xl transition cursor-pointer text-center"
               >
                 Configure &amp; Test WhatsApp
               </button>
@@ -447,39 +447,39 @@ export function IntegrationCentreView({
           </div>
 
           {/* 5. Property Portals */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4 hover:border-gray-300 transition-all shadow-2xs flex flex-col justify-between">
+          <div className="bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all shadow-2xs flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
-                <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-2xs">
+                <div className="w-10 h-10 rounded-xl bg-danger-bg text-danger flex items-center justify-center shadow-2xs">
                   <Building className="w-5 h-5" />
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-hover text-muted border border-default">
                   Not Connected
                 </span>
               </div>
 
               <div>
-                <h4 className="text-[14px] font-bold text-gray-900">Property Portals</h4>
-                <p className="text-[11px] text-gray-500">99acres, Magicbricks &amp; Housing.com</p>
+                <h4 className="text-[14px] font-bold text-foreground">Property Portals</h4>
+                <p className="text-[11px] text-subtle">99acres, Magicbricks &amp; Housing.com</p>
               </div>
 
-              <p className="text-[12px] text-gray-600 leading-relaxed">
+              <p className="text-[12px] text-muted leading-relaxed">
                 Ingest buyer enquiries from prominent Indian real estate portals via official developer
                 syndication agreements.
               </p>
 
-              <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
+              <div className="space-y-1.5 pt-2 border-t border-default text-[11px] text-subtle">
                 <div className="flex justify-between">
                   <span>Implementation:</span>
-                  <span className="font-semibold text-emerald-700">Code Verified (Stage 4G)</span>
+                  <span className="font-semibold text-success">Code Verified (Stage 4G)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Provider Setup:</span>
-                  <span className="text-amber-700 font-medium">Developer Syndication Agreements Pending</span>
+                  <span className="text-warning font-medium">Developer Syndication Agreements Pending</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Connection Status:</span>
-                  <span className="text-gray-700 font-medium">0 Active Feeds • Access Pending</span>
+                  <span className="text-muted font-medium">0 Active Feeds • Access Pending</span>
                 </div>
               </div>
             </div>
@@ -488,7 +488,7 @@ export function IntegrationCentreView({
               <button
                 onClick={() => setIsPortalModalOpen(true)}
                 disabled={!canManage}
-                className="w-full py-2 px-3 text-[12px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition cursor-pointer text-center"
+                className="w-full py-2 px-3 text-[12px] font-semibold text-danger bg-danger-bg hover:bg-danger-bg border border-danger/30 rounded-xl transition cursor-pointer text-center"
               >
                 Configure &amp; Test Portals
               </button>
@@ -496,39 +496,39 @@ export function IntegrationCentreView({
           </div>
 
           {/* 6. Developer APIs & Webhooks */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4 hover:border-gray-300 transition-all shadow-2xs flex flex-col justify-between">
+          <div className="bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all shadow-2xs flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
                 <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-2xs">
                   <Code className="w-5 h-5" />
                 </div>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-success-bg text-success border border-success/30">
                   Active Runtime
                 </span>
               </div>
 
               <div>
-                <h4 className="text-[14px] font-bold text-gray-900">Developer APIs &amp; Webhooks</h4>
-                <p className="text-[11px] text-gray-500">REST Ingestion &amp; Outbound Event Dispatch</p>
+                <h4 className="text-[14px] font-bold text-foreground">Developer APIs &amp; Webhooks</h4>
+                <p className="text-[11px] text-subtle">REST Ingestion &amp; Outbound Event Dispatch</p>
               </div>
 
-              <p className="text-[12px] text-gray-600 leading-relaxed">
+              <p className="text-[12px] text-muted leading-relaxed">
                 Connect custom landing pages, mobile apps or ERPs, and receive real-time cryptographically signed
                 webhook events on lead state transitions.
               </p>
 
-              <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px] text-gray-500">
+              <div className="space-y-1.5 pt-2 border-t border-default text-[11px] text-subtle">
                 <div className="flex justify-between">
                   <span>Implementation:</span>
-                  <span className="font-semibold text-emerald-700">Code Verified (Stage 4H)</span>
+                  <span className="font-semibold text-success">Code Verified (Stage 4H)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Provider Setup:</span>
-                  <span className="text-emerald-700 font-medium">Standard REST &amp; HMAC-SHA256</span>
+                  <span className="text-success font-medium">Standard REST &amp; HMAC-SHA256</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Connection Status:</span>
-                  <span className="text-emerald-700 font-medium">Ready • Bearer Key Auth</span>
+                  <span className="text-success font-medium">Ready • Bearer Key Auth</span>
                 </div>
               </div>
             </div>
@@ -549,8 +549,8 @@ export function IntegrationCentreView({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-[16px] font-bold text-gray-900">Connected Accounts &amp; Assets</h3>
-            <p className="text-[12px] text-gray-500">
+            <h3 className="text-[16px] font-bold text-foreground">Connected Accounts &amp; Assets</h3>
+            <p className="text-[12px] text-subtle">
               Active external connections authorized for {org.name}. Only real, verified connections are
               displayed here.
             </p>
@@ -580,21 +580,21 @@ export function IntegrationCentreView({
               return (
                 <div
                   key={conn.id}
-                  className="bg-white border border-gray-200 rounded-2xl p-5 shadow-2xs hover:border-gray-300 transition-all space-y-4"
+                  className="bg-surface border border-default rounded-2xl p-5 shadow-2xs hover:border-strong transition-all space-y-4"
                 >
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-2xs">
+                      <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center text-brand-foreground shadow-2xs">
                         <ProviderIcon className="w-5 h-5" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="text-[15px] font-bold text-gray-900">{conn.name}</h4>
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <h4 className="text-[15px] font-bold text-foreground">{conn.name}</h4>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-success-bg text-success border border-success/30">
                             Active &amp; Verified
                           </span>
                         </div>
-                        <p className="text-[12px] text-gray-500">
+                        <p className="text-[12px] text-subtle">
                           {providerLabel} • External ID: {conn.external_account_id || 'Primary Account'} • Last
                           Synchronized: {formatDate(conn.last_sync_at)}
                         </p>
@@ -604,7 +604,7 @@ export function IntegrationCentreView({
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setSelectedConnection(conn)}
-                        className="px-3 py-1.5 text-[12px] font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                        className="px-3 py-1.5 text-[12px] font-medium text-muted bg-surface border border-default rounded-xl hover:bg-surface-muted transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
                       >
                         <Sliders className="w-3.5 h-3.5" />
                         Manage Mappings ({conn.mappingsCount || 0})
@@ -614,18 +614,18 @@ export function IntegrationCentreView({
 
                   {/* Connected Pages Pills */}
                   {pages.length > 0 && (
-                    <div className="pt-2 border-t border-gray-100 flex flex-wrap items-center gap-2">
-                      <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                    <div className="pt-2 border-t border-default flex flex-wrap items-center gap-2">
+                      <span className="text-[11px] font-semibold text-subtle uppercase tracking-wider">
                         Authorized Pages:
                       </span>
                       {pages.map((p) => (
                         <span
                           key={p.id}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px] bg-blue-50/70 text-blue-900 border border-blue-200/60 font-medium"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px] bg-brand-light/70 text-brand border border-brand/60 font-medium"
                         >
-                          <FacebookIcon className="w-3 h-3 text-blue-600" />
+                          <FacebookIcon className="w-3 h-3 text-brand" />
                           {p.name}
-                          <span className="text-[10px] text-blue-600 font-mono">
+                          <span className="text-[10px] text-brand font-mono">
                             ({p.forms?.length || 0} forms)
                           </span>
                         </span>
@@ -637,13 +637,13 @@ export function IntegrationCentreView({
             })}
           </div>
         ) : (
-          <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-8 text-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-gray-50 text-gray-400 mx-auto flex items-center justify-center shadow-2xs">
+          <div className="bg-surface border border-dashed border-strong rounded-2xl p-8 text-center space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-surface-muted text-subtle mx-auto flex items-center justify-center shadow-2xs">
               <Plug className="w-6 h-6" />
             </div>
             <div className="max-w-md mx-auto space-y-1">
-              <h4 className="text-[15px] font-bold text-gray-900">No Verified Accounts Connected Yet</h4>
-              <p className="text-[12px] text-gray-500">
+              <h4 className="text-[15px] font-bold text-foreground">No Verified Accounts Connected Yet</h4>
+              <p className="text-[12px] text-subtle">
                 Live marketing accounts will appear here once external OAuth authorisation or form setup
                 succeeds. Unconnected, draft, or mock integrations are never shown as active.
               </p>
@@ -655,15 +655,15 @@ export function IntegrationCentreView({
       {/* SECTION 3: LIVE FORM-TO-PROJECT ROUTING SUMMARY */}
       <div className="space-y-4">
         <div>
-          <h3 className="text-[16px] font-bold text-gray-900">Active Form Routing Overview</h3>
-          <p className="text-[12px] text-gray-500">
+          <h3 className="text-[16px] font-bold text-foreground">Active Form Routing Overview</h3>
+          <p className="text-[12px] text-subtle">
             How incoming marketing form submissions are routed into specific CRM projects.
           </p>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-2xs">
+        <div className="bg-surface border border-default rounded-2xl overflow-hidden shadow-2xs">
           <table className="w-full text-left text-[12px]">
-            <thead className="bg-gray-50/80 border-b border-gray-200 text-gray-600 font-semibold">
+            <thead className="bg-surface-muted/80 border-b border-default text-muted font-semibold">
               <tr>
                 <th className="py-3 px-5">Lead Form / Identifier</th>
                 <th className="py-3 px-4">Routing Type</th>
@@ -671,28 +671,28 @@ export function IntegrationCentreView({
                 <th className="py-3 px-4">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-default">
               {mappings.length > 0 ? (
                 mappings.map((m) => (
-                  <tr key={m.id} className="hover:bg-gray-50/60 transition-colors">
+                  <tr key={m.id} className="hover:bg-surface-muted/60 transition-colors">
                     <td className="py-3 px-5">
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-semibold text-foreground">
                         {m.description || m.external_identifier_value}
                       </p>
-                      <p className="text-[11px] text-gray-400 font-mono">
+                      <p className="text-[11px] text-subtle font-mono">
                         ID: {m.external_identifier_value}
                       </p>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="capitalize px-2 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-700 font-medium">
+                      <span className="capitalize px-2 py-0.5 rounded-full text-[11px] bg-surface-hover text-muted font-medium">
                         {m.external_identifier_type.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-semibold text-gray-900">
+                    <td className="py-3 px-4 font-semibold text-foreground">
                       {m.project?.name || 'Project Mapped'}
                     </td>
                     <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-success bg-success-bg px-2 py-0.5 rounded-full border border-success/30">
                         <CheckCircle2 className="w-3 h-3" />
                         Active Routing
                       </span>
@@ -701,7 +701,7 @@ export function IntegrationCentreView({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="py-8 text-center text-gray-500">
+                  <td colSpan={4} className="py-8 text-center text-subtle">
                     No active form mappings found. Connect a Meta account or add a form mapping to begin
                     automatic lead routing.
                   </td>

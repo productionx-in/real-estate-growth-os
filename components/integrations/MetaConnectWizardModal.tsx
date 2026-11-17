@@ -222,12 +222,12 @@ export function MetaConnectWizardModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-gray-50/50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-surface-muted/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-2xs">
+            <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-brand-foreground shadow-2xs">
               <FacebookIcon className="w-5 h-5" />
             </div>
             <div>
@@ -241,14 +241,14 @@ export function MetaConnectWizardModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-1.5 text-subtle hover:text-muted rounded-lg hover:bg-surface-hover transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Stepper Progress Indicator */}
-        <div className="grid grid-cols-5 border-b border-[var(--border)] bg-gray-50/20 text-[11px] font-medium text-center">
+        <div className="grid grid-cols-5 border-b border-[var(--border)] bg-surface-muted/20 text-[11px] font-medium text-center">
           {['Overview', 'Permissions', 'Select Pages', 'Map Forms', 'Review'].map((label, idx) => {
             const stepNum = idx + 1
             const isCompleted = stepNum < currentStep
@@ -258,10 +258,10 @@ export function MetaConnectWizardModal({
                 key={label}
                 className={`py-2 px-1 border-b-2 transition-colors ${
                   isCurrent
-                    ? 'border-blue-600 text-blue-600 font-semibold bg-blue-50/40'
+                    ? 'border-brand text-brand font-semibold bg-brand-light/40'
                     : isCompleted
-                    ? 'border-emerald-500 text-emerald-600'
-                    : 'border-transparent text-gray-400'
+                    ? 'border-success text-success'
+                    : 'border-transparent text-subtle'
                 }`}
               >
                 {stepNum}. {label}
@@ -273,8 +273,8 @@ export function MetaConnectWizardModal({
         {/* Body */}
         <div className="p-6 overflow-y-auto flex-1 space-y-5">
           {errorMessage && (
-            <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-[13px] flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-red-600" />
+            <div className="p-3.5 rounded-xl bg-danger-bg border border-danger/30 text-danger text-[13px] flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-danger" />
               <span>{errorMessage}</span>
             </div>
           )}
@@ -282,9 +282,9 @@ export function MetaConnectWizardModal({
           {/* STEP 1: Overview & Architecture Explanation */}
           {currentStep === 1 && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200 text-blue-900 text-[13px] leading-relaxed">
-                <p className="font-semibold mb-1 flex items-center gap-1.5 text-blue-950">
-                  <ShieldCheck className="w-4 h-4 text-blue-600" />
+              <div className="p-4 rounded-xl bg-brand-light/70 border border-brand/30 text-brand text-[13px] leading-relaxed">
+                <p className="font-semibold mb-1 flex items-center gap-1.5 text-brand">
+                  <ShieldCheck className="w-4 h-4 text-brand" />
                   Official Single-App Multi-Tenant Integration
                 </p>
                 REGrow maintains a single verified Meta developer application. Each real estate
@@ -301,7 +301,7 @@ export function MetaConnectWizardModal({
                   value={connectionName}
                   onChange={(e) => setConnectionName(e.target.value)}
                   placeholder="e.g. Meta Advertising — Main Account"
-                  className="w-full px-3.5 py-2 text-[13px] rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3.5 py-2 text-[13px] rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-hidden focus:ring-2 focus:ring-ring"
                 />
                 <p className="mt-1 text-[11px] text-[var(--foreground-muted)]">
                   Helps distinguish this account if your organisation manages multiple advertising
@@ -310,43 +310,43 @@ export function MetaConnectWizardModal({
               </div>
 
               <div className="space-y-2.5 pt-2">
-                <h4 className="text-[12px] font-semibold text-gray-700 uppercase tracking-wider">
+                <h4 className="text-[12px] font-semibold text-muted uppercase tracking-wider">
                   How Connection Works
                 </h4>
                 <div className="grid grid-cols-1 gap-2.5">
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 bg-white">
-                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[12px] font-bold flex-shrink-0 mt-0.5">
+                  <div className="flex items-start gap-3 p-3 rounded-xl border border-default bg-surface">
+                    <div className="w-6 h-6 rounded-full bg-brand-light text-brand flex items-center justify-center text-[12px] font-bold flex-shrink-0 mt-0.5">
                       1
                     </div>
                     <div className="text-[12px]">
-                      <p className="font-semibold text-gray-900">Authorize through Meta</p>
-                      <p className="text-gray-500">
+                      <p className="font-semibold text-foreground">Authorize through Meta</p>
+                      <p className="text-subtle">
                         Log in with your official business Facebook account and choose which business
                         Pages you manage.
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 bg-white">
-                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[12px] font-bold flex-shrink-0 mt-0.5">
+                  <div className="flex items-start gap-3 p-3 rounded-xl border border-default bg-surface">
+                    <div className="w-6 h-6 rounded-full bg-brand-light text-brand flex items-center justify-center text-[12px] font-bold flex-shrink-0 mt-0.5">
                       2
                     </div>
                     <div className="text-[12px]">
-                      <p className="font-semibold text-gray-900">Select Permitted Pages & Forms</p>
-                      <p className="text-gray-500">
+                      <p className="font-semibold text-foreground">Select Permitted Pages & Forms</p>
+                      <p className="text-subtle">
                         REGrow detects your lead generation forms and lets you route each form to
                         the appropriate property project.
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 bg-white">
-                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[12px] font-bold flex-shrink-0 mt-0.5">
+                  <div className="flex items-start gap-3 p-3 rounded-xl border border-default bg-surface">
+                    <div className="w-6 h-6 rounded-full bg-brand-light text-brand flex items-center justify-center text-[12px] font-bold flex-shrink-0 mt-0.5">
                       3
                     </div>
                     <div className="text-[12px]">
-                      <p className="font-semibold text-gray-900">Receive Leads in Real Time</p>
-                      <p className="text-gray-500">
+                      <p className="font-semibold text-foreground">Receive Leads in Real Time</p>
+                      <p className="text-subtle">
                         New home-buyer enquiries are instantly delivered to your CRM with full campaign
                         attribution.
                       </p>
@@ -361,42 +361,42 @@ export function MetaConnectWizardModal({
           {currentStep === 2 && (
             <div className="space-y-4">
               <div className="space-y-3">
-                <h3 className="text-[14px] font-bold text-gray-900">
+                <h3 className="text-[14px] font-bold text-foreground">
                   Permissions Requested by REGrow
                 </h3>
-                <p className="text-[12px] text-gray-600">
+                <p className="text-[12px] text-muted">
                   To automatically import buyer leads, Meta requires you to approve specific access
                   scopes during login:
                 </p>
 
                 <div className="space-y-2">
-                  <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 text-[12px] flex items-start gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <div className="p-3 rounded-xl border border-success/30 bg-success-bg/40 text-[12px] flex items-start gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-emerald-950">Read Lead Form Submissions</p>
-                      <p className="text-emerald-800">
+                      <p className="font-semibold text-success">Read Lead Form Submissions</p>
+                      <p className="text-success">
                         Allows REGrow to retrieve contact info (name, phone, email) when buyers
                         submit a Facebook or Instagram Lead Ad form.
                       </p>
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 text-[12px] flex items-start gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <div className="p-3 rounded-xl border border-success/30 bg-success-bg/40 text-[12px] flex items-start gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-emerald-950">View Managed Pages</p>
-                      <p className="text-emerald-800">
+                      <p className="font-semibold text-success">View Managed Pages</p>
+                      <p className="text-success">
                         Allows REGrow to list your business Pages so you can select which project
                         Pages to link.
                       </p>
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 text-[12px] flex items-start gap-3">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <div className="p-3 rounded-xl border border-success/30 bg-success-bg/40 text-[12px] flex items-start gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-emerald-950">View Ad Campaign Names</p>
-                      <p className="text-emerald-800">
+                      <p className="font-semibold text-success">View Ad Campaign Names</p>
+                      <p className="text-success">
                         Allows attributing enquiries to the right ad campaign and marketing creative
                         for ROI tracking.
                       </p>
@@ -406,12 +406,12 @@ export function MetaConnectWizardModal({
               </div>
 
               {/* Security & Privacy Commitment */}
-              <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/60 space-y-2">
-                <h4 className="text-[12px] font-bold text-gray-900 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-gray-700" />
+              <div className="p-4 rounded-xl border border-default bg-surface-muted/60 space-y-2">
+                <h4 className="text-[12px] font-bold text-foreground flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-muted" />
                   Our Privacy & Security Promises
                 </h4>
-                <ul className="text-[12px] text-gray-600 space-y-1.5 list-disc list-inside">
+                <ul className="text-[12px] text-muted space-y-1.5 list-disc list-inside">
                   <li>
                     REGrow will <strong>NEVER</strong> post to your Facebook timeline or
                     Instagram feed.
@@ -430,17 +430,17 @@ export function MetaConnectWizardModal({
                 </ul>
               </div>
 
-              <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
+              <div className="pt-2 border-t border-default flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={handleInitiateMetaOAuth}
                   disabled={isInitiatingOAuth}
-                  className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[13px] flex items-center justify-center gap-2 shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+                  className="w-full py-2.5 px-4 rounded-xl bg-brand hover:bg-brand text-brand-foreground font-semibold text-[13px] flex items-center justify-center gap-2 shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   <FacebookIcon className="w-4 h-4" />
                   {isInitiatingOAuth ? 'Initiating Meta Handshake...' : 'Authenticate with Meta OAuth'}
                 </button>
-                <p className="text-[11px] text-center text-gray-500">
+                <p className="text-[11px] text-center text-subtle">
                   Redirects to facebook.com to approve official permissions. If central developer credentials are not yet configured on this server, you can continue to draft routing below.
                 </p>
               </div>
@@ -452,24 +452,24 @@ export function MetaConnectWizardModal({
             <div className="space-y-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-[14px] font-bold text-gray-900">
+                  <h3 className="text-[14px] font-bold text-foreground">
                     Select Facebook Pages to Connect
                   </h3>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-warning-bg text-warning border border-warning/30">
                     Illustrative Preview Template
                   </span>
                 </div>
-                <p className="text-[12px] text-gray-600">
+                <p className="text-[12px] text-muted">
                   Select which Facebook Pages belong to your property projects. You can connect
                   multiple Pages to one account.
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-900 text-[12px] flex items-start gap-2.5">
-                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-700" />
+              <div className="p-3.5 rounded-xl bg-warning-bg/80 border border-warning/30 text-warning text-[12px] flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-warning" />
                 <div>
-                  <p className="font-semibold text-amber-950">No Live Meta Authorisation Exists Yet</p>
-                  <p className="text-amber-800 text-[11px] mt-0.5 leading-relaxed">
+                  <p className="font-semibold text-warning">No Live Meta Authorisation Exists Yet</p>
+                  <p className="text-warning text-[11px] mt-0.5 leading-relaxed">
                     Live Meta OAuth integration will be registered in Stage 4B. The Pages and forms
                     below are illustrative templates to demonstrate how your actual business Pages will
                     be discovered and mapped once you log in through Meta.
@@ -486,8 +486,8 @@ export function MetaConnectWizardModal({
                       onClick={() => togglePageSelection(page.id)}
                       className={`p-4 rounded-xl border cursor-pointer transition-all ${
                         isChecked
-                          ? 'border-blue-500 bg-blue-50/30 ring-1 ring-blue-500'
-                          : 'border-gray-200 bg-white hover:border-gray-300'
+                          ? 'border-brand bg-brand-light/30 ring-1 ring-ring'
+                          : 'border-default bg-surface hover:border-strong'
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -496,37 +496,37 @@ export function MetaConnectWizardModal({
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => togglePageSelection(page.id)}
-                            className="w-4 h-4 text-blue-600 rounded-md border-gray-300 focus:ring-blue-500"
+                            className="w-4 h-4 text-brand rounded-md border-strong focus:ring-ring"
                             onClick={(e) => e.stopPropagation()}
                           />
                           <div>
-                            <p className="text-[13px] font-semibold text-gray-900">{page.name}</p>
-                            <p className="text-[11px] text-gray-500">
+                            <p className="text-[13px] font-semibold text-foreground">{page.name}</p>
+                            <p className="text-[11px] text-subtle">
                               {page.category} • {page.forms?.length ?? 0} Example Forms
                             </p>
                           </div>
                         </div>
-                        <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                        <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-brand-light text-brand border border-brand/30">
                           Preview Template
                         </span>
                       </div>
 
                       {/* Display detected forms inside page */}
                       {isChecked && page.forms && page.forms.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-gray-100 pl-7 space-y-1.5">
-                          <p className="text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                        <div className="mt-3 pt-3 border-t border-default pl-7 space-y-1.5">
+                          <p className="text-[11px] font-semibold text-muted uppercase tracking-wider">
                             Active Lead Forms on this Page:
                           </p>
                           {page.forms.map((form) => (
                             <div
                               key={form.id}
-                              className="text-[12px] text-gray-700 flex items-center justify-between"
+                              className="text-[12px] text-muted flex items-center justify-between"
                             >
                               <span className="flex items-center gap-1.5">
-                                <FileText className="w-3.5 h-3.5 text-gray-400" />
+                                <FileText className="w-3.5 h-3.5 text-subtle" />
                                 {form.name}
                               </span>
-                              <span className="text-[11px] text-gray-500 font-mono">
+                              <span className="text-[11px] text-subtle font-mono">
                                 ID: {form.id}
                               </span>
                             </div>
@@ -539,7 +539,7 @@ export function MetaConnectWizardModal({
               </div>
 
               {selectedPages.length === 0 && (
-                <p className="text-[12px] text-red-600 font-medium">
+                <p className="text-[12px] text-danger font-medium">
                   Please select at least one Facebook Page to proceed.
                 </p>
               )}
@@ -550,24 +550,24 @@ export function MetaConnectWizardModal({
           {currentStep === 4 && (
             <div className="space-y-4">
               <div>
-                <h3 className="text-[14px] font-bold text-gray-900 mb-1">
+                <h3 className="text-[14px] font-bold text-foreground mb-1">
                   Map Lead Forms to REGrow Projects
                 </h3>
-                <p className="text-[12px] text-gray-600">
+                <p className="text-[12px] text-muted">
                   Assign each Meta lead form to the specific development project it belongs to.
                   Incoming leads will automatically be tagged and routed to that project.
                 </p>
               </div>
 
               {/* Default fallback project */}
-              <div className="p-3.5 rounded-xl border border-gray-200 bg-gray-50/70 space-y-1.5">
-                <label className="block text-[12px] font-semibold text-gray-900">
+              <div className="p-3.5 rounded-xl border border-default bg-surface-muted/70 space-y-1.5">
+                <label className="block text-[12px] font-semibold text-foreground">
                   Default Fallback Project
                 </label>
                 <select
                   value={defaultProjectId}
                   onChange={(e) => setDefaultProjectId(e.target.value)}
-                  className="w-full px-3 py-2 text-[13px] rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-[13px] rounded-lg border border-strong bg-surface text-foreground focus:outline-hidden focus:ring-2 focus:ring-ring"
                 >
                   <option value="">-- No Default (Leave Unmapped for Manual Assignment) --</option>
                   {projects.map((proj) => (
@@ -576,7 +576,7 @@ export function MetaConnectWizardModal({
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-gray-500">
+                <p className="text-[11px] text-subtle">
                   Used if a new lead form is created on Facebook in the future before you configure a
                   specific mapping.
                 </p>
@@ -584,7 +584,7 @@ export function MetaConnectWizardModal({
 
               {/* Individual Form Mappings */}
               <div className="space-y-3 pt-2">
-                <h4 className="text-[12px] font-semibold text-gray-700 uppercase tracking-wider">
+                <h4 className="text-[12px] font-semibold text-muted uppercase tracking-wider">
                   Individual Form Mappings ({allDetectedForms.length} Forms Detected)
                 </h4>
 
@@ -593,28 +593,28 @@ export function MetaConnectWizardModal({
                   return (
                     <div
                       key={form.id}
-                      className="p-3.5 rounded-xl border border-gray-200 bg-white space-y-2 shadow-2xs"
+                      className="p-3.5 rounded-xl border border-default bg-surface space-y-2 shadow-2xs"
                     >
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="text-[13px] font-semibold text-gray-900 flex items-center gap-1.5">
-                            <FileText className="w-4 h-4 text-blue-600" />
+                          <p className="text-[13px] font-semibold text-foreground flex items-center gap-1.5">
+                            <FileText className="w-4 h-4 text-brand" />
                             {form.name}
                           </p>
-                          <p className="text-[11px] text-gray-500">
+                          <p className="text-[11px] text-subtle">
                             Page: {page.name} • Form ID: {form.id}
                           </p>
                         </div>
                       </div>
 
                       <div className="pt-1">
-                        <label className="block text-[11px] font-medium text-gray-600 mb-1">
+                        <label className="block text-[11px] font-medium text-muted mb-1">
                           Route Leads From This Form To:
                         </label>
                         <select
                           value={currentMappedProject}
                           onChange={(e) => handleFormMappingChange(form.id, e.target.value)}
-                          className="w-full px-3 py-1.5 text-[12px] rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-1.5 text-[12px] rounded-lg border border-strong bg-surface text-foreground focus:outline-hidden focus:ring-2 focus:ring-ring"
                         >
                           <option value="">
                             -- Unmapped (Requires Manual Assignment in Leads) --
@@ -636,9 +636,9 @@ export function MetaConnectWizardModal({
           {/* STEP 5: Final Review & Confirmation */}
           {currentStep === 5 && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200 text-blue-950 text-[13px]">
-                <p className="font-semibold flex items-center gap-1.5 text-blue-900 mb-1">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600" />
+              <div className="p-4 rounded-xl bg-brand-light/70 border border-brand/30 text-brand text-[13px]">
+                <p className="font-semibold flex items-center gap-1.5 text-brand mb-1">
+                  <CheckCircle2 className="w-4 h-4 text-brand" />
                   Planned Routing Configuration (Not Connected)
                 </p>
                 This saves your form-to-project routing plan in <strong>Not Connected</strong> state.
@@ -646,45 +646,45 @@ export function MetaConnectWizardModal({
                 directly to these designated CRM projects.
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100 text-[12px]">
+              <div className="bg-surface border border-default rounded-xl divide-y divide-default text-[12px]">
                 <div className="p-3.5 flex justify-between">
-                  <span className="text-gray-500 font-medium">Connection Plan</span>
-                  <span className="font-semibold text-gray-900">{connectionName}</span>
+                  <span className="text-subtle font-medium">Connection Plan</span>
+                  <span className="font-semibold text-foreground">{connectionName}</span>
                 </div>
                 <div className="p-3.5 flex justify-between">
-                  <span className="text-gray-500 font-medium">Status</span>
-                  <span className="font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                  <span className="text-subtle font-medium">Status</span>
+                  <span className="font-semibold text-warning bg-warning-bg px-2 py-0.5 rounded-full border border-warning/30">
                     Not Connected (Awaiting Meta OAuth)
                   </span>
                 </div>
                 <div className="p-3.5 flex justify-between">
-                  <span className="text-gray-500 font-medium">Illustrative Preview Pages</span>
-                  <span className="font-semibold text-gray-900">
+                  <span className="text-subtle font-medium">Illustrative Preview Pages</span>
+                  <span className="font-semibold text-foreground">
                     {activePages.map((p) => p.name).join(', ')} ({activePages.length} Pages Planned)
                   </span>
                 </div>
                 <div className="p-3.5 flex justify-between">
-                  <span className="text-gray-500 font-medium">Configured Form Mappings</span>
-                  <span className="font-semibold text-gray-900">
+                  <span className="text-subtle font-medium">Configured Form Mappings</span>
+                  <span className="font-semibold text-foreground">
                     {allDetectedForms.length} Forms Mapped
                   </span>
                 </div>
                 <div className="p-3.5 flex justify-between">
-                  <span className="text-gray-500 font-medium">Fallback Project</span>
-                  <span className="font-semibold text-gray-900">
+                  <span className="text-subtle font-medium">Fallback Project</span>
+                  <span className="font-semibold text-foreground">
                     {projects.find((p) => p.id === defaultProjectId)?.name || 'None (Unmapped)'}
                   </span>
                 </div>
                 <div className="p-3.5 flex justify-between">
-                  <span className="text-gray-500 font-medium">Data Privacy & Security</span>
-                  <span className="text-emerald-700 font-medium flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="text-subtle font-medium">Data Privacy & Security</span>
+                  <span className="text-success font-medium flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-success" />
                     Strict Organisation Isolation Enforced
                   </span>
                 </div>
               </div>
 
-              <p className="text-[11px] text-gray-500 leading-relaxed">
+              <p className="text-[11px] text-subtle leading-relaxed">
                 Note: Saving this plan establishes your project routing preferences. It does not connect
                 live Facebook accounts or claim verified provider status.
               </p>
@@ -693,12 +693,12 @@ export function MetaConnectWizardModal({
         </div>
 
         {/* Footer Navigation */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--border)] bg-gray-50/50">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--border)] bg-surface-muted/50">
           {currentStep > 1 ? (
             <button
               onClick={() => setCurrentStep((prev) => Math.max(1, prev - 1))}
               disabled={isSubmitting}
-              className="px-4 py-2 text-[13px] font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+              className="px-4 py-2 text-[13px] font-medium text-muted bg-surface border border-strong rounded-xl hover:bg-surface-muted transition-colors flex items-center gap-1.5"
             >
               <ArrowLeft className="w-4 h-4" />
               Back
@@ -707,7 +707,7 @@ export function MetaConnectWizardModal({
             <button
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 text-[13px] font-medium text-gray-600 hover:text-gray-900 transition-colors"
+              className="px-4 py-2 text-[13px] font-medium text-muted hover:text-foreground transition-colors"
             >
               Cancel
             </button>
@@ -720,7 +720,7 @@ export function MetaConnectWizardModal({
                 setCurrentStep((prev) => Math.min(5, prev + 1))
               }}
               disabled={currentStep === 3 && selectedPages.length === 0}
-              className="px-5 py-2 text-[13px] font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 shadow-2xs"
+              className="px-5 py-2 text-[13px] font-medium text-brand-foreground bg-brand rounded-xl hover:bg-brand disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 shadow-2xs"
             >
               Continue
               <ArrowRight className="w-4 h-4" />
@@ -729,7 +729,7 @@ export function MetaConnectWizardModal({
             <button
               onClick={handleSaveConnection}
               disabled={isSubmitting}
-              className="px-5 py-2 text-[13px] font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-1.5 shadow-2xs"
+              className="px-5 py-2 text-[13px] font-medium text-brand-foreground bg-brand rounded-xl hover:bg-brand disabled:opacity-50 transition-colors flex items-center gap-1.5 shadow-2xs"
             >
               {isSubmitting ? (
                 <>

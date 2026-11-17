@@ -99,7 +99,7 @@ export function PlatformProvisioningModal() {
       </div>
 
       {error && (
-        <div className="mb-5 p-3 rounded-lg bg-[var(--danger-bg)] border border-red-100 text-[12px] text-[var(--danger)] flex items-start gap-2">
+        <div className="mb-5 p-3 rounded-lg bg-[var(--danger-bg)] border border-danger/30 text-[12px] text-[var(--danger)] flex items-start gap-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -107,15 +107,15 @@ export function PlatformProvisioningModal() {
 
       {provisionResult ? (
         <div className="space-y-4">
-          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] space-y-2">
+          <div className="p-4 rounded-xl bg-success-bg border border-success/30 text-success text-[13px] space-y-2">
             <div className="flex items-center gap-2 font-semibold">
-              <Check className="w-4 h-4 text-emerald-600" />
+              <Check className="w-4 h-4 text-success" />
               <span>Customer Workspace Successfully Provisioned</span>
             </div>
-            <p className="text-[12px] text-emerald-700 leading-relaxed">
+            <p className="text-[12px] text-success leading-relaxed">
               Workspace <strong>/{provisionResult.orgSlug}</strong> created with {includedSeats} subscription seats. An activation invitation email has been securely dispatched to <strong>{provisionResult.adminEmail}</strong>.
             </p>
-            <p className="text-[11px] text-emerald-600 mt-1">
+            <p className="text-[11px] text-success mt-1">
               For security, primary administrator tokens are never exposed in browser responses and are delivered directly via transactional email.
             </p>
           </div>

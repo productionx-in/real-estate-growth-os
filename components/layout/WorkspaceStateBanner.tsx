@@ -23,8 +23,8 @@ export function WorkspaceStateBanner({ state }: { state: OrgLifecycleState }) {
   const Icon = copy.tone === 'danger' ? AlertTriangle : Clock
   const palette =
     copy.tone === 'danger'
-      ? 'border-red-200 bg-red-50 text-red-900'
-      : 'border-amber-200 bg-amber-50 text-amber-900'
+      ? 'border-danger/30 bg-danger-bg text-danger'
+      : 'border-warning/30 bg-warning-bg text-warning'
   return (
     <div role="status" className={`flex items-start gap-3 border-b px-4 py-2.5 text-sm ${palette}`}>
       <Icon aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />

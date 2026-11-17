@@ -153,7 +153,7 @@ async function handleSubmit(e: React.FormEvent) {
       </div>
 
       {error && (
-        <div className="mb-5 p-3 rounded-md bg-[var(--danger-bg)] border border-red-100 text-[13px] text-[var(--danger)]">
+        <div className="mb-5 p-3 rounded-md bg-[var(--danger-bg)] border border-danger/30 text-[13px] text-[var(--danger)]">
           {error}
         </div>
       )}

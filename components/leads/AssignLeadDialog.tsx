@@ -94,7 +94,7 @@ export function AssignLeadDialog({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/30 backdrop-blur-[1px] z-40"
+        className="fixed inset-0 bg-overlay backdrop-blur-[1px] z-40"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -129,7 +129,7 @@ export function AssignLeadDialog({
           {/* Body */}
           <div className="p-5">
             {error && (
-              <div className="mb-4 p-3 rounded-md bg-[var(--danger-bg)] text-[13px] text-[var(--danger)] border border-red-100">
+              <div className="mb-4 p-3 rounded-md bg-[var(--danger-bg)] text-[13px] text-[var(--danger)] border border-danger/30">
                 {error}
               </div>
             )}

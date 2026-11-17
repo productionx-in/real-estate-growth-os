@@ -106,16 +106,16 @@ function EnquiryFormContent() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <h2 className="text-xl font-bold text-slate-900 text-center mb-1">{formTitle}</h2>
-        <p className="text-sm text-slate-500 text-center mb-6">
+    <div className="min-h-screen bg-surface-muted flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-surface rounded-xl shadow-sm border border-default p-6">
+        <h2 className="text-xl font-bold text-foreground text-center mb-1">{formTitle}</h2>
+        <p className="text-sm text-subtle text-center mb-6">
           Submit your details to receive full project brochure, pricing, and floor plans.
         </p>
 
         {status.type === 'success' ? (
-          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-center">
-            <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-2 text-emerald-600 font-bold">
+          <div className="p-4 bg-success-bg border border-success/30 rounded-lg text-success text-center">
+            <div className="w-10 h-10 bg-success-bg rounded-full flex items-center justify-center mx-auto mb-2 text-success font-bold">
               ✓
             </div>
             <p className="font-semibold">{status.message}</p>
@@ -150,7 +150,7 @@ function EnquiryFormContent() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
                 Full Name *
               </label>
               <input
@@ -159,12 +159,12 @@ function EnquiryFormContent() {
                 placeholder="e.g. Rahul Sharma"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-strong rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
                 Phone Number *
               </label>
               <input
@@ -173,12 +173,12 @@ function EnquiryFormContent() {
                 placeholder="+91 98765 43210"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-strong rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
                 Email Address (Optional)
               </label>
               <input
@@ -186,18 +186,18 @@ function EnquiryFormContent() {
                 placeholder="rahul@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-strong rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1">
                 Unit Configuration
               </label>
               <select
                 value={unitPreference}
                 onChange={(e) => setUnitPreference(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-strong rounded-lg text-sm text-foreground bg-surface focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">Select unit configuration</option>
                 <option value="2 BHK Apartment">2 BHK Luxury Apartment</option>
@@ -214,15 +214,15 @@ function EnquiryFormContent() {
                 id="siteVisitCheck"
                 checked={scheduleSiteVisit}
                 onChange={(e) => setScheduleSiteVisit(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
+                className="w-4 h-4 text-brand rounded focus:ring-ring cursor-pointer"
               />
-              <label htmlFor="siteVisitCheck" className="text-xs text-slate-700 cursor-pointer">
+              <label htmlFor="siteVisitCheck" className="text-xs text-muted cursor-pointer">
                 Request priority site visit & model flat walkthrough
               </label>
             </div>
 
             {status.type === 'error' && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs">
+              <div className="p-3 bg-danger-bg border border-danger/30 rounded-lg text-danger text-xs">
                 {status.message}
               </div>
             )}
@@ -230,7 +230,7 @@ function EnquiryFormContent() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-sm transition disabled:opacity-50 cursor-pointer"
+              className="w-full py-2.5 px-4 bg-brand hover:bg-brand text-brand-foreground font-medium rounded-lg text-sm shadow-sm transition disabled:opacity-50 cursor-pointer"
             >
               {loading ? 'Submitting...' : buttonText}
             </button>
@@ -245,8 +245,8 @@ export default function StandaloneEnquiryFormPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center text-slate-500 text-sm">
+        <div className="min-h-screen bg-surface-muted flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-surface rounded-xl shadow-sm border border-default p-6 text-center text-subtle text-sm">
             Loading enquiry form...
           </div>
         </div>

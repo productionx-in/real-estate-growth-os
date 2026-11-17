@@ -23,10 +23,10 @@ export interface HeaderProps {
 
 const ROLE_CONFIG: Record<MemberRole, { label: string; className: string }> = {
   owner: { label: 'Owner', className: 'bg-purple-50 text-purple-700 border-purple-200' },
-  admin: { label: 'Admin', className: 'bg-blue-50 text-blue-700 border-blue-200' },
+  admin: { label: 'Admin', className: 'bg-brand-light text-brand border-brand/30' },
   manager: { label: 'Sales Manager', className: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-  sales_exec: { label: 'Sales Executive', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  readonly: { label: 'Read Only', className: 'bg-gray-100 text-gray-700 border-gray-200' },
+  sales_exec: { label: 'Sales Executive', className: 'bg-success-bg text-success border-success/30' },
+  readonly: { label: 'Read Only', className: 'bg-surface-hover text-muted border-default' },
 }
 
 const SECTION_LABELS: Record<string, string> = {
@@ -143,7 +143,7 @@ export function Header({
           )}
           <button
             onClick={handleSignOut}
-            className="w-8 h-8 rounded-md flex items-center justify-center text-[var(--foreground-muted)] hover:bg-red-50 hover:text-red-600 transition-colors"
+            className="w-8 h-8 rounded-md flex items-center justify-center text-[var(--foreground-muted)] hover:bg-danger-bg hover:text-danger transition-colors"
             title="Sign out"
             aria-label="Sign out"
           >
