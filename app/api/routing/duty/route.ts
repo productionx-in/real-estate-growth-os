@@ -8,6 +8,7 @@ import { SALES_WRITE_ROLES } from '@/lib/auth/permissions'
 import { DutyToggleSchema } from '@/lib/validations/routing'
 import { getOwnDutyStatus, setOwnDutyStatus } from '@/lib/dal/routing'
 import { parseJson, respond, serverError } from '@/lib/routing/http'
+import { requireModule } from '@/lib/auth/entitlements'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,6 +16,7 @@ export async function GET(request: NextRequest) {
     if (!orgId) return NextResponse.json({ error: 'Missing required orgId' }, { status: 400 })
     const auth = await authorizeOrgAccess(orgId)
     if (!auth.success) return auth.response
+    { const gate = await requireModule(auth.context.orgId, 'routing'); if (gate) return gate }
     return respond(await getOwnDutyStatus(orgId, auth.context.profile.id))
   } catch (err) {
     return serverError('get duty status', err)
@@ -27,6 +29,7 @@ export async function POST(request: NextRequest) {
     if (!input.ok) return input.response
     const auth = await authorizeOrgAccess(input.data.orgId, [...SALES_WRITE_ROLES])
     if (!auth.success) return auth.response
+    { const gate = await requireModule(auth.context.orgId, 'routing'); if (gate) return gate }
     return respond(await setOwnDutyStatus(input.data.orgId, auth.context.profile.id, input.data.isOnDuty))
   } catch (err) {
     return serverError('set duty status', err)

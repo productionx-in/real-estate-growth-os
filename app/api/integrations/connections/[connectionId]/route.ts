@@ -11,6 +11,7 @@ import {
 } from '@/lib/dal/integrations'
 import { z } from 'zod'
 import { auditMember } from '@/lib/dal/org-audit'
+import { requireModule } from '@/lib/auth/entitlements'
 
 const UpdateConnectionSchema = z.object({
   name: z.string().min(2).max(100).optional(),
@@ -87,6 +88,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     const { connectionId } = await params
     const access = await verifyConnectionAccess(connectionId, authResult.auth.profile.id)
     if (!access.success) return access.response
+    { const gate = await requireModule(access.orgId, 'integrations'); if (gate) return gate }
 
     const connection = await getIntegrationConnectionById(connectionId, access.orgId)
     if (!connection) {
@@ -121,6 +123,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       'manager',
     ])
     if (!access.success) return access.response
+    { const gate = await requireModule(access.orgId, 'integrations'); if (gate) return gate }
 
     const body = await request.json()
     const parsed = UpdateConnectionSchema.safeParse(body)
@@ -174,6 +177,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
       'manager',
     ])
     if (!access.success) return access.response
+    { const gate = await requireModule(access.orgId, 'integrations'); if (gate) return gate }
 
     // Safe disconnect preserving historical leads
     const { success, error } = await disconnectIntegrationConnection(connectionId, access.orgId)

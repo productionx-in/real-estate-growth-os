@@ -53,6 +53,13 @@ export interface SidebarProps {
   user?: { id: string; email?: string }
   profile?: { id: string; full_name: string; avatar_url: string | null; phone: string | null }
   availableOrgs?: AvailableOrgSummary[]
+  /** Modules switched off for this workspace (see lib/auth/entitlements.ts); their links are hidden. */
+  disabledModules?: string[]
+}
+
+/** First path segment after the org slug → module key. Core pages are not listed. */
+const MODULE_OF_SEGMENT: Record<string, string> = {
+  sales: 'sales', inventory: 'inventory', routing: 'routing', integrations: 'integrations', analytics: 'analytics',
 }
 
 const ROLE_DISPLAY_NAMES: Record<MemberRole, string> = {
@@ -204,6 +211,7 @@ export function Sidebar({
   role = 'sales_exec',
   profile,
   availableOrgs = [],
+  disabledModules = [],
 }: SidebarProps = {}) {
   const params = useParams()
   const pathname = usePathname()
@@ -238,6 +246,15 @@ export function Sidebar({
   }, [isSwitcherOpen])
 
   const navSections = getRoleNavSections(orgSlug, role, orgType)
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => {
+        const segment = item.href.split('/')[2] ?? ''
+        const mod = MODULE_OF_SEGMENT[segment]
+        return !mod || !disabledModules.includes(mod)
+      }),
+    }))
+    .filter((section) => section.items.length > 0)
 
   function isActive(item: NavItem): boolean {
     if (item.exact) return pathname === item.href
