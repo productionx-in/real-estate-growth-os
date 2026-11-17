@@ -147,6 +147,23 @@ async function main() {
       const r = await sv.scheduleVisit({ orgId: org, leadId: lead, projectId: project, assignedTo: asha, scheduledAt: tomorrow, actorId: asha, meetingLink: 'javascript:alert(1)' })
       assert.equal(r.ok, false)
     })
+    await test('a visit recorded without an actor (older callers) still books; the salesperson is credited', async () => {
+      const l = await mkLead(null)
+      const v = (await one(`INSERT INTO public.site_visits (org_id, lead_id, project_id, assigned_to, scheduled_at, status)
+        VALUES ($1,$2,$3,$4,$5,'scheduled') RETURNING id`, [org, l, project, asha, tomorrow])).id
+      const a = await one(`SELECT actor_id FROM public.lead_activities WHERE lead_id=$1 AND type='site_visit_scheduled'`, [l])
+      assert.equal(a.actor_id, asha)
+      await db.query(`UPDATE public.site_visits SET status='cancelled' WHERE id=$1`, [v])
+      assert.equal((await task(v)).status, 'cancelled')
+    })
+    await test('a visit with no actor and no salesperson still books (no activity row is invented)', async () => {
+      const l = (await one(`INSERT INTO public.leads (org_id, name, phone, source, status) VALUES ($1,'Walk-in',$2,'walk_in','new') RETURNING id`,
+        [org, `8${String(Date.now()).slice(-9)}`])).id
+      await db.query('UPDATE public.leads SET assigned_to=NULL WHERE id=$1', [l]) // undo auto-assignment
+      await db.query(`INSERT INTO public.site_visits (org_id, lead_id, project_id, scheduled_at, status) VALUES ($1,$2,$3,$4,'scheduled')`,
+        [org, l, project, tomorrow])
+      assert.equal(await leadStatus(l), 'site_visit_scheduled')
+    })
     console.log(`\nP9 site visits: ${passed} checks passed.`)
   } finally {
     setEmailAdapterForTesting(null)

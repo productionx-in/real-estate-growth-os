@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
       visitorCount: body.visitorCount,
       cabRequired: body.cabRequired,
       cabDetails: body.cabDetails,
+      actorId: auth.context.profile.id,
     })
 
     if (!result.success) {
@@ -81,6 +82,7 @@ export async function PATCH(request: NextRequest) {
       rating: body.rating,
       checkedInAt: body.checkedInAt,
       completedAt: body.completedAt,
+      actorId: auth.context.profile.id,
     })
 
     if (!result.success) {
