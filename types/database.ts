@@ -2916,6 +2916,42 @@ export interface Database {
           }
         ]
       }
+      saved_views: {
+        Row: {
+          id: string
+          org_id: string
+          owner_id: string
+          entity: string
+          name: string
+          layout: string
+          filters: Json
+          shared: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          owner_id: string
+          entity?: string
+          name: string
+          layout?: string
+          filters?: Json
+          shared?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          name?: string
+          layout?: string
+          filters?: Json
+          shared?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: 'saved_views_owner_id_fkey'; columns: ['owner_id']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+        ]
+      }
       scheduled_jobs: {
         Row: {
           id: string

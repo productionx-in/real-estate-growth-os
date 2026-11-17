@@ -1,172 +1,163 @@
 // app/(dashboard)/[orgSlug]/leads/page.tsx
+// Leads as a list or a board, with filters in the URL and saved views as tabs.
 import type { Metadata } from 'next'
 import type { ComponentProps } from 'react'
 import Link from 'next/link'
-import { Plus, Upload, Users } from 'lucide-react'
+import { Plus, SearchX, Upload, Users } from 'lucide-react'
 import { createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { LeadsTable } from '@/components/leads/LeadsTable'
+import { LeadsBoard, type BoardLead } from '@/components/leads/LeadsBoard'
+import { LeadFilterBar } from '@/components/leads/LeadFilterBar'
+import { SavedViewsBar } from '@/components/leads/SavedViewsBar'
 import { ExportLeadsButton } from '@/components/leads/ExportLeadsButton'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { Button } from '@/components/ui'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
-import type { LeadStatus, LeadSource } from '@/types/database'
-import { applyFocus, FOCI, isFocus } from '@/lib/dal/action-board'
+import { listViews } from '@/lib/dal/saved-views'
+import { STATUS_ORDER } from '@/lib/leads/transitions'
+import {
+  FOCI, applyLeadFilters, canShareViews, isEmpty, parseLeadSearch, sameFilters, toLeadSearch,
+} from '@/lib/leads/view-filters'
 
 export const metadata: Metadata = { title: 'Leads' }
 export const dynamic = 'force-dynamic'
 
+const LIST_LIMIT = 100
+const BOARD_LIMIT = 500
+
 interface PageProps {
   params: Promise<{ orgSlug: string }>
-  searchParams: Promise<{ status?: string; source?: string; scope?: string; focus?: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
 export default async function LeadsPage({ params, searchParams }: PageProps) {
   const { orgSlug } = await params
-  const { status, source, scope, focus: rawFocus } = await searchParams
-  const focus = isFocus(rawFocus) ? rawFocus : null
+  const { filters, layout, viewId } = parseLeadSearch(await searchParams)
 
   const { org, role, profile, isManager } = await getVerifiedWorkspace(orgSlug)
+  const viewer = { role, profileId: profile.id }
   const service = createServiceClient()
+  const now = new Date()
 
-  // Fetch leads for this organisation
+  const board = layout === 'board'
+  const columns = board
+    ? filters.status
+      ? STATUS_ORDER.filter((s) => filters.status!.includes(s))
+      : STATUS_ORDER.filter((s) => s !== 'junk')
+    : []
+
+  // Visibility is applied by applyLeadFilters: a sales executive only ever gets their own leads.
   let query = service
     .from('leads')
-    .select(`
-      id, name, phone, email, status, priority, source, created_at,
-      project:projects(id, name),
-      assignee:profiles!leads_assigned_to_fkey(id, full_name)
-    `)
+    .select(
+      board
+        ? 'id, name, phone, status, priority, next_follow_up_at, project:projects(name), assignee:profiles!leads_assigned_to_fkey(full_name)'
+        : 'id, name, phone, email, status, priority, source, created_at, project:projects(id, name), assignee:profiles!leads_assigned_to_fkey(id, full_name)',
+      { count: 'exact' }
+    )
     .eq('org_id', org.id)
-    .order('created_at', { ascending: false })
-    .limit(100)
+  query = applyLeadFilters(query, filters, viewer, now)
+  if (board && !filters.status) query = query.neq('status', 'junk')
 
-  // Server-authoritative role-based visibility enforcement:
-  if (role === 'sales_exec') {
-    // Sales executives only see leads assigned to them — perfectly consistent with RLS
-    query = query.eq('assigned_to', profile.id)
-  } else if (isManager) {
-    if (scope === 'my') {
-      query = query.eq('assigned_to', profile.id)
-    } else if (scope === 'unassigned') {
-      query = query.is('assigned_to', null)
-    }
-  }
+  const [{ data: leads, count }, views, { data: projects }, { data: members }] = await Promise.all([
+    query.order('created_at', { ascending: false }).limit(board ? BOARD_LIMIT : LIST_LIMIT),
+    listViews(org.id, viewer),
+    service.from('projects').select('id, name').eq('org_id', org.id).order('name'),
+    isManager
+      ? service.from('org_members').select('profile:profiles(id, full_name)').eq('org_id', org.id).eq('status', 'active')
+      : Promise.resolve({ data: [] as { profile: { id: string; full_name: string } | null }[] }),
+  ])
 
-  if (focus) {
-    // Same definitions as the home dashboard, so the count there matches this list.
-    query = applyFocus(query, focus, new Date())
-  }
-  if (status) query = query.eq('status', status as LeadStatus)
-  if (source) query = query.eq('source', source as LeadSource)
+  const active = viewId ? views.find((v) => v.id === viewId) ?? null : null
+  const modified = active ? !sameFilters(active.filters, filters) || active.layout !== layout : false
+  const total = count ?? leads?.length ?? 0
+  const hasLeads = (leads?.length ?? 0) > 0
+  const filtered = !isEmpty(filters)
 
-  const { data: leads } = await query
+  const memberOptions = ((members ?? []) as unknown as { profile: { id: string; full_name: string } | null }[])
+    .flatMap((m) => (m.profile ? [{ id: m.profile.id, label: m.profile.full_name }] : []))
+    .sort((a, b) => a.label.localeCompare(b.label))
 
   const actions = (
     <>
-      {role !== 'readonly' && leads && leads.length > 0 && (
-        <ExportLeadsButton
-          orgSlug={orgSlug}
-          currentStatus={status}
-          currentSource={source}
-        />
-      )}
+      {role !== 'readonly' && hasLeads && <ExportLeadsButton orgSlug={orgSlug} filterQuery={toLeadSearch(filters)} />}
       {isManager && (
-        <Link
-          href={`/${orgSlug}/leads/import`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] transition-colors shadow-2xs"
-        >
-          <Upload className="w-3.5 h-3.5" />
-          Import CSV
-        </Link>
+        <Button asChild variant="secondary" size="sm">
+          <Link href={`/${orgSlug}/leads/import`}><Upload aria-hidden /> Import CSV</Link>
+        </Button>
       )}
       {role !== 'readonly' && (
-        <Link
-          href={`/${orgSlug}/leads/new`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Add lead
-        </Link>
+        <Button asChild size="sm">
+          <Link href={`/${orgSlug}/leads/new`}><Plus aria-hidden /> Add lead</Link>
+        </Button>
       )}
     </>
   )
 
-  const pageTitle = focus ? FOCI[focus] : role === 'sales_exec' ? 'My Leads' : 'Leads'
-  const pageDescription =
-    role === 'sales_exec'
-      ? `${leads?.length ?? 0} direct customer enquiries assigned to you for ${org.name}`
-      : isManager
-        ? `${leads?.length ?? 0} leads in ${scope === 'unassigned' ? 'unassigned queue' : scope === 'my' ? 'your personal queue' : 'pipeline'}`
-        : `${leads?.length ?? 0} leads in pipeline`
+  const title = active?.name ?? (filters.focus ? FOCI[filters.focus] : role === 'sales_exec' ? 'My leads' : 'Leads')
+  const description = [
+    `${total} ${total === 1 ? 'lead' : 'leads'}${filtered ? ' match' : ''}`,
+    !board && total > LIST_LIMIT ? `showing the latest ${LIST_LIMIT}` : null,
+    role === 'sales_exec' ? 'assigned to you' : null,
+  ].filter(Boolean).join(' · ')
 
   return (
-    <PageShell
-      title={pageTitle}
-      description={pageDescription}
-      actions={actions}
-    >
-      {isManager && (
-        <div className="flex items-center gap-2 mb-4 border-b border-[var(--border)] pb-3">
-          <Link
-            href={`/${orgSlug}/leads`}
-            className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-              !scope || scope === 'all'
-                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                : 'text-muted hover:bg-surface-hover'
-            }`}
-          >
-            All Organisation Leads
-          </Link>
-          <Link
-            href={`/${orgSlug}/leads?scope=my`}
-            className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-              scope === 'my'
-                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                : 'text-muted hover:bg-surface-hover'
-            }`}
-          >
-            My Assigned Leads
-          </Link>
-          <Link
-            href={`/${orgSlug}/leads?scope=unassigned`}
-            className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-              scope === 'unassigned'
-                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                : 'text-muted hover:bg-surface-hover'
-            }`}
-          >
-            Unassigned Queue
-          </Link>
-        </div>
-      )}
+    <PageShell title={title} description={description} actions={actions}>
+      <SavedViewsBar
+        orgSlug={orgSlug}
+        orgId={org.id}
+        views={views}
+        activeId={active?.id ?? null}
+        modified={modified}
+        filters={filters}
+        layout={layout}
+        canShare={canShareViews(role)}
+      />
+      <LeadFilterBar
+        orgSlug={orgSlug}
+        filters={filters}
+        layout={layout}
+        viewId={active?.id ?? null}
+        projects={(projects ?? []).map((p) => ({ id: p.id, label: p.name }))}
+        members={memberOptions}
+        canFilterAssignee={role !== 'sales_exec'}
+      />
 
-      {leads && leads.length > 0 ? (
+      {!hasLeads ? (
+        filtered ? (
+          <EmptyState
+            icon={SearchX}
+            title="No leads match these filters"
+            description="Try removing a filter or searching for something else."
+            action={<Button asChild variant="secondary" size="sm"><Link href={`/${orgSlug}/leads${toLeadSearch({}, { layout })}`}>Clear filters</Link></Button>}
+          />
+        ) : (
+          <EmptyState
+            icon={Users}
+            title={isManager ? 'No leads in pipeline yet' : 'No leads assigned to you'}
+            description={
+              isManager
+                ? 'Add your first real estate lead manually or import a batch from a CSV file.'
+                : 'Your sales manager will assign incoming leads to you.'
+            }
+            action={isManager ? <Button asChild size="sm"><Link href={`/${orgSlug}/leads/new`}><Plus aria-hidden /> Add first lead</Link></Button> : undefined}
+          />
+        )
+      ) : board ? (
+        <LeadsBoard
+          leads={(leads ?? []) as unknown as BoardLead[]}
+          columns={columns}
+          orgSlug={orgSlug}
+          canMove={role !== 'readonly'}
+          truncated={total > BOARD_LIMIT}
+        />
+      ) : (
         <LeadsTable
           leads={(leads ?? []) as unknown as ComponentProps<typeof LeadsTable>['leads']}
           orgSlug={orgSlug}
           orgId={org.id}
           viewerRole={role}
-        />
-      ) : (
-        <EmptyState
-          icon={Users}
-          title={isManager ? 'No leads in pipeline yet' : 'No leads assigned to you'}
-          description={
-            isManager
-              ? 'Add your first real estate lead manually or import a batch from a CSV file.'
-              : 'Your sales manager will assign incoming leads to you.'
-          }
-          action={
-            isManager ? (
-              <Link
-                href={`/${orgSlug}/leads/new`}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Add first lead
-              </Link>
-            ) : undefined
-          }
         />
       )}
     </PageShell>

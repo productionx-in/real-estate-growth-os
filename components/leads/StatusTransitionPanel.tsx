@@ -7,16 +7,8 @@ import { ChevronRight, Loader2 } from 'lucide-react'
 import { LeadStatusBadge } from './LeadStatusBadge'
 import type { LeadStatus } from '@/types/database'
 import { cn } from '@/lib/utils/cn'
+import { nextStatuses as allowedNext } from '@/lib/leads/transitions'
 
-// Allowed transitions from each status
-const TRANSITIONS: Partial<Record<LeadStatus, LeadStatus[]>> = {
-  new: ['contacted', 'junk'],
-  contacted: ['qualified', 'junk'],
-  qualified: ['site_visit_scheduled', 'lost'],
-  site_visit_scheduled: ['site_visited', 'lost'],
-  site_visited: ['negotiation', 'lost'],
-  negotiation: ['booked', 'lost'],
-}
 
 interface StatusTransitionPanelProps {
   leadId: string
@@ -30,7 +22,7 @@ export function StatusTransitionPanel({ leadId, currentStatus }: StatusTransitio
   const [error, setError] = useState<string | null>(null)
   const [transitioning, setTransitioning] = useState<LeadStatus | null>(null)
 
-  const nextStatuses = TRANSITIONS[currentStatus] ?? []
+  const nextStatuses = allowedNext(currentStatus)
   const isTerminal = ['booked', 'lost', 'junk'].includes(currentStatus)
 
   async function handleTransition(to: LeadStatus) {
