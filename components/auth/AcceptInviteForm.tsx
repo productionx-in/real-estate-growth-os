@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ShieldCheck, UserCheck, ArrowRight, Loader2, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { passwordProblem, PASSWORD_MIN_LENGTH } from '@/lib/auth/password-policy'
 import type { ValidatedInvitation } from '@/lib/dal/invitations'
 
 interface AcceptInviteFormProps {
@@ -76,7 +77,7 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
   // Create new account & accept invitation
   async function handleCreateAndAccept(e: React.FormEvent) {
     e.preventDefault()
-    if (!fullName.trim() || password.length < 8) return
+    if (!fullName.trim() || passwordProblem(password, invitation.email) !== null) return
 
     setLoading(true)
     setError(null)
@@ -88,6 +89,8 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
         password,
         options: {
           data: { full_name: fullName.trim() },
+          // If the project requires email verification, the link brings the person straight back to this invitation.
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/invite/${token}`)}`,
         },
       })
 
@@ -103,6 +106,11 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
 
       if (!authData.user) {
         throw new Error('User creation failed.')
+      }
+      if (!authData.session) {
+        setError(`We sent a verification link to ${invitation.email}. Open it to confirm your email; you will come back here to join.`)
+        setLoading(false)
+        return
       }
 
       // 2. Accept invitation
@@ -215,18 +223,18 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
             <input
               type="password"
               required
-              minLength={8}
+              minLength={PASSWORD_MIN_LENGTH}
               value={password}
               disabled={loading}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 8 characters"
+              placeholder={`At least ${PASSWORD_MIN_LENGTH} characters, with a letter and a number`}
               className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors"
             />
           </div>
 
           <button
             type="submit"
-            disabled={loading || !fullName.trim() || password.length < 8}
+            disabled={loading || !fullName.trim() || passwordProblem(password, invitation.email) !== null}
             className="w-full py-2.5 px-4 text-[13px] font-semibold text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 shadow-2xs mt-2"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}

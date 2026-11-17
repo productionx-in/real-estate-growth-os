@@ -170,15 +170,16 @@ export async function validateInvitationToken(token: string): Promise<ValidatedI
 
 export async function acceptEmployeeInvitation(
   token: string,
-  userProfileId: string
-): Promise<{ success: boolean; orgSlug?: string; error?: string }> {
+  userProfileId: string,
+  authUserId: string
+): Promise<{ success: boolean; orgSlug?: string; error?: string; status?: number }> {
   const service = createServiceClient()
   const tokenHash = hashInvitationToken(token)
 
   // 1. Verify invitation is valid, pending, and not expired
   const { data: invite, error: fetchError } = await service
     .from('org_invitations')
-    .select('id, org_id, role, status, expires_at, organisation:organisations(slug)')
+    .select('id, org_id, email, role, status, expires_at, organisation:organisations(slug)')
     .eq('token_hash', tokenHash)
     .maybeSingle()
 
@@ -193,6 +194,17 @@ export async function acceptEmployeeInvitation(
   if (new Date(invite.expires_at) < new Date()) {
     await service.from('org_invitations').update({ status: 'expired' }).eq('id', invite.id)
     return { success: false, error: 'This invitation link has expired. Please ask your administrator to send a new invitation.' }
+  }
+
+  // 1b. The invitation belongs to one email address. A forwarded or leaked link must not let a different
+  //     account join, so the signed-in account's email must match it and be verified.
+  const { data: authUser } = await service.auth.admin.getUserById(authUserId)
+  const accountEmail = authUser?.user?.email?.trim().toLowerCase() ?? null
+  if (!accountEmail || accountEmail !== invite.email.trim().toLowerCase()) {
+    return { success: false, status: 403, error: 'This invitation was sent to a different email address. Sign in with the invited email to accept it.' }
+  }
+  if (!authUser?.user?.email_confirmed_at) {
+    return { success: false, status: 403, error: 'Verify your email address first, then open the invitation again.' }
   }
 
   const org = Array.isArray(invite.organisation) ? invite.organisation[0] : invite.organisation

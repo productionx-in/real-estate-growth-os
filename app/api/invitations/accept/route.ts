@@ -23,9 +23,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid invitation token parameter' }, { status: 400 })
     }
 
-    const result = await acceptEmployeeInvitation(parsed.data.token, auth.profile.id)
+    const result = await acceptEmployeeInvitation(parsed.data.token, auth.profile.id, auth.user.id)
     if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 400 })
+      return NextResponse.json({ error: result.error }, { status: result.status ?? 400 })
     }
 
     return NextResponse.json(
