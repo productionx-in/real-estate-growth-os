@@ -3,6 +3,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/types/database'
 
 const PUBLIC_ROUTES = ['/', '/pricing', '/demo', '/leakage-audit', '/login', '/auth/callback', '/auth/confirm']
+// Loaded by visitors of customers' websites, who are never signed in to REGrow.
+const PUBLIC_WEBSITE_ASSETS = ['/capture.js', '/forms/embed.js', '/forms/view']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -74,7 +76,8 @@ export async function proxy(request: NextRequest) {
   if (
     isApiRoute ||
     isInviteRoute ||
-    PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith('/auth/'))
+    PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith('/auth/')) ||
+    PUBLIC_WEBSITE_ASSETS.includes(pathname)
   ) {
     if (user && pathname === '/login') {
       const url = request.nextUrl.clone()

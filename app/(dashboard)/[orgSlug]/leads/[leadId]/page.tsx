@@ -17,6 +17,7 @@ import type { MemberRole, LeadStatus } from '@/types/database'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getModules } from '@/lib/auth/entitlements'
 import { ScheduleVisitDialog } from '@/components/visits/ScheduleVisitDialog'
+import { safeHttpUrl, visitDetails } from '@/lib/integrations/website/attribution'
 
 export const metadata: Metadata = { title: 'Lead Detail' }
 
@@ -95,8 +96,12 @@ export default async function LeadDetailPage({ params }: PageProps) {
   const assignee = lead.assignee as { id: string; full_name: string } | null
   const project = lead.project as { id: string; name: string; slug: string } | null
 
+  // Source details arrive from public web pages: only http(s) URLs become links (never javascript: or data:).
+  const landingUrl = safeHttpUrl(lead.source_url)
+  const visit = visitDetails(lead.source_metadata)
+
   // Check if lead has integration source attribution
-  const hasAttribution = Boolean(
+  const hasAttribution = visit.length > 0 || Boolean(
     lead.source_platform ||
     lead.campaign_name ||
     lead.ad_name ||
@@ -314,18 +319,37 @@ export default async function LeadDetailPage({ params }: PageProps) {
                   <DetailRow
                     label="Landing URL"
                     value={
-                      <a
-                        href={lead.source_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[var(--brand)] hover:underline inline-flex items-center gap-1"
-                      >
-                        {lead.source_url}
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
+                      landingUrl ? (
+                        <a
+                          href={landingUrl}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="text-[var(--brand)] hover:underline inline-flex items-center gap-1 break-all"
+                        >
+                          {landingUrl}
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <span className="break-all text-[var(--foreground-muted)]">{lead.source_url}</span>
+                      )
                     }
                   />
                 )}
+                {visit.map((row) => (
+                  <DetailRow
+                    key={row.label}
+                    label={row.label}
+                    value={
+                      row.href ? (
+                        <a href={row.href} target="_blank" rel="noreferrer noopener" className="text-[var(--brand)] hover:underline break-all">
+                          {row.value}
+                        </a>
+                      ) : (
+                        <span className="break-all">{row.value}</span>
+                      )
+                    }
+                  />
+                ))}
                 <DetailRow
                   label="Deduplication"
                   value={
