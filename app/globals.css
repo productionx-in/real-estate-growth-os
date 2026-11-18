@@ -94,10 +94,17 @@
   /* Layout and shape */
   --sidebar-width: 240px;
   --header-height: 56px;
+  --sidebar-width-collapsed: 64px;
+  --bottom-nav-height: 64px;
   --radius-sm: 4px;
-  --radius: 6px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Motion: one rhythm everywhere (150–250ms, ease-out in). Reduced motion is honoured below. */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
 
   color-scheme: light;
 }
@@ -202,6 +209,8 @@
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
+/* The ⌘K field fills its dialog and always has the caret: the open dialog is the focus indicator. */
+[data-palette-input]:focus-visible { outline: none; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -216,11 +225,28 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  /* Inter's clearer 1/l/I and single-storey a, the modern-UI defaults. */
+  font-feature-settings: "cv11", "ss01";
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Figures line up in tables, counts and prices. */
+table, .tabular { font-variant-numeric: tabular-nums; }
+
+/* No 300ms tap delay; no grey flash on tap (mobile browsers). */
+a, button, [role="button"], summary, label { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+/* Phones: form fields are at least 16px, or iOS zooms the page on focus. Unlayered, so it outranks the
+   compact text-[13px] utilities older forms use; desktop keeps the compact size. */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px; }
+}
+
+/* Fixed bars sit above the phone's home indicator. */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 
 /* ─── Scrollbar ──────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {

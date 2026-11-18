@@ -2,14 +2,15 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils/cn'
 
+// 16px text on phones: smaller text makes iOS zoom the page when a field is focused. Compact on larger screens.
 const control =
-  'w-full rounded-md border border-strong bg-surface px-3 text-[13px] text-foreground shadow-sm ' +
+  'w-full rounded-md border border-strong bg-surface px-3 text-[16px] sm:text-[13px] text-foreground shadow-sm ' +
   'placeholder:text-subtle transition-colors focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-0 ' +
   'focus-visible:border-ring disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-subtle ' +
   'aria-[invalid=true]:border-danger'
 
 export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, ...props }, ref) => <input ref={ref} className={cn(control, 'h-9', className)} {...props} />
+  ({ className, ...props }, ref) => <input ref={ref} className={cn(control, 'h-10 sm:h-9', className)} {...props} />
 )
 Input.displayName = 'Input'
 
@@ -20,7 +21,7 @@ Textarea.displayName = 'Textarea'
 
 /** Native select: keyboard, screen-reader and mobile behaviour come for free. */
 export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(
-  ({ className, ...props }, ref) => <select ref={ref} className={cn(control, 'h-9 pr-8', className)} {...props} />
+  ({ className, ...props }, ref) => <select ref={ref} className={cn(control, 'h-10 sm:h-9 pr-8', className)} {...props} />
 )
 Select.displayName = 'Select'
 

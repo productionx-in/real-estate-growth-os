@@ -6,8 +6,9 @@ import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 export const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium transition-colors ' +
-    'disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0',
+  'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium cursor-pointer select-none ' +
+    'transition-[color,background-color,border-color,box-shadow,transform] duration-150 ease-out active:scale-[0.98] ' +
+    'touch-manipulation disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
@@ -18,10 +19,11 @@ export const buttonVariants = cva(
         link: 'text-brand underline-offset-4 hover:underline px-0 h-auto',
       },
       size: {
-        sm: 'h-8 px-2.5 text-[12px]',
-        md: 'h-9 px-3.5 text-[13px]',
+        // Touch screens get a 40–44px target (Apple/Material minimum); mouse users keep the compact size.
+        sm: 'h-8 px-2.5 text-[12px] pointer-coarse:h-10 pointer-coarse:px-3',
+        md: 'h-9 px-3.5 text-[13px] pointer-coarse:h-11',
         lg: 'h-11 px-5 text-[14px]',
-        icon: 'h-9 w-9',
+        icon: 'h-9 w-9 pointer-coarse:h-11 pointer-coarse:w-11',
       },
     },
     defaultVariants: { variant: 'primary', size: 'md' },

@@ -2,7 +2,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Pencil, AlertTriangle, ExternalLink, Layers, MessageCircle, Radio } from 'lucide-react'
+import { Pencil, AlertTriangle, ExternalLink, Layers, MessageCircle, Radio } from 'lucide-react'
 import { getLeadById, getLeadActivities } from '@/lib/dal/leads'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { PageShell } from '@/components/layout/PageShell'
@@ -11,6 +11,7 @@ import { StatusTransitionPanel } from '@/components/leads/StatusTransitionPanel'
 import type { ComponentProps } from 'react'
 import { ActivityLog } from '@/components/leads/ActivityLog'
 import { LeadWorkPanel } from '@/components/leads/LeadWorkPanel'
+import { StickyContactBar } from '@/components/leads/QuickContact'
 import { listLeadTasks } from '@/lib/dal/follow-ups'
 import { formatDate, formatBudgetRange } from '@/lib/utils/format'
 import type { MemberRole, LeadStatus } from '@/types/database'
@@ -24,7 +25,7 @@ import { inr } from '@/lib/documents/merge'
 import { LeadMatches } from '@/components/matching/LeadMatches'
 import { matchUnitsForLead } from '@/lib/dal/matching'
 
-export const metadata: Metadata = { title: 'Lead Detail' }
+export const metadata: Metadata = { title: 'Lead' }
 
 interface PageProps {
   params: Promise<{ orgSlug: string; leadId: string }>
@@ -134,11 +135,15 @@ export default async function LeadDetailPage({ params }: PageProps) {
 
   return (
     <PageShell
+      back={{ href: `/${orgSlug}/leads`, label: 'Leads' }}
       title={lead.name}
       description={
-        <span className="flex items-center gap-2">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <LeadStatusBadge status={lead.status as LeadStatus} />
-          <span className="text-[var(--foreground-subtle)]">·</span>
+          <a href={`tel:${lead.phone}`} className="tabular font-medium text-foreground hover:text-brand">{lead.phone}</a>
+          {project && <><span aria-hidden className="text-subtle">·</span><span>{project.name}</span></>}
+          {assignee && <><span aria-hidden className="text-subtle">·</span><span>{assignee.full_name}</span></>}
+          <span aria-hidden className="text-subtle">·</span>
           <span>Added {formatDate(lead.created_at)}</span>
         </span>
       }
@@ -175,17 +180,6 @@ export default async function LeadDetailPage({ params }: PageProps) {
         ) : undefined
       }
     >
-      {/* Back link */}
-      <div className="mb-5">
-        <Link
-          href={`/${orgSlug}/leads`}
-          className="inline-flex items-center gap-1.5 text-[13px] text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Back to leads
-        </Link>
-      </div>
-
       {/* Duplicate Alert Banner if flagged */}
       {lead.is_duplicate && (
         <div className="mb-5 p-4 bg-warning-bg border border-warning/30 rounded-lg flex items-start gap-3">
@@ -413,8 +407,8 @@ export default async function LeadDetailPage({ params }: PageProps) {
           />
         </div>
 
-        {/* ── Right: status transitions ── */}
-        <div className="space-y-5">
+        {/* ── Right: work the lead. On phones this comes first: the next action matters more than the history. ── */}
+        <div className="order-first space-y-5 lg:order-none">
           {canWork && (
             <LeadWorkPanel
               leadId={leadId}
@@ -455,6 +449,12 @@ export default async function LeadDetailPage({ params }: PageProps) {
           )}
         </div>
       </div>
+      {canWork && (
+        <>
+          <div aria-hidden className="h-16 md:hidden" />
+          <StickyContactBar leadId={leadId} phone={lead.phone} name={lead.name} />
+        </>
+      )}
     </PageShell>
   )
 }
