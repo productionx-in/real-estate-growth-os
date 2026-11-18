@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { CommandPalette } from '@/components/layout/CommandPalette'
 import { WorkspaceStateBanner } from '@/components/layout/WorkspaceStateBanner'
+import { BillingBanner } from '@/components/billing/BillingBanner'
 import { SupportAccessBanner } from '@/components/support/SupportAccessBanner'
 import { liveGrantsForOrg } from '@/lib/dal/support-access'
 import { getModules } from '@/lib/auth/entitlements'
@@ -47,6 +48,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
           availableOrgs={workspace.availableOrgs}
         />
         <WorkspaceStateBanner state={workspace.org.lifecycle_state} />
+        {workspace.isAdmin && <BillingBanner orgId={workspace.org.id} orgSlug={workspace.org.slug} />}
         {liveSupport?.expires_at && (
           <SupportAccessBanner orgSlug={workspace.org.slug} until={liveSupport.expires_at} emergency={liveSupport.emergency} canManage={workspace.isAdmin} />
         )}

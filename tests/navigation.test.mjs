@@ -18,29 +18,29 @@ console.log('NAVIGATION')
 
 test('each role keeps exactly the pages it had before the redesign', () => {
   const sort = (a) => [...a].sort()
-  assert.deepEqual(keys('owner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'integrations', 'team', 'settings', 'audit', 'support']))
+  assert.deepEqual(keys('owner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'integrations', 'team', 'settings', 'billing', 'audit', 'support']))
   assert.deepEqual(keys('admin'), keys('owner'))
   assert.deepEqual(keys('manager'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'team']))
   assert.deepEqual(keys('sales_exec'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'inventory']))
   assert.deepEqual(keys('readonly'), sort(['home', 'projects', 'inventory', 'documents', 'analytics']))
   assert.deepEqual(keys('manager', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'team']))
-  assert.deepEqual(keys('owner', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'team', 'settings', 'audit', 'support']))
+  assert.deepEqual(keys('owner', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'team', 'settings', 'billing', 'audit', 'support']))
 })
 
 test('new roles: a team lead gets the selling pages; post-sales gets customers, bookings and documents, no pipeline tools', () => {
   const sort = (a) => [...a].sort()
   assert.deepEqual(keys('team_lead'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'inventory']))
   assert.deepEqual(keys('post_sales'), sort(['home', 'leads', 'inbox', 'sales', 'documents', 'projects', 'inventory']))
-  for (const k of ['routing', 'speed', 'analytics', 'team', 'settings', 'audit', 'support', 'integrations']) {
+  for (const k of ['routing', 'speed', 'analytics', 'team', 'settings', 'billing', 'audit', 'support', 'integrations']) {
     assert.ok(!keys('team_lead').includes(k) && !keys('post_sales').includes(k), k)
   }
   assert.deepEqual(nav.tabLinks(nav.navGroups('acme', 'post_sales')).map((t) => t.key), ['home', 'leads', 'inbox', 'projects'])
   assert.equal(nav.canCreateLead('post_sales'), false)
 })
 
-test('settings, audit log and support access are only offered to owners and admins', () => {
+test('settings, billing, audit log and support access are only offered to owners and admins', () => {
   for (const role of ['manager', 'team_lead', 'sales_exec', 'post_sales', 'readonly']) for (const type of ['developer', 'channel_partner']) {
-    for (const k of ['settings', 'audit', 'support', 'integrations']) assert.ok(!keys(role, type).includes(k), `${role}/${type} ${k}`)
+    for (const k of ['settings', 'billing', 'audit', 'support', 'integrations']) assert.ok(!keys(role, type).includes(k), `${role}/${type} ${k}`)
   }
 })
 
