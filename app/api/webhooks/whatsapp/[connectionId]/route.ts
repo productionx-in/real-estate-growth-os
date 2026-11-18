@@ -110,7 +110,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     process.env.META_APP_SECRET ||
     process.env.WHATSAPP_APP_SECRET
 
-  if (appSecret) {
+  // Fail closed: without the app secret nobody can tell Meta's posts from forged ones, and forged
+  // "buyer messages" would land in the inbox. Configure META_APP_SECRET (or the connection's appSecret).
+  if (!appSecret) {
+    return NextResponse.json({ error: 'WhatsApp webhook signing secret is not configured.' }, { status: 503 })
+  }
+  {
     const isSigValid = verifyWhatsAppWebhookSignature({
       rawBody,
       signatureHeader,

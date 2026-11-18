@@ -84,17 +84,35 @@ export async function processWhatsAppWebhookPayload(params: {
             message: msg,
           })
 
-          // Ingest lead into CRM through unified pipeline
-          const leadResult = await processInboundLead(connection.org_id, normalizedPayload, {
-            customClient: service,
-          })
+          // A conversation already linked to a lead keeps that lead: later messages in the chat are part of
+          // the same enquiry, not new leads (each would otherwise become a duplicate lead and pull the
+          // conversation away from the salesperson who owns it). Only a buyer's first message, or a
+          // conversation whose lead was removed, goes through the CRM's lead pipeline.
+          const { data: existingConv } = await service
+            .from('whatsapp_conversations')
+            .select('id, lead_id')
+            .eq('org_id', connection.org_id)
+            .eq('connection_id', connection.id)
+            .eq('wa_id', msg.from)
+            .maybeSingle()
+          const leadResult = existingConv?.lead_id
+            ? { leadId: existingConv.lead_id as string, isDuplicate: false }
+            : await processInboundLead(connection.org_id, normalizedPayload, { customClient: service })
 
           // Update / Record Conversation & Message in WhatsApp tables (resilient to schema availability)
           try {
             const waId = msg.from
             const leadId = leadResult.leadId || null
 
-            // Upsert conversation record
+            // Upsert conversation record. Opt-out changes only on STOP / START keywords: an ordinary
+            // message after STOP must not silently opt the buyer back in.
+            const now = new Date().toISOString()
+            const consentChange = consentResult.isOptOutKeyword
+              ? { is_opted_out: true, opted_out_at: now }
+              : consentResult.isOptInKeyword
+              ? { is_opted_out: false, opted_out_at: null }
+              : {}
+            const contactName = (contact?.profile?.name || '').trim().slice(0, 120)
             const { data: conv } = await service
               .from('whatsapp_conversations')
               .upsert(
@@ -105,13 +123,10 @@ export async function processWhatsAppWebhookPayload(params: {
                   phone_number_id: phoneNumberId,
                   lead_id: leadId,
                   status: 'open',
-                  is_opted_out: consentResult.isOptOutKeyword
-                    ? true
-                    : consentResult.isOptInKeyword
-                    ? false
-                    : false,
-                  last_inbound_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString(),
+                  ...consentChange,
+                  ...(contactName ? { contact_name: contactName } : {}),
+                  last_inbound_at: now,
+                  updated_at: now,
                 },
                 { onConflict: 'org_id,connection_id,wa_id' as never }
               )
