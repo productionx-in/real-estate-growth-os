@@ -2,7 +2,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Pencil, AlertTriangle, ExternalLink, Layers, Radio } from 'lucide-react'
+import { ArrowLeft, Pencil, AlertTriangle, ExternalLink, Layers, MessageCircle, Radio } from 'lucide-react'
 import { getLeadById, getLeadActivities } from '@/lib/dal/leads'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { PageShell } from '@/components/layout/PageShell'
@@ -81,10 +81,12 @@ export default async function LeadDetailPage({ params }: PageProps) {
   }
 
   const service = createServiceClient()
-  const [activities, tasks, visitProjects, visitAgents] = await Promise.all([
+  const [activities, tasks, visitProjects, visitAgents, waConversation] = await Promise.all([
     getLeadActivities(leadId), listLeadTasks(org.id, leadId),
     service.from('projects').select('id, name').eq('org_id', org.id).order('name'),
     service.from('org_members').select('profile_id, profile:profiles!org_members_profile_id_fkey(full_name)').eq('org_id', org.id).eq('status', 'active').in('role', ['owner', 'admin', 'manager', 'sales_exec']),
+    service.from('whatsapp_conversations').select('id').eq('org_id', org.id).eq('lead_id', leadId)
+      .order('last_message_at', { ascending: false, nullsFirst: false }).limit(1).maybeSingle(),
   ])
   const salesOn = (await getModules(org.id)).sales
   type AgentRow = { profile_id: string; profile: { full_name: string } | { full_name: string }[] | null }
@@ -124,6 +126,15 @@ export default async function LeadDetailPage({ params }: PageProps) {
       actions={
         canEdit ? (
           <>
+          {waConversation.data && (
+            <Link
+              href={`/${orgSlug}/inbox?c=${waConversation.data.id}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] transition-colors"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              WhatsApp chat
+            </Link>
+          )}
           {canWork && salesOn && (
             <ScheduleVisitDialog
               fixedLead={{ id: lead.id, label: lead.name }}

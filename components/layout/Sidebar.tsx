@@ -25,6 +25,7 @@ import {
   ScrollText,
   LifeBuoy,
   CalendarDays,
+  MessageCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { PRODUCT_NAME } from '@/lib/brand'
@@ -84,6 +85,7 @@ function getRoleNavSections(
         items: [
           { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
           { label: 'Site visits', href: `/${orgSlug}/visits`, icon: CalendarDays },
+          { label: 'WhatsApp inbox', href: `/${orgSlug}/inbox`, icon: MessageCircle },
           { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
           { label: 'My Leads', href: `/${orgSlug}/leads`, icon: Users },
           { label: 'Sales & Visits', href: `/${orgSlug}/sales`, icon: Briefcase },
@@ -116,6 +118,7 @@ function getRoleNavSections(
         items: [
           { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
           { label: 'Site visits', href: `/${orgSlug}/visits`, icon: CalendarDays },
+          { label: 'WhatsApp inbox', href: `/${orgSlug}/inbox`, icon: MessageCircle },
           { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
           { label: 'Referred Leads', href: `/${orgSlug}/leads`, icon: Users },
           { label: 'Deals & Commissions', href: `/${orgSlug}/sales`, icon: Briefcase },
@@ -145,6 +148,7 @@ function getRoleNavSections(
         items: [
           { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
           { label: 'Site visits', href: `/${orgSlug}/visits`, icon: CalendarDays },
+          { label: 'WhatsApp inbox', href: `/${orgSlug}/inbox`, icon: MessageCircle },
           { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
           { label: 'Leads CRM', href: `/${orgSlug}/leads`, icon: Users },
           { label: 'Sales Operations', href: `/${orgSlug}/sales`, icon: Briefcase },
@@ -176,6 +180,7 @@ function getRoleNavSections(
       items: [
         { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
           { label: 'Site visits', href: `/${orgSlug}/visits`, icon: CalendarDays },
+        { label: 'WhatsApp inbox', href: `/${orgSlug}/inbox`, icon: MessageCircle },
         { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
         { label: 'Leads CRM', href: `/${orgSlug}/leads`, icon: Users },
         { label: 'Sales & CPs', href: `/${orgSlug}/sales`, icon: Briefcase },

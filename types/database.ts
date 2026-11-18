@@ -1559,6 +1559,13 @@ export interface Database {
           is_opted_out: boolean
           opted_out_at: string | null
           last_inbound_at: string | null
+          contact_name: string | null
+          last_message_at: string | null
+          last_message_preview: string | null
+          last_direction: 'inbound' | 'outbound' | null
+          unread_count: number
+          last_read_at: string | null
+          last_read_by: string | null
           created_at: string
           updated_at: string
         }
@@ -1573,6 +1580,13 @@ export interface Database {
           is_opted_out?: boolean
           opted_out_at?: string | null
           last_inbound_at?: string | null
+          contact_name?: string | null
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          last_direction?: 'inbound' | 'outbound' | null
+          unread_count?: number
+          last_read_at?: string | null
+          last_read_by?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -1587,6 +1601,13 @@ export interface Database {
           is_opted_out?: boolean
           opted_out_at?: string | null
           last_inbound_at?: string | null
+          contact_name?: string | null
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          last_direction?: 'inbound' | 'outbound' | null
+          unread_count?: number
+          last_read_at?: string | null
+          last_read_by?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -1625,6 +1646,7 @@ export interface Database {
           message_type: string
           body: string | null
           referral_metadata: Record<string, unknown> | null
+          sent_by: string | null
           delivery_status: 'sent' | 'delivered' | 'read' | 'failed'
           received_at: string
           created_at: string
@@ -1640,6 +1662,7 @@ export interface Database {
           message_type?: string
           body?: string | null
           referral_metadata?: Record<string, unknown> | null
+          sent_by?: string | null
           delivery_status?: 'sent' | 'delivered' | 'read' | 'failed'
           received_at?: string
           created_at?: string
@@ -1655,6 +1678,7 @@ export interface Database {
           message_type?: string
           body?: string | null
           referral_metadata?: Record<string, unknown> | null
+          sent_by?: string | null
           delivery_status?: 'sent' | 'delivered' | 'read' | 'failed'
           received_at?: string
           created_at?: string
