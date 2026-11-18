@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CalendarClock, Check, Clock, MessageCircle, Phone, Plus, TimerReset } from 'lucide-react'
+import { CONTACT_BUTTONS_ID, useLeadContact } from '@/components/leads/QuickContact'
 import { OUTCOMES, OUTCOME_RULES, type Outcome } from '@/lib/follow-ups/outcomes'
 
 export interface WorkTask {
@@ -105,17 +106,7 @@ export function LeadWorkPanel({ leadId, phone, slaState, slaDueAt, assignedAt, f
   const [adding, setAdding] = useState(false)
   const now = useNow(60_000)
   const quick = useMemo(() => (now ? quickTimes(new Date(now)) : []), [now])
-  const digits = phone.replace(/\D/g, '')
-  const waNumber = digits.length === 10 ? `91${digits}` : digits
-
-  function contact(channel: 'call' | 'whatsapp') {
-    // Fire-and-forget: the dialer / WhatsApp opens immediately; keepalive lets the log finish in the background.
-    fetch(`/api/leads/${leadId}/contact`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channel }), keepalive: true,
-    }).then(() => router.refresh()).catch(() => undefined)
-    if (channel === 'call') window.location.assign(`tel:${phone}`)
-    else window.open(`https://wa.me/${waNumber}`, '_blank', 'noopener')
-  }
+  const contact = useLeadContact(leadId, phone)
 
   function choose(o: Outcome) {
     setOutcome(o)
@@ -162,13 +153,13 @@ export function LeadWorkPanel({ leadId, phone, slaState, slaDueAt, assignedAt, f
         <ResponseClock slaState={slaState} slaDueAt={slaDueAt} assignedAt={assignedAt} firstActionAt={firstActionAt} />
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div id={CONTACT_BUTTONS_ID} className="grid grid-cols-2 gap-2">
         <button type="button" onClick={() => contact('call')}
-          className="inline-flex items-center justify-center gap-2 py-2.5 text-[14px] font-semibold text-white bg-[var(--brand)] hover:bg-[var(--brand-hover)] rounded-lg">
+          className="inline-flex items-center justify-center gap-2 py-2.5 text-[14px] font-semibold text-brand-foreground bg-brand hover:bg-brand-hover rounded-lg pointer-coarse:py-3">
           <Phone className="w-4 h-4" /> Call
         </button>
         <button type="button" onClick={() => contact('whatsapp')}
-          className="inline-flex items-center justify-center gap-2 py-2.5 text-[14px] font-semibold text-success-foreground bg-success hover:bg-success rounded-lg">
+          className="inline-flex items-center justify-center gap-2 py-2.5 text-[14px] font-semibold text-success-foreground bg-success hover:opacity-90 rounded-lg pointer-coarse:py-3">
           <MessageCircle className="w-4 h-4" /> WhatsApp
         </button>
       </div>

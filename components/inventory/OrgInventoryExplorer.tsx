@@ -6,10 +6,6 @@ import {
   Search,
   Building2,
   Layers,
-  CheckCircle2,
-  Clock,
-  CheckCheck,
-  Ban,
   ArrowRight,
 } from 'lucide-react'
 import {
@@ -82,55 +78,25 @@ export function OrgInventoryExplorer({
 
   return (
     <div className="space-y-6">
-      {/* Metric Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3.5 shadow-2xs">
-          <div className="text-[11px] font-medium text-[var(--foreground-muted)] uppercase tracking-wide">
-            Total Units
+      {/* Counts by status: one neutral strip; colour only marks the status, the label says it. */}
+      <dl className="grid grid-cols-3 overflow-hidden rounded-xl border border-default bg-surface sm:grid-cols-6">
+        {([
+          ['Total units', items.length, null],
+          ['Available', metrics.available, 'bg-success'],
+          ['On hold', metrics.on_hold, 'bg-warning'],
+          ['Booked', metrics.booked, 'bg-brand'],
+          ['Sold', metrics.sold, 'bg-foreground'],
+          ['Blocked', metrics.blocked, 'bg-danger'],
+        ] as const).map(([label, value, dot], i) => (
+          <div key={label} className={`px-4 py-3 ${i % 3 ? 'border-l border-default' : ''} ${i >= 3 ? 'border-t border-default sm:border-t-0' : ''} ${i === 3 ? 'sm:border-l' : ''}`}>
+            <dt className="flex items-center gap-1.5 text-[12px] text-muted">
+              {dot && <span aria-hidden className={`size-2 rounded-full ${dot}`} />}
+              {label}
+            </dt>
+            <dd className="tabular mt-0.5 text-[20px] font-semibold text-foreground">{value}</dd>
           </div>
-          <div className="text-xl font-bold text-[var(--foreground)] mt-1">{items.length}</div>
-        </div>
-
-        <div className="bg-success-bg/50 border border-success/60 rounded-xl p-3.5 shadow-2xs">
-          <div className="text-[11px] font-medium text-success uppercase tracking-wide flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-            Available
-          </div>
-          <div className="text-xl font-bold text-success mt-1">{metrics.available}</div>
-        </div>
-
-        <div className="bg-warning-bg/50 border border-warning/60 rounded-xl p-3.5 shadow-2xs">
-          <div className="text-[11px] font-medium text-warning uppercase tracking-wide flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-warning" />
-            On Hold
-          </div>
-          <div className="text-xl font-bold text-warning mt-1">{metrics.on_hold}</div>
-        </div>
-
-        <div className="bg-brand-light/50 border border-brand/60 rounded-xl p-3.5 shadow-2xs">
-          <div className="text-[11px] font-medium text-brand uppercase tracking-wide flex items-center gap-1">
-            <CheckCheck className="w-3.5 h-3.5 text-brand" />
-            Booked
-          </div>
-          <div className="text-xl font-bold text-brand mt-1">{metrics.booked}</div>
-        </div>
-
-        <div className="bg-purple-50/50 border border-purple-200/60 rounded-xl p-3.5 shadow-2xs">
-          <div className="text-[11px] font-medium text-purple-800 uppercase tracking-wide flex items-center gap-1">
-            <CheckCheck className="w-3.5 h-3.5 text-purple-600" />
-            Sold
-          </div>
-          <div className="text-xl font-bold text-purple-700 mt-1">{metrics.sold}</div>
-        </div>
-
-        <div className="bg-danger-bg/50 border border-danger/60 rounded-xl p-3.5 shadow-2xs">
-          <div className="text-[11px] font-medium text-danger uppercase tracking-wide flex items-center gap-1">
-            <Ban className="w-3.5 h-3.5 text-danger" />
-            Blocked
-          </div>
-          <div className="text-xl font-bold text-danger mt-1">{metrics.blocked}</div>
-        </div>
-      </div>
+        ))}
+      </dl>
 
       {/* Filter and Search Bar */}
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-3.5 flex flex-wrap items-center gap-3 shadow-2xs">

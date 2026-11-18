@@ -1,12 +1,18 @@
 'use client'
 // components/layout/Header.tsx
+// Top bar: where you are, search (⌘K), duty status, notifications, and your account menu.
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LogOut, Bell, ChevronRight, Building2, Menu } from 'lucide-react'
+import { Bell, ChevronRight, Menu, Search, LogOut, Compass, Settings } from 'lucide-react'
 import { NAV_TOGGLE_EVENT } from '@/components/layout/Sidebar'
+import { PALETTE_OPEN_EVENT } from '@/components/layout/CommandPalette'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { DutyToggle } from '@/components/routing/DutyToggle'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { createClient } from '@/lib/supabase/client'
+import { navGroups, isActiveLink, ROLE_LABELS, type OrgType } from '@/lib/navigation/nav'
 import type { MemberRole } from '@/types/database'
 import type { AvailableOrgSummary } from '@/lib/dal/workspace'
 
@@ -14,142 +20,124 @@ export interface HeaderProps {
   orgId?: string
   orgName?: string
   orgSlug?: string
-  orgType?: 'developer' | 'channel_partner'
+  orgType?: OrgType
   role?: MemberRole
   user?: { id: string; email?: string }
   profile?: { id: string; full_name: string; avatar_url: string | null; phone: string | null }
   availableOrgs?: AvailableOrgSummary[]
 }
 
-const ROLE_CONFIG: Record<MemberRole, { label: string; className: string }> = {
-  owner: { label: 'Owner', className: 'bg-purple-50 text-purple-700 border-purple-200' },
-  admin: { label: 'Admin', className: 'bg-brand-light text-brand border-brand/30' },
-  manager: { label: 'Sales Manager', className: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
-  sales_exec: { label: 'Sales Executive', className: 'bg-success-bg text-success border-success/30' },
-  readonly: { label: 'Read Only', className: 'bg-surface-hover text-muted border-default' },
-}
+/** Pages below a section ("…/leads/new") get a second crumb. */
+const SUBPAGE_LABELS: Record<string, string> = { new: 'New', import: 'Import', edit: 'Edit' }
 
-const SECTION_LABELS: Record<string, string> = {
-  leads: 'Leads CRM',
-  sales: 'Sales Operations',
-  projects: 'Projects',
-  inventory: 'Inventory Explorer',
-  integrations: 'Integration Centre',
-  analytics: 'Analytics & BI',
-  team: 'Team Directory',
-  settings: 'Workspace Settings',
-  routing: 'Lead Routing',
-  today: 'Today',
-  'speed-to-lead': 'Speed to lead',
-  new: 'Create',
-  import: 'Bulk Import',
-  edit: 'Edit',
-}
-
-export function Header({
-  orgId,
-  orgName,
-  orgSlug,
-  role = 'sales_exec',
-  profile,
-}: HeaderProps) {
+export function Header({ orgId, orgName, orgSlug = '', orgType = 'developer', role = 'sales_exec', user, profile, availableOrgs = [] }: HeaderProps) {
   const router = useRouter()
-  const pathname = usePathname()
-  const supabase = createClient()
+  const pathname = usePathname() || ''
 
-  async function handleSignOut() {
-    await supabase.auth.signOut()
+  async function signOut() {
+    await createClient().auth.signOut()
     router.push('/login')
     router.refresh()
   }
 
-  // Derive breadcrumb from current pathname
-  const pathSegments = (pathname || '').split('/').filter(Boolean)
-  // Skip the first segment if it matches orgSlug
-  const sectionSegments = pathSegments.filter((seg) => seg !== orgSlug)
-  const currentSection = sectionSegments[0]
-    ? SECTION_LABELS[sectionSegments[0]] || sectionSegments[0].replace(/-/g, ' ')
-    : 'Overview'
+  // Breadcrumb from the shared navigation, so it always uses the same words as the menu.
+  const links = navGroups(orgSlug, role, orgType).flatMap((g) => g.items)
+  const here = links.filter((l) => isActiveLink(l, pathname)).sort((a, b) => b.href.length - a.href.length)[0]
+  const sub = pathname.split('/').filter(Boolean).at(-1) ?? ''
+  const crumb = here?.label ?? 'Home'
+  const subCrumb = here && pathname !== here.href ? SUBPAGE_LABELS[sub] : undefined
 
-  const roleBadge = ROLE_CONFIG[role] ?? ROLE_CONFIG.sales_exec
-  const initials = profile?.full_name
-    ? profile.full_name
-        .split(' ')
-        .map((p) => p[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
-    : 'U'
+  const name = profile?.full_name || 'Your account'
+  const initials = (profile?.full_name || 'U').split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase()
+  const isAdmin = role === 'owner' || role === 'admin'
 
   return (
     <header
       style={{ height: 'var(--header-height)' }}
-      className="flex-shrink-0 flex items-center justify-between gap-2 px-3 md:px-6 bg-[var(--surface)] border-b border-[var(--border)] z-10"
+      className="z-10 flex flex-shrink-0 items-center justify-between gap-2 border-b border-default bg-surface px-2 md:px-5"
     >
-      {/* Left — Breadcrumb Navigation */}
-      <div className="flex items-center gap-2 text-xs min-w-0">
+      <div className="flex min-w-0 items-center gap-1.5">
         <button
           type="button"
           onClick={() => window.dispatchEvent(new Event(NAV_TOGGLE_EVENT))}
-          className="md:hidden w-9 h-9 -ml-1 rounded-md flex items-center justify-center text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
+          className="flex size-10 items-center justify-center rounded-md text-foreground hover:bg-surface-hover md:hidden"
           aria-label="Open menu"
           aria-controls="app-sidebar"
         >
-          <Menu className="w-5 h-5" />
+          <Menu aria-hidden className="size-5" />
         </button>
-        <Link
-          href={`/${orgSlug}`}
-          className="hidden sm:flex font-medium text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors items-center gap-1.5"
-        >
-          <Building2 className="w-3.5 h-3.5 text-[var(--foreground-subtle)]" />
-          <span>{orgName || 'Workspace'}</span>
-        </Link>
-        <ChevronRight className="hidden sm:block w-3.5 h-3.5 text-[var(--border)] flex-shrink-0" />
-        <span className="font-semibold text-[var(--foreground)] capitalize truncate text-[13px] sm:text-xs">
-          {currentSection}
-        </span>
+        <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-[13px]">
+          <Link href={`/${orgSlug}`} className="hidden truncate text-muted transition-colors hover:text-foreground lg:block lg:max-w-48">
+            {orgName || 'Workspace'}
+          </Link>
+          <ChevronRight aria-hidden className="hidden size-3.5 flex-shrink-0 text-subtle lg:block" />
+          {subCrumb ? (
+            <>
+              <Link href={here!.href} className="truncate text-muted hover:text-foreground">{crumb}</Link>
+              <ChevronRight aria-hidden className="size-3.5 flex-shrink-0 text-subtle" />
+              <span aria-current="page" className="truncate font-semibold text-foreground">{subCrumb}</span>
+            </>
+          ) : (
+            <span aria-current="page" className="truncate font-semibold text-foreground">{crumb}</span>
+          )}
+        </nav>
       </div>
 
-      {/* Right — Role context, User profile & Actions */}
-      <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+      <div className="flex flex-shrink-0 items-center gap-1 md:gap-2">
+        {/* Search: a wide field on desktop, an icon on phones. */}
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new Event(PALETTE_OPEN_EVENT))}
+          className="hidden h-9 w-56 items-center gap-2 rounded-lg border border-default bg-surface-muted px-3 text-[13px] text-subtle transition-colors hover:border-strong hover:text-muted md:flex lg:w-72"
+        >
+          <Search aria-hidden className="size-4" />
+          <span className="flex-1 text-left">Search leads, projects…</span>
+          <kbd className="rounded border border-default bg-surface px-1.5 font-sans text-[11px]">⌘K</kbd>
+        </button>
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new Event(PALETTE_OPEN_EVENT))}
+          aria-label="Search"
+          className="flex size-10 items-center justify-center rounded-md text-muted hover:bg-surface-hover md:hidden"
+        >
+          <Search aria-hidden className="size-5" />
+        </button>
+
         {orgId && role !== 'readonly' && <DutyToggle orgId={orgId} />}
 
-        {/* Role Pill */}
-        <span
-          className={`hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${roleBadge.className}`}
-          title={`Active Workspace Role: ${roleBadge.label}`}
-        >
-          {roleBadge.label}
-        </span>
+        {orgId && orgSlug ? (
+          <NotificationBell orgId={orgId} orgSlug={orgSlug} />
+        ) : (
+          <span className="flex size-8 items-center justify-center text-muted" aria-hidden="true"><Bell className="size-4" /></span>
+        )}
 
-        {/* User Profile */}
-        <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-[var(--border)]">
-          <div className="w-7 h-7 rounded-full bg-[var(--brand)] text-white flex items-center justify-center text-[11px] font-bold shadow-2xs">
-            {initials}
-          </div>
-          <span className="text-xs font-medium text-[var(--foreground)] hidden md:inline-block max-w-[120px] truncate">
-            {profile?.full_name || 'User'}
-          </span>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-1">
-          {orgId && orgSlug ? (
-            <NotificationBell orgId={orgId} orgSlug={orgSlug} />
-          ) : (
-            <span className="w-8 h-8 rounded-md flex items-center justify-center text-[var(--foreground-muted)]" aria-hidden="true">
-              <Bell className="w-4 h-4" />
-            </span>
-          )}
-          <button
-            onClick={handleSignOut}
-            className="w-8 h-8 rounded-md flex items-center justify-center text-[var(--foreground-muted)] hover:bg-danger-bg hover:text-danger transition-colors"
-            title="Sign out"
-            aria-label="Sign out"
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            aria-label={`Account: ${name}`}
+            className="flex items-center gap-2 rounded-full p-0.5 transition-colors hover:bg-surface-hover md:rounded-lg md:py-1 md:pl-1 md:pr-2"
           >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
+            <span className="flex size-8 items-center justify-center rounded-full bg-brand text-[12px] font-semibold text-brand-foreground">{initials}</span>
+            <span className="hidden max-w-32 truncate text-[13px] font-medium text-foreground lg:block">{name}</span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64">
+            <div className="px-2.5 py-2">
+              <p className="truncate text-[13px] font-semibold text-foreground">{name}</p>
+              {user?.email && <p className="truncate text-[12px] text-muted">{user.email}</p>}
+              <p className="mt-1.5 inline-flex rounded-full bg-surface-hover px-2 py-0.5 text-[11px] font-medium text-muted">
+                {ROLE_LABELS[role]} · {orgName || 'Workspace'}
+              </p>
+            </div>
+            <DropdownMenuSeparator />
+            {isAdmin && (
+              <DropdownMenuItem asChild><Link href={`/${orgSlug}/settings`}><Settings aria-hidden /> Workspace settings</Link></DropdownMenuItem>
+            )}
+            {availableOrgs.length > 1 && (
+              <DropdownMenuItem asChild><Link href="/select-org"><Compass aria-hidden /> Switch workspace</Link></DropdownMenuItem>
+            )}
+            {(isAdmin || availableOrgs.length > 1) && <DropdownMenuSeparator />}
+            <DropdownMenuItem destructive onSelect={signOut}><LogOut aria-hidden /> Sign out</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   )

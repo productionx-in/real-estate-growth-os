@@ -6,7 +6,7 @@ import { OrgInventoryExplorer } from '@/components/inventory/OrgInventoryExplore
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import type { ProjectCategory } from '@/types/inventory'
 
-export const metadata: Metadata = { title: 'Inventory Explorer' }
+export const metadata: Metadata = { title: 'Inventory' }
 export const dynamic = 'force-dynamic'
 
 interface PageProps {
@@ -52,7 +52,7 @@ export default async function OrgInventoryPage({ params }: PageProps) {
 
   return (
     <PageShell
-      title="Inventory Explorer"
+      title="Inventory"
       description="Centralised inventory visibility across all projects, towers, blocks, and plotted layouts."
     >
       <OrgInventoryExplorer
