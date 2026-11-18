@@ -510,7 +510,7 @@ BEGIN
       WHERE om.org_id = NEW.org_id AND om.profile_id = NEW.profile_id
         AND om.status = 'active' AND om.role NOT IN ('readonly', 'post_sales')
     ) THEN
-      RAISE EXCEPTION 'routing_integrity: team member must be an active member who can take leads (not post-sales or a viewer) of this organisation' USING ERRCODE = 'check_violation';
+      RAISE EXCEPTION 'routing_integrity: team member must be an active, non-readonly member of this organisation' USING ERRCODE = 'check_violation';
     END IF;
 
   ELSIF TG_TABLE_NAME = 'member_leaves' THEN
