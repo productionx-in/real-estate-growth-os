@@ -21,6 +21,8 @@ import { safeHttpUrl, visitDetails } from '@/lib/integrations/website/attributio
 import { LeadDocuments } from '@/components/documents/LeadDocuments'
 import { listLeadDocuments, listTemplates } from '@/lib/dal/documents'
 import { inr } from '@/lib/documents/merge'
+import { LeadMatches } from '@/components/matching/LeadMatches'
+import { matchUnitsForLead } from '@/lib/dal/matching'
 
 export const metadata: Metadata = { title: 'Lead Detail' }
 
@@ -91,7 +93,10 @@ export default async function LeadDetailPage({ params }: PageProps) {
     service.from('whatsapp_conversations').select('id').eq('org_id', org.id).eq('lead_id', leadId)
       .order('last_message_at', { ascending: false, nullsFirst: false }).limit(1).maybeSingle(),
   ])
-  const salesOn = (await getModules(org.id)).sales
+  const modules = await getModules(org.id)
+  const salesOn = modules.sales
+  // Property matching: the buyer's requirements, and available units that fit (inventory module).
+  const matching = await matchUnitsForLead(org.id, leadId)
   // Documents (sales module): what was shared with this buyer, templates, and units to quote.
   const [leadDocs, docTemplates, docUnits] = salesOn
     ? await Promise.all([
@@ -425,6 +430,15 @@ export default async function LeadDetailPage({ params }: PageProps) {
             leadId={leadId}
             currentStatus={lead.status as LeadStatus}
           />
+          {matching.requirements && (
+            <LeadMatches
+              leadId={leadId}
+              requirements={matching.requirements}
+              matches={modules.inventory ? matching.matches : []}
+              canWork={canWork}
+              showMatches={modules.inventory}
+            />
+          )}
           {salesOn && (
             <LeadDocuments
               leadId={leadId}
