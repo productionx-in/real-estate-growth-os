@@ -7,6 +7,7 @@ import { BottomNav } from '@/components/layout/BottomNav'
 import { CommandPalette } from '@/components/layout/CommandPalette'
 import { WorkspaceStateBanner } from '@/components/layout/WorkspaceStateBanner'
 import { BillingBanner } from '@/components/billing/BillingBanner'
+import { billingHoldStatus } from '@/lib/billing/access'
 import { SupportAccessBanner } from '@/components/support/SupportAccessBanner'
 import { liveGrantsForOrg } from '@/lib/dal/support-access'
 import { getModules } from '@/lib/auth/entitlements'
@@ -19,6 +20,8 @@ interface OrgLayoutProps {
 export default async function OrgLayout({ children, params }: OrgLayoutProps) {
   const { orgSlug } = await params
   const workspace = await getVerifiedWorkspace(orgSlug)
+  const hold = workspace.org.lifecycle_state === 'suspended'
+    ? await billingHoldStatus(workspace.org.id, workspace.profile.id) : { hold: false, canPay: false }
   const modules = await getModules(workspace.org.id)
   const disabledModules = Object.entries(modules).filter(([, on]) => !on).map(([m]) => m)
   const liveSupport = (await liveGrantsForOrg(workspace.org.id)).sort((a, b) => (b.expires_at ?? '').localeCompare(a.expires_at ?? ''))[0]
@@ -47,7 +50,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
           profile={workspace.profile}
           availableOrgs={workspace.availableOrgs}
         />
-        <WorkspaceStateBanner state={workspace.org.lifecycle_state} />
+        <WorkspaceStateBanner state={workspace.org.lifecycle_state} billingHold={hold.hold} canPay={hold.canPay} orgSlug={workspace.org.slug} />
         {workspace.isAdmin && <BillingBanner orgId={workspace.org.id} orgSlug={workspace.org.slug} />}
         {liveSupport?.expires_at && (
           <SupportAccessBanner orgSlug={workspace.org.slug} until={liveSupport.expires_at} emergency={liveSupport.emergency} canManage={workspace.isAdmin} />

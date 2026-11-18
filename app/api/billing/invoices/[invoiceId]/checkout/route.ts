@@ -2,7 +2,7 @@
 // Owners and admins of the invoice's organisation only. The amount comes from the invoice.
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
-import { authorizeOrgAccess } from '@/lib/auth/tenant'
+import { authorizeBillingAccess } from '@/lib/billing/access'
 import { razorpayConfig } from '@/lib/billing/razorpay'
 import { checkoutForInvoice } from '@/lib/dal/billing'
 
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest, { params }: Ctx) {
   const { invoiceId } = await params
   const body = z.object({ orgId: z.string().uuid() }).safeParse(await request.json().catch(() => null))
   if (!body.success || !z.string().uuid().safeParse(invoiceId).success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
-  const access = await authorizeOrgAccess(body.data.orgId, ['owner', 'admin'])
+  const access = await authorizeBillingAccess(body.data.orgId)
   if (!access.success) return access.response
 
   const cfg = razorpayConfig()
