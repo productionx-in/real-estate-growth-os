@@ -23,6 +23,7 @@ import {
 import { InventoryStatusBadge } from './InventoryStatusBadge'
 import { InventoryStatusDialog } from './InventoryStatusDialog'
 import { InventoryForm } from './InventoryForm'
+import { InterestedBuyers } from '@/components/matching/InterestedBuyers'
 
 interface InventoryHistoryRecord {
   id: string
@@ -485,6 +486,9 @@ export function InventoryDetailDrawer({
               </div>
             )}
           </div>
+
+          {/* Property matching: open leads this unit suits */}
+          <InterestedBuyers unitId={item.id} orgId={item.org_id} available={item.status === 'available'} />
 
           {/* SECTION C: Pricing Details */}
           <div className="space-y-3">
