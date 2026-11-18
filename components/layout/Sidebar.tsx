@@ -1,463 +1,222 @@
 'use client'
 // components/layout/Sidebar.tsx
-// Role-aware enterprise sidebar with interactive workspace switcher and permission-scoped navigation sections.
-import React, { useState, useRef, useEffect } from 'react'
+// Workspace navigation. Desktop: a sidebar that collapses to an icon rail (remembered per browser).
+// Phones: an off-canvas drawer opened from the header or the tab bar's "More". The links come from
+// lib/navigation/nav.ts, shared with the tab bar and ⌘K; the server still authorises every page.
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams, usePathname, useRouter } from 'next/navigation'
 import {
-  LayoutDashboard,
-  Users,
-  FolderOpen,
-  UserCircle,
-  Settings,
-  Building2,
-  Layers,
-  Plug,
-  TrendingUp,
-  Briefcase,
-  ChevronsUpDown,
-  Check,
-  Plus,
-  Compass,
-  Shuffle,
-  ListChecks,
-  Gauge,
-  ScrollText,
-  LifeBuoy,
-  CalendarDays,
-  MessageCircle,
-  FileText,
+  LayoutDashboard, Users, FolderOpen, UserCircle, Settings, Building2, Layers, Plug, TrendingUp, Briefcase,
+  ChevronsUpDown, Check, Compass, Shuffle, ListChecks, Gauge, ScrollText, LifeBuoy, CalendarDays,
+  MessageCircle, FileText, PanelLeftClose, PanelLeftOpen, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { PRODUCT_NAME } from '@/lib/brand'
+import { navGroups, isActiveLink, ROLE_LABELS, type NavKey, type OrgType } from '@/lib/navigation/nav'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Tooltip } from '@/components/ui/tooltip'
 import type { MemberRole } from '@/types/database'
 import type { AvailableOrgSummary } from '@/lib/dal/workspace'
 
-/** Dispatched by the header's menu button to open/close the sidebar drawer on phones. */
+/** Dispatched by the header's menu button and the tab bar's "More" to open/close the drawer on phones. */
 export const NAV_TOGGLE_EVENT = 'regrow:toggle-nav'
+const COLLAPSE_KEY = 'regrow:nav-collapsed'
 
-interface NavItem {
-  label: string
-  href: string
-  icon: React.ComponentType<{ className?: string }>
-  exact?: boolean
-}
-
-interface NavSection {
-  title?: string
-  items: NavItem[]
+export const NAV_ICONS: Record<NavKey, React.ComponentType<{ className?: string }>> = {
+  home: LayoutDashboard, today: ListChecks, leads: Users, visits: CalendarDays, inbox: MessageCircle,
+  sales: Briefcase, routing: Shuffle, speed: Gauge, projects: FolderOpen, inventory: Layers, documents: FileText,
+  analytics: TrendingUp, integrations: Plug, team: UserCircle, settings: Settings, audit: ScrollText, support: LifeBuoy,
 }
 
 export interface SidebarProps {
   orgName?: string
   orgSlug?: string
-  orgType?: 'developer' | 'channel_partner'
+  orgType?: OrgType
   role?: MemberRole
-  user?: { id: string; email?: string }
-  profile?: { id: string; full_name: string; avatar_url: string | null; phone: string | null }
   availableOrgs?: AvailableOrgSummary[]
   /** Modules switched off for this workspace (see lib/auth/entitlements.ts); their links are hidden. */
   disabledModules?: string[]
 }
 
-/** First path segment after the org slug → module key. Core pages are not listed. */
-const MODULE_OF_SEGMENT: Record<string, string> = {
-  sales: 'sales', visits: 'sales', documents: 'sales', inventory: 'inventory', routing: 'routing', integrations: 'integrations', analytics: 'analytics',
-}
-
-const ROLE_DISPLAY_NAMES: Record<MemberRole, string> = {
-  owner: 'Owner',
-  admin: 'Admin',
-  manager: 'Sales Manager',
-  sales_exec: 'Sales Executive',
-  readonly: 'Read Only',
-}
-
-function getRoleNavSections(
-  orgSlug: string,
-  role: MemberRole = 'sales_exec',
-  orgType: 'developer' | 'channel_partner' = 'developer'
-): NavSection[] {
-  // 1. Sales Executive: strictly focused on their calling queue, assigned leads, and pitching inventory
-  if (role === 'sales_exec') {
-    return [
-      {
-        title: 'MY PIPELINE',
-        items: [
-          { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
-          { label: 'Site visits', href: `/${orgSlug}/visits`, icon: CalendarDays },
-          { label: 'WhatsApp inbox', href: `/${orgSlug}/inbox`, icon: MessageCircle },
-          { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
-          { label: 'My Leads', href: `/${orgSlug}/leads`, icon: Users },
-          { label: 'Sales & Visits', href: `/${orgSlug}/sales`, icon: Briefcase },
-          { label: 'Inventory Units', href: `/${orgSlug}/inventory`, icon: Layers },
-        ],
-      },
-    ]
-  }
-
-  // 2. Read-Only Auditor / External Observer
-  if (role === 'readonly') {
-    return [
-      {
-        title: 'WORKSPACE',
-        items: [
-          { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
-          { label: 'Projects', href: `/${orgSlug}/projects`, icon: FolderOpen },
-          { label: 'Document templates', href: `/${orgSlug}/documents`, icon: FileText },
-          { label: 'Inventory Explorer', href: `/${orgSlug}/inventory`, icon: Layers },
-          { label: 'Analytics & BI', href: `/${orgSlug}/analytics`, icon: TrendingUp },
-        ],
-      },
-    ]
-  }
-
-  // 3. Channel Partner Brokerage Workspace
-  if (orgType === 'channel_partner') {
-    return [
-      {
-        title: 'BROKERAGE CRM',
-        items: [
-          { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
-          { label: 'Site visits', href: `/${orgSlug}/visits`, icon: CalendarDays },
-          { label: 'WhatsApp inbox', href: `/${orgSlug}/inbox`, icon: MessageCircle },
-          { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
-          { label: 'Referred Leads', href: `/${orgSlug}/leads`, icon: Users },
-          { label: 'Deals & Commissions', href: `/${orgSlug}/sales`, icon: Briefcase },
-        ],
-      },
-      {
-        title: 'ORGANISATION',
-        items: [
-          { label: 'Agency Team', href: `/${orgSlug}/team`, icon: UserCircle },
-          ...(role === 'owner' || role === 'admin'
-            ? [
-                { label: 'Settings', href: `/${orgSlug}/settings`, icon: Settings },
-                { label: 'Audit log', href: `/${orgSlug}/audit-log`, icon: ScrollText },
-                { label: 'Support access', href: `/${orgSlug}/support-access`, icon: LifeBuoy },
-              ]
-            : []),
-        ],
-      },
-    ]
-  }
-
-  // 4. Developer Sales Manager
-  if (role === 'manager') {
-    return [
-      {
-        title: 'SALES & CRM',
-        items: [
-          { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
-          { label: 'Site visits', href: `/${orgSlug}/visits`, icon: CalendarDays },
-          { label: 'WhatsApp inbox', href: `/${orgSlug}/inbox`, icon: MessageCircle },
-          { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
-          { label: 'Leads CRM', href: `/${orgSlug}/leads`, icon: Users },
-          { label: 'Sales Operations', href: `/${orgSlug}/sales`, icon: Briefcase },
-          { label: 'Lead Routing', href: `/${orgSlug}/routing`, icon: Shuffle },
-        ],
-      },
-      {
-        title: 'PORTFOLIO',
-        items: [
-          { label: 'Projects', href: `/${orgSlug}/projects`, icon: FolderOpen },
-          { label: 'Document templates', href: `/${orgSlug}/documents`, icon: FileText },
-          { label: 'Inventory Explorer', href: `/${orgSlug}/inventory`, icon: Layers },
-        ],
-      },
-      {
-        title: 'PERFORMANCE',
-        items: [
-          { label: 'Speed to lead', href: `/${orgSlug}/speed-to-lead`, icon: Gauge },
-          { label: 'Analytics & BI', href: `/${orgSlug}/analytics`, icon: TrendingUp },
-          { label: 'Team Directory', href: `/${orgSlug}/team`, icon: UserCircle },
-        ],
-      },
-    ]
-  }
-
-  // 5. Developer Administrator / Owner (Full Suite)
-  return [
-    {
-      title: 'SALES & CRM',
-      items: [
-        { label: 'Today', href: `/${orgSlug}/today`, icon: ListChecks },
-          { label: 'Site visits', href: `/${orgSlug}/visits`, icon: CalendarDays },
-        { label: 'WhatsApp inbox', href: `/${orgSlug}/inbox`, icon: MessageCircle },
-        { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
-        { label: 'Leads CRM', href: `/${orgSlug}/leads`, icon: Users },
-        { label: 'Sales & CPs', href: `/${orgSlug}/sales`, icon: Briefcase },
-        { label: 'Lead Routing', href: `/${orgSlug}/routing`, icon: Shuffle },
-      ],
-    },
-    {
-      title: 'PORTFOLIO',
-      items: [
-        { label: 'Projects', href: `/${orgSlug}/projects`, icon: FolderOpen },
-        { label: 'Document templates', href: `/${orgSlug}/documents`, icon: FileText },
-        { label: 'Inventory Explorer', href: `/${orgSlug}/inventory`, icon: Layers },
-      ],
-    },
-    {
-      title: 'GROWTH & PLATFORM',
-      items: [
-        { label: 'Speed to lead', href: `/${orgSlug}/speed-to-lead`, icon: Gauge },
-        { label: 'Integrations', href: `/${orgSlug}/integrations`, icon: Plug },
-        { label: 'Analytics & BI', href: `/${orgSlug}/analytics`, icon: TrendingUp },
-      ],
-    },
-    {
-      title: 'MANAGEMENT',
-      items: [
-        { label: 'Team', href: `/${orgSlug}/team`, icon: UserCircle },
-        { label: 'Settings', href: `/${orgSlug}/settings`, icon: Settings },
-        { label: 'Audit log', href: `/${orgSlug}/audit-log`, icon: ScrollText },
-        { label: 'Support access', href: `/${orgSlug}/support-access`, icon: LifeBuoy },
-      ],
-    },
-  ]
-}
+const orgTypeLabel = (t: OrgType) => (t === 'channel_partner' ? 'Channel partner' : 'Developer')
 
 export function Sidebar({
   orgName,
   orgSlug: propOrgSlug,
   orgType = 'developer',
   role = 'sales_exec',
-  profile,
   availableOrgs = [],
   disabledModules = [],
 }: SidebarProps = {}) {
   const params = useParams()
-  const pathname = usePathname()
+  const pathname = usePathname() || ''
   const router = useRouter()
   const orgSlug = propOrgSlug || (params?.orgSlug as string) || ''
 
-  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false)
-  const switcherRef = useRef<HTMLDivElement>(null)
-  // Phones: the sidebar is an off-canvas drawer opened from the header's menu button.
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
   useEffect(() => {
+    // Read after mount (not during render) so the server and first client render match.
+    const t = setTimeout(() => {
+      try { if (localStorage.getItem(COLLAPSE_KEY) === '1') setCollapsed(true) } catch { /* storage blocked: stay expanded */ }
+    }, 0)
     const toggle = () => setMobileOpen((v) => !v)
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false) }
     window.addEventListener(NAV_TOGGLE_EVENT, toggle)
     window.addEventListener('keydown', onKey)
-    return () => { window.removeEventListener(NAV_TOGGLE_EVENT, toggle); window.removeEventListener('keydown', onKey) }
+    return () => { clearTimeout(t); window.removeEventListener(NAV_TOGGLE_EVENT, toggle); window.removeEventListener('keydown', onKey) }
   }, [])
-
-  // Close switcher when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (switcherRef.current && !switcherRef.current.contains(event.target as Node)) {
-        setIsSwitcherOpen(false)
-      }
-    }
-    if (isSwitcherOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isSwitcherOpen])
-
-  const navSections = getRoleNavSections(orgSlug, role, orgType)
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) => {
-        const segment = item.href.split('/')[2] ?? ''
-        const mod = MODULE_OF_SEGMENT[segment]
-        return !mod || !disabledModules.includes(mod)
-      }),
-    }))
-    .filter((section) => section.items.length > 0)
-
-  function isActive(item: NavItem): boolean {
-    if (item.exact) return pathname === item.href
-    return pathname.startsWith(item.href)
+  // Close the drawer when the page changes (link taps, back button).
+  const [seenPath, setSeenPath] = useState(pathname)
+  if (seenPath !== pathname) {
+    setSeenPath(pathname)
+    setMobileOpen(false)
   }
 
+  function toggleCollapsed() {
+    const next = !collapsed
+    setCollapsed(next)
+    try { localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0') } catch { /* ignore */ }
+  }
+
+  const groups = navGroups(orgSlug, role, orgType, disabledModules)
   const displayName = orgName || (orgSlug ? orgSlug.replace(/-/g, ' ') : 'Workspace')
-  const roleName = ROLE_DISPLAY_NAMES[role] ?? 'Member'
+  const roleName = ROLE_LABELS[role] ?? 'Member'
   const hasMultipleOrgs = availableOrgs.length > 1
+  // The rail only applies on desktop; the phone drawer always shows labels.
+  const rail = collapsed && !mobileOpen
 
-  // Handle switching to a target organization while preserving destination subpath if possible
-  const handleSwitchOrg = (targetOrgSlug: string) => {
-    setIsSwitcherOpen(false)
-    if (targetOrgSlug === orgSlug) return
-
-    // Derive current section, e.g. /leads, /inventory
-    const pathParts = (pathname || '').split('/').filter(Boolean)
-    const subpathParts = pathParts.filter((p) => p !== orgSlug)
-    const baseSubpath = subpathParts.length > 0 ? `/${subpathParts.join('/')}` : ''
-
-    // If current route is a specific subpath that exists across orgs (leads, inventory, sales), preserve it
-    const safeSubpaths = ['/leads', '/inventory', '/sales', '/projects']
-    const canPreserve = safeSubpaths.some((s) => baseSubpath.startsWith(s))
-
-    const targetUrl = canPreserve ? `/${targetOrgSlug}${baseSubpath}` : `/${targetOrgSlug}`
-    router.push(targetUrl)
+  // Switch workspace, keeping the section when it exists everywhere.
+  const switchOrg = (target: string) => {
+    if (target === orgSlug) return
+    const sub = pathname.split('/').filter(Boolean).filter((p) => p !== orgSlug).join('/')
+    const keep = ['leads', 'inventory', 'sales', 'projects'].some((s) => sub === s || sub.startsWith(`${s}/`))
+    router.push(keep ? `/${target}/${sub}` : `/${target}`)
   }
+
+  const brandMark = (
+    <span className="flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand text-brand-foreground shadow-xs">
+      <Building2 aria-hidden className="size-4" />
+    </span>
+  )
 
   return (
     <>
-    {mobileOpen && (
-      <div className="fixed inset-0 z-30 bg-overlay md:hidden" aria-hidden="true" onClick={() => setMobileOpen(false)} />
-    )}
-    <aside
-      id="app-sidebar"
-      style={{ width: 'var(--sidebar-width)' }}
-      className={cn(
-        'flex-shrink-0 h-full bg-[var(--surface)] border-r border-[var(--border)] flex flex-col',
-        'fixed inset-y-0 left-0 z-40 transition-transform duration-200 md:static md:z-auto md:translate-x-0',
-        mobileOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'
-      )}
-      onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMobileOpen(false) }}
-    >
-      {/* Brand & Workspace Switcher Header */}
-      <div
-        ref={switcherRef}
-        style={{ height: 'var(--header-height)' }}
-        className="flex items-center px-3 border-b border-[var(--border)] flex-shrink-0 relative"
-      >
-        <button
-          onClick={() => hasMultipleOrgs && setIsSwitcherOpen((prev) => !prev)}
-          disabled={!hasMultipleOrgs}
-          className={cn(
-            'w-full flex items-center justify-between p-1.5 rounded-lg text-left transition-colors',
-            hasMultipleOrgs
-              ? 'hover:bg-[var(--surface-hover)] cursor-pointer'
-              : 'cursor-default'
-          )}
-          title={hasMultipleOrgs ? 'Click to switch workspace' : displayName}
-        >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-[var(--brand)] flex items-center justify-center flex-shrink-0 shadow-2xs text-white">
-              <Building2 className="w-4 h-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <p className="text-[13px] font-bold text-[var(--foreground)] truncate leading-tight">
-                  {displayName}
-                </p>
-              </div>
-              <p className="text-[11px] text-[var(--foreground-muted)] truncate leading-tight mt-0.5 flex items-center gap-1">
-                <span className="capitalize">{orgType === 'channel_partner' ? 'Channel Partner' : 'Developer'}</span>
-                <span>•</span>
-                <span className="text-[10px] text-subtle font-medium">{roleName}</span>
-              </p>
-            </div>
-          </div>
-
-          {hasMultipleOrgs && (
-            <ChevronsUpDown className="w-3.5 h-3.5 text-[var(--foreground-muted)] flex-shrink-0 ml-1" />
-          )}
-        </button>
-
-        {/* WORKSPACE SWITCHER DROPDOWN POPOVER */}
-        {isSwitcherOpen && hasMultipleOrgs && (
-          <div className="absolute top-[calc(100%+4px)] left-2 right-2 bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-lg z-50 p-2 space-y-1 animate-in fade-in slide-in-from-top-1 duration-150">
-            <div className="px-2.5 py-1 text-[10px] font-semibold text-[var(--foreground-muted)] uppercase tracking-wider">
-              Your Workspaces
-            </div>
-
-            <div className="max-h-56 overflow-y-auto space-y-0.5">
-              {availableOrgs.map((orgItem) => {
-                const isCurrent = orgItem.slug === orgSlug
-                return (
-                  <button
-                    key={orgItem.id}
-                    onClick={() => handleSwitchOrg(orgItem.slug)}
-                    className={cn(
-                      'w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left text-xs transition-colors cursor-pointer',
-                      isCurrent
-                        ? 'bg-indigo-50 text-indigo-900 font-medium'
-                        : 'text-[var(--foreground)] hover:bg-[var(--surface-hover)]'
-                    )}
-                  >
-                    <div className="min-w-0 pr-2">
-                      <p className="font-semibold truncate">{orgItem.name}</p>
-                      <p className="text-[10px] text-[var(--foreground-muted)] capitalize">
-                        {orgItem.type === 'channel_partner' ? 'Channel Partner' : 'Developer'} · {ROLE_DISPLAY_NAMES[orgItem.role] || orgItem.role}
-                      </p>
-                    </div>
-                    {isCurrent && (
-                      <Check className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="pt-1.5 border-t border-[var(--border)] mt-1 space-y-0.5">
-              <Link
-                href="/select-org"
-                onClick={() => setIsSwitcherOpen(false)}
-                className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] text-[var(--foreground-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] transition-colors"
-              >
-                <Compass className="w-3.5 h-3.5" />
-                <span>All Workspaces Directory</span>
-              </Link>
-            </div>
-          </div>
+      {mobileOpen && <div className="fixed inset-0 z-30 bg-overlay backdrop-blur-[2px] md:hidden" aria-hidden="true" onClick={() => setMobileOpen(false)} />}
+      <aside
+        id="app-sidebar"
+        aria-label="Workspace navigation"
+        style={{ width: rail ? 'var(--sidebar-width-collapsed)' : 'var(--sidebar-width)', transitionDuration: 'var(--duration-base)', transitionTimingFunction: 'var(--ease-out)' }}
+        className={cn(
+          'flex h-full flex-shrink-0 flex-col border-r border-default bg-surface',
+          'fixed inset-y-0 left-0 z-40 transition-[transform,width] md:static md:z-auto md:translate-x-0',
+          mobileOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'
         )}
-      </div>
+      >
+        {/* Workspace */}
+        <div style={{ height: 'var(--header-height)' }} className={cn('flex flex-shrink-0 items-center gap-1 border-b border-default', rail ? 'justify-center px-2' : 'px-3')}>
+          {hasMultipleOrgs ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className={cn('flex min-w-0 items-center gap-2.5 rounded-lg p-1.5 text-left transition-colors hover:bg-surface-hover', rail ? '' : 'flex-1')}
+                aria-label={`Workspace: ${displayName}. Switch workspace`}
+              >
+                {brandMark}
+                {!rail && (
+                  <>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13px] font-semibold leading-tight text-foreground">{displayName}</span>
+                      <span className="mt-0.5 block truncate text-[11px] leading-tight text-muted">{orgTypeLabel(orgType)} · {roleName}</span>
+                    </span>
+                    <ChevronsUpDown aria-hidden className="size-3.5 flex-shrink-0 text-subtle" />
+                  </>
+                )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-64">
+                <DropdownMenuLabel>Your workspaces</DropdownMenuLabel>
+                <div className="max-h-64 overflow-y-auto">
+                  {availableOrgs.map((o) => (
+                    <DropdownMenuItem key={o.id} onSelect={() => switchOrg(o.slug)} className="items-start py-2">
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-medium">{o.name}</span>
+                        <span className="block text-[11px] text-muted">{orgTypeLabel(o.type)} · {ROLE_LABELS[o.role] ?? o.role}</span>
+                      </span>
+                      {o.slug === orgSlug && <Check aria-label="Current workspace" className="mt-0.5 text-brand" />}
+                    </DropdownMenuItem>
+                  ))}
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild><Link href="/select-org"><Compass aria-hidden /> All workspaces</Link></DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className={cn('flex min-w-0 items-center gap-2.5 p-1.5', rail ? '' : 'flex-1')} title={displayName}>
+              {brandMark}
+              {!rail && (
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] font-semibold leading-tight text-foreground">{displayName}</span>
+                  <span className="mt-0.5 block truncate text-[11px] leading-tight text-muted">{orgTypeLabel(orgType)} · {roleName}</span>
+                </span>
+              )}
+            </div>
+          )}
+          <button type="button" onClick={() => setMobileOpen(false)} aria-label="Close menu" className="flex size-10 items-center justify-center rounded-md text-muted hover:bg-surface-hover md:hidden">
+            <X aria-hidden className="size-5" />
+          </button>
+        </div>
 
-      {/* Role-Aware Navigation Menu */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
-        {navSections.map((section, idx) => (
-          <div key={idx} className="space-y-1">
-            {section.title && (
-              <div className="px-2.5 pb-1 text-[10px] font-bold text-[var(--foreground-subtle)] uppercase tracking-wider">
-                {section.title}
-              </div>
-            )}
-            <ul className="space-y-0.5">
-              {section.items.map((item) => {
-                const Icon = item.icon
-                const active = isActive(item)
-                return (
-                  <li key={item.href}>
+        {/* Links */}
+        <nav className={cn('flex-1 space-y-5 overflow-y-auto py-3', rail ? 'px-2' : 'px-2.5')}>
+          {groups.map((g, i) => (
+            <div key={g.title ?? i}>
+              {g.title && (rail
+                ? <div className="mx-2 mb-2 border-t border-default" aria-hidden />
+                : <p className="px-2.5 pb-1.5 text-[11px] font-medium text-subtle">{g.title}</p>)}
+              <ul className="space-y-0.5">
+                {g.items.map((item) => {
+                  const Icon = NAV_ICONS[item.key]
+                  const active = isActiveLink(item, pathname)
+                  const link = (
                     <Link
                       href={item.href}
+                      aria-current={active ? 'page' : undefined}
+                      aria-label={rail ? item.label : undefined}
                       className={cn(
-                        'flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-colors',
-                        active
-                          ? 'bg-[var(--sidebar-active-bg)] text-[var(--sidebar-active-text)] font-semibold shadow-2xs'
-                          : 'text-[var(--foreground-muted)] hover:bg-[var(--surface-muted)] hover:text-[var(--foreground)]'
+                        'group relative flex items-center gap-2.5 rounded-lg text-[13px] font-medium transition-colors',
+                        rail ? 'size-10 justify-center' : 'px-2.5 py-2 pointer-coarse:py-2.5',
+                        active ? 'bg-[var(--sidebar-active-bg)] text-[var(--sidebar-active-text)]' : 'text-muted hover:bg-surface-hover hover:text-foreground'
                       )}
                     >
-                      <Icon
-                        className={cn(
-                          'w-4 h-4 flex-shrink-0',
-                          active ? 'text-[var(--brand)]' : 'text-[var(--foreground-muted)]'
-                        )}
-                      />
-                      <span>{item.label}</span>
+                      {active && !rail && <span aria-hidden className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-brand" />}
+                      <Icon className={cn('size-4 flex-shrink-0', active ? 'text-brand' : 'text-subtle group-hover:text-foreground')} />
+                      {!rail && <span className="truncate">{item.label}</span>}
                     </Link>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        ))}
-      </nav>
+                  )
+                  return <li key={item.href}>{rail ? <Tooltip content={item.label} side="right">{link}</Tooltip> : link}</li>
+                })}
+              </ul>
+            </div>
+          ))}
+        </nav>
 
-      {/* Footer — Profile identity & Brand */}
-      <div className="p-3 border-t border-[var(--border)] flex-shrink-0 bg-[var(--surface)]">
-        <div className="flex items-center justify-between">
-          <div className="min-w-0 pr-1">
-            <p className="text-[12px] font-semibold text-[var(--foreground)] truncate">
-              {profile?.full_name || 'Team Member'}
-            </p>
-            <p className="text-[10px] text-[var(--foreground-muted)] truncate">
-              {PRODUCT_NAME}
-            </p>
-          </div>
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-surface-hover text-muted capitalize border border-default">
-            {roleName}
-          </span>
+        {/* Collapse (desktop) */}
+        <div className={cn('hidden flex-shrink-0 items-center border-t border-default p-2 md:flex', rail ? 'justify-center' : 'justify-between')}>
+          {!rail && <span className="px-2 text-[11px] text-subtle">{PRODUCT_NAME}</span>}
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            aria-label={rail ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-expanded={!rail}
+            aria-controls="app-sidebar"
+            className="flex size-8 items-center justify-center rounded-md text-subtle transition-colors hover:bg-surface-hover hover:text-foreground"
+          >
+            {rail ? <PanelLeftOpen aria-hidden className="size-4" /> : <PanelLeftClose aria-hidden className="size-4" />}
+          </button>
         </div>
-      </div>
-    </aside>
+      </aside>
     </>
   )
 }

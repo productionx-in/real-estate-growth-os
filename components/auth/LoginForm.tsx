@@ -206,23 +206,16 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-2.5 px-4 text-[13px] font-medium text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-2xs"
+        className="w-full h-11 px-4 text-[14px] font-semibold text-brand-foreground bg-brand rounded-lg hover:bg-brand-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-xs"
       >
         {loading ? 'Signing in…' : 'Sign in'}
       </button>
 
-      {/* Enterprise Organization-Controlled SaaS Notice */}
-      <div className="pt-3 mt-4 border-t border-[var(--border)]">
-        <div className="p-3 rounded-lg bg-surface-muted border border-default text-[11px] text-[var(--foreground-muted)] space-y-1">
-          <div className="flex items-center gap-1.5 font-semibold text-muted">
-            <Shield className="w-3.5 h-3.5 text-[var(--brand)]" />
-            <span>Organisation-Controlled SaaS</span>
-          </div>
-          <p className="leading-relaxed">
-            Public employee signup is not permitted. Workspace access is provisioned by your organisation administrator. If you were invited, check your email for your activation link.
-          </p>
-        </div>
-      </div>
+      {/* Accounts are created by invitation only; say so plainly for people looking for a sign-up link. */}
+      <p className="flex items-start gap-2 border-t border-default pt-4 text-[12px] leading-relaxed text-muted">
+        <Shield aria-hidden className="mt-0.5 size-3.5 flex-shrink-0 text-subtle" />
+        <span>New here? Your company&apos;s admin adds you — look for the invitation email to set your password.</span>
+      </p>
     </form>
   )
 }

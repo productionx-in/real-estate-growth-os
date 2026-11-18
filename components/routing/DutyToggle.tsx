@@ -53,7 +53,7 @@ export function DutyToggle({ orgId }: { orgId: string }) {
         onDuty ? 'bg-success-bg text-success border-success/30' : 'bg-surface-hover text-muted border-default'
       }`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${onDuty ? 'bg-success' : 'bg-gray-400'}`} aria-hidden="true" />
+      <span className={`w-1.5 h-1.5 rounded-full ${onDuty ? 'bg-success' : 'bg-subtle'}`} aria-hidden="true" />
       {onDuty ? 'On duty' : 'Off duty'}
     </button>
   )

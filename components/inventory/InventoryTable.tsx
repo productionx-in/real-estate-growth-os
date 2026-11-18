@@ -168,7 +168,7 @@ export function InventoryTable({
         onClick={() => handleSort(field)}
       >
         <div
-          className={`inline-flex items-center gap-1.5 font-semibold text-[11px] uppercase tracking-wider ${
+          className={`inline-flex items-center gap-1.5 font-medium text-[12px] ${
             isActive ? 'text-[var(--brand)]' : 'text-[var(--foreground-muted)]'
           }`}
         >
@@ -195,20 +195,20 @@ export function InventoryTable({
             <thead>
               <tr className="border-b border-[var(--border)] bg-[var(--surface-hover)]">
                 {renderSortHeader('Unit / Plot #', 'unit_number')}
-                <th scope="col" className="px-4 py-3 font-semibold text-[11px] uppercase tracking-wider text-[var(--foreground-muted)]">
+                <th scope="col" className="px-4 py-3 font-medium text-[12px] text-[var(--foreground-muted)]">
                   Hierarchy / Location
                 </th>
-                <th scope="col" className="px-4 py-3 font-semibold text-[11px] uppercase tracking-wider text-[var(--foreground-muted)]">
+                <th scope="col" className="px-4 py-3 font-medium text-[12px] text-[var(--foreground-muted)]">
                   Category
                 </th>
-                <th scope="col" className="px-4 py-3 font-semibold text-[11px] uppercase tracking-wider text-[var(--foreground-muted)]">
+                <th scope="col" className="px-4 py-3 font-medium text-[12px] text-[var(--foreground-muted)]">
                   Config / Typology
                 </th>
                 {renderSortHeader('Area', 'area_value')}
-                {renderSortHeader('Total Price', 'total_price')}
+                {renderSortHeader('Total price', 'total_price')}
                 {renderSortHeader('Status', 'status')}
                 {renderSortHeader('Updated', 'updated_at')}
-                <th scope="col" className="px-4 py-3 text-right font-semibold text-[11px] uppercase tracking-wider text-[var(--foreground-muted)]">
+                <th scope="col" className="px-4 py-3 text-right font-medium text-[12px] text-[var(--foreground-muted)]">
                   Actions
                 </th>
               </tr>
