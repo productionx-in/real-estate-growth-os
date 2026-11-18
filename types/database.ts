@@ -982,6 +982,13 @@ export interface Database {
           priority: LeadPriority
           budget_min: number | null
           budget_max: number | null
+          req_configurations: string[]
+          req_categories: string[]
+          req_locations: string[]
+          req_facing: string[]
+          req_min_area: number | null
+          req_max_area: number | null
+          requirements_updated_at: string | null
           notes: string | null
           custom_fields: Json
           source_platform: string | null
@@ -1019,6 +1026,13 @@ export interface Database {
           priority?: LeadPriority
           budget_min?: number | null
           budget_max?: number | null
+          req_configurations?: string[]
+          req_categories?: string[]
+          req_locations?: string[]
+          req_facing?: string[]
+          req_min_area?: number | null
+          req_max_area?: number | null
+          requirements_updated_at?: string | null
           notes?: string | null
           custom_fields?: Json
           source_platform?: string | null
@@ -1056,6 +1070,13 @@ export interface Database {
           priority?: LeadPriority
           budget_min?: number | null
           budget_max?: number | null
+          req_configurations?: string[]
+          req_categories?: string[]
+          req_locations?: string[]
+          req_facing?: string[]
+          req_min_area?: number | null
+          req_max_area?: number | null
+          requirements_updated_at?: string | null
           notes?: string | null
           custom_fields?: Json
           source_platform?: string | null
