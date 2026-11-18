@@ -7,7 +7,7 @@ import { canCreateLeads } from '@/lib/auth/permissions'
 
 export type NavKey =
   | 'home' | 'today' | 'leads' | 'visits' | 'inbox' | 'sales' | 'routing' | 'speed' | 'projects' | 'inventory'
-  | 'documents' | 'analytics' | 'integrations' | 'team' | 'settings' | 'audit' | 'support'
+  | 'documents' | 'analytics' | 'integrations' | 'team' | 'settings' | 'billing' | 'audit' | 'support'
 
 export interface NavLink {
   key: NavKey
@@ -47,7 +47,7 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
   const documents = L('documents', 'Document templates', '/documents')
   const analytics = L('analytics', 'Analytics', '/analytics')
   const team = L('team', 'Team', '/team')
-  const adminLinks = [L('settings', 'Settings', '/settings'), L('audit', 'Audit log', '/audit-log'), L('support', 'Support access', '/support-access')]
+  const adminLinks = [L('settings', 'Settings', '/settings'), L('billing', 'Plan & billing', '/billing'), L('audit', 'Audit log', '/audit-log'), L('support', 'Support access', '/support-access')]
 
   let groups: NavGroup[]
   if (role === 'readonly') {
