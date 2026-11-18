@@ -5,6 +5,8 @@ import { LeadSchema } from '@/lib/validations/lead'
 import { createLead } from '@/lib/dal/leads'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
+import { canCreateLeads } from '@/lib/auth/permissions'
+import type { MemberRole } from '@/types/database'
 
 export async function POST(request: NextRequest) {
   try {
@@ -82,7 +84,7 @@ export async function POST(request: NextRequest) {
         .eq('profile_id', auth.profile.id)
         .maybeSingle()
 
-      if (!membership || membership.role === 'readonly') {
+      if (!membership || !canCreateLeads(membership.role as MemberRole)) {
         return NextResponse.json(
           { error: 'Insufficient permissions for the specified organisation' },
           { status: 403 }
@@ -100,11 +102,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'No organisation found' }, { status: 403 })
       }
 
-      const activeMemberships = memberships.filter((m) => m.role !== 'readonly')
+      const activeMemberships = memberships.filter((m) => canCreateLeads(m.role as MemberRole))
 
       if (activeMemberships.length === 0) {
         return NextResponse.json(
-          { error: 'Insufficient permissions: readonly members cannot create leads' },
+          { error: 'Insufficient permissions: viewers and post-sales members cannot create leads' },
           { status: 403 }
         )
       }

@@ -15,6 +15,8 @@ import { getThread, listConversations, type InboxFilter } from '@/lib/dal/whatsa
 import { messageLabel } from '@/lib/integrations/whatsapp/inbox-rules'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils/cn'
+import { resolveLeadViewer } from '@/lib/dal/viewer'
+import { leadScopeOf } from '@/lib/auth/permissions'
 
 export const metadata: Metadata = { title: 'WhatsApp inbox' }
 export const dynamic = 'force-dynamic'
@@ -31,7 +33,7 @@ export default async function InboxPage({ params, searchParams }: PageProps) {
   const { orgSlug } = await params
   const sp = await searchParams
   const { org, role, profile, isManager } = await getVerifiedWorkspace(orgSlug)
-  const viewer = { role, profileId: profile.id }
+  const viewer = await resolveLeadViewer(org.id, role, profile.id)
   const filter: InboxFilter = sp.f && sp.f in FILTERS && (sp.f !== 'unlinked' || isManager) ? (sp.f as InboxFilter) : 'all'
   const openId = sp.c && UUID.test(sp.c) ? sp.c : null
 
@@ -79,7 +81,7 @@ export default async function InboxPage({ params, searchParams }: PageProps) {
   const list = (
     <div className={cn('flex min-h-0 w-full flex-col border-default md:w-80 md:shrink-0 md:border-r', thread && 'hidden md:flex')}>
       <nav aria-label="Filter conversations" className="flex gap-1 border-b border-default p-2">
-        {(Object.keys(FILTERS) as InboxFilter[]).filter((f) => f !== 'unlinked' || isManager).filter((f) => f !== 'mine' || role !== 'sales_exec').map((f) => (
+        {(Object.keys(FILTERS) as InboxFilter[]).filter((f) => f !== 'unlinked' || isManager).filter((f) => f !== 'mine' || leadScopeOf(role) !== 'own').map((f) => (
           <Link key={f} href={href({ f: f === 'all' ? null : f, c: openId })} aria-current={filter === f ? 'page' : undefined}
             className={cn('rounded-md px-2 py-1 text-[12px] font-medium', filter === f ? 'bg-brand-light text-brand' : 'text-muted hover:bg-surface-hover')}>
             {FILTERS[f]}
@@ -119,7 +121,7 @@ export default async function InboxPage({ params, searchParams }: PageProps) {
   )
 
   return (
-    <PageShell title="WhatsApp inbox" description={role === 'sales_exec' ? 'Conversations with your leads' : 'Every WhatsApp conversation with your buyers'}>
+    <PageShell title="WhatsApp inbox" description={{ all: 'Every WhatsApp conversation with your buyers', own: 'Conversations with your leads', team: 'Conversations with your team’s leads', booked: 'Conversations with booked customers' }[leadScopeOf(role)]}>
       <InboxLive orgId={org.id} conversationId={thread?.conversation.id ?? null} unread={thread?.conversation.unread ?? 0} />
       <div className="flex h-[calc(100dvh-13rem)] min-h-[28rem] overflow-hidden rounded-lg border border-default bg-surface">
         {list}

@@ -7,7 +7,8 @@ import { UserPlus } from 'lucide-react'
 import { formatDate } from '@/lib/utils/format'
 import { LeadStatusBadge } from './LeadStatusBadge'
 import { AssignLeadDialog } from './AssignLeadDialog'
-import type { LeadStatus, LeadSource } from '@/types/database'
+import type { LeadStatus, LeadSource, MemberRole } from '@/types/database'
+import { canAssignLeads } from '@/lib/auth/permissions'
 import { SOURCE_LABELS } from '@/lib/leads/view-filters'
 
 type LeadRow = {
@@ -27,14 +28,14 @@ interface LeadsTableProps {
   leads: LeadRow[]
   orgSlug: string
   orgId: string
-  /** Current user's role — determines whether assign button appears */
-  viewerRole: 'owner' | 'admin' | 'manager' | 'sales_exec' | 'readonly'
+  /** Current user's role — determines whether assign button appears (the server checks again) */
+  viewerRole: MemberRole
+  /** A team lead may only pick from their team; null = anyone who can take leads. */
+  assignableIds?: string[] | null
 }
 
-const MANAGER_ROLES = ['owner', 'admin', 'manager']
-
-export function LeadsTable({ leads, orgSlug, orgId, viewerRole }: LeadsTableProps) {
-  const isManager = MANAGER_ROLES.includes(viewerRole)
+export function LeadsTable({ leads, orgSlug, orgId, viewerRole, assignableIds = null }: LeadsTableProps) {
+  const isManager = canAssignLeads(viewerRole)
 
   const [assignDialog, setAssignDialog] = useState<{
     leadId: string
@@ -172,6 +173,7 @@ export function LeadsTable({ leads, orgSlug, orgId, viewerRole }: LeadsTableProp
           leadName={assignDialog.leadName}
           currentAssigneeId={assignDialog.currentAssigneeId}
           orgId={orgId}
+          onlyProfileIds={assignableIds}
           onClose={() => setAssignDialog(null)}
         />
       )}

@@ -4,6 +4,8 @@
 import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import type { MemberRole } from '@/types/database'
+import { canSeeLead, type LeadViewer } from '@/lib/auth/permissions'
+import { resolveLeadViewer } from '@/lib/dal/viewer'
 
 export interface AuthContext {
   user: {
@@ -41,6 +43,8 @@ export interface InventoryAuthContext extends TenantContext {
 }
 
 export interface LeadAuthContext extends TenantContext {
+  /** The caller as the visibility rules see them (lib/auth/permissions.ts); use with canWorkLead. */
+  viewer: LeadViewer
   lead: {
     id: string
     org_id: string
@@ -415,12 +419,23 @@ export async function authorizeLeadAccess(
     }
   }
 
+  // Visibility: a lead outside the caller's scope (another salesperson's, another team's, a pipeline lead
+  // for post-sales) is reported as not found, so its existence is not revealed.
+  const viewer = await resolveLeadViewer(lead.org_id, role, auth.profile.id)
+  if (!canSeeLead(viewer, lead)) {
+    return {
+      success: false,
+      response: NextResponse.json({ error: 'Lead not found' }, { status: 404 }),
+    }
+  }
+
   return {
     success: true,
     context: {
       ...auth,
       orgId: lead.org_id,
       role,
+      viewer,
       lead: {
         id: lead.id,
         org_id: lead.org_id,

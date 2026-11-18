@@ -13,7 +13,7 @@ const InviteSchema = z.object({
   orgSlug: z.string().optional(),
   orgId: z.string().uuid().optional(),
   email: z.string().email('Please enter a valid email address'),
-  role: z.enum(['owner', 'admin', 'manager', 'sales_exec', 'readonly']).default('sales_exec'),
+  role: z.enum(['owner', 'admin', 'manager', 'team_lead', 'sales_exec', 'post_sales', 'readonly']).default('sales_exec'),
   expiresInDays: z.number().int().min(1).max(30).default(7),
 })
 
