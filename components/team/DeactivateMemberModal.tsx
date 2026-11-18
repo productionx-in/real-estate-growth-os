@@ -171,7 +171,7 @@ export function DeactivateMemberModal({
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-[var(--danger)] text-white text-[13px] font-medium rounded-md hover:bg-danger transition-colors disabled:opacity-50 flex items-center gap-1.5"
+              className="px-4 py-2 bg-[var(--danger)] text-danger-foreground text-[13px] font-medium rounded-md hover:bg-danger transition-colors disabled:opacity-50 flex items-center gap-1.5"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               <span>{loading ? 'Deactivating…' : 'Confirm Deactivation'}</span>

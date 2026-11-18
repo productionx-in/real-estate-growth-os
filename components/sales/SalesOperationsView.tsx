@@ -58,14 +58,14 @@ export function SalesOperationsView({
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                 activeTab === tab.id
-                  ? 'border-indigo-600 text-indigo-600'
+                  ? 'border-accent text-accent'
                   : 'border-transparent text-subtle hover:text-muted hover:border-strong'
               }`}
             >
               {tab.label}
               <span
                 className={`ml-1 py-0.5 px-2 rounded-full text-xs ${
-                  activeTab === tab.id ? 'bg-indigo-100 text-indigo-700' : 'bg-surface-hover text-muted'
+                  activeTab === tab.id ? 'bg-accent-bg text-accent' : 'bg-surface-hover text-muted'
                 }`}
               >
                 {tab.count}
@@ -113,7 +113,7 @@ export function SalesOperationsView({
                             </div>
                           )}
                           {deal.project?.name && (
-                            <div className="text-[11px] text-indigo-700 font-medium bg-indigo-50 px-1.5 py-0.5 rounded w-fit">
+                            <div className="text-[11px] text-accent font-medium bg-accent-bg px-1.5 py-0.5 rounded w-fit">
                               {deal.project.name}
                             </div>
                           )}
@@ -158,7 +158,7 @@ export function SalesOperationsView({
                   </div>
                   <div className="flex items-center gap-3">
                     {visit.outcome && (
-                      <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-medium">
+                      <span className="text-xs bg-accent-bg text-accent px-2 py-0.5 rounded font-medium">
                         {visit.outcome}
                       </span>
                     )}

@@ -54,9 +54,9 @@ interface TeamManagementClientProps {
 
 
 const ROLE_COLORS: Record<MemberRole, string> = {
-  owner: 'bg-purple-50 text-purple-700 border-purple-200',
+  owner: 'bg-accent-bg text-accent border-accent-border',
   admin: 'bg-brand-light text-brand border-brand/30',
-  manager: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  manager: 'bg-accent-bg text-accent border-accent-border',
   team_lead: 'bg-brand-light text-brand border-brand/30',
   sales_exec: 'bg-success-bg text-success border-success/30',
   post_sales: 'bg-warning-bg text-warning border-warning/30',
@@ -140,7 +140,7 @@ export function TeamManagementClient({
           <button
             type="button"
             onClick={() => setIsInviteOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold text-white bg-[var(--brand)] hover:bg-[var(--brand-hover)] rounded-md transition-colors shadow-2xs self-start sm:self-auto"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] hover:bg-[var(--brand-hover)] rounded-md transition-colors shadow-2xs self-start sm:self-auto"
           >
             <UserPlus className="w-4 h-4" />
             <span>Invite Team Member</span>
@@ -251,7 +251,7 @@ export function TeamManagementClient({
                   <tr key={m.id} className={`transition-colors ${isDeactivated ? 'opacity-60 bg-surface-muted/50' : 'hover:bg-[var(--surface-hover)]'}`}>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-[11px] font-bold ${isDeactivated ? 'bg-gray-400' : 'bg-[var(--brand)]'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-brand-foreground text-[11px] font-bold ${isDeactivated ? 'bg-strong' : 'bg-[var(--brand)]'}`}>
                           {m.name.slice(0, 2).toUpperCase()}
                         </div>
                         <div>

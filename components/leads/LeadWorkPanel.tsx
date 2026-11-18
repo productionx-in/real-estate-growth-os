@@ -197,7 +197,7 @@ export function LeadWorkPanel({ leadId, phone, slaState, slaDueAt, assignedAt, f
             className="w-full px-2.5 py-1.5 text-[12px] rounded-lg border border-[var(--border)] bg-[var(--surface)]" />
           <div className="flex gap-2">
             <button type="button" onClick={saveOutcome} disabled={busy || (OUTCOME_RULES[outcome].requiresFollowUp && !followUp)}
-              className="flex-1 py-2 text-[13px] font-semibold text-white bg-[var(--brand)] hover:bg-[var(--brand-hover)] rounded-lg disabled:opacity-50">
+              className="flex-1 py-2 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] hover:bg-[var(--brand-hover)] rounded-lg disabled:opacity-50">
               Save
             </button>
             <button type="button" onClick={() => setOutcome(null)} className="px-3 py-2 text-[13px] rounded-lg border border-[var(--border)]">Cancel</button>
@@ -219,7 +219,7 @@ export function LeadWorkPanel({ leadId, phone, slaState, slaDueAt, assignedAt, f
               className="flex-1 min-w-0 px-2 py-1.5 text-[12px] rounded-lg border border-[var(--border)]" />
             <button type="button" disabled={busy || !followUp}
               onClick={async () => { if (await send(`/api/leads/${leadId}/tasks`, 'POST', { kind: 'call', dueAt: new Date(followUp).toISOString() })) setAdding(false) }}
-              className="px-3 text-[12px] font-semibold text-white bg-[var(--brand)] rounded-lg disabled:opacity-50">Save</button>
+              className="px-3 text-[12px] font-semibold text-brand-foreground bg-[var(--brand)] rounded-lg disabled:opacity-50">Save</button>
           </div>
         )}
         {open.length === 0 ? (

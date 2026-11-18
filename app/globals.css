@@ -7,12 +7,16 @@
      3. Tailwind    — @theme inline exposes the semantic layer as utilities: bg-surface, text-muted,
                       border-default, bg-brand, text-danger …
    Existing names (--surface, --foreground-muted, --brand …) are kept so every current screen keeps working.
-   Dark theme: opt-in with <html data-theme="dark"> until every module is on tokens (Phase 5); following the
-   operating-system setting before then would leave hard-coded colours light on a dark page.
+   Dark theme: <html data-theme="dark">, set by lib/theme/runtime.ts from the user's Appearance choice
+   (sunrise & sunset by default, device, light, dark). Marketing and buyer-facing pages always stay light.
    Text contrast: every text token is ≥ 4.5:1 on --surface and --background (WCAG AA). */
 
 :root {
   /* 1. Primitives */
+  --violet-50: #f5f3ff;
+  --violet-200: #ddd6fe;
+  --violet-300: #c4b5fd;
+  --violet-700: #6d28d9;
   --gray-0: #ffffff;
   --gray-25: #fcfcfd;
   --gray-50: #f8f9fa;
@@ -81,6 +85,10 @@
   --danger-hover: var(--red-700);
   --danger-bg: var(--red-50);
   --danger-foreground: var(--gray-0);
+  --accent: var(--violet-700);
+  --accent-bg: var(--violet-50);
+  --accent-border: var(--violet-200);
+  --accent-foreground: var(--gray-0);
   --info: var(--blue-600);
   --info-bg: var(--blue-50);
 
@@ -109,7 +117,7 @@
   color-scheme: light;
 }
 
-/* 2. Semantic — dark (opt-in) */
+/* 2. Semantic — dark */
 :root[data-theme="dark"] {
   --background: var(--gray-950);
   --surface: var(--gray-900);
@@ -144,6 +152,10 @@
   --danger-hover: var(--red-400);
   --danger-bg: rgb(248 113 113 / 0.12);
   --danger-foreground: var(--gray-950);
+  --accent: var(--violet-300);
+  --accent-bg: rgb(167 139 250 / 0.14);
+  --accent-border: rgb(167 139 250 / 0.32);
+  --accent-foreground: var(--gray-950);
   --info: var(--blue-400);
   --info-bg: rgb(96 165 250 / 0.12);
 
@@ -186,6 +198,10 @@
   --color-danger-hover: var(--danger-hover);
   --color-danger-bg: var(--danger-bg);
   --color-danger-foreground: var(--danger-foreground);
+  --color-accent: var(--accent);
+  --color-accent-bg: var(--accent-bg);
+  --color-accent-border: var(--accent-border);
+  --color-accent-foreground: var(--accent-foreground);
   --color-info: var(--info);
   --color-info-bg: var(--info-bg);
   --radius-sm: var(--radius-sm);

@@ -87,7 +87,7 @@ export function PlatformProvisioningModal() {
   return (
     <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6 sm:p-8 shadow-sm max-w-2xl mx-auto">
       <div className="mb-6">
-        <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-700 mb-3">
+        <div className="w-10 h-10 rounded-xl bg-accent-bg border border-accent-border flex items-center justify-center text-accent mb-3">
           <Building2 className="w-5 h-5" />
         </div>
         <h1 className="text-lg font-bold text-[var(--foreground)]">
@@ -124,7 +124,7 @@ export function PlatformProvisioningModal() {
             <button
               type="button"
               onClick={handleReset}
-              className="w-full py-2.5 px-4 bg-[var(--brand)] text-white text-[13px] font-medium rounded-md hover:bg-[var(--brand-hover)] transition-colors"
+              className="w-full py-2.5 px-4 bg-[var(--brand)] text-brand-foreground text-[13px] font-medium rounded-md hover:bg-[var(--brand-hover)] transition-colors"
             >
               Provision Another Organisation
             </button>
@@ -144,7 +144,7 @@ export function PlatformProvisioningModal() {
                 disabled={loading}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Prestige Estates"
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors"
+                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
               />
             </div>
 
@@ -158,7 +158,7 @@ export function PlatformProvisioningModal() {
                 disabled={loading}
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="prestige"
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors"
+                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
               />
             </div>
           </div>
@@ -190,7 +190,7 @@ export function PlatformProvisioningModal() {
                 disabled={loading}
                 onChange={(e) => setAdminEmail(e.target.value)}
                 placeholder="admin@developer.com"
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors"
+                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
               />
             </div>
           </div>
@@ -206,7 +206,7 @@ export function PlatformProvisioningModal() {
                 disabled={loading}
                 onChange={(e) => setAdminName(e.target.value)}
                 placeholder="Vikram Sharma"
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors"
+                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
               />
             </div>
           </div>
@@ -265,7 +265,7 @@ export function PlatformProvisioningModal() {
             <button
               type="submit"
               disabled={loading || !name.trim() || !adminEmail.trim()}
-              className="w-full py-2.5 px-4 bg-[var(--brand)] text-white text-[13px] font-semibold rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 shadow-2xs"
+              className="w-full py-2.5 px-4 bg-[var(--brand)] text-brand-foreground text-[13px] font-semibold rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 shadow-2xs"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
               <span>{loading ? 'Provisioning Workspace…' : 'Provision Customer Organisation & Send Invitation'}</span>

@@ -11,7 +11,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const BASELINE_RAW_PALETTE = 346 // 2119 at the start of Phase 2; 380 after the Phase 5 token migration; 349 after the UI refresh; 346 after roles. Only ever lower it.
+const BASELINE_RAW_PALETTE = 132 // 2119 at the start of Phase 2; 380 after the Phase 5 token migration; 349 after the UI refresh; 346 after roles; 132 after the day/night theme. Only ever lower it.
 
 let passed = 0
 function test(name, fn) { fn(); passed++; console.log(`  ✓ ${name}`) }
@@ -42,7 +42,7 @@ test('every var(--…) used in app/, components/ and lib/ is defined in globals.
   assert.deepEqual([...missing], [])
 })
 
-const SEMANTIC = Object.keys(light).filter((k) => !/^--(gray|blue|green|amber|red)-\d+$/.test(k) && !/^--(sidebar-width|header-height|bottom-nav-height|radius|ease|duration)/.test(k)) // sizes, radii and motion are not colours
+const SEMANTIC = Object.keys(light).filter((k) => !/^--(gray|blue|green|amber|red|violet)-\d+$/.test(k) && !/^--(sidebar-width|header-height|bottom-nav-height|radius|ease|duration)/.test(k)) // sizes, radii and motion are not colours
 test('the dark theme overrides every semantic colour', () => {
   assert.deepEqual(SEMANTIC.filter((k) => !(k in dark)), [])
 })
@@ -64,14 +64,14 @@ test('text colours meet WCAG AA (4.5:1) on background and surface, light and dar
   const failures = []
   for (const [name, theme] of [['light', light], ['dark', { ...light, ...dark }]]) {
     for (const bg of ['--background', '--surface']) {
-      for (const fg of ['--foreground', '--foreground-muted', '--foreground-subtle', '--brand', '--success', '--warning', '--danger', '--info']) {
+      for (const fg of ['--foreground', '--foreground-muted', '--foreground-subtle', '--brand', '--success', '--warning', '--danger', '--info', '--accent']) {
         const [f, b] = [resolve(theme, theme[fg]), resolve(theme, theme[bg])]
         if (!/^#[0-9a-f]{6}$/i.test(f) || !/^#[0-9a-f]{6}$/i.test(b)) continue
         const r = contrast(f, b)
         if (r < 4.5) failures.push(`${name}: ${fg} on ${bg} = ${r.toFixed(2)}:1`)
       }
     }
-    for (const [fg, bg] of [['--brand-foreground', '--brand'], ['--danger-foreground', '--danger'], ['--success-foreground', '--success'], ['--warning-foreground', '--warning']]) {
+    for (const [fg, bg] of [['--brand-foreground', '--brand'], ['--danger-foreground', '--danger'], ['--success-foreground', '--success'], ['--warning-foreground', '--warning'], ['--accent-foreground', '--accent']]) {
       const r = contrast(resolve(theme, theme[fg]), resolve(theme, theme[bg]))
       if (r < 4.5) failures.push(`${name}: ${fg} on ${bg} = ${r.toFixed(2)}:1`)
     }

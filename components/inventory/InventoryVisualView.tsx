@@ -224,12 +224,12 @@ export function InventoryVisualView({
 
         {/* 2. Mixed-Use Category Switcher (if mixed-use project) */}
         {projectCategory === 'mixed_use' && availableSubCategories.length > 0 && (
-          <div className="p-2.5 bg-purple-50/70 border border-purple-200 rounded-xl space-y-1.5">
+          <div className="p-2.5 bg-accent-bg border border-accent-border rounded-xl space-y-1.5">
             <div className="flex items-center justify-between px-1">
-              <span className="text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-purple-700" /> Mixed-Use Component Category
+              <span className="text-xs font-bold text-accent uppercase tracking-wider flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-accent" /> Mixed-Use Component Category
               </span>
-              <span className="text-[11px] text-purple-700">
+              <span className="text-[11px] text-accent">
                 Switch visual layout mode per inventory type
               </span>
             </div>
@@ -239,8 +239,8 @@ export function InventoryVisualView({
                 onClick={() => setSelectedSubCategory('all')}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
                   selectedSubCategory === 'all'
-                    ? 'bg-purple-700 text-white shadow-2xs'
-                    : 'bg-surface text-purple-800 border border-purple-200 hover:bg-purple-100/50'
+                    ? 'bg-accent text-accent-foreground shadow-2xs'
+                    : 'bg-surface text-accent border border-accent-border hover:bg-accent-bg'
                 }`}
               >
                 All Components ({items.length})
@@ -255,12 +255,12 @@ export function InventoryVisualView({
                     onClick={() => setSelectedSubCategory(cat)}
                     className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
                       isActive
-                        ? 'bg-purple-700 text-white shadow-2xs'
-                        : 'bg-surface text-purple-800 border border-purple-200 hover:bg-purple-100/50'
+                        ? 'bg-accent text-accent-foreground shadow-2xs'
+                        : 'bg-surface text-accent border border-accent-border hover:bg-accent-bg'
                     }`}
                   >
                     <span>{PROJECT_CATEGORY_LABELS[cat] || cat}</span>
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-purple-900/40 text-white' : 'bg-purple-100 text-purple-800'}`}>
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-accent-bg text-accent-foreground' : 'bg-accent-bg text-accent'}`}>
                       {count}
                     </span>
                   </button>
@@ -298,8 +298,8 @@ export function InventoryVisualView({
                         {activeLayoutCategory === 'apartments' && <Building2 className="w-4 h-4 text-[var(--brand)]" />}
                         {activeLayoutCategory === 'plotted_developments' && <Grid className="w-4 h-4 text-success" />}
                         {activeLayoutCategory === 'commercial_sale' && <Store className="w-4 h-4 text-warning" />}
-                        {activeLayoutCategory === 'villas_gated_communities' && <Home className="w-4 h-4 text-indigo-600" />}
-                        {activeLayoutCategory === 'mixed_use' && <Layers className="w-4 h-4 text-purple-600" />}
+                        {activeLayoutCategory === 'villas_gated_communities' && <Home className="w-4 h-4 text-accent" />}
+                        {activeLayoutCategory === 'mixed_use' && <Layers className="w-4 h-4 text-accent" />}
                         <span className="font-bold text-xs text-[var(--foreground)] truncate">
                           {g.name}
                         </span>
@@ -324,7 +324,7 @@ export function InventoryVisualView({
                         <span className="text-[9px] text-[var(--foreground-muted)]">Bkd</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-purple-700 font-bold">{g.sold}</span>
+                        <span className="text-accent font-bold">{g.sold}</span>
                         <span className="text-[9px] text-[var(--foreground-muted)]">Sold</span>
                       </div>
                       <div className="flex flex-col">
@@ -479,7 +479,7 @@ export function InventoryVisualView({
                         )}
                       </div>
 
-                      <div className="mt-2 pt-1.5 border-t border-black/5 flex items-center justify-between text-[10px]">
+                      <div className="mt-2 pt-1.5 border-t border-default flex items-center justify-between text-[10px]">
                         <span className="text-[var(--foreground-muted)] flex items-center gap-0.5">
                           <Compass className="w-2.5 h-2.5" />
                           {plot.facing || 'East'}
@@ -514,7 +514,7 @@ export function InventoryVisualView({
             <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
               <div>
                 <h3 className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2">
-                  <Home className="w-4 h-4 text-indigo-600" />
+                  <Home className="w-4 h-4 text-accent" />
                   <span>{activeGroup} • Villa Cluster View</span>
                 </h3>
                 <p className="text-xs text-[var(--foreground-muted)]">
@@ -564,7 +564,7 @@ export function InventoryVisualView({
                         )}
                       </div>
 
-                      <div className="mt-2 pt-1.5 border-t border-black/5 flex items-center justify-between text-[10px]">
+                      <div className="mt-2 pt-1.5 border-t border-default flex items-center justify-between text-[10px]">
                         <span className="text-[var(--foreground-muted)] flex items-center gap-1">
                           <Compass className="w-3 h-3" />
                           <span>{villa.facing || 'East'} Facing</span>
@@ -577,7 +577,7 @@ export function InventoryVisualView({
                       </div>
 
                       {villa.total_price && (
-                        <div className="text-xs font-bold text-[var(--foreground)] mt-2 pt-1.5 border-t border-black/5">
+                        <div className="text-xs font-bold text-[var(--foreground)] mt-2 pt-1.5 border-t border-default">
                           {formatCurrency(Number(villa.total_price))}
                         </div>
                       )}

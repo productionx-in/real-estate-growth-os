@@ -178,7 +178,7 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
             type="button"
             onClick={handleAcceptLoggedIn}
             disabled={loading}
-            className="w-full py-2.5 px-4 text-[13px] font-semibold text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 shadow-2xs"
+            className="w-full py-2.5 px-4 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 shadow-2xs"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
             <span>Accept Invitation &amp; Enter Workspace</span>
@@ -197,7 +197,7 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
               disabled={loading}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Aditya Sharma"
-              className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors"
+              className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
             />
           </div>
 
@@ -228,14 +228,14 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
               disabled={loading}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={`At least ${PASSWORD_MIN_LENGTH} characters, with a letter and a number`}
-              className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors"
+              className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading || !fullName.trim() || passwordProblem(password, invitation.email) !== null}
-            className="w-full py-2.5 px-4 text-[13px] font-semibold text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 shadow-2xs mt-2"
+            className="w-full py-2.5 px-4 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 shadow-2xs mt-2"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
             <span>Set Password &amp; Join {invitation.orgName}</span>

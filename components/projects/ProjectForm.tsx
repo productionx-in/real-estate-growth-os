@@ -26,7 +26,7 @@ interface ProjectFormProps {
 }
 
 const inputClass =
-  'w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors placeholder:text-[var(--foreground-subtle)]'
+  'w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors placeholder:text-[var(--foreground-subtle)]'
 
 const CATEGORY_OPTIONS: { value: ProjectCategory; label: string; desc: string }[] = [
   {
@@ -581,7 +581,7 @@ export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: Projec
                       : 'bg-[var(--surface)] text-[var(--foreground-muted)] border-[var(--border)] hover:bg-[var(--surface-hover)]'
                   )}
                 >
-                  <span className={cn('w-1.5 h-1.5 rounded-full', active ? 'bg-[var(--brand)]' : 'bg-gray-300')} />
+                  <span className={cn('w-1.5 h-1.5 rounded-full', active ? 'bg-[var(--brand)]' : 'bg-strong')} />
                   {am}
                 </button>
               )
@@ -749,7 +749,7 @@ export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: Projec
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-[var(--brand)] hover:opacity-90 rounded-md shadow-xs transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-brand-foreground bg-[var(--brand)] hover:opacity-90 rounded-md shadow-xs transition-all disabled:opacity-50"
         >
           {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
           {isEditing ? 'Save Changes' : 'Create Project'}

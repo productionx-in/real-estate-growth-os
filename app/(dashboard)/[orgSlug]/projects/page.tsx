@@ -28,7 +28,7 @@ const STATUS_COLORS: Record<string, string> = {
   planning: 'bg-surface-hover text-muted border-default',
   pre_launch: 'bg-brand-light text-brand border-brand/30',
   launched: 'bg-success-bg text-success border-success/30',
-  ongoing: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  ongoing: 'bg-accent-bg text-accent border-accent-border',
   completed: 'bg-surface-hover text-subtle border-default',
 }
 
@@ -46,7 +46,7 @@ export default async function ProjectsPage({ params }: PageProps) {
   const actions = isManager ? (
     <Link
       href={`/${orgSlug}/projects/new`}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
     >
       <Plus className="w-3.5 h-3.5" />
       New project
@@ -129,7 +129,7 @@ export default async function ProjectsPage({ params }: PageProps) {
             isManager ? (
               <Link
                 href={`/${orgSlug}/projects/new`}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Create project

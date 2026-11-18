@@ -1,6 +1,7 @@
 'use client'
 // components/layout/Header.tsx
 // Top bar: where you are, search (⌘K), duty status, notifications, and your account menu.
+import { AppearanceMenu } from '@/components/theme/AppearanceMenu'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Bell, ChevronRight, Menu, Search, LogOut, Compass, Settings } from 'lucide-react'
@@ -136,6 +137,8 @@ export function Header({ orgId, orgName, orgSlug = '', orgType = 'developer', ro
               <DropdownMenuItem asChild><Link href="/select-org"><Compass aria-hidden /> Switch workspace</Link></DropdownMenuItem>
             )}
             {(isAdmin || availableOrgs.length > 1) && <DropdownMenuSeparator />}
+            <AppearanceMenu />
+            <DropdownMenuSeparator />
             <DropdownMenuItem destructive onSelect={signOut}><LogOut aria-hidden /> Sign out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

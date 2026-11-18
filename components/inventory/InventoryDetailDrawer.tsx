@@ -167,7 +167,7 @@ export function InventoryDetailDrawer({
               {PROJECT_CATEGORY_LABELS[category] || category}
             </span>
             {isMixedUse && (
-              <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800">
+              <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-accent-bg text-accent">
                 Mixed-Use Component
               </span>
             )}
@@ -250,7 +250,7 @@ export function InventoryDetailDrawer({
               <button
                 type="button"
                 onClick={() => setShowStatusModal(true)}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-brand-foreground bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 <span>Change Status</span>

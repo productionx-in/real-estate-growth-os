@@ -92,12 +92,12 @@ export default async function AuditLogPage({
       <div className="max-w-6xl space-y-4">
         <nav aria-label="Filter by area" className="flex flex-wrap gap-1.5 text-[12px]">
           <Link href={href()} aria-current={!area ? 'page' : undefined}
-            className={`px-3 py-1.5 rounded-full border ${!area ? 'border-[var(--brand)] bg-[var(--brand)] text-white' : 'border-[var(--border)] text-[var(--foreground-muted)] hover:bg-[var(--surface-hover)]'}`}>
+            className={`px-3 py-1.5 rounded-full border ${!area ? 'border-[var(--brand)] bg-[var(--brand)] text-brand-foreground' : 'border-[var(--border)] text-[var(--foreground-muted)] hover:bg-[var(--surface-hover)]'}`}>
             All
           </Link>
           {(Object.keys(AUDIT_AREAS) as AuditArea[]).map((a) => (
             <Link key={a} href={href(a)} aria-current={a === area ? 'page' : undefined}
-              className={`px-3 py-1.5 rounded-full border ${a === area ? 'border-[var(--brand)] bg-[var(--brand)] text-white' : 'border-[var(--border)] text-[var(--foreground-muted)] hover:bg-[var(--surface-hover)]'}`}>
+              className={`px-3 py-1.5 rounded-full border ${a === area ? 'border-[var(--brand)] bg-[var(--brand)] text-brand-foreground' : 'border-[var(--border)] text-[var(--foreground-muted)] hover:bg-[var(--surface-hover)]'}`}>
               {AUDIT_AREAS[a]}
             </Link>
           ))}

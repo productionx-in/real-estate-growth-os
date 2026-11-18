@@ -188,7 +188,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
           </button>
           <button
             onClick={() => router.push(`/${orgSlug}/leads`)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors"
           >
             Go to Leads <ArrowRight className="w-3.5 h-3.5" />
           </button>
@@ -400,7 +400,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
               type="button"
               onClick={handleImport}
               disabled={isPending || validCount === 0}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {isPending ? (progress ? `Importing ${progress.done} of ${progress.total}…` : 'Importing leads…') : `Import ${validCount} Valid Leads`}

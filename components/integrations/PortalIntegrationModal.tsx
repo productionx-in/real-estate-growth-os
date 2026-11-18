@@ -294,7 +294,7 @@ export function PortalIntegrationModal({
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-surface-hover hover:bg-gray-300 text-foreground rounded-xl font-medium transition cursor-pointer"
+            className="px-4 py-2 bg-surface-hover hover:bg-strong text-foreground rounded-xl font-medium transition cursor-pointer"
           >
             Close
           </button>
