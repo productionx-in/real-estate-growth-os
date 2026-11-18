@@ -5,6 +5,7 @@ import { PageShell } from '@/components/layout/PageShell'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { getExecutiveBiAnalytics } from '@/lib/dal/analytics'
 import { ExecutiveBiDashboardView } from '@/components/analytics/ExecutiveBiDashboardView'
+import { leadScopeOf } from '@/lib/auth/permissions'
 
 export const metadata: Metadata = { title: 'Developer Analytics & BI' }
 export const dynamic = 'force-dynamic'
@@ -17,8 +18,8 @@ export default async function AnalyticsPage({ params }: PageProps) {
   const { orgSlug } = await params
   const { org, role } = await getVerifiedWorkspace(orgSlug)
 
-  // Server-authoritative check: Sales executives are restricted from executive BI analytics
-  if (role === 'sales_exec') {
+  // Server-authoritative check: organisation-wide analytics are for roles that see every lead
+  if (leadScopeOf(role) !== 'all') {
     redirect(`/${orgSlug}`)
   }
   const analytics = await getExecutiveBiAnalytics(org.id)

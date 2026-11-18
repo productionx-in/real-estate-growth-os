@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { X, Mail, Shield, Check, Copy, AlertCircle, Loader2 } from 'lucide-react'
 import type { MemberRole } from '@/types/database'
 import type { SeatUsage } from '@/lib/dal/subscriptions'
+import { ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/lib/auth/permissions'
 
 interface InviteMemberModalProps {
   isOpen: boolean
@@ -12,6 +13,9 @@ interface InviteMemberModalProps {
   orgSlug: string
   seatUsage: SeatUsage
 }
+
+/** Roles that can be invited (ownership is transferred, never invited). */
+const INVITE_ROLES: MemberRole[] = ['sales_exec', 'team_lead', 'manager', 'post_sales', 'admin', 'readonly']
 
 export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: InviteMemberModalProps) {
   const router = useRouter()
@@ -174,7 +178,7 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
                 disabled={isLimitReached || loading}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="colleague@propertydeveloper.com"
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors disabled:opacity-60"
+                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors disabled:opacity-60"
               />
             </div>
 
@@ -184,16 +188,17 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
               </label>
               <select
                 id="invite-role"
+                aria-describedby="invite-role-hint"
                 value={role}
                 disabled={isLimitReached || loading}
                 onChange={(e) => setRole(e.target.value as MemberRole)}
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors disabled:opacity-60"
+                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors disabled:opacity-60"
               >
-                <option value="sales_exec">Sales Executive (Manage assigned leads, pipeline, site visits)</option>
-                <option value="manager">Sales Manager (Lead distribution, full pipeline, analytics)</option>
-                <option value="admin">Administrator (Full team, settings, projects & integrations)</option>
-                <option value="readonly">Read Only (Auditor / Executive Observer)</option>
+                {INVITE_ROLES.map((r) => (
+                  <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                ))}
               </select>
+              <p id="invite-role-hint" className="mt-1.5 text-[12px] text-muted">{ROLE_DESCRIPTIONS[role]}</p>
             </div>
 
             <div>
@@ -205,7 +210,7 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
                 value={expiresInDays}
                 disabled={isLimitReached || loading}
                 onChange={(e) => setExpiresInDays(Number(e.target.value))}
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-colors disabled:opacity-60"
+                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors disabled:opacity-60"
               >
                 <option value={7}>7 days (Standard)</option>
                 <option value={14}>14 days</option>

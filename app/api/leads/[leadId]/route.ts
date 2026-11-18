@@ -3,6 +3,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { LeadSchema } from '@/lib/validations/lead'
 import { authorizeLeadAccess } from '@/lib/auth/tenant'
+import { SALES_WRITE_ROLES } from '@/lib/auth/permissions'
 import { createServiceClient } from '@/lib/supabase/server'
 import { auditMember } from '@/lib/dal/org-audit'
 
@@ -22,27 +23,16 @@ export async function PUT(
       )
     }
 
-    // Authorize caller has access to this lead (non-readonly)
-    const authResult = await authorizeLeadAccess(leadId, [
-      'owner',
-      'admin',
-      'manager',
-      'sales_exec',
-    ])
+    // Authorize: a role that may change sales records, and the lead is within the caller's scope
+    // (authorizeLeadAccess: own or unassigned for a sales executive, the team's for a team lead,
+    // booked customers for post-sales).
+    const authResult = await authorizeLeadAccess(leadId, [...SALES_WRITE_ROLES])
     if (!authResult.success) {
       return authResult.response
     }
 
     const { context } = authResult
     const service = createServiceClient()
-
-    // If caller is sales_exec, ensure they are assigned to this lead or it's unassigned
-    if (context.role === 'sales_exec' && context.lead.assigned_to && context.lead.assigned_to !== context.profile.id) {
-      return NextResponse.json(
-        { error: 'Sales executives can only update leads assigned to them' },
-        { status: 403 }
-      )
-    }
 
     // Cross-tenant scope verification: If project_id provided, verify it belongs to the lead's org
     if (parsed.data.project_id) {

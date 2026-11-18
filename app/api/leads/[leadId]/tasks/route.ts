@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { TaskCreateSchema } from '@/lib/validations/follow-ups'
 import { authorizeLeadWork } from '@/lib/follow-ups/auth'
 import { authorizeLeadAccess } from '@/lib/auth/tenant'
+import { canWorkLead, leadScopeOf } from '@/lib/auth/permissions'
 import { createTask, listLeadTasks } from '@/lib/dal/follow-ups'
 import { parseJson, respond, serverError } from '@/lib/routing/http'
 
@@ -14,7 +15,7 @@ export async function GET(_request: NextRequest, { params }: Ctx) {
     const auth = await authorizeLeadAccess(leadId)
     if (!auth.success) return auth.response
     const { context } = auth
-    if (context.role === 'sales_exec' && context.lead.assigned_to !== context.profile.id) {
+    if (!canWorkLead(context.viewer, context.lead) && leadScopeOf(context.role) !== 'all') {
       return NextResponse.json({ error: 'Lead not found' }, { status: 404 })
     }
     return NextResponse.json({ data: await listLeadTasks(context.orgId, leadId) })

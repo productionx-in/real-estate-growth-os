@@ -7,6 +7,8 @@ import { getLeadById } from '@/lib/dal/leads'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { createServiceClient } from '@/lib/supabase/server'
 import type { LeadFormValues } from '@/lib/validations/lead'
+import { canWorkLead } from '@/lib/auth/permissions'
+import { resolveLeadViewer } from '@/lib/dal/viewer'
 
 export const metadata: Metadata = { title: 'Edit Lead' }
 
@@ -26,8 +28,8 @@ export default async function EditLeadPage({ params }: PageProps) {
   const lead = await getLeadById(leadId)
   if (!lead || lead.org_id !== org.id) notFound()
 
-  // 2. If sales_exec, must be assigned to lead
-  if (role === 'sales_exec' && lead.assigned_to !== profile.id) {
+  // 2. Only someone who works this lead (own, team's, booked customer for post-sales, or a manager)
+  if (!canWorkLead(await resolveLeadViewer(org.id, role, profile.id), lead)) {
     redirect(`/${orgSlug}/leads`)
   }
 

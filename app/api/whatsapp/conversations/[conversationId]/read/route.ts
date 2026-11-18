@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
 import { markRead } from '@/lib/dal/whatsapp-inbox'
+import { resolveLeadViewer } from '@/lib/dal/viewer'
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ conversationId: string }> }) {
   const { conversationId } = await params
@@ -12,6 +13,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
   const access = await authorizeOrgAccess(body.data.orgId)
   if (!access.success) return access.response
-  const ok = await markRead(body.data.orgId, conversationId, { role: access.context.role, profileId: access.context.profile.id })
+  const ok = await markRead(body.data.orgId, conversationId, await resolveLeadViewer(body.data.orgId, access.context.role, access.context.profile.id))
   return ok ? NextResponse.json({ ok: true }) : NextResponse.json({ error: 'Conversation not found.' }, { status: 404 })
 }

@@ -15,6 +15,7 @@ import { createClient } from '@/lib/supabase/client'
 import { navGroups, isActiveLink, ROLE_LABELS, type OrgType } from '@/lib/navigation/nav'
 import type { MemberRole } from '@/types/database'
 import type { AvailableOrgSummary } from '@/lib/dal/workspace'
+import { ASSIGNABLE_ROLES } from '@/lib/auth/permissions'
 
 export interface HeaderProps {
   orgId?: string
@@ -103,7 +104,7 @@ export function Header({ orgId, orgName, orgSlug = '', orgType = 'developer', ro
           <Search aria-hidden className="size-5" />
         </button>
 
-        {orgId && role !== 'readonly' && <DutyToggle orgId={orgId} />}
+        {orgId && ASSIGNABLE_ROLES.includes(role) && <DutyToggle orgId={orgId} />}
 
         {orgId && orgSlug ? (
           <NotificationBell orgId={orgId} orgSlug={orgSlug} />

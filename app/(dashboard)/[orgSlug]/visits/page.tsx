@@ -13,6 +13,8 @@ import { Badge, Card, EmptyState, buttonVariants } from '@/components/ui'
 import { ScheduleVisitDialog, type Option } from '@/components/visits/ScheduleVisitDialog'
 import { VisitActions } from '@/components/visits/VisitActions'
 import { cn } from '@/lib/utils/cn'
+import { ASSIGNABLE_ROLES, canAssignTo, leadScopeOf } from '@/lib/auth/permissions'
+import { resolveLeadViewer } from '@/lib/dal/viewer'
 
 export const metadata: Metadata = { title: 'Site visits' }
 export const dynamic = 'force-dynamic'
@@ -35,7 +37,11 @@ export default async function VisitsPage({ params, searchParams }: {
   const { org, role, profile, isManager } = await getVerifiedWorkspace(orgSlug)
   const { timezone } = await getResponseMinutes(org.id)
   const canAct = role !== 'readonly'
-  const mine = role === 'sales_exec' || sp.scope === 'mine'
+  const scope = leadScopeOf(role)
+  const viewer = await resolveLeadViewer(org.id, role, profile.id)
+  // A sales executive or post-sales sees their own visits; a team lead their team's (or just theirs).
+  const mine = scope === 'own' || scope === 'booked' || sp.scope === 'mine'
+  const teamIds = scope === 'team' && !mine ? [profile.id, ...(viewer.teamProfileIds ?? [])] : null
 
   // The week shown: from the given day (or today), seven days, in the organisation's time zone.
   const todayLocal = localDay(new Date(), timezone)
@@ -47,19 +53,22 @@ export default async function VisitsPage({ params, searchParams }: {
 
   const db = createServiceClient()
   const [visits, projects, members, leads] = await Promise.all([
-    listVisits(org.id, { from, to, profileId: mine ? profile.id : null, projectId: sp.project || null }),
+    listVisits(org.id, { from, to, profileId: mine ? profile.id : null, profileIds: teamIds, projectId: sp.project || null }),
     db.from('projects').select('id, name').eq('org_id', org.id).order('name'),
-    db.from('org_members').select('profile_id, profile:profiles!org_members_profile_id_fkey(full_name)').eq('org_id', org.id).eq('status', 'active').in('role', ['owner', 'admin', 'manager', 'sales_exec']),
+    db.from('org_members').select('profile_id, profile:profiles!org_members_profile_id_fkey(full_name)').eq('org_id', org.id).eq('status', 'active').in('role', [...ASSIGNABLE_ROLES]),
     (() => {
       let q = db.from('leads').select('id, name, phone').eq('org_id', org.id).not('status', 'in', '(booked,lost,junk)').order('updated_at', { ascending: false }).limit(300)
-      if (role === 'sales_exec') q = q.eq('assigned_to', profile.id)
+      if (scope === 'own') q = q.eq('assigned_to', profile.id)
+      else if (scope === 'team') q = q.in('assigned_to', [profile.id, ...(viewer.teamProfileIds ?? [])])
+      else if (scope === 'booked') q = q.eq('assigned_to', profile.id)
       return q
     })(),
   ])
 
   const projectOptions: Option[] = (projects.data ?? []).map((p) => ({ id: p.id, label: p.name }))
   type M = { profile_id: string; profile: { full_name: string } | { full_name: string }[] | null }
-  const agentOptions: Option[] = ((members.data ?? []) as M[]).map((m) => ({
+  const agentOptions: Option[] = ((members.data ?? []) as M[])
+    .filter((m) => scope !== 'team' || canAssignTo(viewer, m.profile_id)).map((m) => ({
     id: m.profile_id, label: (Array.isArray(m.profile) ? m.profile[0]?.full_name : m.profile?.full_name) ?? 'Unknown',
   }))
   const leadOptions: Option[] = (leads.data ?? []).map((l) => ({ id: l.id, label: l.name, hint: l.phone }))
@@ -83,7 +92,7 @@ export default async function VisitsPage({ params, searchParams }: {
       description={`${live} upcoming this week · ${mine ? 'your visits' : 'whole team'}`}
       actions={canAct && (
         <ScheduleVisitDialog leads={leadOptions} projects={projectOptions} agents={agentOptions}
-          defaultAgentId={profile.id} canPickAgent={isManager} />
+          defaultAgentId={profile.id} canPickAgent={isManager || scope === 'team'} />
       )}
     >
       <div className="max-w-5xl space-y-4">
@@ -93,7 +102,7 @@ export default async function VisitsPage({ params, searchParams }: {
           <Link href={qs({ from: shift(7) })} className={buttonVariants({ variant: 'secondary', size: 'icon' })} aria-label="Next week"><ChevronRight aria-hidden /></Link>
           <span className="text-[13px] font-medium">{dayLabel(days[0].key)} – {dayLabel(days[6].key)}</span>
           <span className="ml-auto flex flex-wrap gap-1.5 text-[12px]">
-            {isManager && (['team', 'mine'] as const).map((s) => (
+            {(isManager || scope === 'team') && (['team', 'mine'] as const).map((s) => (
               <Link key={s} href={qs({ scope: s === 'team' ? undefined : 'mine' })} aria-current={(s === 'mine') === mine ? 'page' : undefined}
                 className={cn('rounded-full border px-3 py-1', (s === 'mine') === mine ? 'border-brand bg-brand text-brand-foreground' : 'border-default text-muted hover:bg-surface-hover')}>
                 {s === 'team' ? 'Whole team' : 'Mine'}

@@ -8,6 +8,7 @@ import { PageShell } from '@/components/layout/PageShell'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { getResponseReport, pct, REPORT_PERIODS, withinTargetPct, type ReportPeriod, type ReportRow } from '@/lib/dal/reports'
 import { getResponseSettings } from '@/lib/dal/follow-ups'
+import { isManagement } from '@/lib/auth/permissions'
 
 export const metadata: Metadata = { title: 'Speed to lead' }
 export const dynamic = 'force-dynamic'
@@ -81,7 +82,7 @@ export default async function SpeedToLeadPage({ params, searchParams }: { params
   const { orgSlug } = await params
   const { period: raw } = await searchParams
   const { org, role } = await getVerifiedWorkspace(orgSlug)
-  if (role === 'sales_exec') redirect(`/${orgSlug}/today`)
+  if (!isManagement(role)) redirect(`/${orgSlug}/today`)
   const period: ReportPeriod = raw && raw in REPORT_PERIODS ? (raw as ReportPeriod) : '30d'
   const [report, settings] = await Promise.all([getResponseReport(org.id, period), getResponseSettings(org.id)])
   const o = report.overall

@@ -11,6 +11,7 @@ import { listRecentRoutingDecisions, listRules, listTeams } from '@/lib/dal/rout
 import { RoutingSettingsClient, type RoutingPageData } from '@/components/routing/RoutingSettingsClient'
 import { ResponseSettingsCard } from '@/components/routing/ResponseSettingsCard'
 import { getResponseSettings } from '@/lib/dal/follow-ups'
+import { ASSIGNABLE_ROLES } from '@/lib/auth/permissions'
 
 export const metadata: Metadata = { title: 'Lead Routing' }
 export const dynamic = 'force-dynamic'
@@ -31,7 +32,7 @@ export default async function RoutingPage({ params }: PageProps) {
     listRules(orgId),
     listRecentRoutingDecisions(orgId, 25),
     service.from('org_members').select('profile_id, role, profile:profiles!org_members_profile_id_fkey(id, full_name)')
-      .eq('org_id', orgId).eq('status', 'active').neq('role', 'readonly'),
+      .eq('org_id', orgId).eq('status', 'active').in('role', [...ASSIGNABLE_ROLES]),
     service.from('projects').select('id, name').eq('org_id', orgId).order('name'),
     getResponseSettings(orgId),
   ])

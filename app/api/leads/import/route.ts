@@ -6,6 +6,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { normaliseName } from '@/lib/import/crm-mapping'
 import { auditMember } from '@/lib/dal/org-audit'
+import { ASSIGNABLE_ROLES } from '@/lib/auth/permissions'
 
 const ImportPayloadSchema = z.object({
   orgId: z.string().uuid().optional(),
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest) {
     if (leads.some((l) => l.owner)) {
       const { data: members } = await service.from('org_members')
         .select('profile_id, role, profile:profiles!org_members_profile_id_fkey(full_name, auth_user_id)')
-        .eq('org_id', targetOrgId).eq('status', 'active').neq('role', 'readonly')
+        .eq('org_id', targetOrgId).eq('status', 'active').in('role', [...ASSIGNABLE_ROLES])
       const authIds = new Map<string, string>()
       for (const m of members ?? []) {
         if (m.profile?.full_name) ownerKeys.set(normaliseName(m.profile.full_name), m.profile_id)

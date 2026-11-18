@@ -26,7 +26,7 @@ export async function POST(
     // Role check: Minimum role required
     const requiredRoles: MemberRole[] = ['booked', 'sold', 'blocked'].includes(parsed.data.new_status)
       ? ['owner', 'admin', 'manager']
-      : ['owner', 'admin', 'manager', 'sales_exec']
+      : ['owner', 'admin', 'manager', 'team_lead', 'sales_exec']
 
     const authResult = await authorizeInventoryAccess(inventoryId, requiredRoles)
     if (!authResult.success) {
