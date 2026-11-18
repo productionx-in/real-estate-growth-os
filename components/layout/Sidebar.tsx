@@ -26,6 +26,7 @@ import {
   LifeBuoy,
   CalendarDays,
   MessageCircle,
+  FileText,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { PRODUCT_NAME } from '@/lib/brand'
@@ -61,7 +62,7 @@ export interface SidebarProps {
 
 /** First path segment after the org slug → module key. Core pages are not listed. */
 const MODULE_OF_SEGMENT: Record<string, string> = {
-  sales: 'sales', visits: 'sales', inventory: 'inventory', routing: 'routing', integrations: 'integrations', analytics: 'analytics',
+  sales: 'sales', visits: 'sales', documents: 'sales', inventory: 'inventory', routing: 'routing', integrations: 'integrations', analytics: 'analytics',
 }
 
 const ROLE_DISPLAY_NAMES: Record<MemberRole, string> = {
@@ -103,6 +104,7 @@ function getRoleNavSections(
         items: [
           { label: 'Overview', href: `/${orgSlug}`, icon: LayoutDashboard, exact: true },
           { label: 'Projects', href: `/${orgSlug}/projects`, icon: FolderOpen },
+          { label: 'Document templates', href: `/${orgSlug}/documents`, icon: FileText },
           { label: 'Inventory Explorer', href: `/${orgSlug}/inventory`, icon: Layers },
           { label: 'Analytics & BI', href: `/${orgSlug}/analytics`, icon: TrendingUp },
         ],
@@ -159,6 +161,7 @@ function getRoleNavSections(
         title: 'PORTFOLIO',
         items: [
           { label: 'Projects', href: `/${orgSlug}/projects`, icon: FolderOpen },
+          { label: 'Document templates', href: `/${orgSlug}/documents`, icon: FileText },
           { label: 'Inventory Explorer', href: `/${orgSlug}/inventory`, icon: Layers },
         ],
       },
@@ -191,6 +194,7 @@ function getRoleNavSections(
       title: 'PORTFOLIO',
       items: [
         { label: 'Projects', href: `/${orgSlug}/projects`, icon: FolderOpen },
+        { label: 'Document templates', href: `/${orgSlug}/documents`, icon: FileText },
         { label: 'Inventory Explorer', href: `/${orgSlug}/inventory`, icon: Layers },
       ],
     },
