@@ -10,6 +10,7 @@ import {
   LayoutDashboard, Users, FolderOpen, UserCircle, Settings, Building2, Layers, Plug, TrendingUp, Briefcase,
   ChevronsUpDown, Check, Compass, Shuffle, ListChecks, Gauge, ScrollText, LifeBuoy, CalendarDays,
   MessageCircle, FileText, PanelLeftClose, PanelLeftOpen, X, CreditCard,
+  Handshake,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { PRODUCT_NAME } from '@/lib/brand'
@@ -28,7 +29,7 @@ const COLLAPSE_KEY = 'regrow:nav-collapsed'
 export const NAV_ICONS: Record<NavKey, React.ComponentType<{ className?: string }>> = {
   home: LayoutDashboard, today: ListChecks, leads: Users, visits: CalendarDays, inbox: MessageCircle,
   sales: Briefcase, routing: Shuffle, speed: Gauge, projects: FolderOpen, inventory: Layers, documents: FileText,
-  analytics: TrendingUp, integrations: Plug, team: UserCircle, settings: Settings, billing: CreditCard, audit: ScrollText, support: LifeBuoy,
+  analytics: TrendingUp, integrations: Plug, team: UserCircle, settings: Settings, billing: CreditCard, audit: ScrollText, support: LifeBuoy, partners: Handshake,
 }
 
 export interface SidebarProps {
