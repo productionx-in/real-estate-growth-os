@@ -64,10 +64,10 @@ async function main() {
       assert.equal(wrong.success, false, 'a developer cannot buy the agency plan')
     })
 
-    await test('trial: 14 days, the trial plan’s 3 seats (DEC-022), once only', async () => {
+    await test('trial: 14 days, the trial plan’s 5 seats (DEC-022), once only', async () => {
       assert.equal((await billing.runBillingAction(org, owner, { action: 'trial', plan: 'leads' })).success, true)
       const s = await sub()
-      assert.equal(s.status, 'trial'); assert.equal(s.included_seats, 3)
+      assert.equal(s.status, 'trial'); assert.equal(s.included_seats, 5)
       const days = Math.round((new Date(s.current_period_end) - Date.now()) / 86_400_000)
       assert.equal(days, 14)
       const again = await billing.runBillingAction(org, owner, { action: 'trial', plan: 'leads' })
