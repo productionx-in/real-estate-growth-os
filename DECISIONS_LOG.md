@@ -171,3 +171,14 @@
   - Enforced in the database (definer functions, RLS with no client access) and on the server; every cross-organisation action is audited in both organisations in one transaction.
 - **Status:** PR 1 (partnerships, sharing, registration, conflicts, review) implemented on `claude/partner-network-pr1`; not merged or applied to production. Commissions, the agency progress view and expiry notifications are PR 2.
 
+### DEC-022: Commercial Rules — Trials, Plan Limits, Expiry and Existing Workspaces
+- **Context:** The founder delegated the open commercial decisions from the self-serve / monetisation review ("you do the math … keep in product info"). Full rules: `docs/product/COMMERCIAL_RULES.md`.
+- **Decision:**
+  - Trial: 14 days; 5 users, 1,000 leads, 5 projects, 500 inventory units (generous on purpose: customers must be able to run their real pipeline before subscribing); one trial per person per organisation type, for life.
+  - Captured enquiries are always saved over the lead limit; manual entry and import stop at it.
+  - Pending invitations keep reserving a seat (released on acceptance, revocation or 7-day expiry).
+  - Trial end → read-only immediately; paid period end → 7 days overdue with full access, then read-only; paying lifts it; data is never deleted.
+  - Existing workspaces without a subscription get a 30-day transition on their type's plan.
+  - Verification is per organisation and gates cross-organisation actions only; Independent CP plan ₹1,499 / 1 user, max 2 users (own PR).
+  - Website order: Start free trial, Explore demo, Book a demo.
+- **Status:** Trials, limits, expiry and transition implemented in migration 20260059 (PR "billing enforcement"); sign-up, demo, verification, website and the Independent CP plan in later PRs. Nothing applied to production until merged with the owner's go-ahead.

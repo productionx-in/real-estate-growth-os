@@ -3,7 +3,7 @@
 // The webhook (/api/webhooks/razorpay) settles the same payment independently; settlement is idempotent.
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
-import { authorizeOrgAccess } from '@/lib/auth/tenant'
+import { authorizeBillingAccess } from '@/lib/billing/access'
 import { razorpayConfig, verifyCheckoutSignature } from '@/lib/billing/razorpay'
 import { confirmCheckout } from '@/lib/dal/billing'
 
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
   const parsed = Body.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   const b = parsed.data
-  const access = await authorizeOrgAccess(b.orgId, ['owner', 'admin'])
+  const access = await authorizeBillingAccess(b.orgId)
   if (!access.success) return access.response
   const cfg = razorpayConfig()
   if (!cfg) return NextResponse.json({ error: 'Online payment is not set up.' }, { status: 503 })

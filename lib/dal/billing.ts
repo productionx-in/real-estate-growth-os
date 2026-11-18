@@ -44,6 +44,10 @@ export interface BillingOverview {
     readOnly: boolean
   } | null
   seats: { used: number; reserved: number; total: number }
+  /** Plan limits that apply now (max null = no limit), with current use. */
+  limits: { kind: 'leads' | 'projects' | 'inventory'; label: string; used: number; max: number | null }[]
+  /** Read-only because the trial or paid period ended (lifted by paying). */
+  billingHold: boolean
   plans: BillingPlan[]
   invoices: BillingInvoice[]
 }
@@ -79,6 +83,27 @@ export async function getBillingOverview(orgId: string): Promise<BillingOverview
     if (plan) { planName = plan.name; planCode = plan.code }
   }
 
+  type Caps = { max_leads: number | null; max_projects: number | null; max_inventory_units: number | null }
+  let caps: Caps | null = null
+  if (sub?.plan_version_id) {
+    // max_leads (migration 20260059) is not in the generated types yet.
+    const untyped = db as unknown as { from: (t: string) => { select: (c: string) => { eq: (k: string, v: string) => { maybeSingle: () => Promise<{ data: unknown }> } } } }
+    const { data: v } = await untyped.from('subscription_plan_versions').select('max_leads, max_projects, max_inventory_units').eq('id', sub.plan_version_id).maybeSingle()
+    caps = v as Caps | null
+  }
+  const counted = async (table: 'leads' | 'projects' | 'inventory_items') =>
+    (await db.from(table).select('id', { count: 'exact', head: true }).eq('org_id', orgId)).count ?? 0
+  const [leadCount, projectCount, unitCount, { data: orgRow }] = await Promise.all([
+    counted('leads'), counted('projects'), counted('inventory_items'),
+    (db as unknown as { from: (t: string) => { select: (c: string) => { eq: (k: string, v: string) => { maybeSingle: () => Promise<{ data: unknown }> } } } })
+      .from('organisations').select('billing_hold').eq('id', orgId).maybeSingle(),
+  ])
+  const limits: BillingOverview['limits'] = [
+    { kind: 'leads', label: 'Leads', used: leadCount, max: caps?.max_leads ?? null },
+    { kind: 'projects', label: 'Projects', used: projectCount, max: caps?.max_projects ?? null },
+    { kind: 'inventory', label: 'Inventory units', used: unitCount, max: caps?.max_inventory_units ?? null },
+  ]
+
   const included = sub?.included_seats ?? 0
   const additional = sub?.additional_seats ?? 0
   return {
@@ -88,6 +113,8 @@ export async function getBillingOverview(orgId: string): Promise<BillingOverview
       periodStart: sub.current_period_start, periodEnd: sub.current_period_end, readOnly: !!sub.is_read_only,
     } : null,
     seats: { used: used ?? 0, reserved: reserved ?? 0, total: included + additional },
+    limits,
+    billingHold: !!(orgRow as { billing_hold?: boolean } | null)?.billing_hold,
     plans,
     invoices: (invoices ?? []).map((i) => ({
       id: i.id, number: i.invoice_number, type: i.invoice_type, status: i.status, currency: i.currency,

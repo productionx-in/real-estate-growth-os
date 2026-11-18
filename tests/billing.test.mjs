@@ -83,9 +83,19 @@ await test('labels and rules: who manages billing, days left, rupees, banner tex
   assert.equal(plans.billingNotice(null, null, now), null)
 })
 
+await test('billing access: owners/admins; their real role counts only during a billing hold, never otherwise', async () => {
+  const { billingRoleOf } = await jiti.import(path.join(root, 'lib/billing/access.ts'))
+  assert.equal(billingRoleOf({ role: 'owner', status: 'active' }, false), 'owner')
+  assert.equal(billingRoleOf({ role: 'manager', status: 'active' }, false), null)
+  assert.equal(billingRoleOf({ role: 'readonly', status: 'active', lifecycle_saved_role: 'owner' }, true), 'owner', 'billing hold: the owner can pay')
+  assert.equal(billingRoleOf({ role: 'readonly', status: 'active', lifecycle_saved_role: 'owner' }, false), null, 'suspended by REGrow staff: no')
+  assert.equal(billingRoleOf({ role: 'readonly', status: 'active', lifecycle_saved_role: 'sales_exec' }, true), null)
+  assert.equal(billingRoleOf({ role: 'owner', status: 'suspended' }, true), null, 'deactivated workspace: no')
+})
+
 await test('routes: owners/admins only; amounts never come from the browser; the webhook checks the signature first', () => {
   for (const f of ['app/api/billing/actions/route.ts', 'app/api/billing/invoices/[invoiceId]/checkout/route.ts', 'app/api/billing/razorpay/confirm/route.ts']) {
-    assert.match(read(f), /authorizeOrgAccess\([^)]*\['owner', 'admin'\]\)/, f)
+    assert.match(read(f), /authorizeBillingAccess\(/, f)
     assert.doesNotMatch(read(f), /amount\s*:\s*z\./, `${f} accepts no amount`)
   }
   const wh = read('app/api/webhooks/razorpay/route.ts')
@@ -93,7 +103,7 @@ await test('routes: owners/admins only; amounts never come from the browser; the
   assert.match(wh, /status: 503/, 'refuses when not configured')
   assert.match(read('app/api/billing/razorpay/confirm/route.ts'), /verifyCheckoutSignature/)
   for (const f of ['app/(dashboard)/[orgSlug]/billing/page.tsx', 'app/(dashboard)/[orgSlug]/billing/invoices/[invoiceId]/page.tsx']) {
-    assert.match(read(f), /canManageBilling\(role\)/, f)
+    assert.match(read(f), /billingRoleFor\(org\.id, profile\.id\)/, f)
   }
 })
 

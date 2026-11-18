@@ -7,8 +7,9 @@ import { PageShell } from '@/components/layout/PageShell'
 import { PrintButton } from '@/components/documents/PrintButton'
 import { Badge } from '@/components/ui'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
+import { billingRoleFor } from '@/lib/billing/access'
 import { createServiceClient } from '@/lib/supabase/server'
-import { INVOICE_TYPE_LABEL, canManageBilling, rupees } from '@/lib/billing/plans'
+import { INVOICE_TYPE_LABEL, rupees } from '@/lib/billing/plans'
 import { PRODUCT_NAME } from '@/lib/brand'
 
 export const metadata: Metadata = { title: 'Invoice' }
@@ -18,8 +19,9 @@ const date = (iso: string | null) => (iso ? new Intl.DateTimeFormat('en-IN', { d
 
 export default async function InvoicePage({ params }: { params: Promise<{ orgSlug: string; invoiceId: string }> }) {
   const { orgSlug, invoiceId } = await params
-  const { org, role } = await getVerifiedWorkspace(orgSlug)
-  if (!canManageBilling(role)) redirect(`/${orgSlug}`)
+  const { org, profile } = await getVerifiedWorkspace(orgSlug)
+  // Owners/admins; also while the workspace is on a billing hold (their real role is kept aside), so they can pay.
+  if (!(await billingRoleFor(org.id, profile.id))) redirect(`/${orgSlug}`)
   if (!UUID.test(invoiceId)) notFound()
   const { data: inv } = await createServiceClient().from('org_subscription_invoices')
     .select('invoice_number, invoice_type, status, currency, subtotal_cents, tax_cents, amount_cents, seat_quantity, unit_price_cents, billing_cycle, created_at, due_date, paid_at, payment_reference')

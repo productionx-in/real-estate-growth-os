@@ -1,6 +1,7 @@
 // components/layout/WorkspaceStateBanner.tsx
 // Tells everyone in a workspace when it is not in normal use. The restriction itself is enforced on the
 // server (suspension turns every membership read-only); this banner only explains it.
+import Link from 'next/link'
 import { AlertTriangle, Clock } from 'lucide-react'
 import type { OrgLifecycleState } from '@/types/database'
 
@@ -17,8 +18,18 @@ const COPY: Partial<Record<OrgLifecycleState, { title: string; body: string; ton
   },
 }
 
-export function WorkspaceStateBanner({ state }: { state: OrgLifecycleState }) {
-  const copy = COPY[state]
+const BILLING_HOLD = {
+  title: 'Workspace is read-only',
+  body: 'The free trial or paid plan has ended. Everything is kept and new enquiries are still captured; choose a plan to continue working.',
+  tone: 'danger' as const,
+}
+
+export function WorkspaceStateBanner({ state, billingHold, canPay, orgSlug }: {
+  state: OrgLifecycleState; billingHold?: boolean; canPay?: boolean; orgSlug?: string
+}) {
+  const copy = state === 'suspended' && billingHold
+    ? { ...BILLING_HOLD, body: canPay ? BILLING_HOLD.body : 'The free trial or paid plan has ended. Everything is kept and new enquiries are still captured; your workspace owner can choose a plan to continue.' }
+    : COPY[state]
   if (!copy) return null
   const Icon = copy.tone === 'danger' ? AlertTriangle : Clock
   const palette =
@@ -30,6 +41,9 @@ export function WorkspaceStateBanner({ state }: { state: OrgLifecycleState }) {
       <Icon aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
       <p>
         <span className="font-semibold">{copy.title}.</span> {copy.body}
+        {billingHold && canPay && orgSlug && (
+          <> <Link href={`/${orgSlug}/billing`} className="font-semibold underline">Choose a plan</Link></>
+        )}
       </p>
     </div>
   )
