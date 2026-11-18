@@ -342,6 +342,44 @@ export interface Database {
           created_by?: string | null
           created_at?: string
         }
+        Relationships: [
+          { foreignKeyName: 'subscription_plan_versions_plan_id_fkey'; columns: ['plan_id']; isOneToOne: false; referencedRelation: 'subscription_plans'; referencedColumns: ['id'] }
+        ]
+      }
+      org_subscription_invoices: {
+        Row: {
+          id: string
+          org_id: string
+          subscription_id: string
+          invoice_number: string
+          currency: string
+          amount_cents: number
+          status: 'issued' | 'paid' | 'void' | 'canceled'
+          due_date: string | null
+          paid_at: string | null
+          payment_reference: string | null
+          created_at: string
+          updated_at: string
+          invoice_type: 'subscription' | 'renewal' | 'additional_seats'
+          seat_quantity: number | null
+          unit_price_cents: number | null
+          subtotal_cents: number | null
+          tax_cents: number
+          plan_version_id: string | null
+          billing_cycle: 'monthly' | 'annual' | null
+          gateway: 'razorpay' | null
+          gateway_order_id: string | null
+          checkout_by: string | null
+          issued_by_profile: string | null
+        }
+        Insert: never
+        Update: {
+          status?: 'issued' | 'paid' | 'void' | 'canceled'
+          updated_at?: string
+          gateway?: 'razorpay' | null
+          gateway_order_id?: string | null
+          checkout_by?: string | null
+        }
         Relationships: []
       }
       org_subscription_seat_purchases: {
@@ -3129,6 +3167,11 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      billing_start_trial: { Args: { p_org: string; p_plan_code: string; p_actor_profile: string | null }; Returns: string }
+      billing_issue_plan_invoice: { Args: { p_org: string; p_plan_code: string; p_cycle: string; p_actor_profile: string | null }; Returns: string }
+      billing_issue_seat_invoice: { Args: { p_org: string; p_seats: number; p_actor_profile: string | null }; Returns: string }
+      billing_issue_renewal_invoice: { Args: { p_org: string; p_actor_profile: string | null }; Returns: string }
+      billing_settle_gateway_payment: { Args: { p_order_id: string; p_payment_id: string; p_amount_cents: number; p_currency: string }; Returns: Json }
       record_document_view: {
         Args: { p_token: string }
         Returns: { id: string; org_id: string; lead_id: string; title: string; body: string; created_by: string | null; created_at: string }[]
