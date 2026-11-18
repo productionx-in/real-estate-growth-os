@@ -3,6 +3,8 @@
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
+import { BottomNav } from '@/components/layout/BottomNav'
+import { CommandPalette } from '@/components/layout/CommandPalette'
 import { WorkspaceStateBanner } from '@/components/layout/WorkspaceStateBanner'
 import { SupportAccessBanner } from '@/components/support/SupportAccessBanner'
 import { liveGrantsForOrg } from '@/lib/dal/support-access'
@@ -21,14 +23,15 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
   const liveSupport = (await liveGrantsForOrg(workspace.org.id)).sort((a, b) => (b.expires_at ?? '').localeCompare(a.expires_at ?? ''))[0]
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--background)]">
+    <div className="flex h-dvh overflow-hidden bg-[var(--background)]">
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:text-[13px] focus:font-medium focus:shadow-md">
+        Skip to content
+      </a>
       <Sidebar
         orgName={workspace.org.name}
         orgSlug={workspace.org.slug}
         orgType={workspace.org.type}
         role={workspace.role}
-        user={workspace.user}
-        profile={workspace.profile}
         availableOrgs={workspace.availableOrgs}
         disabledModules={disabledModules}
       />
@@ -47,8 +50,11 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
         {liveSupport?.expires_at && (
           <SupportAccessBanner orgSlug={workspace.org.slug} until={liveSupport.expires_at} emergency={liveSupport.emergency} canManage={workspace.isAdmin} />
         )}
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        {/* On phones, leave room for the tab bar (and the home indicator) below the content. */}
+        <main id="main" className="flex-1 overflow-y-auto pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
       </div>
+      <BottomNav orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={disabledModules} />
+      <CommandPalette orgId={workspace.org.id} orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={disabledModules} />
     </div>
   )
 }

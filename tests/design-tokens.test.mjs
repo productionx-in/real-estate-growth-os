@@ -11,7 +11,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const BASELINE_RAW_PALETTE = 380 // 2119 at the start of Phase 2; 380 after the Phase 5 token migration. Only ever lower it.
+const BASELINE_RAW_PALETTE = 349 // 2119 at the start of Phase 2; 380 after the Phase 5 token migration; 349 after the UI refresh. Only ever lower it.
 
 let passed = 0
 function test(name, fn) { fn(); passed++; console.log(`  ✓ ${name}`) }
@@ -42,7 +42,7 @@ test('every var(--…) used in app/, components/ and lib/ is defined in globals.
   assert.deepEqual([...missing], [])
 })
 
-const SEMANTIC = Object.keys(light).filter((k) => !/^--(gray|blue|green|amber|red)-\d+$/.test(k) && !/^--(sidebar-width|header-height|radius)/.test(k))
+const SEMANTIC = Object.keys(light).filter((k) => !/^--(gray|blue|green|amber|red)-\d+$/.test(k) && !/^--(sidebar-width|header-height|bottom-nav-height|radius|ease|duration)/.test(k)) // sizes, radii and motion are not colours
 test('the dark theme overrides every semantic colour', () => {
   assert.deepEqual(SEMANTIC.filter((k) => !(k in dark)), [])
 })
