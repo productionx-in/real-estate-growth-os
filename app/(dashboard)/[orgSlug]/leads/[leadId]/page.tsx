@@ -2,7 +2,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Pencil, AlertTriangle, ExternalLink, Layers, MessageCircle, Radio } from 'lucide-react'
+import { GitMerge, Pencil, AlertTriangle, ExternalLink, Layers, MessageCircle, Radio } from 'lucide-react'
 import { getLeadById, getLeadActivities } from '@/lib/dal/leads'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { PageShell } from '@/components/layout/PageShell'
@@ -12,6 +12,9 @@ import type { ComponentProps } from 'react'
 import { ActivityLog } from '@/components/leads/ActivityLog'
 import { LeadWorkPanel } from '@/components/leads/LeadWorkPanel'
 import { StickyContactBar } from '@/components/leads/QuickContact'
+import { LeadTags } from '@/components/leads/LeadTags'
+import { MergeIntoOriginalButton, MergeLeadDialog } from '@/components/leads/MergeLeadDialog'
+import { rankTags } from '@/lib/leads/tags'
 import { listLeadTasks } from '@/lib/dal/follow-ups'
 import { formatDate, formatBudgetRange } from '@/lib/utils/format'
 import type { MemberRole, LeadStatus } from '@/types/database'
@@ -24,7 +27,7 @@ import { listLeadDocuments, listTemplates } from '@/lib/dal/documents'
 import { inr } from '@/lib/documents/merge'
 import { LeadMatches } from '@/components/matching/LeadMatches'
 import { matchUnitsForLead } from '@/lib/dal/matching'
-import { ASSIGNABLE_ROLES, canAssignLeads, canAssignTo, canWorkLead, leadScopeOf } from '@/lib/auth/permissions'
+import { ASSIGNABLE_ROLES, canAssignLeads, canAssignTo, canWorkLead, isManagement, leadScopeOf } from '@/lib/auth/permissions'
 import { resolveLeadViewer } from '@/lib/dal/viewer'
 
 export const metadata: Metadata = { title: 'Lead' }
@@ -99,6 +102,8 @@ export default async function LeadDetailPage({ params }: PageProps) {
       .order('last_message_at', { ascending: false, nullsFirst: false }).limit(1).maybeSingle(),
   ])
   const modules = await getModules(org.id)
+  const { data: tagRows } = await service.from('leads').select('tags').eq('org_id', org.id).not('tags', 'eq', '{}').limit(2000)
+  const orgTags = rankTags(tagRows ?? [])
   const salesOn = modules.sales
   // Property matching: the buyer's requirements, and available units that fit (inventory module).
   const matching = await matchUnitsForLead(org.id, leadId)
@@ -117,7 +122,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
   const viewerRole: MemberRole = role
   const canEdit = viewerRole !== 'readonly'
   // Working a lead (calls, outcomes, follow-ups): managers and above, or the salesperson it is assigned to.
-  const canWork = canEdit && canWorkLead(viewer, lead)
+  const canWork = canEdit && canWorkLead(viewer, lead) && !lead.merged_into_id
   const priority = PRIORITY_CONFIG[lead.priority as keyof typeof PRIORITY_CONFIG]
   const assignee = lead.assignee as { id: string; full_name: string } | null
   const project = lead.project as { id: string; name: string; slug: string } | null
@@ -149,6 +154,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
           {assignee && <><span aria-hidden className="text-subtle">·</span><span>{assignee.full_name}</span></>}
           <span aria-hidden className="text-subtle">·</span>
           <span>Added {formatDate(lead.created_at)}</span>
+          <span className="basis-full pt-1"><LeadTags leadId={lead.id} tags={lead.tags ?? []} suggestions={orgTags} canEdit={canWork} /></span>
         </span>
       }
       actions={
@@ -173,6 +179,9 @@ export default async function LeadDetailPage({ params }: PageProps) {
               canPickAgent={canAssignLeads(viewerRole)}
             />
           )}
+          {isManagement(viewerRole) && !lead.merged_into_id && (
+            <MergeLeadDialog orgId={org.id} leadId={lead.id} leadName={lead.name} />
+          )}
           <Link
             href={`/${orgSlug}/leads/${leadId}/edit`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] transition-colors"
@@ -184,25 +193,35 @@ export default async function LeadDetailPage({ params }: PageProps) {
         ) : undefined
       }
     >
-      {/* Duplicate Alert Banner if flagged */}
-      {lead.is_duplicate && (
-        <div className="mb-5 p-4 bg-warning-bg border border-warning/30 rounded-lg flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
-          <div className="text-[13px] text-warning space-y-1">
-            <p className="font-semibold">Flagged as Potential Duplicate Record</p>
-            <p className="text-[12px] text-warning leading-relaxed">
-              This lead was ingested with matching contact details or external ID. In accordance with
-              production data integrity rules, the record was retained without destructive merging or overwriting.
+      {/* Merged, or flagged as a likely duplicate */}
+      {lead.merged_into_id ? (
+        <div className="mb-5 flex items-start gap-3 rounded-lg border border-default bg-info-bg p-4 text-[13px] text-info">
+          <GitMerge aria-hidden className="mt-0.5 size-5 flex-shrink-0" />
+          <div className="space-y-1">
+            <p className="font-semibold">Merged into another lead{lead.merged_at ? ` on ${formatDate(lead.merged_at)}` : ''}</p>
+            <p className="text-[12px] leading-relaxed">This record is kept for history. Its calls, notes, follow-ups and visits now live on the main lead.</p>
+            <Link href={`/${orgSlug}/leads/${lead.merged_into_id}`} className="inline-flex items-center gap-1 text-[12px] font-medium underline">
+              Open the main lead <ExternalLink aria-hidden className="size-3" />
+            </Link>
+          </div>
+        </div>
+      ) : lead.is_duplicate && (
+        <div className="mb-5 flex items-start gap-3 rounded-lg border border-warning/30 bg-warning-bg p-4">
+          <AlertTriangle aria-hidden className="mt-0.5 size-5 flex-shrink-0 text-warning" />
+          <div className="space-y-1 text-[13px] text-warning">
+            <p className="font-semibold">Possible duplicate</p>
+            <p className="text-[12px] leading-relaxed">
+              This enquiry has the same phone, email or source ID as an earlier lead. Nothing was overwritten; merge it
+              when you have confirmed it is the same buyer.
             </p>
             {lead.duplicate_of_id && (
-              <div className="pt-1">
-                <Link
-                  href={`/${orgSlug}/leads/${lead.duplicate_of_id}`}
-                  className="inline-flex items-center gap-1 text-[12px] font-medium text-warning underline hover:text-warning"
-                >
-                  View Canonical Original Lead ({lead.duplicate_of_id.slice(0, 8)}...)
-                  <ExternalLink className="w-3 h-3" />
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <Link href={`/${orgSlug}/leads/${lead.duplicate_of_id}`} className="inline-flex items-center gap-1 text-[12px] font-medium underline">
+                  Open the earlier lead <ExternalLink aria-hidden className="size-3" />
                 </Link>
+                {isManagement(viewerRole) && (
+                  <MergeIntoOriginalButton leadId={lead.id} originalId={lead.duplicate_of_id} originalHref={`/${orgSlug}/leads/${lead.duplicate_of_id}`} />
+                )}
               </div>
             )}
           </div>

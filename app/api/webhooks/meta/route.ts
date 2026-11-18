@@ -32,6 +32,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // Timing starts when the webhook arrives: Meta's lead fetch below counts toward "receipt → saved".
+  const receivedAt = new Date()
   try {
     const rawBody = await request.text()
     const signature = request.headers.get('x-hub-signature-256')
@@ -114,6 +116,7 @@ export async function POST(request: NextRequest) {
           // Dispatch to central inbound engine with tenant isolation & deduplication
           await processInboundLead(matchedConn.org_id, normalizedPayload, {
             customClient: service,
+            receivedAt,
           })
         } catch (leadErr) {
           console.error(`[Meta Webhook] Failed to fetch or ingest lead ${leadgen_id}:`, leadErr)

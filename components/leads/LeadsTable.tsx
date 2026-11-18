@@ -22,6 +22,7 @@ type LeadRow = {
   created_at: string
   project: { id: string; name: string } | null
   assignee: { id: string; full_name: string } | null
+  tags?: string[]
 }
 
 interface LeadsTableProps {
@@ -89,6 +90,14 @@ export function LeadsTable({ leads, orgSlug, orgId, viewerRole, assignableIds = 
                   >
                     {lead.name}
                   </Link>
+                  {lead.tags && lead.tags.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {lead.tags.slice(0, 3).map((t) => (
+                        <Link key={t} href={`/${orgSlug}/leads?tag=${encodeURIComponent(t)}`} className="rounded-full bg-surface-hover px-1.5 py-px text-[11px] text-muted hover:text-foreground">{t}</Link>
+                      ))}
+                      {lead.tags.length > 3 && <span className="text-[11px] text-subtle">+{lead.tags.length - 3}</span>}
+                    </div>
+                  )}
                 </td>
 
                 {/* Contact */}
