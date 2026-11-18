@@ -111,6 +111,7 @@ export const AUDIT_AREAS = {
   organisation: 'Workspace status',
   support: 'Support access',
   module: 'Modules',
+  partner: 'Partner network',
 } as const
 export type AuditArea = keyof typeof AUDIT_AREAS
 
@@ -193,6 +194,23 @@ const ACTION_LABELS: Record<string, string> = {
   'support.access_cancelled': 'Support withdrew its request',
   'support.emergency_access': 'Emergency support access granted',
   'support.data_viewed': 'Support viewed the workspace overview',
+  'partner.code_created': 'Created the agency partner code',
+  'partner.requested': 'Partnership requested',
+  'partner.accepted': 'Partnership accepted',
+  'partner.rejected': 'Partnership request declined',
+  'partner.cancelled': 'Partnership request withdrawn',
+  'partner.paused': 'Partnership paused',
+  'partner.resumed': 'Partnership resumed',
+  'partner.ended': 'Partnership ended',
+  'partner.project_shared': 'Project shared with a partner',
+  'partner.project_unshared': 'Project no longer shared with a partner',
+  'partner.project_visibility_changed': 'Changed what a partner sees of a project',
+  'partner.registration_submitted': 'Buyer registered with a developer',
+  'partner.registration_conflict': 'Buyer registration found already registered',
+  'partner.registration_accepted': 'Buyer registration accepted',
+  'partner.registration_rejected': 'Buyer registration rejected',
+  'partner.registrations_withdrawn': 'Pending registrations withdrawn (partnership ended)',
+  'partner.developer_lead_created': 'Lead created from an accepted registration',
 }
 
 export function describeAuditAction(action: string): string {
