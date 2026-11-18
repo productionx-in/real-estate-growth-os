@@ -77,7 +77,8 @@ export async function proxy(request: NextRequest) {
     isApiRoute ||
     isInviteRoute ||
     PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith('/auth/')) ||
-    PUBLIC_WEBSITE_ASSETS.includes(pathname)
+    PUBLIC_WEBSITE_ASSETS.includes(pathname) ||
+    /^\/d\/[A-Za-z0-9_-]{43}$/.test(pathname) // documents shared with buyers (the link is the key)
   ) {
     if (user && pathname === '/login') {
       const url = request.nextUrl.clone()

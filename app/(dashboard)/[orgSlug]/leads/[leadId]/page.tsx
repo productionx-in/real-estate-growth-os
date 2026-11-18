@@ -18,6 +18,9 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { getModules } from '@/lib/auth/entitlements'
 import { ScheduleVisitDialog } from '@/components/visits/ScheduleVisitDialog'
 import { safeHttpUrl, visitDetails } from '@/lib/integrations/website/attribution'
+import { LeadDocuments } from '@/components/documents/LeadDocuments'
+import { listLeadDocuments, listTemplates } from '@/lib/dal/documents'
+import { inr } from '@/lib/documents/merge'
 
 export const metadata: Metadata = { title: 'Lead Detail' }
 
@@ -89,6 +92,17 @@ export default async function LeadDetailPage({ params }: PageProps) {
       .order('last_message_at', { ascending: false, nullsFirst: false }).limit(1).maybeSingle(),
   ])
   const salesOn = (await getModules(org.id)).sales
+  // Documents (sales module): what was shared with this buyer, templates, and units to quote.
+  const [leadDocs, docTemplates, docUnits] = salesOn
+    ? await Promise.all([
+        listLeadDocuments(org.id, leadId),
+        listTemplates(org.id),
+        service.from('inventory_items').select('id, unit_number, tower_name, bhk_config, total_price, project:projects(name)')
+          .eq('org_id', org.id).in('status', ['available', 'blocked'])
+          .order('unit_number').limit(500),
+      ])
+    : [[], [], { data: [] }]
+  type UnitRow = { id: string; unit_number: string; tower_name: string | null; bhk_config: string | null; total_price: number | null; project: { name: string } | null }
   type AgentRow = { profile_id: string; profile: { full_name: string } | { full_name: string }[] | null }
   const viewerRole: MemberRole = role
   const canEdit = viewerRole !== 'readonly'
@@ -411,6 +425,20 @@ export default async function LeadDetailPage({ params }: PageProps) {
             leadId={leadId}
             currentStatus={lead.status as LeadStatus}
           />
+          {salesOn && (
+            <LeadDocuments
+              leadId={leadId}
+              leadName={lead.name}
+              leadPhone={lead.phone}
+              documents={leadDocs.map((d) => ({ ...d, live: !d.revokedAt && new Date(d.expiresAt) > new Date() }))}
+              templates={docTemplates.map((t) => ({ id: t.id, label: t.name }))}
+              units={((docUnits.data ?? []) as unknown as UnitRow[]).map((u) => ({
+                id: u.id,
+                label: [u.project?.name, u.tower_name, u.unit_number, u.bhk_config, u.total_price != null ? inr(u.total_price) : null].filter(Boolean).join(' · '),
+              }))}
+              canWork={canWork}
+            />
+          )}
         </div>
       </div>
     </PageShell>
