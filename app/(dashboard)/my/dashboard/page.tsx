@@ -83,7 +83,7 @@ export default async function MyDashboardPage({ searchParams }: PageProps) {
 
   // 3. Handle zero memberships
   if (memberships.length === 0) {
-    redirect('/create-org')
+    redirect('/select-org') // explains what to do next
   }
 
   const resolvedParams = searchParams ? await searchParams : {}
