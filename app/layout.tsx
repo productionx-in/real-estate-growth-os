@@ -3,6 +3,8 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { PRODUCT_NAME } from '@/lib/brand'
+import { THEME_BOOT_SCRIPT } from '@/lib/theme/runtime'
+import { ThemeController } from '@/components/theme/ThemeController'
 
 export const metadata: Metadata = {
   title: {
@@ -28,7 +30,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
-      <body className="font-sans antialiased">{children}</body>
+      <head>
+        {/* Sets day/night before the first paint (lib/theme/runtime.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
+      <body className="font-sans antialiased">
+        <ThemeController />
+        {children}
+      </body>
     </html>
   )
 }

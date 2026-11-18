@@ -95,7 +95,7 @@ const PROVIDERS: ProviderItem[] = [
     name: 'Property Portals (99acres, Magicbricks, Housing.com)',
     category: 'Real Estate Aggregators',
     status: 'Not Connected (Readiness Mode)',
-    badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
+    badgeColor: 'bg-accent-bg text-accent border-accent-border',
     description:
       'Prepared for aggregator lead feed webhooks and server-to-server pull sync once developer enterprise agreements are established.',
     routingCapabilities: ['Portal Project / Listing ID Mapping', 'Portal Category Mapping', 'Org Default'],
@@ -162,7 +162,7 @@ export function IntegrationReadinessPanel() {
 
         <div className="p-3 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg space-y-1">
           <div className="flex items-center gap-1.5 text-[12px] font-semibold text-[var(--foreground)]">
-            <FileCode2 className="w-3.5 h-3.5 text-purple-600" />
+            <FileCode2 className="w-3.5 h-3.5 text-accent" />
             Vault Credential References
           </div>
           <p className="text-[11px] text-[var(--foreground-muted)] leading-relaxed">

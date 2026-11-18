@@ -68,7 +68,7 @@ export function verifySignature(rawBody, signatureHeader, timestampHeader, secre
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-default bg-surface-muted/50">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-2xs">
+            <div className="w-10 h-10 rounded-xl bg-accent-bg text-accent flex items-center justify-center shadow-2xs">
               <Code className="w-5 h-5" />
             </div>
             <div>
@@ -90,7 +90,7 @@ export function verifySignature(rawBody, signatureHeader, timestampHeader, secre
             onClick={() => setActiveTab('api')}
             className={`px-4 py-2 text-xs font-semibold rounded-t-xl transition border-t border-x flex items-center space-x-1.5 ${
               activeTab === 'api'
-                ? 'bg-surface text-purple-700 border-default border-b-white -mb-px shadow-2xs'
+                ? 'bg-surface text-accent border-default border-b-white -mb-px shadow-2xs'
                 : 'bg-transparent text-subtle border-transparent hover:text-foreground'
             }`}
           >
@@ -101,7 +101,7 @@ export function verifySignature(rawBody, signatureHeader, timestampHeader, secre
             onClick={() => setActiveTab('webhooks')}
             className={`px-4 py-2 text-xs font-semibold rounded-t-xl transition border-t border-x flex items-center space-x-1.5 ${
               activeTab === 'webhooks'
-                ? 'bg-surface text-purple-700 border-default border-b-white -mb-px shadow-2xs'
+                ? 'bg-surface text-accent border-default border-b-white -mb-px shadow-2xs'
                 : 'bg-transparent text-subtle border-transparent hover:text-foreground'
             }`}
           >
@@ -112,7 +112,7 @@ export function verifySignature(rawBody, signatureHeader, timestampHeader, secre
             onClick={() => setActiveTab('verify')}
             className={`px-4 py-2 text-xs font-semibold rounded-t-xl transition border-t border-x flex items-center space-x-1.5 ${
               activeTab === 'verify'
-                ? 'bg-surface text-purple-700 border-default border-b-white -mb-px shadow-2xs'
+                ? 'bg-surface text-accent border-default border-b-white -mb-px shadow-2xs'
                 : 'bg-transparent text-subtle border-transparent hover:text-foreground'
             }`}
           >
@@ -125,13 +125,13 @@ export function verifySignature(rawBody, signatureHeader, timestampHeader, secre
         <div className="p-6 overflow-y-auto space-y-6 text-sm">
           {activeTab === 'api' && (
             <div className="space-y-4">
-              <div className="bg-purple-50/60 border border-purple-100 rounded-xl p-4">
-                <h4 className="font-semibold text-purple-900 text-xs uppercase tracking-wider mb-1">
+              <div className="bg-accent-bg border border-accent-border rounded-xl p-4">
+                <h4 className="font-semibold text-accent text-xs uppercase tracking-wider mb-1">
                   API Key Authentication
                 </h4>
-                <p className="text-xs text-purple-800 leading-relaxed">
+                <p className="text-xs text-accent leading-relaxed">
                   Authenticate server-to-server requests using Bearer tokens in the format{' '}
-                  <code className="bg-purple-100 px-1 py-0.5 rounded font-mono text-[11px]">
+                  <code className="bg-accent-bg px-1 py-0.5 rounded font-mono text-[11px]">
                     Authorization: Bearer px_live_...
                   </code>
                   . Keys are hashed using SHA-256 for vault security.
@@ -258,7 +258,7 @@ export function verifySignature(rawBody, signatureHeader, timestampHeader, secre
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-surface-hover hover:bg-gray-300 text-foreground rounded-xl font-medium transition cursor-pointer"
+            className="px-4 py-2 bg-surface-hover hover:bg-strong text-foreground rounded-xl font-medium transition cursor-pointer"
           >
             Close
           </button>

@@ -130,7 +130,7 @@ export function WebsiteEnquiryWizardModal({
         {/* Header */}
         <div className="px-6 py-5 border-b border-default flex items-center justify-between bg-surface-muted/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-accent-bg text-accent flex items-center justify-center font-bold">
               <Globe className="w-5 h-5" />
             </div>
             <div>
@@ -166,7 +166,7 @@ export function WebsiteEnquiryWizardModal({
             onClick={() => setActiveTab('snippets')}
             className={`pb-3 flex items-center gap-2 border-b-2 transition cursor-pointer ${
               activeTab === 'snippets'
-                ? 'border-purple-600 text-purple-700 font-semibold'
+                ? 'border-accent text-accent font-semibold'
                 : 'border-transparent text-subtle hover:text-muted'
             }`}
           >
@@ -178,7 +178,7 @@ export function WebsiteEnquiryWizardModal({
             onClick={() => setActiveTab('test')}
             className={`pb-3 flex items-center gap-2 border-b-2 transition cursor-pointer ${
               activeTab === 'test'
-                ? 'border-purple-600 text-purple-700 font-semibold'
+                ? 'border-accent text-accent font-semibold'
                 : 'border-transparent text-subtle hover:text-muted'
             }`}
           >
@@ -190,7 +190,7 @@ export function WebsiteEnquiryWizardModal({
             onClick={() => setActiveTab('settings')}
             className={`pb-3 flex items-center gap-2 border-b-2 transition cursor-pointer ${
               activeTab === 'settings'
-                ? 'border-purple-600 text-purple-700 font-semibold'
+                ? 'border-accent text-accent font-semibold'
                 : 'border-transparent text-subtle hover:text-muted'
             }`}
           >
@@ -264,7 +264,7 @@ export function WebsiteEnquiryWizardModal({
                   onClick={() => setSnippetType('script')}
                   className={`px-3 py-1.5 text-xs rounded-lg font-medium transition cursor-pointer ${
                     snippetType === 'script'
-                      ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                      ? 'bg-accent-bg text-accent border border-accent-border'
                       : 'bg-surface-hover text-muted hover:bg-surface-hover'
                   }`}
                 >
@@ -274,7 +274,7 @@ export function WebsiteEnquiryWizardModal({
                   onClick={() => setSnippetType('iframe')}
                   className={`px-3 py-1.5 text-xs rounded-lg font-medium transition cursor-pointer ${
                     snippetType === 'iframe'
-                      ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                      ? 'bg-accent-bg text-accent border border-accent-border'
                       : 'bg-surface-hover text-muted hover:bg-surface-hover'
                   }`}
                 >
@@ -284,7 +284,7 @@ export function WebsiteEnquiryWizardModal({
                   onClick={() => setSnippetType('api')}
                   className={`px-3 py-1.5 text-xs rounded-lg font-medium transition cursor-pointer ${
                     snippetType === 'api'
-                      ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                      ? 'bg-accent-bg text-accent border border-accent-border'
                       : 'bg-surface-hover text-muted hover:bg-surface-hover'
                   }`}
                 >
@@ -325,8 +325,8 @@ export function WebsiteEnquiryWizardModal({
                 </pre>
               </div>
 
-              <div className="text-xs text-subtle bg-purple-50/50 border border-purple-100 rounded-lg p-3">
-                <p className="font-semibold text-purple-900 mb-0.5">Automated Ingestion Features:</p>
+              <div className="text-xs text-subtle bg-accent-bg border border-accent-border rounded-lg p-3">
+                <p className="font-semibold text-accent mb-0.5">Automated Ingestion Features:</p>
                 <p>
                   Includes automatic UTM parameter tracking, honeypot spam protection, submission
                   speed verification, and central CRM deduplication.
@@ -340,7 +340,7 @@ export function WebsiteEnquiryWizardModal({
             <div className="space-y-4">
               <p className="text-xs text-muted">
                 Test the public submission endpoint directly from this console. This sends a real
-                payload to <code className="text-purple-700 bg-purple-50 px-1 py-0.5 rounded">/api/forms/submit</code>.
+                payload to <code className="text-accent bg-accent-bg px-1 py-0.5 rounded">/api/forms/submit</code>.
               </p>
 
               <form onSubmit={handleRunLiveTest} className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -398,7 +398,7 @@ export function WebsiteEnquiryWizardModal({
                   <button
                     type="submit"
                     disabled={testLoading}
-                    className="w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg text-xs shadow-sm transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                    className="w-full py-2.5 px-4 bg-accent hover:bg-accent text-accent-foreground font-medium rounded-lg text-xs shadow-sm transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                   >
                     {testLoading ? (
                       'Submitting Enquiry...'
@@ -471,7 +471,7 @@ export function WebsiteEnquiryWizardModal({
 
                 <div className="p-3.5 bg-surface-muted rounded-xl border border-default space-y-1">
                   <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-                    <ShieldCheck className="w-4 h-4 text-purple-600" />
+                    <ShieldCheck className="w-4 h-4 text-accent" />
                     Distributed Rate Limit
                   </div>
                   <p className="text-[11px] text-subtle">

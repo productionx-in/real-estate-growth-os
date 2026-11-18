@@ -91,7 +91,7 @@ export function CreateOrgForm() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Apex Developers, Skyline Realty"
-          className="w-full px-3.5 py-2.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-[var(--foreground-subtle)]"
+          className="w-full px-3.5 py-2.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-all placeholder:text-[var(--foreground-subtle)]"
           required
         />
         <div className="mt-1.5 text-[11px] text-[var(--foreground-muted)] flex items-center gap-1 font-mono">
@@ -126,7 +126,7 @@ export function CreateOrgForm() {
                     <Icon className={cn('w-4 h-4', isSelected ? 'text-[var(--brand)]' : 'text-[var(--foreground-muted)]')} />
                   </div>
                   {isSelected && (
-                    <div className="w-5 h-5 rounded-full bg-[var(--brand)] text-white flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-[var(--brand)] text-brand-foreground flex items-center justify-center">
                       <Check className="w-3 h-3" />
                     </div>
                   )}
@@ -182,7 +182,7 @@ export function CreateOrgForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white text-xs font-semibold rounded-lg transition-colors shadow-xs disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-brand-foreground text-xs font-semibold rounded-lg transition-colors shadow-xs disabled:opacity-50"
       >
         {loading ? (
           <>

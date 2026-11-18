@@ -22,7 +22,7 @@ export default async function InvitePage({ params }: PageProps) {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex items-center justify-center gap-2.5 mb-6">
           <div className="w-10 h-10 rounded-xl bg-[var(--brand)] flex items-center justify-center shadow-xs">
-            <Building2 className="w-6 h-6 text-white" />
+            <Building2 className="w-6 h-6 text-brand-foreground" />
           </div>
           <span className="text-xl font-bold tracking-tight text-[var(--foreground)]">
             {PRODUCT_NAME}

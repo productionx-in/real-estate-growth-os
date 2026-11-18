@@ -295,7 +295,7 @@ export function BulkImportModal({
                 type="button"
                 onClick={() => setActiveTab('import')}
                 className={`px-3 py-1 rounded-md font-semibold transition-colors ${
-                  activeTab === 'import' ? 'bg-[var(--brand)] text-white shadow-2xs' : 'text-[var(--foreground-muted)] hover:text-[var(--foreground)]'
+                  activeTab === 'import' ? 'bg-[var(--brand)] text-brand-foreground shadow-2xs' : 'text-[var(--foreground-muted)] hover:text-[var(--foreground)]'
                 }`}
               >
                 Upload & Import
@@ -304,7 +304,7 @@ export function BulkImportModal({
                 type="button"
                 onClick={switchToHistory}
                 className={`px-3 py-1 rounded-md font-semibold transition-colors flex items-center gap-1 ${
-                  activeTab === 'history' ? 'bg-[var(--brand)] text-white shadow-2xs' : 'text-[var(--foreground-muted)] hover:text-[var(--foreground)]'
+                  activeTab === 'history' ? 'bg-[var(--brand)] text-brand-foreground shadow-2xs' : 'text-[var(--foreground-muted)] hover:text-[var(--foreground)]'
                 }`}
               >
                 <History className="w-3.5 h-3.5" />
@@ -360,7 +360,7 @@ export function BulkImportModal({
                       <a
                         href={`/api/inventory/import/template?category=${projectCategory}&format=xlsx`}
                         download
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-brand rounded-lg hover:bg-brand-hover transition-colors shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-foreground bg-brand rounded-lg hover:bg-brand-hover transition-colors shadow-2xs"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Excel (.xlsx) Template</span>
@@ -493,7 +493,7 @@ export function BulkImportModal({
                     <button
                       type="button"
                       onClick={handleProceedToValidation}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] shadow-xs"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-brand-foreground bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] shadow-xs"
                     >
                       <span>Validate & Preview</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -612,7 +612,7 @@ export function BulkImportModal({
                       type="button"
                       onClick={handleExecuteImport}
                       disabled={validationResult.validRowsCount === 0 || isImporting}
-                      className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-white bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] disabled:opacity-40 disabled:pointer-events-none transition-colors shadow-xs"
+                      className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-brand-foreground bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] disabled:opacity-40 disabled:pointer-events-none transition-colors shadow-xs"
                     >
                       <span>Import {validationResult.validRowsCount} Valid Units</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -670,7 +670,7 @@ export function BulkImportModal({
                         onSuccess()
                         onClose()
                       }}
-                      className="px-6 py-2 text-xs font-semibold text-white bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] shadow-xs"
+                      className="px-6 py-2 text-xs font-semibold text-brand-foreground bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] shadow-xs"
                     >
                       View in Inventory
                     </button>

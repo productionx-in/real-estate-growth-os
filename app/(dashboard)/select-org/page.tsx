@@ -84,7 +84,7 @@ export default async function SelectOrgPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex items-center justify-center gap-2 mb-6">
           <div className="w-9 h-9 rounded-xl bg-[var(--brand)] flex items-center justify-center shadow-xs">
-            <Building2 className="w-5 h-5 text-white" />
+            <Building2 className="w-5 h-5 text-brand-foreground" />
           </div>
           <span className="text-lg font-bold text-[var(--foreground)]">{PRODUCT_NAME}</span>
         </div>

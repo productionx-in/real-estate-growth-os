@@ -37,7 +37,7 @@ const OUTCOME_LABELS: Record<string, { label: string; className: string }> = {
 }
 
 const card = 'bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 shadow-2xs'
-const input = 'px-2.5 py-1.5 text-[12px] rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-blue-200'
+const input = 'px-2.5 py-1.5 text-[12px] rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-brand-light'
 const btn = 'px-3 py-1.5 text-[12px] font-semibold rounded-lg border transition-colors disabled:opacity-50'
 const btnPrimary = `${btn} bg-brand text-brand-foreground border-brand hover:bg-brand`
 const btnGhost = `${btn} bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-surface-muted`

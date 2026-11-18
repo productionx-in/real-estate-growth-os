@@ -124,13 +124,13 @@ export default async function SpeedToLeadPage({ params, searchParams }: { params
                   <div key={h} role="listitem" className="flex-1 flex flex-col items-center justify-end h-full"
                     aria-label={`${h}:00 — ${n} leads${row?.median_min != null ? `, median response ${mins(row.median_min)}` : ''}`}
                     title={`${h}:00 — ${n} leads${row?.median_min != null ? `, median ${mins(row.median_min)}` : ''}`}>
-                    <div className={`w-full rounded-t ${slow ? 'bg-amber-400' : 'bg-brand'}`} style={{ height: `${(n / peak) * 100}%`, minHeight: n ? 2 : 0 }} />
+                    <div className={`w-full rounded-t ${slow ? 'bg-warning' : 'bg-brand'}`} style={{ height: `${(n / peak) * 100}%`, minHeight: n ? 2 : 0 }} />
                   </div>
                 )
               })}
             </div>
             <div className="flex justify-between text-[10px] text-[var(--foreground-subtle)] mt-1"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>11 PM</span></div>
-            <p className="mt-2 text-[11px] text-[var(--foreground-muted)]"><span className="inline-block w-2 h-2 rounded-sm bg-brand mr-1" />answered on target <span className="inline-block w-2 h-2 rounded-sm bg-amber-400 ml-3 mr-1" />median slower than target · {report.timezone}</p>
+            <p className="mt-2 text-[11px] text-[var(--foreground-muted)]"><span className="inline-block w-2 h-2 rounded-sm bg-brand mr-1" />answered on target <span className="inline-block w-2 h-2 rounded-sm bg-warning ml-3 mr-1" />median slower than target · {report.timezone}</p>
           </section>
         )}
 

@@ -28,7 +28,7 @@ const STATUS_COLORS: Record<string, string> = {
   planning: 'bg-surface-hover text-muted border-default',
   pre_launch: 'bg-brand-light text-brand border-brand/30',
   launched: 'bg-success-bg text-success border-success/30',
-  ongoing: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  ongoing: 'bg-accent-bg text-accent border-accent-border',
   completed: 'bg-surface-hover text-subtle border-default',
 }
 
