@@ -10,6 +10,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import type { LeadStatus } from '@/types/database'
 import { DEFAULT_RESPONSE_SETTINGS, LEAD_COLUMNS, tzOffsetMinutes, type MyDayLead } from './follow-ups'
 import { CLOSED_STATUSES, IN_PROGRESS, FOCI, isFocus, applyFocus, type Focus } from '@/lib/leads/view-filters'
+import { ASSIGNABLE_ROLES } from '@/lib/auth/permissions'
 // The focus definitions live with the lead filters (client-safe); re-exported for existing callers.
 export { CLOSED_STATUSES, FOCI, isFocus, applyFocus, type Focus }
 
@@ -111,7 +112,7 @@ async function getTeamRows(orgId: string, now: Date, from: Date, dayStart: Date,
   const db = createServiceClient()
   const [members, open, booked, visits] = await Promise.all([
     db.from('org_members').select('profile_id, role, profile:profiles!org_members_profile_id_fkey(full_name)')
-      .eq('org_id', orgId).eq('status', 'active').in('role', ['owner', 'admin', 'manager', 'sales_exec']),
+      .eq('org_id', orgId).eq('status', 'active').in('role', [...ASSIGNABLE_ROLES]),
     db.from('leads').select('assigned_to, status, first_action_at, next_follow_up_at, created_at')
       .eq('org_id', orgId).not('assigned_to', 'is', null).not('status', 'in', `(${CLOSED_STATUSES.join(',')})`).limit(20000),
     db.from('leads').select('assigned_to').eq('org_id', orgId).eq('status', 'booked').gte('updated_at', from.toISOString()).limit(10000),

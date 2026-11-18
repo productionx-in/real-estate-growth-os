@@ -11,7 +11,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const BASELINE_RAW_PALETTE = 349 // 2119 at the start of Phase 2; 380 after the Phase 5 token migration; 349 after the UI refresh. Only ever lower it.
+const BASELINE_RAW_PALETTE = 346 // 2119 at the start of Phase 2; 380 after the Phase 5 token migration; 349 after the UI refresh; 346 after roles. Only ever lower it.
 
 let passed = 0
 function test(name, fn) { fn(); passed++; console.log(`  ✓ ${name}`) }

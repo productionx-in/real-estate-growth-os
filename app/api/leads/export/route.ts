@@ -8,6 +8,8 @@ import { createServiceClient } from '@/lib/supabase/server'
 import type { MemberRole } from '@/types/database'
 import { applyLeadFilters, parseLeadSearch } from '@/lib/leads/view-filters'
 import { auditMember } from '@/lib/dal/org-audit'
+import { resolveLeadViewer } from '@/lib/dal/viewer'
+import { leadScopeOf } from '@/lib/auth/permissions'
 
 interface LeadExportRecord {
   id: string
@@ -87,7 +89,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
 
     // A sales executive is always limited to their own leads, whatever the filters say.
-    query = applyLeadFilters(query, filters, { role, profileId: auth.profile.id }, new Date())
+    query = applyLeadFilters(query, filters, await resolveLeadViewer(org.id, role, auth.profile.id), new Date())
 
     const { data: leads, error: fetchError } = await query
 
@@ -115,7 +117,7 @@ export async function GET(request: NextRequest) {
     await auditMember(request, auth, org.id, 'lead.exported', { type: 'lead_export' }, {
       rows: rows.length,
       filters,
-      scope: role === 'sales_exec' ? 'own' : 'organisation',
+      scope: leadScopeOf(role) === 'all' ? 'organisation' : leadScopeOf(role),
     })
 
     const csv = Papa.unparse(rows)

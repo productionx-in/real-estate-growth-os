@@ -3,27 +3,33 @@
 // No server imports, so client components can use it.
 //
 //   Who sees a conversation: owners, admins, managers and read-only members see every conversation in the
-//   workspace; a sales executive sees only conversations with leads assigned to them.
+//   workspace; a sales executive only conversations with leads assigned to them; a team lead their team's;
+//   post-sales only booked customers'. A conversation with no lead is for whole-workspace roles only.
 //   Who replies: anyone who can see it except read-only members.
 //   What can be sent (Meta's WhatsApp Business policy):
 //     • nothing to someone who opted out (STOP) until they opt back in (START);
 //     • free text within 24 hours of the buyer's last message;
 //     • after that, only an approved message template.
 import type { MemberRole } from '@/types/database'
+import { leadScopeOf, type LeadViewer } from '@/lib/auth/permissions'
 
 export const CUSTOMER_CARE_WINDOW_MS = 24 * 60 * 60 * 1000
 export const MAX_TEXT = 4096
 export const MAX_TEMPLATE_PARAM = 1024
 
-export interface InboxViewer {
-  role: MemberRole
-  profileId: string
-}
+export type InboxViewer = LeadViewer
 
-/** Can this member see a conversation whose lead is assigned to `leadAssignee` (null: no lead / unassigned)? */
-export function canSeeConversation(leadAssignee: string | null, viewer: InboxViewer): boolean {
-  if (viewer.role === 'sales_exec') return leadAssignee === viewer.profileId
-  return true
+/**
+ * Can this member see a conversation whose lead is assigned to `leadAssignee` (null: no lead / unassigned)
+ * and has `leadStatus`? Stricter than canSeeLead: an unassigned buyer's chat belongs to whole-workspace roles.
+ */
+export function canSeeConversation(leadAssignee: string | null, viewer: InboxViewer, leadStatus?: string | null): boolean {
+  switch (leadScopeOf(viewer.role)) {
+    case 'all': return true
+    case 'own': return !!leadAssignee && leadAssignee === viewer.profileId
+    case 'team': return !!leadAssignee && (leadAssignee === viewer.profileId || (viewer.teamProfileIds ?? []).includes(leadAssignee))
+    case 'booked': return leadStatus === 'booked'
+  }
 }
 
 export function canReply(role: MemberRole): boolean {

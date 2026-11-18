@@ -24,6 +24,11 @@ test('a sales executive sees only conversations with their own leads; everyone e
   assert.equal(r.canSeeConversation('someone-else', { role: 'sales_exec', profileId: ME }), false)
   assert.equal(r.canSeeConversation(null, { role: 'sales_exec', profileId: ME }), false, 'no lead → not theirs')
   for (const role of ['owner', 'admin', 'manager', 'readonly']) assert.equal(r.canSeeConversation(null, { role, profileId: ME }), true)
+  // Team lead: their own and their teammates' buyers; post-sales: booked customers only; neither sees unlinked chats.
+  const TL = { role: 'team_lead', profileId: ME, teamProfileIds: [ME, 'mate'] }
+  assert.deepEqual([ME, 'mate', 'someone-else', null].map((a) => r.canSeeConversation(a, TL)), [true, true, false, false])
+  const PS = { role: 'post_sales', profileId: ME }
+  assert.deepEqual([['x', 'booked'], ['x', 'negotiation'], [null, null]].map(([a, st]) => r.canSeeConversation(a, PS, st)), [true, false, false])
   assert.deepEqual(['owner', 'admin', 'manager', 'sales_exec', 'readonly'].map(r.canReply), [true, true, true, true, false])
 })
 

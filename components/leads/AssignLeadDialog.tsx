@@ -6,6 +6,7 @@ import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, UserCircle, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { ASSIGNABLE_ROLES } from '@/lib/auth/permissions'
 
 interface TeamMember {
   profileId: string
@@ -18,6 +19,8 @@ interface AssignLeadDialogProps {
   leadName: string
   currentAssigneeId: string | null
   orgId: string
+  /** Limit the choice (a team lead's team). The server enforces the same rule. */
+  onlyProfileIds?: string[] | null
   onClose: () => void
 }
 
@@ -26,6 +29,7 @@ export function AssignLeadDialog({
   leadName,
   currentAssigneeId,
   orgId,
+  onlyProfileIds = null,
   onClose,
 }: AssignLeadDialogProps) {
   const router = useRouter()
@@ -42,11 +46,12 @@ export function AssignLeadDialog({
       .from('org_members')
       .select('profile_id, role, profile:profiles(id, full_name)')
       .eq('org_id', orgId)
-      .in('role', ['owner', 'admin', 'manager', 'sales_exec'])
+      .eq('status', 'active')
+      .in('role', [...ASSIGNABLE_ROLES])
       .order('role')
       .then(({ data }) => {
         setMembers(
-          (data ?? []).map((m) => {
+          (data ?? []).filter((m) => !onlyProfileIds || onlyProfileIds.includes(m.profile_id)).map((m) => {
             const p = m.profile as { id: string; full_name: string } | null
             return {
               profileId: m.profile_id,
@@ -57,7 +62,7 @@ export function AssignLeadDialog({
         )
         setLoadingMembers(false)
       })
-  }, [orgId])
+  }, [orgId, onlyProfileIds])
 
   async function handleAssign() {
     setError(null)

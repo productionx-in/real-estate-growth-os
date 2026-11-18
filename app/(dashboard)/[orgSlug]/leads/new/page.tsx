@@ -5,6 +5,7 @@ import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { LeadForm } from '@/components/leads/LeadForm'
+import { canCreateLeads } from '@/lib/auth/permissions'
 
 export const metadata: Metadata = { title: 'Add Lead' }
 
@@ -16,7 +17,7 @@ export default async function NewLeadPage({ params }: PageProps) {
   const { orgSlug } = await params
   const workspace = await getVerifiedWorkspace(orgSlug)
 
-  if (workspace.role === 'readonly') {
+  if (!canCreateLeads(workspace.role)) {
     redirect(`/${orgSlug}/leads`)
   }
 

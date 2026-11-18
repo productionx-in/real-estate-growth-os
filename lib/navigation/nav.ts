@@ -3,6 +3,7 @@
 // so the three can never disagree about what a role sees. This only decides which links are shown; every
 // page and API still authorises on the server.
 import type { MemberRole } from '@/types/database'
+import { canCreateLeads } from '@/lib/auth/permissions'
 
 export type NavKey =
   | 'home' | 'today' | 'leads' | 'visits' | 'inbox' | 'sales' | 'routing' | 'speed' | 'projects' | 'inventory'
@@ -30,13 +31,7 @@ export const MODULE_OF_SEGMENT: Record<string, string> = {
   integrations: 'integrations', analytics: 'analytics',
 }
 
-export const ROLE_LABELS: Record<MemberRole, string> = {
-  owner: 'Owner',
-  admin: 'Admin',
-  manager: 'Sales manager',
-  sales_exec: 'Sales executive',
-  readonly: 'Read only',
-}
+export { ROLE_LABELS } from '@/lib/auth/permissions'
 
 const isAdmin = (role: MemberRole) => role === 'owner' || role === 'admin'
 
@@ -61,6 +56,16 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
     groups = [
       { items: [home, today, L('leads', 'My leads', '/leads'), visits, inbox] },
       { title: 'Selling', items: [L('sales', 'Sales', '/sales'), inventory] },
+    ]
+  } else if (role === 'team_lead') {
+    groups = [
+      { items: [home, today, L('leads', 'Team leads', '/leads'), visits, inbox] },
+      { title: 'Selling', items: [L('sales', 'Sales', '/sales'), inventory] },
+    ]
+  } else if (role === 'post_sales') {
+    groups = [
+      { items: [home, L('leads', 'Booked customers', '/leads'), inbox] },
+      { title: 'Customers', items: [L('sales', 'Bookings', '/sales'), documents, projects, inventory] },
     ]
   } else if (orgType === 'channel_partner') {
     groups = [
@@ -113,4 +118,4 @@ export function tabLinks(groups: NavGroup[]): NavLink[] {
 export const TAB_LABELS: Partial<Record<NavKey, string>> = { leads: 'Leads', inbox: 'Inbox', visits: 'Visits' }
 
 /** Who may add a lead by hand (mirrors the check on /leads/new and POST /api/leads). */
-export const canCreateLead = (role: MemberRole) => role !== 'readonly'
+export const canCreateLead = (role: MemberRole) => canCreateLeads(role)

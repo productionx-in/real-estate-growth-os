@@ -2,8 +2,9 @@
 // Lead list and board filters: read from the URL or a saved view, written back to the URL, and applied to
 // a leads query. Safe to import from client components (no server dependencies).
 //
-// Visibility is never a filter: applyLeadFilters always limits a sales executive to their own leads,
-// whatever a URL or a shared view asks for.
+// Visibility is never a filter: applyLeadFilters always applies the viewer's lead scope (own, team,
+// booked or all), whatever a URL or a shared view asks for.
+import { leadScopeOf, type LeadViewer } from '@/lib/auth/permissions'
 import type { LeadPriority, LeadSource, LeadStatus, MemberRole } from '@/types/database'
 import { STATUS_ORDER } from './transitions'
 
@@ -157,24 +158,34 @@ export function toLeadSearch(filters: LeadFilters, opts: { layout?: Layout; view
   return s ? `?${s}` : ''
 }
 
-export interface Viewer {
-  role: MemberRole
-  profileId: string
-}
+/** Who is looking (see LeadViewer in lib/auth/permissions.ts). A team lead's teammates come from resolveLeadViewer. */
+export type Viewer = LeadViewer
 
 const CREATED_DAYS: Record<Created, number> = { '7d': 7, '30d': 30, '90d': 90 }
 
 /**
  * Applies filters to a leads query that is already scoped to one organisation.
- * A sales executive always sees only their own leads; the assignee filter is ignored for them.
+ * Visibility comes first and cannot be widened by a filter (lib/auth/permissions.ts leadScopeOf):
+ * a sales executive sees only their own leads, a team lead their team's, post-sales booked customers.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase builder generics differ per select()
 export function applyLeadFilters<Q extends { is: any; not: any; lt: any; lte: any; gte: any; in: any; eq: any; or: any }>(
   q: Q, filters: LeadFilters, viewer: Viewer, now: Date
 ): Q {
   const f = normalizeFilters(filters)
-  if (viewer.role === 'sales_exec') {
+  const scope = leadScopeOf(viewer.role)
+  if (scope === 'own') {
     q = q.eq('assigned_to', viewer.profileId)
+  } else if (scope === 'team') {
+    const team = [...new Set([viewer.profileId, ...(viewer.teamProfileIds ?? [])])]
+    // Within the team, the assignee filter can narrow to one person; anything outside the team is ignored.
+    const one = f.assignee === 'me' ? viewer.profileId : f.assignee && team.includes(f.assignee) ? f.assignee : null
+    q = one ? q.eq('assigned_to', one) : q.in('assigned_to', team)
+  } else if (scope === 'booked') {
+    q = q.eq('status', 'booked')
+    if (f.assignee === 'me') q = q.eq('assigned_to', viewer.profileId)
+    else if (f.assignee === 'none') q = q.is('assigned_to', null)
+    else if (f.assignee) q = q.eq('assigned_to', f.assignee)
   } else if (f.assignee === 'me') {
     q = q.eq('assigned_to', viewer.profileId)
   } else if (f.assignee === 'none') {

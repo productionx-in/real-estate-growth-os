@@ -24,6 +24,8 @@ import { listLeadDocuments, listTemplates } from '@/lib/dal/documents'
 import { inr } from '@/lib/documents/merge'
 import { LeadMatches } from '@/components/matching/LeadMatches'
 import { matchUnitsForLead } from '@/lib/dal/matching'
+import { ASSIGNABLE_ROLES, canAssignLeads, canAssignTo, canWorkLead, leadScopeOf } from '@/lib/auth/permissions'
+import { resolveLeadViewer } from '@/lib/dal/viewer'
 
 export const metadata: Metadata = { title: 'Lead' }
 
@@ -81,8 +83,10 @@ export default async function LeadDetailPage({ params }: PageProps) {
   const lead = await getLeadById(leadId)
   if (!lead || lead.org_id !== org.id) notFound()
 
-  // Enforce server-authoritative role visibility:
-  if (role === 'sales_exec' && lead.assigned_to !== profile.id) {
+  // Server-authoritative visibility (lib/auth/permissions.ts): outside the whole-organisation roles, only
+  // leads the member works — their own, their team's, or booked customers for post-sales.
+  const viewer = await resolveLeadViewer(org.id, role, profile.id)
+  if (leadScopeOf(role) !== 'all' && !canWorkLead(viewer, lead)) {
     notFound()
   }
 
@@ -90,7 +94,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
   const [activities, tasks, visitProjects, visitAgents, waConversation] = await Promise.all([
     getLeadActivities(leadId), listLeadTasks(org.id, leadId),
     service.from('projects').select('id, name').eq('org_id', org.id).order('name'),
-    service.from('org_members').select('profile_id, profile:profiles!org_members_profile_id_fkey(full_name)').eq('org_id', org.id).eq('status', 'active').in('role', ['owner', 'admin', 'manager', 'sales_exec']),
+    service.from('org_members').select('profile_id, profile:profiles!org_members_profile_id_fkey(full_name)').eq('org_id', org.id).eq('status', 'active').in('role', [...ASSIGNABLE_ROLES]),
     service.from('whatsapp_conversations').select('id').eq('org_id', org.id).eq('lead_id', leadId)
       .order('last_message_at', { ascending: false, nullsFirst: false }).limit(1).maybeSingle(),
   ])
@@ -113,7 +117,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
   const viewerRole: MemberRole = role
   const canEdit = viewerRole !== 'readonly'
   // Working a lead (calls, outcomes, follow-ups): managers and above, or the salesperson it is assigned to.
-  const canWork = canEdit && (viewerRole !== 'sales_exec' || lead.assigned_to === profile.id)
+  const canWork = canEdit && canWorkLead(viewer, lead)
   const priority = PRIORITY_CONFIG[lead.priority as keyof typeof PRIORITY_CONFIG]
   const assignee = lead.assignee as { id: string; full_name: string } | null
   const project = lead.project as { id: string; name: string; slug: string } | null
@@ -163,10 +167,10 @@ export default async function LeadDetailPage({ params }: PageProps) {
             <ScheduleVisitDialog
               fixedLead={{ id: lead.id, label: lead.name }}
               projects={(visitProjects.data ?? []).map((p) => ({ id: p.id, label: p.name }))}
-              agents={((visitAgents.data ?? []) as AgentRow[]).map((m) => ({ id: m.profile_id, label: (Array.isArray(m.profile) ? m.profile[0]?.full_name : m.profile?.full_name) ?? 'Unknown' }))}
+              agents={((visitAgents.data ?? []) as AgentRow[]).filter((m) => !canAssignLeads(viewerRole) || canAssignTo(viewer, m.profile_id)).map((m) => ({ id: m.profile_id, label: (Array.isArray(m.profile) ? m.profile[0]?.full_name : m.profile?.full_name) ?? 'Unknown' }))}
               defaultProjectId={lead.project_id}
               defaultAgentId={lead.assigned_to ?? profile.id}
-              canPickAgent={viewerRole !== 'sales_exec'}
+              canPickAgent={canAssignLeads(viewerRole)}
             />
           )}
           <Link

@@ -12,6 +12,7 @@ import { NAV_ICONS } from '@/components/layout/Sidebar'
 import { navGroups, canCreateLead, type OrgType } from '@/lib/navigation/nav'
 import { STATUS_LABELS } from '@/lib/leads/transitions'
 import type { MemberRole, LeadStatus } from '@/types/database'
+import { isManagement } from '@/lib/auth/permissions'
 
 /** Fired by the header's search button. */
 export const PALETTE_OPEN_EVENT = 'regrow:open-palette'
@@ -77,7 +78,7 @@ export function CommandPalette({ orgId, orgSlug, role, orgType, disabledModules 
     }))
     const actions: Option[] = canCreateLead(role) ? [
       { id: 'new-lead', group: 'Actions', label: 'Add a lead', href: `/${orgSlug}/leads/new`, icon: Plus },
-      ...(role !== 'sales_exec' ? [{ id: 'import', group: 'Actions', label: 'Import leads', href: `/${orgSlug}/leads/import`, icon: Upload }] : []),
+      ...(isManagement(role) ? [{ id: 'import', group: 'Actions', label: 'Import leads', href: `/${orgSlug}/leads/import`, icon: Upload }] : []),
     ] : []
     const t = term.toLowerCase()
     const match = (o: Option) => !t || o.label.toLowerCase().includes(t)

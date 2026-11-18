@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { formatRelative } from '@/lib/utils/format'
 import { Users, Clock, TrendingUp, CheckCircle, Building2, ChevronsUpDown } from 'lucide-react'
 import type { LeadStatus, MemberRole } from '@/types/database'
+import { ROLE_LABELS } from '@/lib/auth/permissions'
 
 export const metadata: Metadata = { title: 'My Dashboard' }
 export const dynamic = 'force-dynamic'
@@ -163,7 +164,7 @@ export default async function MyDashboardPage({ searchParams }: PageProps) {
           <div className="flex items-center gap-2">
             <span>Welcome back, {profile.full_name.split(' ')[0]}</span>
             <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-success-bg text-success border border-success/30">
-              {activeOrg.name} · {role === 'sales_exec' ? 'Sales Executive' : 'Manager'}
+              {activeOrg.name} · {ROLE_LABELS[role as MemberRole] ?? 'Member'}
             </span>
           </div>
           {memberships.length > 1 && (

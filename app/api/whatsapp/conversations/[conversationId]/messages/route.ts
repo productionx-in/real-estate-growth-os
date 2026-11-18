@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
 import { sendReply } from '@/lib/dal/whatsapp-inbox'
 import { MAX_TEMPLATE_PARAM, MAX_TEXT } from '@/lib/integrations/whatsapp/inbox-rules'
+import { resolveLeadViewer } from '@/lib/dal/viewer'
 
 const Schema = z.discriminatedUnion('kind', [
   z.object({ orgId: z.string().uuid(), kind: z.literal('text'), text: z.string().max(MAX_TEXT) }),
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (!access.success) return access.response
   const { context } = access
 
-  const result = await sendReply(orgId, conversationId, { role: context.role, profileId: context.profile.id }, input)
+  const result = await sendReply(orgId, conversationId, await resolveLeadViewer(orgId, context.role, context.profile.id), input)
   if (!result.success) return NextResponse.json({ error: result.error }, { status: result.status })
   return NextResponse.json({ ok: true }, { status: 201 })
 }

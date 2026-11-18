@@ -16,12 +16,17 @@ import { Button } from '@/components/ui'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { listViews } from '@/lib/dal/saved-views'
 import { STATUS_ORDER } from '@/lib/leads/transitions'
+import { resolveLeadViewer } from '@/lib/dal/viewer'
 import {
   FOCI, applyLeadFilters, canShareViews, isEmpty, parseLeadSearch, sameFilters, toLeadSearch,
 } from '@/lib/leads/view-filters'
+import { canCreateLeads, leadScopeOf, type LeadScope } from '@/lib/auth/permissions'
 
 export const metadata: Metadata = { title: 'Leads' }
 export const dynamic = 'force-dynamic'
+
+const SCOPE_TITLE: Record<LeadScope, string> = { all: 'Leads', own: 'My leads', team: 'Team leads', booked: 'Booked customers' }
+const SCOPE_NOTE: Record<LeadScope, string | null> = { all: null, own: 'assigned to you', team: 'you and your team', booked: 'booked' }
 
 const LIST_LIMIT = 100
 const BOARD_LIMIT = 500
@@ -36,7 +41,8 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
   const { filters, layout, viewId } = parseLeadSearch(await searchParams)
 
   const { org, role, profile, isManager } = await getVerifiedWorkspace(orgSlug)
-  const viewer = { role, profileId: profile.id }
+  const viewer = await resolveLeadViewer(org.id, role, profile.id)
+  const scope = leadScopeOf(role)
   const service = createServiceClient()
   const now = new Date()
 
@@ -66,6 +72,9 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
     service.from('projects').select('id, name').eq('org_id', org.id).order('name'),
     isManager
       ? service.from('org_members').select('profile:profiles(id, full_name)').eq('org_id', org.id).eq('status', 'active')
+      : scope === 'team'
+      ? service.from('org_members').select('profile:profiles(id, full_name)').eq('org_id', org.id).eq('status', 'active')
+        .in('profile_id', [profile.id, ...(viewer.teamProfileIds ?? [])])
       : Promise.resolve({ data: [] as { profile: { id: string; full_name: string } | null }[] }),
   ])
 
@@ -87,7 +96,7 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
           <Link href={`/${orgSlug}/leads/import`}><Upload aria-hidden /> Import CSV</Link>
         </Button>
       )}
-      {role !== 'readonly' && (
+      {canCreateLeads(role) && (
         <Button asChild size="sm">
           <Link href={`/${orgSlug}/leads/new`}><Plus aria-hidden /> Add lead</Link>
         </Button>
@@ -95,11 +104,11 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
     </>
   )
 
-  const title = active?.name ?? (filters.focus ? FOCI[filters.focus] : role === 'sales_exec' ? 'My leads' : 'Leads')
+  const title = active?.name ?? (filters.focus ? FOCI[filters.focus] : SCOPE_TITLE[scope])
   const description = [
     `${total} ${total === 1 ? 'lead' : 'leads'}${filtered ? ' match' : ''}`,
     !board && total > LIST_LIMIT ? `showing the latest ${LIST_LIMIT}` : null,
-    role === 'sales_exec' ? 'assigned to you' : null,
+    SCOPE_NOTE[scope],
   ].filter(Boolean).join(' · ')
 
   return (
@@ -121,7 +130,7 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
         viewId={active?.id ?? null}
         projects={(projects ?? []).map((p) => ({ id: p.id, label: p.name }))}
         members={memberOptions}
-        canFilterAssignee={role !== 'sales_exec'}
+        canFilterAssignee={scope !== 'own'}
       />
 
       {!hasLeads ? (
@@ -158,6 +167,7 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
           orgSlug={orgSlug}
           orgId={org.id}
           viewerRole={role}
+          assignableIds={scope === 'team' ? [profile.id, ...(viewer.teamProfileIds ?? [])] : null}
         />
       )}
     </PageShell>
