@@ -14,6 +14,8 @@ import { LeadWorkPanel } from '@/components/leads/LeadWorkPanel'
 import { StickyContactBar } from '@/components/leads/QuickContact'
 import { LeadTags } from '@/components/leads/LeadTags'
 import { MergeIntoOriginalButton, MergeLeadDialog } from '@/components/leads/MergeLeadDialog'
+import { RegisterBuyerDialog } from '@/components/partners/RegisterBuyerDialog'
+import { registrationTargets } from '@/lib/dal/partners'
 import { rankTags } from '@/lib/leads/tags'
 import { listLeadTasks } from '@/lib/dal/follow-ups'
 import { formatDate, formatBudgetRange } from '@/lib/utils/format'
@@ -120,6 +122,9 @@ export default async function LeadDetailPage({ params }: PageProps) {
   type UnitRow = { id: string; unit_number: string; tower_name: string | null; bhk_config: string | null; total_price: number | null; project: { name: string } | null }
   type AgentRow = { profile_id: string; profile: { full_name: string } | { full_name: string }[] | null }
   const viewerRole: MemberRole = role
+  // Channel partner network: an agency's owners/admins/managers can register this buyer with a partner developer.
+  const partnerTargets = org.type === 'channel_partner' && salesOn && isManagement(viewerRole) && !lead.merged_into_id && lead.phone
+    ? await registrationTargets(org.id) : []
   const canEdit = viewerRole !== 'readonly'
   // Working a lead (calls, outcomes, follow-ups): managers and above, or the salesperson it is assigned to.
   const canWork = canEdit && canWorkLead(viewer, lead) && !lead.merged_into_id
@@ -178,6 +183,9 @@ export default async function LeadDetailPage({ params }: PageProps) {
               defaultAgentId={lead.assigned_to ?? profile.id}
               canPickAgent={canAssignLeads(viewerRole)}
             />
+          )}
+          {partnerTargets.length > 0 && (
+            <RegisterBuyerDialog orgId={org.id} orgName={org.name} leadId={lead.id} leadName={lead.name} targets={partnerTargets} />
           )}
           {isManagement(viewerRole) && !lead.merged_into_id && (
             <MergeLeadDialog orgId={org.id} leadId={lead.id} leadName={lead.name} />
