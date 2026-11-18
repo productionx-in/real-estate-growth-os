@@ -52,3 +52,41 @@ export function withinTargetPct(r: Pick<ReportRow, 'within_target' | 'timed'>): 
 export function pct(part: number, whole: number): number | null {
   return whole > 0 ? Math.round((part / whole) * 100) : null
 }
+
+// ── Lead pipeline timing ──────────────────────────────────────────────────────────────────────────
+// Each step a lead goes through, measured separately (seconds): the source → our server, our server → saved,
+// saved → assigned, assigned → first action. Only leads that carry both timestamps of a step count for it.
+export type PipelineStage = 'submit_to_receipt' | 'receipt_to_saved' | 'saved_to_assigned' | 'assigned_to_first_action'
+export interface PipelineTiming {
+  leads: number
+  stages: Partial<Record<PipelineStage, { n: number; p50: number; p90: number }>>
+  saved_within_30s: number
+  saved_measured: number
+  assigned_within_5s: number
+  assigned_measured: number
+}
+
+export const PIPELINE_STAGES: { key: PipelineStage; label: string; hint: string }[] = [
+  { key: 'submit_to_receipt', label: 'Buyer submits → we receive', hint: 'Depends on the source (e.g. Meta). Only where the source sends its own time.' },
+  { key: 'receipt_to_saved', label: 'Received → saved', hint: 'Our processing. Target: 95% within 30 seconds.' },
+  { key: 'saved_to_assigned', label: 'Saved → assigned', hint: 'Routing. Target: within 5 seconds.' },
+  { key: 'assigned_to_first_action', label: 'Assigned → first call or message', hint: 'Your team’s response.' },
+]
+
+export async function getPipelineTiming(orgId: string, period: ReportPeriod): Promise<PipelineTiming> {
+  const to = new Date()
+  const from = new Date(to.getTime() - REPORT_PERIODS[period] * 86_400_000)
+  const { data, error } = await createServiceClient().rpc('lead_pipeline_timing', { p_org: orgId, p_from: from.toISOString(), p_to: to.toISOString() })
+  if (error) throw new Error(`pipeline timing: ${error.message}`)
+  return data as unknown as PipelineTiming
+}
+
+/** "4 s", "2 min 5 s", "3 h 10 min" — durations people can read at a glance. */
+export function duration(seconds: number | null | undefined): string {
+  if (seconds == null || !Number.isFinite(seconds)) return '—'
+  const s = Math.round(seconds)
+  if (s < 60) return `${s} s`
+  if (s < 3600) return `${Math.floor(s / 60)} min${s % 60 ? ` ${s % 60} s` : ''}`
+  const h = Math.floor(s / 3600), m = Math.round((s % 3600) / 60)
+  return h < 48 ? `${h} h${m ? ` ${m} min` : ''}` : `${Math.round(h / 24)} days`
+}

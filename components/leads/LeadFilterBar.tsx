@@ -63,12 +63,14 @@ function MultiFilter<T extends string>({ label, options, labels, value, onChange
 
 const PRIORITY_LABELS = { high: 'High', medium: 'Medium', low: 'Low' } as const
 
-export function LeadFilterBar({ orgSlug, filters, layout, viewId, projects, members, canFilterAssignee }: {
+export function LeadFilterBar({ orgSlug, filters, layout, viewId, projects, members, canFilterAssignee, tags = [] }: {
   orgSlug: string
   filters: LeadFilters
   layout: Layout
   viewId: string | null
   projects: FilterOption[]
+  /** Tags used in this workspace, most used first. */
+  tags?: string[]
   members: FilterOption[]
   /** Sales executives only ever see their own leads, so they get no "assigned to" filter. */
   canFilterAssignee: boolean
@@ -126,6 +128,7 @@ export function LeadFilterBar({ orgSlug, filters, layout, viewId, projects, memb
       <MultiFilter label="Source" options={SOURCES} labels={SOURCE_LABELS} value={filters.source} onChange={(v) => apply({ source: v })} />
       <MultiFilter label="Priority" options={PRIORITIES} labels={PRIORITY_LABELS} value={filters.priority} onChange={(v) => apply({ priority: v })} />
       {projects.length > 0 && select(filters.project, (v) => apply({ project: v }), 'Any project', projects)}
+      {tags.length > 0 && select(filters.tag, (v) => apply({ tag: v }), 'Any tag', tags.map((t) => ({ id: t, label: t })))}
       {canFilterAssignee && select(filters.assignee, (v) => apply({ assignee: v }), 'Anyone', [
         { id: 'me', label: 'Assigned to me' }, { id: 'none', label: 'Unassigned' }, ...members,
       ])}

@@ -72,5 +72,6 @@ export function normalizeMetaLead(
     },
     customFields,
     rawPayload: raw as unknown as Record<string, unknown>,
+    submittedAt: raw.created_time || null,
   }
 }

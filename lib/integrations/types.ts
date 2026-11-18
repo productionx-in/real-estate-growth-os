@@ -237,6 +237,8 @@ export interface InboundLeadPayload {
   sourceMetadata?: Record<string, unknown>
   customFields?: Record<string, unknown>
   rawPayload?: Record<string, unknown>
+  /** When the buyer submitted at the source (e.g. Meta's created_time), if the source tells us. */
+  submittedAt?: string | null
 }
 
 export interface InboundProcessingResult {
