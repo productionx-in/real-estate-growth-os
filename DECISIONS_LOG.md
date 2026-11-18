@@ -164,7 +164,7 @@
 ### DEC-022: Commercial Rules — Trials, Plan Limits, Expiry and Existing Workspaces
 - **Context:** The founder delegated the open commercial decisions from the self-serve / monetisation review ("you do the math … keep in product info"). Full rules: `docs/product/COMMERCIAL_RULES.md`.
 - **Decision:**
-  - Trial: 14 days; 3 users, 100 leads, 2 projects, 50 inventory units; one trial per person per organisation type, for life.
+  - Trial: 14 days; 5 users, 1,000 leads, 5 projects, 500 inventory units (generous on purpose: customers must be able to run their real pipeline before subscribing); one trial per person per organisation type, for life.
   - Captured enquiries are always saved over the lead limit; manual entry and import stop at it.
   - Pending invitations keep reserving a seat (released on acceptance, revocation or 7-day expiry).
   - Trial end → read-only immediately; paid period end → 7 days overdue with full access, then read-only; paying lifts it; data is never deleted.

@@ -29,7 +29,9 @@ Annual = 10 × monthly (two months free). Prices come only from the versioned ca
 ## Free trial
 
 - 14 days, no card, verified email (sign-up PR). **Trial plan enforced; sign-up planned.**
-- Limits: **3 users, 100 leads, 2 projects, 50 inventory units** — same for developers and agencies. **Enforced in
+- Limits: **5 users, 1,000 leads, 5 projects, 500 inventory units** — same for developers and agencies. The
+  trial must let a real team run its real pipeline for two weeks and see the value before paying (founder,
+  2026-11-18); the limits exist only to stop abuse, not to squeeze the trial. **Enforced in
   the database** (migration 20260059), including against direct API calls and simultaneous requests.
 - Enquiries from connected sources (webhooks, forms, portals, WhatsApp, the customer API) are **always saved**,
   even over the lead limit — a buyer enquiry is never lost. Manual entry and CSV import stop at the limit. **Enforced.**

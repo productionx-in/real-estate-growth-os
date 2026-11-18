@@ -63,14 +63,14 @@ async function main() {
       const rows = (await db.query(`SELECT p.code, v.included_seats, v.max_projects, v.max_inventory_units, v.max_leads, v.trial_days, v.base_price_monthly_cents
         FROM public.subscription_plans p JOIN public.subscription_plan_versions v ON v.plan_id=p.id AND v.is_current WHERE p.code LIKE 'trial_%' ORDER BY p.code`)).rows
       assert.deepEqual(rows.map((r) => [r.code, r.included_seats, r.max_projects, r.max_inventory_units, r.max_leads, r.trial_days, Number(r.base_price_monthly_cents)]),
-        [['trial_agency', 3, 2, 50, 100, 14, 0], ['trial_developer', 3, 2, 50, 100, 14, 0]])
+        [['trial_agency', 5, 5, 500, 1000, 14, 0], ['trial_developer', 5, 5, 500, 1000, 14, 0]])
       assert.deepEqual((await billing.getBillingOverview(dev)).plans.map((p) => p.code), ['leads'])
     })
 
-    await test('trial: 3 seats, 14 days; one per person per type — a second developer workspace gets none, an agency still can', async () => {
+    await test('trial: 5 seats, 14 days; one per person per type — a second developer workspace gets none, an agency still can', async () => {
       ok(await billing.runBillingAction(dev, owner.id, { action: 'trial', plan: 'leads' }))
       const s = await sub(dev)
-      assert.deepEqual([s.status, s.included_seats, Math.round((new Date(s.current_period_end) - Date.now()) / 86_400_000)], ['trial', 3, 14])
+      assert.deepEqual([s.status, s.included_seats, Math.round((new Date(s.current_period_end) - Date.now()) / 86_400_000)], ['trial', 5, 14])
       const again = await billing.runBillingAction(dev2, owner.id, { action: 'trial', plan: 'leads' })
       assert.equal(again.success, false); assert.match(again.error, /already used the free trial/i)
       assert.equal(await sub(dev2), undefined, 'nothing was created')
@@ -80,53 +80,55 @@ async function main() {
       assert.equal((data ?? []).length, 0, 'trial records are not readable from a browser')
     })
 
-    await test('seats: the trial’s 3 seats include pending invitations', async () => {
+    await test('seats: the trial’s 5 seats include pending invitations', async () => {
       const c = await signIn(owner)
       const inv = (email) => c.rpc('reserve_employee_seat_atomic', { p_org_id: dev, p_email: email, p_role: 'sales_exec', p_expires_at: new Date(Date.now() + 86_400_000).toISOString() })
-      const first = await inv(`a-${RUN}@regrow.test`)
-      assert.equal(first.data?.[0]?.success, true, JSON.stringify(first))
-      const full = await inv(`b-${RUN}@regrow.test`)
-      assert.equal(full.data?.[0]?.success, false); assert.match(full.data[0].error_message, /Seat limit reached \(3\/3/)
+      for (const x of ['a', 'b', 'c']) {
+        const r = await inv(`${x}-${RUN}@regrow.test`)
+        assert.equal(r.data?.[0]?.success, true, JSON.stringify(r))
+      }
+      const full = await inv(`d-${RUN}@regrow.test`)
+      assert.equal(full.data?.[0]?.success, false); assert.match(full.data[0].error_message, /Seat limit reached \(5\/5/)
     })
 
-    await test('limits: 2 projects, then refused — from the server and from a signed-in browser alike', async () => {
-      await project(dev, 1); await project(dev, 2)
-      await assert.rejects(project(dev, 3), /plan limit: your plan includes 2 projects/)
+    await test('limits: 5 projects, then refused — from the server and from a signed-in browser alike', async () => {
+      for (let i = 1; i <= 5; i++) await project(dev, i)
+      await assert.rejects(project(dev, 6), /plan limit: your plan includes 5 projects/)
       const c = await signIn(owner)
       const { error } = await c.from('projects').insert({ org_id: dev, name: 'Sneaky', slug: `sneaky-${RUN}`, city: 'Pune' })
-      assert.ok(error, 'refused'); assert.equal(Number((await one('SELECT count(*) n FROM public.projects WHERE org_id=$1', [dev])).n), 2)
+      assert.ok(error, 'refused'); assert.equal(Number((await one('SELECT count(*) n FROM public.projects WHERE org_id=$1', [dev])).n), 5)
     })
 
     await test('limits: simultaneous inserts cannot pass the limit (agency, 1 slot left, 6 tries → 1 project)', async () => {
-      await project(agency, 1)
+      for (let i = 1; i <= 4; i++) await project(agency, i)
       const clients = await Promise.all(Array.from({ length: 6 }, async () => { const x = new Pg.Client({ connectionString: DATABASE_URL }); await x.connect(); return x }))
       const res = await Promise.allSettled(clients.map((x, i) => x.query(`INSERT INTO public.projects (org_id, name, slug, city) VALUES ($1,$2,$3,'Pune')`, [agency, `R${i}`, `r${i}-${RUN}`])))
       await Promise.all(clients.map((x) => x.end()))
       assert.equal(res.filter((r) => r.status === 'fulfilled').length, 1)
-      assert.equal(Number((await one('SELECT count(*) n FROM public.projects WHERE org_id=$1', [agency])).n), 2)
+      assert.equal(Number((await one('SELECT count(*) n FROM public.projects WHERE org_id=$1', [agency])).n), 5)
     })
 
-    await test('limits: 50 inventory units — a bulk insert that would pass it is refused as a whole', async () => {
+    await test('limits: 500 inventory units — a bulk insert that would pass it is refused as a whole', async () => {
       const proj = (await one('SELECT id FROM public.projects WHERE org_id=$1 LIMIT 1', [dev])).id
       const values = (n, from) => Array.from({ length: n }, (_, i) => `('${dev}','${proj}','U-${from + i}','apartments',1000,'available')`).join(',')
-      await db.query(`INSERT INTO public.inventory_items (org_id, project_id, unit_number, category, area_value, status) VALUES ${values(48, 0)}`)
-      await assert.rejects(db.query(`INSERT INTO public.inventory_items (org_id, project_id, unit_number, category, area_value, status) VALUES ${values(3, 100)}`), /plan limit: your plan includes 50 inventory units/)
-      assert.equal(Number((await one('SELECT count(*) n FROM public.inventory_items WHERE org_id=$1', [dev])).n), 48)
+      await db.query(`INSERT INTO public.inventory_items (org_id, project_id, unit_number, category, area_value, status) VALUES ${values(498, 0)}`)
+      await assert.rejects(db.query(`INSERT INTO public.inventory_items (org_id, project_id, unit_number, category, area_value, status) VALUES ${values(3, 1000)}`), /plan limit: your plan includes 500 inventory units/)
+      assert.equal(Number((await one('SELECT count(*) n FROM public.inventory_items WHERE org_id=$1', [dev])).n), 498)
     })
 
-    await test('limits: 100 leads by hand or import; captured enquiries are always saved; a browser cannot fake a capture', async () => {
-      const rows = Array.from({ length: 100 }, (_, i) => `('${dev}','Buyer ${i}','98${String(10000000 + i)}','walk_in','new')`).join(',')
+    await test('limits: 1,000 leads by hand or import; captured enquiries are always saved; a browser cannot fake a capture', async () => {
+      const rows = Array.from({ length: 1000 }, (_, i) => `('${dev}','Buyer ${i}','98${String(10000000 + i)}','walk_in','new')`).join(',')
       await db.query(`INSERT INTO public.leads (org_id, name, phone, source, status) VALUES ${rows}`)
       const { error: importErr } = await service.from('leads').insert({ org_id: dev, name: 'Imported', phone: '9899999990', source: 'walk_in', status: 'new' })
-      assert.match(importErr?.message ?? '', /plan limit: your plan includes 100 leads/, 'server-side import stops at the limit')
+      assert.match(importErr?.message ?? '', /plan limit: your plan includes 1000 leads/, 'server-side import stops at the limit')
       const c = await signIn(owner)
       const fake = await c.from('leads').insert({ org_id: dev, name: 'Fake capture', phone: '9899999991', source: 'website', status: 'new', received_at: new Date().toISOString() })
       assert.ok(fake.error, 'a signed-in browser cannot pass the limit by claiming a receipt time')
       const r = await inbound.processInboundLead(dev, { provider: 'website', idempotencyToken: `cap-${RUN}`, name: 'Real enquiry', phone: '9899999992' })
       assert.equal(r.success, true, 'the buyer enquiry is kept')
-      assert.equal(Number((await one('SELECT count(*) n FROM public.leads WHERE org_id=$1', [dev])).n), 101)
+      assert.equal(Number((await one('SELECT count(*) n FROM public.leads WHERE org_id=$1', [dev])).n), 1001)
       const lim = (await billing.getBillingOverview(dev)).limits.find((l) => l.kind === 'leads')
-      assert.deepEqual([lim.used, lim.max], [101, 100])
+      assert.deepEqual([lim.used, lim.max], [1001, 1000])
     })
 
     await test('expiry: a trial past its end → expired, read-only (roles kept aside), billing hold; capture continues', async () => {

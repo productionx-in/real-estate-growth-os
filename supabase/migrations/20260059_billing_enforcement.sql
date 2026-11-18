@@ -1,6 +1,7 @@
 -- 20260059_billing_enforcement.sql
 -- Makes the commercial rules real (docs/product/COMMERCIAL_RULES.md, DEC-022):
---   1. Trial plans: 14 days, 3 users, 100 leads, 2 projects, 50 inventory units, one trial per person per
+--   1. Trial plans: 14 days, 5 users, 1,000 leads, 5 projects, 500 inventory units (room to run a real
+--      pipeline; the limits only stop abuse), one trial per person per
 --      organisation type (trial_grants).
 --   2. Plan limits enforced in the database for projects, inventory units and leads. Leads captured from a
 --      source (webhooks, forms, portals, the customer API) are always saved, even over the limit: no buyer
@@ -28,7 +29,7 @@ ON CONFLICT (code) DO NOTHING;
 INSERT INTO public.subscription_plan_versions
   (plan_id, version_number, is_current, included_seats, max_projects, max_inventory_units, max_leads, trial_days, currency,
    base_price_monthly_cents, base_price_annual_cents, additional_seat_price_cents, features)
-SELECT p.id, 1, true, 3, 2, 50, 100, 14, 'INR', 0, 0, 0, '{}'::jsonb
+SELECT p.id, 1, true, 5, 5, 500, 1000, 14, 'INR', 0, 0, 0, '{}'::jsonb
 FROM public.subscription_plans p
 WHERE p.code IN ('trial_developer', 'trial_agency')
   AND NOT EXISTS (SELECT 1 FROM public.subscription_plan_versions x WHERE x.plan_id = p.id);
