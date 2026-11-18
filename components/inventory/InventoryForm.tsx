@@ -894,7 +894,7 @@ export function InventoryForm({
               <button
                 type="submit"
                 disabled={isPending}
-                className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-semibold rounded-lg bg-[var(--brand)] text-white hover:bg-[var(--brand-dark)] transition-colors shadow-2xs disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-semibold rounded-lg bg-[var(--brand)] text-brand-foreground hover:bg-[var(--brand-dark)] transition-colors shadow-2xs disabled:opacity-50"
               >
                 {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 {isEditing ? 'Save Changes' : 'Create Inventory Unit'}

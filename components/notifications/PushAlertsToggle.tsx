@@ -90,7 +90,7 @@ export function PushAlertsToggle() {
         {(state === 'on' || state === 'off' || state === 'busy') && (
           <button type="button" role="switch" aria-checked={state === 'on'} disabled={state === 'busy'}
             onClick={state === 'on' ? disable : enable}
-            className={`relative w-9 h-5 rounded-full transition-colors disabled:opacity-50 ${state === 'on' ? 'bg-success' : 'bg-gray-300'}`}>
+            className={`relative w-9 h-5 rounded-full transition-colors disabled:opacity-50 ${state === 'on' ? 'bg-success' : 'bg-strong'}`}>
             <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-surface shadow transition-all ${state === 'on' ? 'left-[18px]' : 'left-0.5'}`} />
             <span className="sr-only">Alerts on this device</span>
           </button>

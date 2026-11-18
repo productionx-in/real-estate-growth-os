@@ -186,7 +186,7 @@ export async function WorkspaceOverview({
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/${orgSlug}/leads/${lead.id}`}
-                      className="px-2.5 py-1 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition"
+                      className="px-2.5 py-1 text-xs font-medium text-accent bg-accent-bg hover:bg-accent-bg border border-accent-border rounded-lg transition"
                     >
                       Update Lead
                     </Link>

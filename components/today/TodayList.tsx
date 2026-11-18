@@ -66,7 +66,7 @@ export function TodayList({ kind, leads, orgSlug, showAssignee }: {
         return (
           <li key={l.id} className="flex items-center gap-3 py-3">
             <button type="button" onClick={() => call(l)} aria-label={`Call ${l.name}`}
-              className="w-11 h-11 flex-shrink-0 rounded-full bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-white flex items-center justify-center shadow-sm">
+              className="w-11 h-11 flex-shrink-0 rounded-full bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-brand-foreground flex items-center justify-center shadow-sm">
               <Phone className="w-5 h-5" />
             </button>
             <Link href={`/${orgSlug}/leads/${l.id}`} className="flex-1 min-w-0 flex items-center gap-2 group">

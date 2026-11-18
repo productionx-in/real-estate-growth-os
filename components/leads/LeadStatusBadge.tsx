@@ -12,11 +12,11 @@ const STATUS_CONFIG: Record<
   },
   contacted: {
     label: 'Contacted',
-    className: 'bg-purple-50 text-purple-700 border-purple-100',
+    className: 'bg-accent-bg text-accent border-accent-border',
   },
   qualified: {
     label: 'Qualified',
-    className: 'bg-indigo-50 text-indigo-700 border-indigo-100',
+    className: 'bg-accent-bg text-accent border-accent-border',
   },
   site_visit_scheduled: {
     label: 'Visit Scheduled',

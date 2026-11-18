@@ -386,8 +386,8 @@ export function InventoryViewManager({
             label: 'Sold',
             value: metrics.sold,
             statusKey: 'sold',
-            color: 'border-purple-200 bg-purple-50/50',
-            text: 'text-purple-700',
+            color: 'border-accent-border bg-accent-bg',
+            text: 'text-accent',
           },
           {
             label: 'Blocked',
@@ -557,7 +557,7 @@ export function InventoryViewManager({
                 <button
                   type="button"
                   onClick={() => setShowAddModal(true)}
-                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] transition-colors shadow-xs"
+                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-brand-foreground bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] transition-colors shadow-xs"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Unit</span>
@@ -691,7 +691,7 @@ export function InventoryViewManager({
               <button
                 type="button"
                 onClick={() => setShowAddModal(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)]"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-brand-foreground bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)]"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Add First Unit

@@ -25,7 +25,7 @@ export function ExecutiveBiDashboardView({ analytics, orgName }: ExecutiveBiDash
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-bg text-accent border border-accent-border">
             Real-Time Analytics
           </span>
         </div>
@@ -49,7 +49,7 @@ export function ExecutiveBiDashboardView({ analytics, orgName }: ExecutiveBiDash
           <div className="text-xs font-medium text-subtle uppercase tracking-wider">
             Absorption Rate
           </div>
-          <div className="mt-2 text-2xl font-bold text-indigo-600">
+          <div className="mt-2 text-2xl font-bold text-accent">
             {inventoryAbsorption.absorptionRate}%
           </div>
           <div className="mt-1 text-xs text-subtle">
@@ -100,7 +100,7 @@ export function ExecutiveBiDashboardView({ analytics, orgName }: ExecutiveBiDash
                 </div>
                 <div className="w-full bg-surface-hover rounded-full h-3 overflow-hidden">
                   <div
-                    className="bg-indigo-600 h-3 rounded-full transition-all"
+                    className="bg-accent h-3 rounded-full transition-all"
                     style={{
                       width: `${Math.max(5, (item.count / (funnel[0]?.count || 1)) * 100)}%`,
                     }}

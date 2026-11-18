@@ -330,7 +330,7 @@ export function IntegrationCentreView({
           <div className="bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all shadow-2xs flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
-                <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-2xs">
+                <div className="w-10 h-10 rounded-xl bg-accent-bg text-accent flex items-center justify-center shadow-2xs">
                   <Globe className="w-5 h-5" />
                 </div>
                 <span
@@ -382,7 +382,7 @@ export function IntegrationCentreView({
               <button
                 onClick={() => setIsWebsiteWizardOpen(true)}
                 disabled={!canManage}
-                className="w-full py-2 px-3 text-[12px] font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl transition cursor-pointer text-center"
+                className="w-full py-2 px-3 text-[12px] font-semibold text-accent bg-accent-bg hover:bg-accent-bg border border-accent-border rounded-xl transition cursor-pointer text-center"
               >
                 Configure &amp; Embed Forms
               </button>
@@ -499,7 +499,7 @@ export function IntegrationCentreView({
           <div className="bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all shadow-2xs flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-2xs">
+                <div className="w-10 h-10 rounded-xl bg-accent-bg text-accent flex items-center justify-center shadow-2xs">
                   <Code className="w-5 h-5" />
                 </div>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-success-bg text-success border border-success/30">
@@ -536,7 +536,7 @@ export function IntegrationCentreView({
             <div className="pt-3">
               <button
                 onClick={() => setIsDeveloperApiDocsOpen(true)}
-                className="w-full py-2 px-3 text-[12px] font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition cursor-pointer text-center"
+                className="w-full py-2 px-3 text-[12px] font-semibold text-accent bg-accent-bg hover:bg-accent-bg border border-accent-border rounded-xl transition cursor-pointer text-center"
               >
                 View API Docs &amp; Webhooks
               </button>

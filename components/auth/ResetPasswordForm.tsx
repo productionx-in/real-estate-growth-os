@@ -77,7 +77,7 @@ export function ResetPasswordForm() {
         <div className="relative">
           <input id="new-password" type={show ? 'text' : 'password'} autoComplete="new-password" required minLength={PASSWORD_MIN_LENGTH}
             value={password} onChange={(e) => setPassword(e.target.value)} aria-describedby="password-help"
-            className="w-full px-3 py-2.5 pr-10 text-base sm:text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100" />
+            className="w-full px-3 py-2.5 pr-10 text-base sm:text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light" />
           <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? 'Hide password' : 'Show password'}
             className="absolute inset-y-0 right-0 px-3 text-[var(--foreground-muted)] hover:text-[var(--foreground)]">
             {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -89,11 +89,11 @@ export function ResetPasswordForm() {
         <label htmlFor="confirm-password" className="block text-sm font-medium">Confirm new password</label>
         <input id="confirm-password" type={show ? 'text' : 'password'} autoComplete="new-password" required
           value={confirm} onChange={(e) => setConfirm(e.target.value)}
-          className="w-full px-3 py-2.5 text-base sm:text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-blue-100" />
+          className="w-full px-3 py-2.5 text-base sm:text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light" />
       </div>
       {error && <p role="alert" className="p-3 rounded-md bg-[var(--danger-bg)] border border-danger/30 text-sm text-[var(--danger)]">{error}</p>}
       <button type="submit" disabled={busy}
-        className="w-full py-2.5 px-4 text-sm font-semibold text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 flex items-center justify-center gap-2">
+        className="w-full py-2.5 px-4 text-sm font-semibold text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 flex items-center justify-center gap-2">
         {busy && <Loader2 className="w-4 h-4 animate-spin" />}Save new password
       </button>
     </form>

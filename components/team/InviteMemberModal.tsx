@@ -148,7 +148,7 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="px-3 py-2 bg-[var(--brand)] text-white text-[12px] font-medium rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center gap-1.5 flex-shrink-0"
+                  className="px-3 py-2 bg-[var(--brand)] text-brand-foreground text-[12px] font-medium rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center gap-1.5 flex-shrink-0"
                 >
                   {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -230,7 +230,7 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
               <button
                 type="submit"
                 disabled={isLimitReached || loading || !email.trim()}
-                className="px-4 py-2 bg-[var(--brand)] text-white text-[13px] font-medium rounded-md hover:bg-[var(--brand-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                className="px-4 py-2 bg-[var(--brand)] text-brand-foreground text-[13px] font-medium rounded-md hover:bg-[var(--brand-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
                 <span>{loading ? 'Creating Invitation…' : 'Issue Invitation'}</span>
