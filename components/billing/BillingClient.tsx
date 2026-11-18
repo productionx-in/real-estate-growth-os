@@ -151,6 +151,17 @@ export function BillingClient({ orgId, orgSlug, orgName, overview, payOnline }: 
               </div>
             )}
             <p className="text-[12px] text-muted">{sub ? `${sub.includedSeats} included${sub.additionalSeats ? ` + ${sub.additionalSeats} extra` : ''}` : 'Seats come with a plan or trial.'}</p>
+            {overview.limits.some((l) => l.max !== null) && (
+              <dl className="space-y-1 border-t border-default pt-3 text-[13px]" aria-label="Plan limits">
+                {overview.limits.filter((l) => l.max !== null).map((l) => (
+                  <div key={l.kind} className="flex justify-between gap-2">
+                    <dt className="text-muted">{l.label}</dt>
+                    <dd className={cn('tabular', l.used >= (l.max ?? 0) ? 'font-semibold text-danger' : 'text-foreground')}>{l.used} / {l.max}</dd>
+                  </div>
+                ))}
+                <p className="pt-1 text-[12px] text-subtle">Enquiries from connected sources are always saved, even over the lead limit.</p>
+              </dl>
+            )}
             {sub?.status === 'active' && currentPlan && currentPlan.seatPaise > 0 && (
               <form className="flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); act('seats', { action: 'seats', seats }, pay) }}>
                 <label className="flex-1 text-[12px] font-medium">

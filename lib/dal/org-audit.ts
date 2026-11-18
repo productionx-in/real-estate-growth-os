@@ -112,6 +112,7 @@ export const AUDIT_AREAS = {
   support: 'Support access',
   module: 'Modules',
   partner: 'Partner network',
+  billing: 'Plan & billing',
 } as const
 export type AuditArea = keyof typeof AUDIT_AREAS
 
@@ -211,6 +212,12 @@ const ACTION_LABELS: Record<string, string> = {
   'partner.registration_rejected': 'Buyer registration rejected',
   'partner.registrations_withdrawn': 'Pending registrations withdrawn (partnership ended)',
   'partner.developer_lead_created': 'Lead created from an accepted registration',
+  'billing.trial_started': 'Free trial started',
+  'billing.transition_started': '30-day transition to a paid plan started',
+  'billing.invoice_issued': 'Invoice issued',
+  'billing.payment_received': 'Payment received',
+  'billing.payment_overdue': 'Plan payment overdue (7-day grace)',
+  'billing.subscription_expired': 'Plan ended — workspace read-only',
 }
 
 export function describeAuditAction(action: string): string {
