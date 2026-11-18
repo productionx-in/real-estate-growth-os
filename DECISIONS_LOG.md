@@ -160,3 +160,15 @@
     - Lead reassignment upon departure follows an explicit, managed workflow (reassign to active rep or move to unassigned pool).
   - *Multi-Organisation Membership Independence:* A user may belong to multiple organisations. Each organisation independently accounts for that user's seat against its own subscription quota. Safe switching is enforced server-side.
 
+
+### DEC-022: Commercial Rules — Trials, Plan Limits, Expiry and Existing Workspaces
+- **Context:** The founder delegated the open commercial decisions from the self-serve / monetisation review ("you do the math … keep in product info"). Full rules: `docs/product/COMMERCIAL_RULES.md`.
+- **Decision:**
+  - Trial: 14 days; 3 users, 100 leads, 2 projects, 50 inventory units; one trial per person per organisation type, for life.
+  - Captured enquiries are always saved over the lead limit; manual entry and import stop at it.
+  - Pending invitations keep reserving a seat (released on acceptance, revocation or 7-day expiry).
+  - Trial end → read-only immediately; paid period end → 7 days overdue with full access, then read-only; paying lifts it; data is never deleted.
+  - Existing workspaces without a subscription get a 30-day transition on their type's plan.
+  - Verification is per organisation and gates cross-organisation actions only; Independent CP plan ₹1,499 / 1 user, max 2 users (own PR).
+  - Website order: Start free trial, Explore demo, Book a demo.
+- **Status:** Trials, limits, expiry and transition implemented in migration 20260059 (PR "billing enforcement"); sign-up, demo, verification, website and the Independent CP plan in later PRs. Nothing applied to production until merged with the owner's go-ahead.

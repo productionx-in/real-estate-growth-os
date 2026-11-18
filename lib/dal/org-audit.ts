@@ -111,6 +111,7 @@ export const AUDIT_AREAS = {
   organisation: 'Workspace status',
   support: 'Support access',
   module: 'Modules',
+  billing: 'Plan & billing',
 } as const
 export type AuditArea = keyof typeof AUDIT_AREAS
 
@@ -193,6 +194,12 @@ const ACTION_LABELS: Record<string, string> = {
   'support.access_cancelled': 'Support withdrew its request',
   'support.emergency_access': 'Emergency support access granted',
   'support.data_viewed': 'Support viewed the workspace overview',
+  'billing.trial_started': 'Free trial started',
+  'billing.transition_started': '30-day transition to a paid plan started',
+  'billing.invoice_issued': 'Invoice issued',
+  'billing.payment_received': 'Payment received',
+  'billing.payment_overdue': 'Plan payment overdue (7-day grace)',
+  'billing.subscription_expired': 'Plan ended — workspace read-only',
 }
 
 export function describeAuditAction(action: string): string {
