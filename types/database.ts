@@ -2976,6 +2976,86 @@ export interface Database {
           { foreignKeyName: 'saved_views_owner_id_fkey'; columns: ['owner_id']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
         ]
       }
+      document_templates: {
+        Row: {
+          id: string
+          org_id: string
+          name: string
+          kind: string
+          body: string
+          archived: boolean
+          created_by: string | null
+          updated_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          name: string
+          kind?: string
+          body: string
+          archived?: boolean
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          name?: string
+          kind?: string
+          body?: string
+          archived?: boolean
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      lead_documents: {
+        Row: {
+          id: string
+          org_id: string
+          lead_id: string
+          template_id: string | null
+          unit_id: string | null
+          title: string
+          body: string
+          share_token: string
+          expires_at: string
+          revoked_at: string | null
+          view_count: number
+          first_viewed_at: string | null
+          last_viewed_at: string | null
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          lead_id: string
+          template_id?: string | null
+          unit_id?: string | null
+          title: string
+          body: string
+          share_token: string
+          expires_at: string
+          revoked_at?: string | null
+          view_count?: number
+          first_viewed_at?: string | null
+          last_viewed_at?: string | null
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          revoked_at?: string | null
+          view_count?: number
+          first_viewed_at?: string | null
+          last_viewed_at?: string | null
+        }
+        Relationships: [
+          { foreignKeyName: 'lead_documents_created_by_fkey'; columns: ['created_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+        ]
+      }
       scheduled_jobs: {
         Row: {
           id: string
@@ -3028,6 +3108,10 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      record_document_view: {
+        Args: { p_token: string }
+        Returns: { id: string; org_id: string; lead_id: string; title: string; body: string; created_by: string | null; created_at: string }[]
+      }
       log_lead_outcome: {
         Args: {
           p_lead: string

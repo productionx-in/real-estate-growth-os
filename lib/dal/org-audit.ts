@@ -177,6 +177,8 @@ const ACTION_LABELS: Record<string, string> = {
   'integration.webhook_secret_rotated': 'Rotated a webhook secret',
   'integration.webhook_secret_invalidated': 'Invalidated the previous webhook secret',
   'integration.website_updated': 'Changed website enquiry settings',
+  'document.template_saved': 'Saved a document template',
+  'document.template_removed': 'Removed a document template',
   'lead.imported': 'Imported leads',
   'lead.exported': 'Exported leads',
   'lead.deleted': 'Deleted a lead',
