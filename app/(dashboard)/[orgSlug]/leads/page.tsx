@@ -17,6 +17,7 @@ import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { listViews } from '@/lib/dal/saved-views'
 import { STATUS_ORDER } from '@/lib/leads/transitions'
 import { resolveLeadViewer } from '@/lib/dal/viewer'
+import { rankTags } from '@/lib/leads/tags'
 import {
   FOCI, applyLeadFilters, canShareViews, isEmpty, parseLeadSearch, sameFilters, toLeadSearch,
 } from '@/lib/leads/view-filters'
@@ -59,14 +60,16 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
     .select(
       board
         ? 'id, name, phone, status, priority, next_follow_up_at, project:projects(name), assignee:profiles!leads_assigned_to_fkey(full_name)'
-        : 'id, name, phone, email, status, priority, source, created_at, project:projects(id, name), assignee:profiles!leads_assigned_to_fkey(id, full_name)',
+        : 'id, name, phone, email, status, priority, source, created_at, tags, project:projects(id, name), assignee:profiles!leads_assigned_to_fkey(id, full_name)',
       { count: 'exact' }
     )
     .eq('org_id', org.id)
   query = applyLeadFilters(query, filters, viewer, now)
+  // A merged duplicate lives on as a link to its main lead; it is not a lead to work.
+  query = query.is('merged_into_id', null)
   if (board && !filters.status) query = query.neq('status', 'junk')
 
-  const [{ data: leads, count }, views, { data: projects }, { data: members }] = await Promise.all([
+  const [{ data: leads, count }, views, { data: projects }, { data: members }, { data: tagRows }] = await Promise.all([
     query.order('created_at', { ascending: false }).limit(board ? BOARD_LIMIT : LIST_LIMIT),
     listViews(org.id, viewer),
     service.from('projects').select('id, name').eq('org_id', org.id).order('name'),
@@ -76,7 +79,9 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
       ? service.from('org_members').select('profile:profiles(id, full_name)').eq('org_id', org.id).eq('status', 'active')
         .in('profile_id', [profile.id, ...(viewer.teamProfileIds ?? [])])
       : Promise.resolve({ data: [] as { profile: { id: string; full_name: string } | null }[] }),
+    service.from('leads').select('tags').eq('org_id', org.id).not('tags', 'eq', '{}').limit(2000),
   ])
+  const orgTags = rankTags(tagRows ?? [])
 
   const active = viewId ? views.find((v) => v.id === viewId) ?? null : null
   const modified = active ? !sameFilters(active.filters, filters) || active.layout !== layout : false
@@ -131,6 +136,7 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
         projects={(projects ?? []).map((p) => ({ id: p.id, label: p.name }))}
         members={memberOptions}
         canFilterAssignee={scope !== 'own'}
+        tags={orgTags}
       />
 
       {!hasLeads ? (

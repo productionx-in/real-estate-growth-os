@@ -1027,6 +1027,11 @@ export interface Database {
           req_min_area: number | null
           req_max_area: number | null
           requirements_updated_at: string | null
+          received_at: string | null
+          source_submitted_at: string | null
+          tags: string[]
+          merged_into_id: string | null
+          merged_at: string | null
           notes: string | null
           custom_fields: Json
           source_platform: string | null
@@ -1071,6 +1076,11 @@ export interface Database {
           req_min_area?: number | null
           req_max_area?: number | null
           requirements_updated_at?: string | null
+          received_at?: string | null
+          source_submitted_at?: string | null
+          tags?: string[]
+          merged_into_id?: string | null
+          merged_at?: string | null
           notes?: string | null
           custom_fields?: Json
           source_platform?: string | null
@@ -1115,6 +1125,11 @@ export interface Database {
           req_min_area?: number | null
           req_max_area?: number | null
           requirements_updated_at?: string | null
+          received_at?: string | null
+          source_submitted_at?: string | null
+          tags?: string[]
+          merged_into_id?: string | null
+          merged_at?: string | null
           notes?: string | null
           custom_fields?: Json
           source_platform?: string | null
@@ -3167,6 +3182,8 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      lead_pipeline_timing: { Args: { p_org: string; p_from: string; p_to: string }; Returns: Json }
+      merge_leads: { Args: { p_org: string; p_target: string; p_source: string; p_actor_profile: string }; Returns: Json }
       billing_start_trial: { Args: { p_org: string; p_plan_code: string; p_actor_profile: string | null }; Returns: string }
       billing_issue_plan_invoice: { Args: { p_org: string; p_plan_code: string; p_cycle: string; p_actor_profile: string | null }; Returns: string }
       billing_issue_seat_invoice: { Args: { p_org: string; p_seats: number; p_actor_profile: string | null }; Returns: string }

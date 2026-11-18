@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { PageShell } from '@/components/layout/PageShell'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
-import { getResponseReport, pct, REPORT_PERIODS, withinTargetPct, type ReportPeriod, type ReportRow } from '@/lib/dal/reports'
+import { getPipelineTiming, getResponseReport, duration, pct, PIPELINE_STAGES, REPORT_PERIODS, withinTargetPct, type ReportPeriod, type ReportRow } from '@/lib/dal/reports'
 import { getResponseSettings } from '@/lib/dal/follow-ups'
 import { isManagement } from '@/lib/auth/permissions'
 
@@ -84,7 +84,7 @@ export default async function SpeedToLeadPage({ params, searchParams }: { params
   const { org, role } = await getVerifiedWorkspace(orgSlug)
   if (!isManagement(role)) redirect(`/${orgSlug}/today`)
   const period: ReportPeriod = raw && raw in REPORT_PERIODS ? (raw as ReportPeriod) : '30d'
-  const [report, settings] = await Promise.all([getResponseReport(org.id, period), getResponseSettings(org.id)])
+  const [report, settings, timing] = await Promise.all([getResponseReport(org.id, period), getResponseSettings(org.id), getPipelineTiming(org.id, period)])
   const o = report.overall
   const onTime = withinTargetPct(o)
   const peak = Math.max(1, ...report.by_hour.map((h) => h.leads))
@@ -133,6 +133,36 @@ export default async function SpeedToLeadPage({ params, searchParams }: { params
             <p className="mt-2 text-[11px] text-[var(--foreground-muted)]"><span className="inline-block w-2 h-2 rounded-sm bg-brand mr-1" />answered on target <span className="inline-block w-2 h-2 rounded-sm bg-amber-400 ml-3 mr-1" />median slower than target · {report.timezone}</p>
           </section>
         )}
+
+        <section className="rounded-xl border border-default bg-surface p-4" aria-labelledby="timing-h">
+          <h2 id="timing-h" className="text-[13px] font-semibold">From enquiry to first call <span className="font-normal text-muted">· each step measured separately</span></h2>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead><tr className="border-b border-default text-left text-[12px] text-muted">
+                <th className="py-2 pr-4 font-medium">Step</th><th className="py-2 pr-4 text-right font-medium">Median</th>
+                <th className="py-2 pr-4 text-right font-medium">90% within</th><th className="py-2 text-right font-medium">Leads measured</th>
+              </tr></thead>
+              <tbody className="tabular">
+                {PIPELINE_STAGES.map((st) => {
+                  const v = timing.stages[st.key]
+                  return (
+                    <tr key={st.key} className="border-b border-default last:border-0">
+                      <td className="py-2.5 pr-4"><span className="font-medium">{st.label}</span><span className="block text-[12px] text-subtle">{st.hint}</span></td>
+                      <td className="py-2.5 pr-4 text-right">{duration(v?.p50)}</td>
+                      <td className="py-2.5 pr-4 text-right">{duration(v?.p90)}</td>
+                      <td className="py-2.5 text-right text-muted">{v?.n ?? 0}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-[12px] text-muted">
+            Saved within 30 s: {pctText(pct(timing.saved_within_30s, timing.saved_measured))} of {timing.saved_measured} ·
+            Assigned within 5 s: {pctText(pct(timing.assigned_within_5s, timing.assigned_measured))} of {timing.assigned_measured}.
+            Leads added by hand or imported have no receipt time and are not counted in the first two steps.
+          </p>
+        </section>
 
         <Table title="By salesperson" rows={report.by_rep} labelFor={(r) => r.label ?? 'Unassigned'} />
         <Table title="By source" rows={report.by_source} labelFor={(r) => SOURCE[r.key ?? ''] ?? r.key ?? 'Unknown'} quality />

@@ -5,6 +5,7 @@
 // Visibility is never a filter: applyLeadFilters always applies the viewer's lead scope (own, team,
 // booked or all), whatever a URL or a shared view asks for.
 import { leadScopeOf, type LeadViewer } from '@/lib/auth/permissions'
+import { normalizeTag } from './tags'
 import type { LeadPriority, LeadSource, LeadStatus, MemberRole } from '@/types/database'
 import { STATUS_ORDER } from './transitions'
 
@@ -76,6 +77,8 @@ export interface LeadFilters {
   assignee?: string
   focus?: Focus
   created?: Created
+  /** One tag (lib/leads/tags.ts). */
+  tag?: string
   q?: string
 }
 
@@ -113,6 +116,8 @@ export function normalizeFilters(raw: unknown): LeadFilters {
   }
   if (isFocus(r.focus)) f.focus = r.focus
   if (typeof r.created === 'string' && r.created in CREATED) f.created = r.created as Created
+  const tag = normalizeTag(r.tag)
+  if (tag) f.tag = tag
   const q = cleanSearch(r.q)
   if (q) f.q = q
   return f
@@ -132,7 +137,7 @@ const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v
 /** Reads the leads page URL. Old links (?scope=my, ?scope=unassigned) keep working. */
 export function parseLeadSearch(sp: SearchParams): { filters: LeadFilters; layout: Layout; viewId: string | null } {
   const raw: Record<string, unknown> = {}
-  for (const key of ['status', 'source', 'priority', 'project', 'assignee', 'focus', 'created', 'q']) {
+  for (const key of ['status', 'source', 'priority', 'project', 'assignee', 'focus', 'created', 'tag', 'q']) {
     const v = first(sp[key])
     if (v !== undefined) raw[key] = v
   }
@@ -169,7 +174,7 @@ const CREATED_DAYS: Record<Created, number> = { '7d': 7, '30d': 30, '90d': 90 }
  * a sales executive sees only their own leads, a team lead their team's, post-sales booked customers.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase builder generics differ per select()
-export function applyLeadFilters<Q extends { is: any; not: any; lt: any; lte: any; gte: any; in: any; eq: any; or: any }>(
+export function applyLeadFilters<Q extends { is: any; not: any; lt: any; lte: any; gte: any; in: any; eq: any; or: any; contains: any }>(
   q: Q, filters: LeadFilters, viewer: Viewer, now: Date
 ): Q {
   const f = normalizeFilters(filters)
@@ -199,6 +204,7 @@ export function applyLeadFilters<Q extends { is: any; not: any; lt: any; lte: an
   if (f.project) q = q.eq('project_id', f.project)
   if (f.created) q = q.gte('created_at', new Date(now.getTime() - CREATED_DAYS[f.created] * 86_400_000).toISOString())
   if (f.focus) q = applyFocus(q, f.focus, now)
+  if (f.tag) q = q.contains('tags', [f.tag])
   if (f.q) {
     // cleanSearch removed every character PostgREST treats as syntax (commas, brackets, quotes, backslash,
     // *, %), so the quoted value cannot break out of the filter.

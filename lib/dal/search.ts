@@ -19,7 +19,7 @@ export async function searchWorkspace(orgId: string, viewer: Viewer, raw: unknow
   const leadQuery = applyLeadFilters(
     db.from('leads').select('id, name, phone, status, project:projects(name)').eq('org_id', orgId),
     { q }, viewer, now
-  ).order('updated_at', { ascending: false }).limit(8)
+  ).is('merged_into_id', null).order('updated_at', { ascending: false }).limit(8)
   const projectQuery = db.from('projects').select('id, name, city').eq('org_id', orgId)
     .ilike('name', `%${q}%`).order('name').limit(5)
   const [{ data: leads }, { data: projects }] = await Promise.all([leadQuery, projectQuery])

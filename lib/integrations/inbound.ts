@@ -22,9 +22,12 @@ export async function processInboundLead(
   options?: {
     customClient?: ReturnType<typeof createServiceClient>
     actorProfileId?: string | null
+    /** When our server received the request (defaults to now); with created_at it times "receipt → saved". */
+    receivedAt?: Date
   }
 ): Promise<InboundProcessingResult> {
   const service = options?.customClient ?? createServiceClient()
+  const receivedAt = options?.receivedAt ?? new Date()
 
   const normPhone = normalizePhone(payload.phone)
   const normEmail = normalizeEmail(payload.email)
@@ -231,20 +234,25 @@ export async function processInboundLead(
   }
 
   // 4. Multi-Category Deduplication Check (A, B, C)
-  let existingLeadsQuery = service
+  // Phone and email are looked up separately with plain equality filters — never spliced into a PostgREST
+  // filter string, where an email like "x@y.z,status.eq.new" could otherwise widen the match. Merged
+  // records are skipped: a new enquiry is matched to the lead that is still being worked.
+  const lookup = (column: 'phone' | 'email', value: string) => service
     .from('leads')
     .select('id, phone, email, external_lead_id, project_id, created_at')
     .eq('org_id', orgId)
-
-  if (normPhone && normEmail) {
-    existingLeadsQuery = existingLeadsQuery.or(`phone.eq.${normPhone},email.eq.${normEmail}`)
-  } else if (normPhone) {
-    existingLeadsQuery = existingLeadsQuery.eq('phone', normPhone)
-  } else if (normEmail) {
-    existingLeadsQuery = existingLeadsQuery.eq('email', normEmail)
-  }
-
-  const { data: candidates } = await existingLeadsQuery.order('created_at', { ascending: true })
+    .eq(column, value)
+    .is('merged_into_id', null)
+    .order('created_at', { ascending: true })
+    .limit(50)
+  const found = await Promise.all([
+    normPhone ? lookup('phone', normPhone) : Promise.resolve({ data: [] }),
+    normEmail ? lookup('email', normEmail) : Promise.resolve({ data: [] }),
+  ])
+  const seen = new Set<string>()
+  const candidates = found.flatMap((r) => r.data ?? [])
+    .filter((c) => (seen.has(c.id) ? false : (seen.add(c.id), true)))
+    .sort((a, b) => a.created_at.localeCompare(b.created_at))
 
   const dedupResult = evaluateDeduplication({
     inboundPhone: normPhone,
@@ -315,6 +323,8 @@ export async function processInboundLead(
       budget_min: payload.budgetMin ?? null,
       budget_max: payload.budgetMax ?? null,
       custom_fields: (payload.customFields ?? {}) as Json,
+      received_at: receivedAt.toISOString(),
+      source_submitted_at: plausibleSubmittedAt(payload.submittedAt, receivedAt),
     })
     .select()
     .single()
@@ -541,4 +551,16 @@ function mapProviderToLeadSource(
     default:
       return 'other'
   }
+}
+
+/**
+ * The source's own submission time, if it is believable: not in the future (beyond a minute of clock skew) and
+ * not more than 30 days old (older values are backfills, not live deliveries, and would distort the timing).
+ */
+export function plausibleSubmittedAt(value: string | null | undefined, receivedAt: Date): string | null {
+  if (!value) return null
+  const t = /^\d{9,11}$/.test(value) ? Number(value) * 1000 : Date.parse(value)
+  if (!Number.isFinite(t)) return null
+  if (t > receivedAt.getTime() + 60_000 || t < receivedAt.getTime() - 30 * 86_400_000) return null
+  return new Date(t).toISOString()
 }
