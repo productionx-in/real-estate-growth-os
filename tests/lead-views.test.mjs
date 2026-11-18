@@ -69,6 +69,25 @@ test('a sales executive only ever gets their own leads, whatever the filter or s
   }
 })
 
+test('a team lead sees their team; a filter can narrow within the team but never reach outside it', () => {
+  const MATE = '33333333-3333-4333-8333-333333333333'
+  const tl = { role: 'team_lead', profileId: ME, teamProfileIds: [ME, MATE] }
+  const run = (assignee) => { const { q, calls } = recorder(); vf.applyLeadFilters(q, { assignee }, tl, NOW); return calls.filter((c) => c[1] === 'assigned_to') }
+  assert.deepEqual(run(undefined), [['in', 'assigned_to', [ME, MATE]]])
+  assert.deepEqual(run('none'), [['in', 'assigned_to', [ME, MATE]]], 'unassigned is not their team')
+  assert.deepEqual(run(OTHER), [['in', 'assigned_to', [ME, MATE]]], 'someone outside the team is ignored')
+  assert.deepEqual(run(MATE), [['eq', 'assigned_to', MATE]])
+  assert.deepEqual(run('me'), [['eq', 'assigned_to', ME]])
+  const { q, calls } = recorder(); vf.applyLeadFilters(q, {}, { role: 'team_lead', profileId: ME }, NOW)
+  assert.deepEqual(calls, [['in', 'assigned_to', [ME]]], 'team not resolved → only their own')
+})
+
+test('post-sales only ever gets booked customers, whatever status filter is asked for', () => {
+  const { q, calls } = recorder()
+  vf.applyLeadFilters(q, { status: ['new', 'negotiation'] }, { role: 'post_sales', profileId: ME }, NOW)
+  assert.deepEqual(calls.slice(0, 1), [['eq', 'status', 'booked']])
+})
+
 test('managers can filter by me, unassigned or a person; other filters map to the right columns', () => {
   const run = (f) => { const { q, calls } = recorder(); vf.applyLeadFilters(q, f, { role: 'manager', profileId: ME }, NOW); return calls }
   assert.deepEqual(run({}), [])
@@ -110,10 +129,11 @@ test('pipeline: one rule set — the status API, the stage panel and the board a
   }
 })
 
-test('the CSV export applies the same filters (and the same sales-executive limit) as the page', () => {
+test('the CSV export applies the same filters (and the same visibility limit) as the page', () => {
   const src = fs.readFileSync(path.join(root, 'app/api/leads/export/route.ts'), 'utf8')
   assert.match(src, /parseLeadSearch/)
-  assert.match(src, /applyLeadFilters\(query, filters, \{ role, profileId: auth\.profile\.id \}/)
+  // The caller's own viewer (their role, their profile, a team lead's team), resolved on the server.
+  assert.match(src, /applyLeadFilters\(query, filters, await resolveLeadViewer\(org\.id, role, auth\.profile\.id\)/)
 })
 
 console.log(`\nLead views: ${passed} checks passed.`)

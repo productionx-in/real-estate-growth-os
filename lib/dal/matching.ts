@@ -8,7 +8,8 @@ import {
   type Match, type Requirements, type UnitForMatch,
 } from '@/lib/matching/score'
 import type { DalResult } from '@/lib/dal/routing'
-import type { MemberRole, ProjectCategory } from '@/types/database'
+import type { ProjectCategory } from '@/types/database'
+import { leadScopeOf, type LeadViewer } from '@/lib/auth/permissions'
 
 const REQ_COLUMNS = 'budget_min, budget_max, project_id, req_configurations, req_categories, req_locations, req_facing, req_min_area, req_max_area'
 const UNIT_COLUMNS = 'id, project_id, unit_number, tower_name, floor_number, status, category, bhk_config, facing, total_price, carpet_area, super_built_up_area, area_value, project:projects(name, city, location)'
@@ -57,7 +58,7 @@ export interface BuyerMatch {
 
 /** Open leads this unit suits. A sales executive sees only leads assigned to them. */
 export async function matchLeadsForUnit(
-  orgId: string, unitId: string, viewer: { role: MemberRole; profileId: string }, limit = 10
+  orgId: string, unitId: string, viewer: LeadViewer, limit = 10
 ): Promise<BuyerMatch[] | null> {
   const db = createServiceClient()
   const { data: unitData } = await db.from('inventory_items').select(UNIT_COLUMNS).eq('org_id', orgId).eq('id', unitId).maybeSingle()
@@ -69,7 +70,10 @@ export async function matchLeadsForUnit(
     .select(`id, name, status, ${REQ_COLUMNS}, assignee:profiles!leads_assigned_to_fkey(full_name)`)
     .eq('org_id', orgId)
     .not('status', 'in', `(${CLOSED_STATUSES.join(',')})`)
-  if (viewer.role === 'sales_exec') q = q.eq('assigned_to', viewer.profileId)
+  const scope = leadScopeOf(viewer.role)
+  if (scope === 'own') q = q.eq('assigned_to', viewer.profileId)
+  else if (scope === 'team') q = q.in('assigned_to', [viewer.profileId, ...(viewer.teamProfileIds ?? [])])
+  else if (scope === 'booked') return [] // booked customers are not looking for a unit
   if (unit.total_price != null) {
     // A buyer whose budget is more than 10% below the price is not a match.
     q = q.or(`budget_max.is.null,budget_max.gte.${Math.floor(unit.total_price / (1 + OVER_BUDGET_TOLERANCE))}`)

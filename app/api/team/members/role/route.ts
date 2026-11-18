@@ -11,7 +11,7 @@ const RoleSchema = z.object({
   orgSlug: z.string().optional(),
   orgId: z.string().uuid().optional(),
   memberId: z.string().uuid(),
-  role: z.enum(['owner', 'admin', 'manager', 'sales_exec', 'readonly']),
+  role: z.enum(['owner', 'admin', 'manager', 'team_lead', 'sales_exec', 'post_sales', 'readonly']),
 })
 
 export async function POST(request: NextRequest) {

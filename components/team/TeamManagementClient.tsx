@@ -19,6 +19,7 @@ import { InviteMemberModal } from './InviteMemberModal'
 import { DeactivateMemberModal } from './DeactivateMemberModal'
 import type { SeatUsage } from '@/lib/dal/subscriptions'
 import type { MemberRole } from '@/types/database'
+import { ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/lib/auth/permissions'
 
 export interface TeamMemberItem {
   id: string
@@ -51,21 +52,19 @@ interface TeamManagementClientProps {
   pendingInvitations: PendingInvitationItem[]
 }
 
-const ROLE_LABELS: Record<MemberRole, string> = {
-  owner: 'Owner',
-  admin: 'Admin',
-  manager: 'Manager',
-  sales_exec: 'Sales Executive',
-  readonly: 'Read Only',
-}
 
 const ROLE_COLORS: Record<MemberRole, string> = {
   owner: 'bg-purple-50 text-purple-700 border-purple-200',
   admin: 'bg-brand-light text-brand border-brand/30',
   manager: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  team_lead: 'bg-brand-light text-brand border-brand/30',
   sales_exec: 'bg-success-bg text-success border-success/30',
+  post_sales: 'bg-warning-bg text-warning border-warning/30',
   readonly: 'bg-surface-hover text-muted border-default',
 }
+
+/** Roles an admin can switch a member to from this menu (owner and admin are handled elsewhere). */
+const CHANGEABLE_ROLES: MemberRole[] = ['manager', 'team_lead', 'sales_exec', 'post_sales', 'readonly']
 
 export function TeamManagementClient({
   orgSlug,
@@ -313,27 +312,18 @@ export function TeamManagementClient({
                                 <div className="px-3 py-1 text-[10px] uppercase font-bold text-[var(--foreground-subtle)]">
                                   Change Role
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={() => handleChangeRole(m.id, 'sales_exec')}
-                                  className="w-full px-3 py-1.5 hover:bg-[var(--surface-hover)] text-left"
-                                >
-                                  Sales Executive
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleChangeRole(m.id, 'manager')}
-                                  className="w-full px-3 py-1.5 hover:bg-[var(--surface-hover)] text-left"
-                                >
-                                  Sales Manager
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleChangeRole(m.id, 'readonly')}
-                                  className="w-full px-3 py-1.5 hover:bg-[var(--surface-hover)] text-left"
-                                >
-                                  Read Only
-                                </button>
+                                {CHANGEABLE_ROLES.map((r) => (
+                                  <button
+                                    key={r}
+                                    type="button"
+                                    onClick={() => handleChangeRole(m.id, r)}
+                                    title={ROLE_DESCRIPTIONS[r]}
+                                    aria-current={m.role === r ? 'true' : undefined}
+                                    className="w-full px-3 py-1.5 hover:bg-[var(--surface-hover)] text-left aria-[current=true]:font-semibold"
+                                  >
+                                    {ROLE_LABELS[r]}
+                                  </button>
+                                ))}
                                 <div className="my-1 border-t border-[var(--border)]" />
                                 <button
                                   type="button"

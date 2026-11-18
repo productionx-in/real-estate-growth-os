@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeLeadWork } from '@/lib/follow-ups/auth'
 import { requireModule } from '@/lib/auth/entitlements'
+import { canAssignLeads, canAssignTo } from '@/lib/auth/permissions'
 import { scheduleVisit } from '@/lib/dal/site-visits'
 import { createServiceClient } from '@/lib/supabase/server'
 
@@ -27,9 +28,13 @@ export async function POST(request: NextRequest) {
   const { context } = auth
   { const gate = await requireModule(context.orgId, 'sales'); if (gate) return gate }
 
-  // A salesperson books visits for themselves; managers may give the visit to any active salesperson.
+  // A salesperson books visits for themselves; managers may give the visit to any active salesperson,
+  // a team lead to someone in their team.
   let assignedTo = input.assignedTo ?? context.lead.assigned_to ?? context.profile.id
-  if (context.role === 'sales_exec') assignedTo = context.profile.id
+  if (!canAssignLeads(context.role)) assignedTo = context.profile.id
+  else if (!canAssignTo(context.viewer, assignedTo)) {
+    return NextResponse.json({ error: 'You can only give visits to people in your team.' }, { status: 403 })
+  }
   const { data: member } = await createServiceClient().from('org_members').select('id')
     .eq('org_id', context.orgId).eq('profile_id', assignedTo).eq('status', 'active').maybeSingle()
   if (!member) return NextResponse.json({ error: 'The salesperson must be an active member of this workspace.' }, { status: 400 })

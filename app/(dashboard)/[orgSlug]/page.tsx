@@ -7,6 +7,7 @@ import { getSetupChecklist } from '@/lib/dal/onboarding'
 import { SetupChecklist } from '@/components/onboarding/SetupChecklist'
 import { ActionBoard } from '@/components/dashboard/ActionBoard'
 import { getActionBoard, PERIODS, type Period } from '@/lib/dal/action-board'
+import { leadScopeOf } from '@/lib/auth/permissions'
 
 export const metadata: Metadata = { title: 'Overview' }
 export const dynamic = 'force-dynamic'
@@ -22,8 +23,8 @@ export default async function WorkspacePage({ params, searchParams }: PageProps)
   const period: Period = rawPeriod && rawPeriod in PERIODS ? (rawPeriod as Period) : '7d'
   const { org, role, profile, isManager } = await getVerifiedWorkspace(orgSlug)
 
-  const isSalesExec = role === 'sales_exec'
-  // Sales executives see their own leads; everyone else sees the whole organisation.
+  // Whole-organisation roles see the organisation; everyone else their own queue (lib/auth/permissions.ts).
+  const isSalesExec = leadScopeOf(role) !== 'all'
   const mine = isSalesExec
   const board = await getActionBoard({ orgId: org.id, profileId: mine ? profile.id : null, period, includeTeam: isManager })
   const setup = isManager && org.type === 'developer' ? await getSetupChecklist(org.id, orgSlug, profile.id) : null

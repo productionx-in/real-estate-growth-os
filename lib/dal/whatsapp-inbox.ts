@@ -10,6 +10,7 @@ import {
   type InboxViewer, type ReplyMode,
 } from '@/lib/integrations/whatsapp/inbox-rules'
 import type { DalResult } from '@/lib/dal/routing'
+import { leadScopeOf } from '@/lib/auth/permissions'
 
 export type InboxFilter = 'all' | 'unread' | 'mine' | 'unlinked'
 
@@ -69,18 +70,21 @@ function summarise(r: ConvRow): ConversationSummary {
 
 export async function listConversations(orgId: string, viewer: InboxViewer, filter: InboxFilter = 'all'): Promise<ConversationSummary[]> {
   const db = createServiceClient()
-  const execOnly = viewer.role === 'sales_exec'
-  // A sales executive: only conversations whose lead is assigned to them (inner join on the lead).
+  const scope = leadScopeOf(viewer.role)
+  const scoped = scope !== 'all'
+  // Narrower roles only see conversations with a lead in their scope (inner join on the lead).
   let q = db.from('whatsapp_conversations')
-    .select(execOnly ? CONV_COLUMNS.replace('lead:leads(', 'lead:leads!inner(') : CONV_COLUMNS)
+    .select(scoped ? CONV_COLUMNS.replace('lead:leads(', 'lead:leads!inner(') : CONV_COLUMNS)
     .eq('org_id', orgId)
-  if (execOnly || filter === 'mine') q = q.eq('lead.assigned_to', viewer.profileId)
-  if (filter === 'mine' && !execOnly) q = q.not('lead', 'is', null)
+  if (scope === 'own' || filter === 'mine') q = q.eq('lead.assigned_to', viewer.profileId)
+  else if (scope === 'team') q = q.in('lead.assigned_to', [viewer.profileId, ...(viewer.teamProfileIds ?? [])])
+  if (scope === 'booked') q = q.eq('lead.status', 'booked')
+  if (filter === 'mine' && !scoped) q = q.not('lead', 'is', null)
   if (filter === 'unread') q = q.gt('unread_count', 0)
   if (filter === 'unlinked') q = q.is('lead_id', null)
   const { data } = await q.order('last_message_at', { ascending: false, nullsFirst: false }).limit(200)
   return ((data ?? []) as unknown as ConvRow[])
-    .filter((r) => canSeeConversation(r.lead?.assigned_to ?? null, viewer))
+    .filter((r) => canSeeConversation(r.lead?.assigned_to ?? null, viewer, r.lead?.status))
     .map(summarise)
 }
 
@@ -119,7 +123,7 @@ async function loadVisible(orgId: string, conversationId: string, viewer: InboxV
   const db = createServiceClient()
   const { data } = await db.from('whatsapp_conversations').select(CONV_COLUMNS).eq('org_id', orgId).eq('id', conversationId).maybeSingle()
   const row = data as unknown as ConvRow | null
-  return row && canSeeConversation(row.lead?.assigned_to ?? null, viewer) ? row : null
+  return row && canSeeConversation(row.lead?.assigned_to ?? null, viewer, row.lead?.status) ? row : null
 }
 
 export async function getThread(orgId: string, conversationId: string, viewer: InboxViewer, now = new Date()): Promise<Thread | null> {

@@ -54,12 +54,13 @@ const VISIT_COLUMNS = `id, lead_id, project_id, assigned_to, scheduled_at, statu
   meeting_link, checkin_distance_m, checked_in_at,
   lead:leads(id, name, phone), project:projects(id, name), agent:profiles!site_visits_assigned_to_fkey(id, full_name)`
 
-export async function listVisits(orgId: string, opts: { from: Date; to: Date; profileId?: string | null; projectId?: string | null }): Promise<VisitRow[]> {
+export async function listVisits(orgId: string, opts: { from: Date; to: Date; profileId?: string | null; profileIds?: string[] | null; projectId?: string | null }): Promise<VisitRow[]> {
   const db = createServiceClient()
   let q = db.from('site_visits').select(VISIT_COLUMNS).eq('org_id', orgId)
     .gte('scheduled_at', opts.from.toISOString()).lt('scheduled_at', opts.to.toISOString())
     .order('scheduled_at', { ascending: true }).limit(1000)
   if (opts.profileId) q = q.eq('assigned_to', opts.profileId)
+  else if (opts.profileIds) q = q.in('assigned_to', opts.profileIds)
   if (opts.projectId) q = q.eq('project_id', opts.projectId)
   const { data, error } = await q
   if (error) throw new Error(`site visits: ${error.message}`)

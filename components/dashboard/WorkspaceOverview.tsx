@@ -4,6 +4,8 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { Users, FolderOpen, CheckCircle, Layers, ArrowRight } from 'lucide-react'
 import { EmptyState } from '@/components/shared/EmptyState'
 import Link from 'next/link'
+import { leadScopeOf } from '@/lib/auth/permissions'
+import type { MemberRole } from '@/types/database'
 
 interface StatCardProps {
   label: string
@@ -67,7 +69,8 @@ export async function WorkspaceOverview({
   }
 
   // Role-Specific: Sales Executive Workspace-Scoped Dashboard (Approved Decision 2)
-  if (role === 'sales_exec' && profileId) {
+  // Anyone who does not see the whole organisation gets their personal dashboard, never org-wide totals.
+  if (leadScopeOf(role as MemberRole | undefined) !== 'all' && profileId) {
     const [myLeadsRes, mySiteVisitsRes] = await Promise.all([
       service
         .from('leads')

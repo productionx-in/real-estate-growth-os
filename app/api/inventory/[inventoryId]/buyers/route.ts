@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
 import { requireModule } from '@/lib/auth/entitlements'
 import { matchLeadsForUnit } from '@/lib/dal/matching'
+import { resolveLeadViewer } from '@/lib/dal/viewer'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ inventoryId: string }> }) {
   const { inventoryId } = await params
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const access = await authorizeOrgAccess(orgId.data)
   if (!access.success) return access.response
   { const gate = await requireModule(orgId.data, 'inventory'); if (gate) return gate }
-  const buyers = await matchLeadsForUnit(orgId.data, inventoryId, { role: access.context.role, profileId: access.context.profile.id })
+  const buyers = await matchLeadsForUnit(orgId.data, inventoryId, await resolveLeadViewer(orgId.data, access.context.role, access.context.profile.id))
   if (!buyers) return NextResponse.json({ error: 'Unit not found.' }, { status: 404 })
   return NextResponse.json({ buyers })
 }
