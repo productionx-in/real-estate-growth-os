@@ -160,6 +160,16 @@
     - Lead reassignment upon departure follows an explicit, managed workflow (reassign to active rep or move to unassigned pool).
   - *Multi-Organisation Membership Independence:* A user may belong to multiple organisations. Each organisation independently accounts for that user's seat against its own subscription quota. Safe switching is enforced server-side.
 
+### DEC-021: Channel Partner Network — Independent Agencies, Explicit Buyer Registration (PR 1)
+- **Context:** DEC-019 (approved decision 1) kept the developer-managed channel partner referral model "without cross-tenant syndication in this phase". The owner has since approved a channel partner network in which agencies are their own tenants and work with several developers (`docs/design/channel-partner-network.md`). This entry supersedes DEC-019's decision 1 for that scope only; the developer-managed `channel_partners` records stay as they are.
+- **Decision:**
+  - Agencies and developers are independent organisations linked by many-to-many partnerships (request by the developer with the agency's partner code, accepted by the agency). Neither is a child of the other.
+  - The agency keeps its leads. Buyer details cross only through an explicit registration, made by an agency owner/admin/manager from one of the agency's own leads, after confirming the agency is authorised to share them (recorded with user, time and wording version).
+  - Acceptance by the developer creates the developer's own lead; nothing is transferred. Protection: 60 days from acceptance, adjustable per partnership.
+  - Conflicts are checked across the whole developer on the normalised phone, atomically, and answered without naming the other agency or claim.
+  - Only shared projects cross, at the visibility the developer chose (default: availability without prices). Developer notes and other private data never reach the agency.
+  - Enforced in the database (definer functions, RLS with no client access) and on the server; every cross-organisation action is audited in both organisations in one transaction.
+- **Status:** PR 1 (partnerships, sharing, registration, conflicts, review) implemented on `claude/partner-network-pr1`; not merged or applied to production. Commissions, the agency progress view and expiry notifications are PR 2.
 
 ### DEC-022: Commercial Rules — Trials, Plan Limits, Expiry and Existing Workspaces
 - **Context:** The founder delegated the open commercial decisions from the self-serve / monetisation review ("you do the math … keep in product info"). Full rules: `docs/product/COMMERCIAL_RULES.md`.

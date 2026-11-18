@@ -36,6 +36,17 @@
 
 ---
 
+### Channel partner network — PR 1 (2026-11-18, in review, not deployed)
+
+| Item | Status | Evidence |
+| :--- | :--- | :--- |
+| Partnerships, project sharing, buyer registration with consent, conflict checks, developer review | **Code verified locally; PR open, not merged** | `tests/db-integration/p19-partner-network.test.mjs` (19/19, real local database), `tests/partner-network.test.mjs` (7/7), full `phase1-database-validation` workflow run locally: success |
+| Migration `20260058_channel_partner_network.sql` | **Applied to local database only; NOT applied to production** | Applies after a clean reset of all migrations in the local CI run |
+
+Design and decisions: `docs/design/channel-partner-network.md`, DEC-021. Commissions, the agency progress view and expiry notifications are PR 2.
+
+---
+
 ## 2. Database Migration Deployment Register
 
 | Migration | File | Type | Target Environment | Status |
