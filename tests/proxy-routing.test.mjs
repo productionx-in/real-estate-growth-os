@@ -45,6 +45,10 @@ await check('GET', '/capture.js', null)
 await check('GET', '/forms/embed.js', null)
 await check('GET', '/forms/view', null)
 await check('GET', '/capture.jsx', '/login') // exact paths only
+// Documents shared with buyers: only the exact share-link shape is public
+await check('GET', '/d/' + 'A'.repeat(43), null)
+await check('GET', '/d/short', '/login')
+await check('GET', '/d/' + 'A'.repeat(43) + '/x', '/login')
 await check('GET', '/acme/leads', '/login')
 await check('GET', '/select-org', '/login')
 await check('GET', '/apiary', '/login') // only the /api prefix is exempt, not look-alike paths

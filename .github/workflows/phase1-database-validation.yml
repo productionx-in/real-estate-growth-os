@@ -172,6 +172,7 @@ jobs:
           node tests/db-integration/p10-saved-views.test.mjs 2>&1 | tee diagnostics/p10-saved-views.log
           node tests/db-integration/p11-website-capture.test.mjs 2>&1 | tee diagnostics/p11-website-capture.log
           node tests/db-integration/p12-whatsapp-inbox.test.mjs 2>&1 | tee diagnostics/p12-whatsapp-inbox.log
+          node tests/db-integration/p13-documents.test.mjs 2>&1 | tee diagnostics/p13-documents.log
 
       # 11. Execute Application Regression Test Suite (Phase 6)
       - name: Execute Application Regression Test Suite (All 27 Tests)
