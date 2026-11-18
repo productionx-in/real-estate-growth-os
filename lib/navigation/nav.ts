@@ -7,7 +7,7 @@ import { canCreateLeads } from '@/lib/auth/permissions'
 
 export type NavKey =
   | 'home' | 'today' | 'leads' | 'visits' | 'inbox' | 'sales' | 'routing' | 'speed' | 'projects' | 'inventory'
-  | 'documents' | 'analytics' | 'integrations' | 'team' | 'settings' | 'billing' | 'audit' | 'support'
+  | 'documents' | 'analytics' | 'integrations' | 'team' | 'settings' | 'billing' | 'audit' | 'support' | 'partners'
 
 export interface NavLink {
   key: NavKey
@@ -27,7 +27,7 @@ export type OrgType = 'developer' | 'channel_partner'
 
 /** Path segment after the workspace slug → the module that must be on for the link to show (lib/auth/entitlements.ts). */
 export const MODULE_OF_SEGMENT: Record<string, string> = {
-  sales: 'sales', visits: 'sales', documents: 'sales', inventory: 'inventory', routing: 'routing',
+  sales: 'sales', visits: 'sales', documents: 'sales', partners: 'sales', inventory: 'inventory', routing: 'routing',
   integrations: 'integrations', analytics: 'analytics',
 }
 
@@ -47,6 +47,8 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
   const documents = L('documents', 'Document templates', '/documents')
   const analytics = L('analytics', 'Analytics', '/analytics')
   const team = L('team', 'Team', '/team')
+  // Channel partner network: owners, admins and managers of either side (the page and API check again).
+  const partners = L('partners', 'Partner network', '/partners')
   const adminLinks = [L('settings', 'Settings', '/settings'), L('billing', 'Plan & billing', '/billing'), L('audit', 'Audit log', '/audit-log'), L('support', 'Support access', '/support-access')]
 
   let groups: NavGroup[]
@@ -69,20 +71,20 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
     ]
   } else if (orgType === 'channel_partner') {
     groups = [
-      { items: [home, today, L('leads', 'Referred leads', '/leads'), visits, inbox, L('sales', 'Deals & commissions', '/sales')] },
+      { items: [home, today, L('leads', 'Referred leads', '/leads'), visits, inbox, L('sales', 'Deals & commissions', '/sales'), partners] },
       { title: 'Agency', items: [team, ...(isAdmin(role) ? adminLinks : [])] },
     ]
   } else if (role === 'manager') {
     groups = [
       { items: [home, today, L('leads', 'Leads', '/leads'), visits, inbox] },
-      { title: 'Sales', items: [L('sales', 'Sales', '/sales'), L('routing', 'Lead routing', '/routing'), L('speed', 'Speed to lead', '/speed-to-lead')] },
+      { title: 'Sales', items: [L('sales', 'Sales', '/sales'), partners, L('routing', 'Lead routing', '/routing'), L('speed', 'Speed to lead', '/speed-to-lead')] },
       { title: 'Portfolio', items: [projects, inventory, documents] },
       { title: 'Insights', items: [analytics, team] },
     ]
   } else {
     groups = [
       { items: [home, today, L('leads', 'Leads', '/leads'), visits, inbox] },
-      { title: 'Sales', items: [L('sales', 'Sales & partners', '/sales'), L('routing', 'Lead routing', '/routing'), L('speed', 'Speed to lead', '/speed-to-lead')] },
+      { title: 'Sales', items: [L('sales', 'Sales & partners', '/sales'), partners, L('routing', 'Lead routing', '/routing'), L('speed', 'Speed to lead', '/speed-to-lead')] },
       { title: 'Portfolio', items: [projects, inventory, documents] },
       { title: 'Insights', items: [analytics] },
       { title: 'Workspace', items: [L('integrations', 'Integrations', '/integrations'), team, ...adminLinks] },

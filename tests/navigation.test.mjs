@@ -18,13 +18,13 @@ console.log('NAVIGATION')
 
 test('each role keeps exactly the pages it had before the redesign', () => {
   const sort = (a) => [...a].sort()
-  assert.deepEqual(keys('owner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'integrations', 'team', 'settings', 'billing', 'audit', 'support']))
+  assert.deepEqual(keys('owner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'integrations', 'team', 'settings', 'billing', 'audit', 'support']))
   assert.deepEqual(keys('admin'), keys('owner'))
-  assert.deepEqual(keys('manager'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'team']))
+  assert.deepEqual(keys('manager'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'team']))
   assert.deepEqual(keys('sales_exec'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'inventory']))
   assert.deepEqual(keys('readonly'), sort(['home', 'projects', 'inventory', 'documents', 'analytics']))
-  assert.deepEqual(keys('manager', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'team']))
-  assert.deepEqual(keys('owner', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'team', 'settings', 'billing', 'audit', 'support']))
+  assert.deepEqual(keys('manager', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'team']))
+  assert.deepEqual(keys('owner', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'team', 'settings', 'billing', 'audit', 'support']))
 })
 
 test('new roles: a team lead gets the selling pages; post-sales gets customers, bookings and documents, no pipeline tools', () => {
@@ -46,7 +46,7 @@ test('settings, billing, audit log and support access are only offered to owners
 
 test('a switched-off module hides its pages everywhere (sales covers visits and documents)', () => {
   const k = keys('owner', 'developer', ['sales', 'inventory', 'analytics'])
-  for (const gone of ['sales', 'visits', 'documents', 'inventory', 'analytics']) assert.ok(!k.includes(gone), gone)
+  for (const gone of ['sales', 'partners', 'visits', 'documents', 'inventory', 'analytics']) assert.ok(!k.includes(gone), gone)
   assert.ok(k.includes('leads') && k.includes('today'))
   assert.equal(nav.navGroups('acme', 'readonly', 'developer', ['inventory', 'analytics', 'sales']).flatMap((g) => g.items).length, 2)
 })
