@@ -178,7 +178,7 @@ export function LeadForm({ orgSlug, orgId, projects, defaultValues, leadId }: Le
                   type="text"
                   value={form.name}
                   onChange={(e) => set('name', e.target.value)}
-                  className={cn(inputClass, errors.name && 'border-[var(--danger)] focus:ring-red-100')}
+                  className={cn(inputClass, errors.name && 'border-[var(--danger)] focus:ring-danger-bg')}
                   placeholder="Amit Patel"
                   autoFocus
                 />
@@ -193,7 +193,7 @@ export function LeadForm({ orgSlug, orgId, projects, defaultValues, leadId }: Le
                   type="tel"
                   value={form.phone}
                   onChange={(e) => set('phone', e.target.value)}
-                  className={cn(inputClass, errors.phone && 'border-[var(--danger)] focus:ring-red-100')}
+                  className={cn(inputClass, errors.phone && 'border-[var(--danger)] focus:ring-danger-bg')}
                   placeholder="+91 98765 43210"
                 />
                 <FieldError message={errors.phone} />
@@ -207,7 +207,7 @@ export function LeadForm({ orgSlug, orgId, projects, defaultValues, leadId }: Le
                   type="email"
                   value={form.email ?? ''}
                   onChange={(e) => set('email', e.target.value)}
-                  className={cn(inputClass, errors.email && 'border-[var(--danger)] focus:ring-red-100')}
+                  className={cn(inputClass, errors.email && 'border-[var(--danger)] focus:ring-danger-bg')}
                   placeholder="amit@example.com"
                 />
                 <FieldError message={errors.email} />
@@ -243,7 +243,7 @@ export function LeadForm({ orgSlug, orgId, projects, defaultValues, leadId }: Le
                   step={100000}
                   value={form.budget_max ?? ''}
                   onChange={(e) => set('budget_max', e.target.value ? Number(e.target.value) : null)}
-                  className={cn(inputClass, errors.budget_max && 'border-[var(--danger)] focus:ring-red-100')}
+                  className={cn(inputClass, errors.budget_max && 'border-[var(--danger)] focus:ring-danger-bg')}
                   placeholder="e.g. 10000000"
                 />
                 <FieldError message={errors.budget_max} />
@@ -353,7 +353,7 @@ export function LeadForm({ orgSlug, orgId, projects, defaultValues, leadId }: Le
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-2.5 text-[13px] font-medium text-white bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
+              className="flex-1 py-2.5 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
             >
               {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {loading ? 'Saving…' : isEditing ? 'Save changes' : 'Create lead'}

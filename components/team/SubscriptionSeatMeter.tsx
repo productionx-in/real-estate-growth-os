@@ -53,7 +53,7 @@ export function SubscriptionSeatMeter({ seatUsage, isAdmin }: SubscriptionSeatMe
             <button
               type="button"
               onClick={() => alert('Subscription Upgrade: Contact REGrow support or sales representative to expand seat allowances.')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium text-white bg-[var(--brand)] hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium text-brand-foreground bg-[var(--brand)] hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
             >
               <span>Add Seats</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -72,7 +72,7 @@ export function SubscriptionSeatMeter({ seatUsage, isAdmin }: SubscriptionSeatMe
           />
           <div
             style={{ width: `${reservedPercent}%` }}
-            className="h-full bg-amber-400 transition-all duration-300"
+            className="h-full bg-warning transition-all duration-300"
             title={`Reserved: ${reservedSeats} seats (${reservedPercent}%)`}
           />
         </div>
@@ -84,7 +84,7 @@ export function SubscriptionSeatMeter({ seatUsage, isAdmin }: SubscriptionSeatMe
               <span>Active ({occupiedSeats})</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-400" />
+              <span className="w-2 h-2 rounded-full bg-warning" />
               <span>Reserved Invites ({reservedSeats})</span>
             </span>
             <span className="flex items-center gap-1.5">

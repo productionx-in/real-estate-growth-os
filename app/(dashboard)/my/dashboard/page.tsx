@@ -153,8 +153,8 @@ export default async function MyDashboardPage({ searchParams }: PageProps) {
 
   const PRIORITY_DOT: Record<string, string> = {
     high: 'bg-danger',
-    medium: 'bg-amber-400',
-    low: 'bg-gray-300',
+    medium: 'bg-warning',
+    low: 'bg-strong',
   }
 
   return (
@@ -226,7 +226,7 @@ export default async function MyDashboardPage({ searchParams }: PageProps) {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${PRIORITY_DOT[lead.priority] ?? 'bg-gray-300'}`}
+                        className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${PRIORITY_DOT[lead.priority] ?? 'bg-strong'}`}
                         title={`${lead.priority} priority`}
                       />
                       <div>

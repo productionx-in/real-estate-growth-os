@@ -14,7 +14,7 @@ export interface ResponseSettings {
   workday_end: string
 }
 
-const input = 'w-full px-2.5 py-1.5 text-[12px] rounded-lg border border-[var(--border)] bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-blue-200'
+const input = 'w-full px-2.5 py-1.5 text-[12px] rounded-lg border border-[var(--border)] bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-brand-light'
 
 export function ResponseSettingsCard({ orgId, initial }: { orgId: string; initial: ResponseSettings }) {
   const router = useRouter()

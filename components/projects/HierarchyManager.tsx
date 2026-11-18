@@ -429,7 +429,7 @@ export function HierarchyManager({
                   </span>
                 )}
                 {bd.sold > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-medium">
+                  <span className="px-1.5 py-0.5 rounded-full bg-accent-bg text-accent border border-accent-border font-medium">
                     {bd.sold} sold
                   </span>
                 )}
@@ -572,7 +572,7 @@ export function HierarchyManager({
             <button
               type="button"
               onClick={openCreateRoot}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--brand)] text-white hover:bg-[var(--brand-dark)] transition-colors shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--brand)] text-brand-foreground hover:bg-[var(--brand-dark)] transition-colors shadow-2xs"
             >
               <Plus className="w-3.5 h-3.5" />
               Add Root Node
@@ -653,7 +653,7 @@ export function HierarchyManager({
             <button
               type="button"
               onClick={openCreateRoot}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-[var(--brand)] text-white hover:bg-[var(--brand-dark)] transition-colors shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-[var(--brand)] text-brand-foreground hover:bg-[var(--brand-dark)] transition-colors shadow-2xs"
             >
               <Plus className="w-4 h-4" />
               Create First Node
@@ -809,7 +809,7 @@ export function HierarchyManager({
                 <button
                   type="submit"
                   disabled={formSubmitting}
-                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[var(--brand)] text-white font-medium hover:bg-[var(--brand-dark)] transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[var(--brand)] text-brand-foreground font-medium hover:bg-[var(--brand-dark)] transition-colors disabled:opacity-50"
                 >
                   {formSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   {modalMode === 'edit' ? 'Update Node' : 'Create Node'}
