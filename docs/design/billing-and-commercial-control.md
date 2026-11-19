@@ -77,6 +77,10 @@ Package catalogue ──► Subscription contract ──► Entitlements ──�
 - A gateway receipt is never a tax invoice; REGrow issues the invoice.
 
 ### 2.5 Payment provider adapter
+
+> Superseded in detail by `payment-provider-migration.md` (Razorpay preserved, provider abstraction, Cashfree after
+> validation, switch procedure, mandates, refunds, disputes, reconciliation, health monitoring).
+
 - Interface: `createOrder`, `createPaymentLink`, `verifyPayment` (server-to-server fetch), `verifyWebhook`,
   `refund`, `fetchSettlements`, later `createMandate`. One implementation per provider; chosen by configuration.
 - Tables: `payment_transactions` (provider, environment, order/payment ids, amount, status, verified_at, raw response
@@ -152,8 +156,8 @@ Package catalogue ──► Subscription contract ──► Entitlements ──�
 4. Consolidate extra seats into one source (seat purchases become contract add-ons); keep the old columns read-only
    until verified, then drop.
 5. Tax rates, billing profiles, invoice series, credit notes; `billing_gst_cents` reads the tax configuration.
-6. Provider adapter: wrap the existing Razorpay code as the first adapter; add the transaction/webhook/refund tables;
-   lift the `gateway = 'razorpay'` constraint to a provider list; Cashfree adapter once merchant onboarding is done.
+6. Provider adapter: see `payment-provider-migration.md` steps M1–M7 (Razorpay kept and wrapped first, Cashfree in
+   sandbox, live only after validation and approval).
 7. The website reads published package versions instead of `lib/marketing/pricing.ts`.
 8. Grace period, renewal window and trial eligibility move to a `commercial_settings` table edited in the CMS.
 
@@ -203,6 +207,6 @@ the replacement.
 
 1. Approval rule: who may publish a price version, and the refund amount above which a second approver is needed.
 2. Quarterly pricing at launch: yes / no.
-3. Keep Razorpay as a fallback adapter, or remove it once Cashfree is live?
+3. ~~Keep Razorpay?~~ Decided 19 Nov 2026: Razorpay is kept and not disabled; Cashfree intended primary after validation.
 4. Supplier GST registration state (for place-of-supply) and SAC code — confirm with your accountant.
 5. Refund and cancellation policy terms (needed for the website and for Cashfree).
