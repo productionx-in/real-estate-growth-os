@@ -7,6 +7,7 @@ import { LeakageAudit } from '@/components/audit/LeakageAudit'
 export const metadata: Metadata = {
   title: { absolute: `Free lead-leakage audit — ${PRODUCT_NAME}` },
   description: 'Drop in last month’s lead export and see how fast leads were contacted, how many never were, and what it costs. Your file never leaves your browser.',
+  alternates: { canonical: '/leakage-audit' },
 }
 
 export default function LeakageAuditPage() {

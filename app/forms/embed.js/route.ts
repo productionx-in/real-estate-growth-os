@@ -2,10 +2,11 @@
 // Serves the client-side JavaScript embed runtime for customer project websites.
 // Injects responsive enquiry forms, captures UTMs/referrers, manages honeypots, and submits to /api/forms/submit.
 
+import { appUrl } from '@/lib/site/urls'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
-  const origin = request.nextUrl.origin || 'https://app.productionx.com'
+  const origin = appUrl(request.nextUrl.origin) ?? request.nextUrl.origin
 
   const jsContent = `/**
  * REGrow - Real Estate Growth OS Embeddable Enquiry Form Runtime

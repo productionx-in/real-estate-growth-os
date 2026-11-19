@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: { absolute: `Privacy Policy — ${LEGAL.product}` },
   description: `How ${LEGAL.entity} collects, uses and protects personal data in ${LEGAL.product}, the real-estate sales platform, and how to exercise your rights under India’s Digital Personal Data Protection Act, 2023.`,
   robots: LEGAL.confirmed ? undefined : { index: false, follow: true },
+  alternates: { canonical: '/privacy' },
 }
 
 export default function PrivacyPage() {

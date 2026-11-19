@@ -2,6 +2,7 @@
 // Developer Documentation & Outbound Webhook Verification Modal.
 'use client'
 
+import { absolute, appUrl } from '@/lib/site/urls'
 import { useState } from 'react'
 import {
   X,
@@ -30,7 +31,7 @@ export function DeveloperApiDocsModal({ isOpen, onClose }: DeveloperApiDocsModal
     setTimeout(() => setCopiedIndex(null), 2000)
   }
 
-  const sampleCurl = `curl -X POST https://api.productionx.in/api/v1/leads \\
+  const sampleCurl = `curl -X POST ${absolute('/api/v1/leads', appUrl())} \\
   -H "Authorization: Bearer px_live_998877665544332211" \\
   -H "Content-Type: application/json" \\
   -d '{

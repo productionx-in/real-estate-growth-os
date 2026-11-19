@@ -2,6 +2,7 @@
 // Interactive modal for WhatsApp Business Cloud API configuration, template review, and live testing.
 'use client'
 
+import { absolute, appUrl } from '@/lib/site/urls'
 import { useState } from 'react'
 import {
   X,
@@ -292,7 +293,7 @@ export function WhatsAppWizardModal({
                   <span className="text-xs font-bold text-muted">Webhook Callback URL:</span>
                   <button
                     onClick={() =>
-                      handleCopy(`https://app.productionx.com/api/webhooks/whatsapp/${connectionId}`)
+                      handleCopy(absolute(`/api/webhooks/whatsapp/${connectionId}`, appUrl()))
                     }
                     className="text-[11px] text-success flex items-center gap-1 hover:underline cursor-pointer"
                   >
@@ -301,7 +302,7 @@ export function WhatsAppWizardModal({
                   </button>
                 </div>
                 <code className="block p-2 rounded bg-surface border border-default text-xs font-mono text-foreground break-all">
-                  https://app.productionx.com/api/webhooks/whatsapp/{connectionId}
+                  {absolute(`/api/webhooks/whatsapp/${connectionId}`, appUrl())}
                 </code>
               </div>
             </div>
