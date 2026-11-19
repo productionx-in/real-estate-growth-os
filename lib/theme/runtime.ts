@@ -10,7 +10,7 @@ export type ThemePreference = 'sun' | 'system' | 'light' | 'dark'
 export function themeRuntime() {
   const KEY = 'regrow-theme'
   const PREFS = ['sun', 'system', 'light', 'dark']
-  const LIGHT_ONLY = [/^\/$/, /^\/pricing(\/|$)/, /^\/demo(\/|$)/, /^\/leakage-audit(\/|$)/, /^\/privacy(\/|$)/, /^\/terms(\/|$)/, /^\/p\//, /^\/d\//, /^\/forms(\/|$)/]
+  const LIGHT_ONLY = [/^\/$/, /^\/pricing(\/|$)/, /^\/demo(\/|$)/, /^\/leakage-audit(\/|$)/, /^\/migration(\/|$)/, /^\/privacy(\/|$)/, /^\/terms(\/|$)/, /^\/p\//, /^\/d\//, /^\/forms(\/|$)/]
 
   // Representative coordinates for common timezones; others are estimated from the UTC offset.
   const ZONES: Record<string, [number, number]> = {

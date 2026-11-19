@@ -5,7 +5,7 @@ import { BrandMark } from './BrandMark'
 const NAV = [
   { href: '/#how-it-works', label: 'How it works' },
   { href: '/#features', label: 'Features' },
-  { href: '/#switch', label: 'Switching from Sell.Do' },
+  { href: '/migration', label: 'Migration' },
   { href: '/pricing', label: 'Pricing' },
 ]
 
