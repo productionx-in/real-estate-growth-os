@@ -44,11 +44,12 @@ test('ROI clamps nonsense input instead of producing NaN or negatives', () => {
   for (const v of Object.values(r)) assert.ok(Number.isFinite(v) && v >= 0, JSON.stringify(r))
   assert.equal(r.subscription, 12000)
 })
-test('features marked soon are labelled, and live ones are not', () => {
-  const soon = m.PUBLIC_PLANS.flatMap((p) => p.features.filter((f) => f.soon).map((f) => f.text))
-  assert.ok(soon.some((t) => /reminder/i.test(t)), 'follow-up reminders are not live yet and must be marked soon')
-  assert.ok(soon.some((t) => /sign-on/i.test(t)))
-  assert.ok(!soon.some((t) => /routing/i.test(t)), 'routing is live')
+test('feature labels match what is live: follow-ups, escalation and routing are built, so never marked soon', () => {
+  const all = m.PUBLIC_PLANS.flatMap((p) => p.features)
+  const soon = all.filter((f) => f.soon).map((f) => f.text)
+  assert.ok(all.some((f) => /reminder/i.test(f.text)), 'follow-up reminders are listed')
+  assert.ok(!soon.some((t) => /reminder|escalat|speed-to-lead|routing/i.test(t)), 'live features are not labelled soon')
+  assert.ok(!all.some((f) => /sign-on/i.test(f.text)), 'single sign-on is not built and is not listed')
 })
 test('formatInr uses Indian digit grouping', () => {
   assert.equal(m.formatInr(120000), '₹1,20,000')
