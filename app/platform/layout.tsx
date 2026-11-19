@@ -30,6 +30,7 @@ export default async function PlatformLayout({ children }: { children: React.Rea
             <nav aria-label="Console" className="flex gap-4 text-[13px] text-muted">
               <Link href="/platform" className="hover:text-foreground">Organisations</Link>
               {PLATFORM_AUDIT_READERS.includes(access.role) && <Link href="/platform/audit" className="hover:text-foreground">Platform audit log</Link>}
+              {['super_admin', 'finance_admin', 'auditor'].includes(access.role) && <Link href="/platform/payments" className="hover:text-foreground">Payments</Link>}
               {access.role === 'super_admin' && <Link href="/admin/provision" className="hover:text-foreground">Provision customer</Link>}
             </nav>
           )}
