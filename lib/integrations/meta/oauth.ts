@@ -2,6 +2,7 @@
 // Secure Meta OAuth 2.0 handshake, HMAC state signing/validation, and token lifecycle.
 
 import crypto from 'node:crypto'
+import { devOnlyFallback } from '@/lib/security/dev-fallback'
 import { getMetaAppConfig, META_OAUTH_SCOPES } from './config'
 
 export interface OAuthStatePayload {
@@ -20,7 +21,7 @@ function getStateSigningSecret(): string {
     process.env.META_APP_SECRET ||
     process.env.ENCRYPTION_KEY ||
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    'real-estate-growth-os-oauth-state-secret-2026'
+    devOnlyFallback('OAuth state signing secret (META_APP_SECRET or ENCRYPTION_KEY)', 'real-estate-growth-os-oauth-state-secret-2026')
   )
 }
 

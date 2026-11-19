@@ -32,12 +32,12 @@ export function DeveloperApiDocsModal({ isOpen, onClose }: DeveloperApiDocsModal
   }
 
   const sampleCurl = `curl -X POST ${absolute('/api/v1/leads', appUrl())} \\
-  -H "Authorization: Bearer px_live_998877665544332211" \\
+  -H "Authorization: Bearer px_live_YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
     "name": "Kiran Varma",
     "phone": "+919849012345",
-    "email": "kiran.v@gmail.com",
+    "email": "kiran.v@example.com",
     "projectId": "proj_skygardens_01",
     "notes": "Looking for 3BHK flat on upper floor"
   }'`
