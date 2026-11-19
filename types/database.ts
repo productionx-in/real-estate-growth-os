@@ -414,6 +414,7 @@ export interface Database {
           lifecycle_state: OrgLifecycleState
           lifecycle_reason: string | null
           lifecycle_changed_at: string | null
+          is_demo: boolean
           id: string
           name: string
           slug: string
@@ -428,6 +429,7 @@ export interface Database {
           lifecycle_state?: OrgLifecycleState
           lifecycle_reason?: string | null
           lifecycle_changed_at?: string | null
+          is_demo?: boolean
           id?: string
           name: string
           slug: string
@@ -442,6 +444,7 @@ export interface Database {
           lifecycle_state?: OrgLifecycleState
           lifecycle_reason?: string | null
           lifecycle_changed_at?: string | null
+          is_demo?: boolean
           id?: string
           name?: string
           slug?: string
