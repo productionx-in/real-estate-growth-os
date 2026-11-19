@@ -48,7 +48,7 @@ const FEATURES = [
 
 const FAQ = [
   { q: 'How long does setup take?', a: 'We set it up with you: connect your lead sources, create your teams and routing rules, and import your existing leads. How long it takes depends mainly on how many sources you connect and whether they need third-party approval (Meta, Google, portals).' },
-  { q: 'Can we keep Sell.Do or our current CRM?', a: 'Yes. You can run REGrow in front of your current CRM for lead capture and response, or move fully with our import. Many teams start side by side.' },
+  { q: 'We already use a CRM. Can we move to REGrow?', a: 'Yes. We start with an assessment of your current system and a sample of your data, then plan the import of leads and contacts, project and inventory setup, workflows and team onboarding with you. Many teams run REGrow alongside their current tools during the transition.' },
   { q: 'Do you charge per lead?', a: 'No. The plan price covers unlimited leads and reminders. Only services that cost us per message — such as WhatsApp alerts beyond the included volume — are billed at usage.' },
   { q: 'What happens to a lead when nobody is available?', a: 'It stays unassigned instead of going to someone who is off duty or over their daily limit, and your managers are notified straight away.' },
   { q: 'Who owns the data?', a: 'You do. Channel-partner agencies have their own independent workspace and own their leads.' },
@@ -177,22 +177,25 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Switch */}
-      <section id="switch" aria-labelledby="switch-heading" className="bg-[var(--background)] border-y border-[var(--border)] scroll-mt-16">
+      {/* Moving to REGrow */}
+      <section id="migration" aria-labelledby="migration-heading" className="bg-[var(--background)] border-y border-[var(--border)] scroll-mt-16">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-20 grid gap-10 md:grid-cols-2 items-center">
           <div>
-            <p className="text-[13px] font-semibold uppercase tracking-wider text-[var(--brand)]">Switching is low-risk</p>
-            <h2 id="switch-heading" className="mt-2 text-[30px] font-bold tracking-tight leading-tight">On Sell.Do, LeadSquared or spreadsheets today?</h2>
+            <p className="text-[13px] font-semibold uppercase tracking-wider text-[var(--brand)]">Migration and onboarding</p>
+            <h2 id="migration-heading" className="mt-2 text-[30px] font-bold tracking-tight leading-tight">Moving to {PRODUCT_NAME}? Let&rsquo;s make it simple.</h2>
             <p className="mt-4 text-[16px] text-[var(--foreground-muted)] leading-relaxed">
-              Start with a 30-day paid pilot. We agree the target with you up front — for example, nine in ten leads contacted within
-              five minutes — and measure it from day one. If you continue, the pilot fee counts towards your annual plan.
+              Coming from another CRM, spreadsheets or WhatsApp groups, we plan the move with you. It starts with an assessment of
+              your current system and data, so you know exactly what moves and how before anything changes.
             </p>
+            <Link href="/migration" className="mt-6 inline-flex items-center gap-2 text-[15px] font-semibold text-[var(--brand)] hover:underline">
+              How migration works <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </Link>
           </div>
           <ul className="space-y-4">
             {[
-              ['Bring your leads with you', 'Import your existing leads from a CSV export of your current CRM.'],
-              ['Run side by side', 'Keep your current CRM for post-sales while REGrow handles capture and response.'],
-              ['See the before and after', 'We measure your current response time from your export, then show the change every week.'],
+              ['Assessment first', 'We review your current setup and a sample export, and agree the migration scope in writing.'],
+              ['Leads, projects and inventory', 'Leads and contacts imported from your exports; projects and unit inventory set up with you.'],
+              ['A guided transition', 'Workflows configured, teams trained, and REGrow run alongside your current tools until you are ready.'],
             ].map(([t, b]) => (
               <li key={t} className="flex gap-3 bg-white rounded-2xl border border-[var(--border)] p-5">
                 <Check className="w-5 h-5 mt-0.5 text-emerald-600 flex-shrink-0" aria-hidden="true" />
