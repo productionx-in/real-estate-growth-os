@@ -34,6 +34,7 @@ await test('detects bearer tokens, provider keys, JWTs, private keys and assigne
     'assigned-secret': j("const RESEND_API_KEY = '", alnum(32), "'"),
     'github-token': j('gh', 'p_', alnum(36)),
     'url-credentials': j('postgres://admin:', alnum(16), '@db.example.org:5432/x'),
+    'otpauth-uri': j('otp', 'auth://totp/REGrow:a?secret=', 'JBSWY3DPEHPK3PXPJBSWY3DP', '&issuer=x'),
   }
   for (const [rule, line] of Object.entries(cases)) {
     const found = scanText('src/example.ts', line)
@@ -49,6 +50,15 @@ await test('placeholders, template references and local Supabase demo keys are n
   }
   const demo = j('ey', 'JhbGciOiJIUzI1NiJ9.', Buffer.from(JSON.stringify({ iss: 'supabase-demo', role: 'anon' })).toString('base64url'), '.', alnum(30))
   assert.deepEqual(scanText('tests/x.mjs', `const anon = '${demo}'`), [])
+})
+
+await test('private demo login sheets, env and key files can never be committed', async () => {
+  for (const f of ['.demo-credentials/DEMO-LOGINS-local.md', 'x/.demo-credentials/a.json', '.env', '.env.local', 'certs/server.pem']) {
+    assert.deepEqual(scanText(f, 'anything').map((x) => x.rule), ['forbidden-file'], f)
+  }
+  assert.deepEqual(scanText('.env.example', 'NEXT_PUBLIC_APP_URL=https://app.example.test'), [])
+  assert.equal(execFileSync('git', ['ls-files', '.demo-credentials'], { cwd: root, encoding: 'utf8' }).trim(), '', 'no login sheet is tracked')
+  assert.match(fs.readFileSync(path.join(root, '.gitignore'), 'utf8'), /^\.demo-credentials\/$/m)
 })
 
 await test('allowlisted fixtures are pinned by hash: changing the value makes it reportable again', async () => {

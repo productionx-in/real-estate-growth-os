@@ -15,6 +15,17 @@
 The exact commit and file GitGuardian matched are visible only in its dashboard. Check them there against the table
 above before closing the alert.
 
+## Second exposure, found during this investigation (19 November 2026)
+
+| | |
+|---|---|
+| What | The private demo login sheet, `.demo-credentials/DEMO-LOGINS-local.md` and `demo-logins-local.json`. It holds the shared demo password and authenticator (TOTP) secrets for the six demo staff accounts. |
+| Where | Commit `909c960` on `claude/payments-operations`, merged into `main` by PR #48, plus a merge commit on `claude/demo-environment`. |
+| Cause | The repository's `.gitignore` entry for `.demo-credentials/` existed only on the demo branch. A commit on another branch used `git add -A` and picked up the folder. |
+| Impact | The accounts existed only in a disposable local Supabase stack (127.0.0.1) inside the build container. They never existed in production or any reachable environment, so the TOTP secrets open nothing. The password is the temporary demo password chosen for staging. The files are outside `public/`, so the website never served them. |
+| Fixed | The files were removed from `main` (this PR) and from the demo branch. `.gitignore` now ignores `.demo-credentials/` on every branch. The scanner refuses `.demo-credentials/`, `.env` and key files, and detects `otpauth://` secrets. Regression tests cover all of this. |
+| Remaining | The values stay in Git history unless the owner approves a rewrite. Since the staging password is now in history, **use a different temporary password when seeding staging** (`DEMO_PASSWORD`); staff authenticator secrets are regenerated on every reset anyway. |
+
 ## What changed (PR "Secret scanning")
 
 1. The docs sample now reads `Authorization: Bearer px_live_YOUR_API_KEY`. Its example e-mail moved to `example.com`.

@@ -28,8 +28,11 @@ export const RULES = [
   { id: 'regrow-api-key', re: /\bpx_live_[A-Za-z0-9]{12,}/ },
   { id: 'bearer-literal', re: /\b[Bb]earer\s+(?!\$\{|<|\.\.\.)(?![^\s'"`]*(?:YOUR|your|EXAMPLE|example|xxxx|XXXX))[A-Za-z0-9._~+/-]{20,}=*/ },
   { id: 'assigned-secret', re: /\b[A-Za-z_]*(?:SECRET|TOKEN|PASSWORD|API_KEY|PRIVATE_KEY|SERVICE_ROLE_KEY)[A-Za-z_]*\s*[:=]\s*['"`]([A-Za-z0-9._~+/=-]{24,})['"`]/ },
+  { id: 'otpauth-uri', re: /otpauth:\/\/[th]otp\/[^\s'"`]*secret=[A-Z2-7]{16,}/i },
   { id: 'url-credentials', re: /\b[a-z][a-z0-9+.-]*:\/\/[^\s:@/'"`]+:[^\s:@/'"`]{8,}@(?!127\.0\.0\.1|localhost)/ },
 ]
+// Files that must never be committed, whatever they contain.
+const FORBIDDEN_FILES = [/(^|\/)\.demo-credentials\//, /(^|\/)\.env(\.[A-Za-z0-9_-]+)?$/, /\.(pem|p12|pfx|key)$/i]
 const SKIP = [/(^|\/)package-lock\.json$/, /(^|\/)node_modules\//, /\.(png|jpe?g|gif|webp|ico|woff2?|ttf|pdf|zip|gz)$/i, /^scripts\/security\/allowlist\.json$/]
 
 const allow = (() => { try { return JSON.parse(fs.readFileSync(path.join(root, 'scripts/security/allowlist.json'), 'utf8')) } catch { return [] } })()
@@ -40,6 +43,7 @@ const isLocalSupabaseDemo = (v) => { try { const p = JSON.parse(Buffer.from(v.sp
 
 export function scanText(file, text) {
   const out = []
+  if (FORBIDDEN_FILES.some((r) => r.test(file)) && !/\.env\.example$/.test(file)) return [{ file, line: 1, rule: 'forbidden-file', preview: '(file must not be committed)', sha256: '' }]
   if (SKIP.some((r) => r.test(file))) return out
   text.split('\n').forEach((line, i) => {
     for (const rule of RULES) {
