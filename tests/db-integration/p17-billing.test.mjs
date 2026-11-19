@@ -175,7 +175,9 @@ async function main() {
     console.log(`\nP17 billing: ${passed} checks passed.`)
   } finally {
     for (const id of [org, other, agency]) {
+      await db.query('DELETE FROM public.unapplied_payments WHERE org_id=$1', [id]).catch(() => {})
       await db.query('DELETE FROM public.org_subscription_payments WHERE org_id=$1', [id]).catch(() => {})
+      await db.query('DELETE FROM public.payment_attempts WHERE org_id=$1', [id]).catch(() => {})
       await db.query('DELETE FROM public.org_subscription_invoices WHERE org_id=$1', [id]).catch(() => {})
       await db.query('DELETE FROM public.org_subscriptions WHERE org_id=$1', [id]).catch(() => {})
       await db.query('DELETE FROM public.org_members WHERE org_id=$1', [id]).catch(() => {})

@@ -1,6 +1,7 @@
 'use client'
 // components/billing/BillingClient.tsx — the billing page's interactive parts: start a trial, choose a plan,
-// add seats, renew, and pay an invoice with Razorpay Checkout. Every action is checked again on the server.
+// add seats, renew, and pay an invoice with the primary payment provider's checkout (Razorpay or Cashfree). Every
+// action is checked again on the server; a payment counts only after the server has confirmed it with the provider.
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -11,18 +12,23 @@ import { INVOICE_TYPE_LABEL, RENEWAL_WINDOW_DAYS, STATUS_LABEL, billingNotice, d
 import type { BillingOverview } from '@/lib/dal/billing'
 
 declare global {
-  interface Window { Razorpay?: new (opts: Record<string, unknown>) => { open: () => void; on: (e: string, f: (r: unknown) => void) => void } }
+  interface Window {
+    Razorpay?: new (opts: Record<string, unknown>) => { open: () => void; on: (e: string, f: (r: unknown) => void) => void }
+    Cashfree?: (opts: { mode: 'sandbox' | 'production' }) => { checkout: (o: { paymentSessionId: string; redirectTarget?: string }) => Promise<{ error?: { message?: string }; paymentDetails?: unknown; redirect?: boolean }> }
+  }
 }
+
+const SDK = { razorpay: 'https://checkout.razorpay.com/v1/checkout.js', cashfree: 'https://sdk.cashfree.com/js/v3/cashfree.js' } as const
 
 const STATUS_TONE = { trial: 'brand', pending_payment: 'warning', active: 'success', past_due: 'danger', canceled: 'neutral', expired: 'danger' } as const
 const INVOICE_TONE: Record<string, 'neutral' | 'success' | 'warning' | 'danger'> = { issued: 'warning', paid: 'success', canceled: 'neutral', void: 'neutral' }
 const date = (iso: string | null) => (iso ? new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso)) : '—')
 
-function loadCheckout(): Promise<void> {
-  if (window.Razorpay) return Promise.resolve()
+function loadCheckout(provider: keyof typeof SDK): Promise<void> {
+  if (provider === 'razorpay' ? window.Razorpay : window.Cashfree) return Promise.resolve()
   return new Promise((resolve, reject) => {
     const s = document.createElement('script')
-    s.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    s.src = SDK[provider]
     s.async = true
     s.onload = () => resolve()
     s.onerror = () => reject(new Error('Could not load the payment window. Check your connection and try again.'))
@@ -58,7 +64,18 @@ export function BillingClient({ orgId, orgSlug, orgName, overview, payOnline }: 
     setBusy(`pay-${invoiceId}`); setError(null); setNotice(null)
     try {
       const o = await post(`/api/billing/invoices/${invoiceId}/checkout`, { orgId })
-      await loadCheckout()
+      if (o.alreadyPaid) { setNotice('This invoice has already been paid. Thank you!'); router.refresh(); return }
+      await loadCheckout(o.provider)
+      if (o.provider === 'cashfree') {
+        const result = await window.Cashfree!({ mode: o.mode }).checkout({ paymentSessionId: o.paymentSessionId, redirectTarget: '_modal' })
+        if (result.error) { setError('The payment did not go through. You have not been charged; please try again.'); return }
+        try {
+          const done = await post('/api/billing/payments/confirm', { orgId, provider: 'cashfree', orderId: o.orderId })
+          setNotice(done.status === 'pending' ? 'Payment received — confirming with Cashfree. This page will update shortly.' : 'Payment received. Thank you!')
+        } catch (e) { setError((e as Error).message) }
+        router.refresh()
+        return
+      }
       await new Promise<void>((resolve) => {
         const rz = new window.Razorpay!({
           key: o.keyId, order_id: o.orderId, amount: o.amount, currency: o.currency,
@@ -67,7 +84,7 @@ export function BillingClient({ orgId, orgSlug, orgName, overview, payOnline }: 
           theme: { color: getComputedStyle(document.documentElement).getPropertyValue('--brand').trim() || undefined },
           handler: async (r: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
             try {
-              const done = await post('/api/billing/razorpay/confirm', { orgId, ...r })
+              const done = await post('/api/billing/payments/confirm', { orgId, provider: 'razorpay', orderId: r.razorpay_order_id, ...r })
               setNotice(done.status === 'pending' ? 'Payment received — confirming with Razorpay. This page will update shortly.' : 'Payment received. Thank you!')
             } catch (e) { setError((e as Error).message) }
             router.refresh(); resolve()

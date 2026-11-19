@@ -29,6 +29,7 @@ export default async function PlatformLayout({ children }: { children: React.Rea
               {can(access.role as StaffRole, 'organisations') && <Link href="/platform/organisations" className="hover:text-foreground">Organisations</Link>}
               {can(access.role as StaffRole, 'salesRead') && <Link href="/platform/sales" className="hover:text-foreground">Sales</Link>}
               {can(access.role as StaffRole, 'supportRead') && <Link href="/platform/support" className="hover:text-foreground">Support</Link>}
+              {['super_admin', 'finance_admin', 'auditor'].includes(access.role) && <Link href="/platform/payments" className="hover:text-foreground">Payments</Link>}
               {PLATFORM_AUDIT_READERS.includes(access.role) && <Link href="/platform/audit" className="hover:text-foreground">Audit log</Link>}
               {can(access.role as StaffRole, 'staff') && <Link href="/platform/staff" className="hover:text-foreground">Staff</Link>}
               {access.role === 'super_admin' && <Link href="/admin/provision" className="hover:text-foreground">Provision customer</Link>}

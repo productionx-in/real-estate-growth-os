@@ -4,6 +4,14 @@
 // This file drives what prospects see; what a workspace is actually entitled to lives in the
 // subscription catalogue (subscription_plans / lib/subscriptions/config.ts) and is set at provisioning.
 
+/**
+ * Public prices are switched off until the founder approves final packages (pricing research in progress,
+ * 19 Nov 2026). While off, the site shows the packages and what they include, never an amount, and every price
+ * figure below is a draft that no visitor sees. Turn on by setting NEXT_PUBLIC_PRICES_PUBLISHED=true in the
+ * deployment's environment — no code change — once the figures here match the approved, published catalogue.
+ */
+export const PRICES_PUBLISHED = process.env.NEXT_PUBLIC_PRICES_PUBLISHED === 'true'
+
 /** Plan codes accepted by POST /api/public/onboarding-requests. */
 export type RequestPlanCode = 'starter' | 'growth' | 'enterprise'
 

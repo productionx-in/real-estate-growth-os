@@ -7,7 +7,8 @@ import { BillingClient } from '@/components/billing/BillingClient'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { billingRoleFor } from '@/lib/billing/access'
 import { getBillingOverview } from '@/lib/dal/billing'
-import { razorpayConfig } from '@/lib/billing/razorpay'
+import { createServiceClient } from '@/lib/supabase/server'
+import { envResolver, primaryAdapter } from '@/lib/payments/registry'
 
 export const metadata: Metadata = { title: 'Billing' }
 export const dynamic = 'force-dynamic'
@@ -18,9 +19,11 @@ export default async function BillingPage({ params }: { params: Promise<{ orgSlu
   // Owners/admins; also while the workspace is on a billing hold (their real role is kept aside), so they can pay.
   if (!(await billingRoleFor(org.id, profile.id))) redirect(`/${orgSlug}`)
   const overview = await getBillingOverview(org.id)
+  // Online payment is offered only when the primary gateway (set by the Platform Owner) is enabled and configured.
+  const primary = await primaryAdapter(createServiceClient(), envResolver())
   return (
     <PageShell title="Plan & billing" description="Your plan, seats and invoices. Prices are in INR; GST at 18% is added to every invoice.">
-      <BillingClient orgId={org.id} orgSlug={orgSlug} orgName={org.name} overview={overview} payOnline={!!razorpayConfig()} />
+      <BillingClient orgId={org.id} orgSlug={orgSlug} orgName={org.name} overview={overview} payOnline={!!primary.adapter} />
     </PageShell>
   )
 }

@@ -8,14 +8,15 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PRODUCT_NAME } from '@/lib/brand'
-import { PUBLIC_PLANS, formatInr } from '@/lib/marketing/pricing'
+import { PRODUCT_DESCRIPTOR } from '@/lib/brand'
+import { pagesIn } from '@/lib/marketing/site-pages'
 import { MarketingShell } from '@/components/marketing/MarketingShell'
 import { LeadFlowPreview } from '@/components/marketing/LeadFlowPreview'
 
 export const metadata: Metadata = {
-  title: { absolute: `${PRODUCT_NAME} — Real estate sales software for developers and channel partner agencies` },
+  title: { absolute: `${PRODUCT_NAME} — Real estate CRM, inventory and channel partner management software` },
   description:
-    'REGrow captures leads from Meta, Google, property portals, your website and WhatsApp, assigns each one to the right salesperson in seconds and makes sure someone follows up.',
+    'Real estate CRM, property inventory, site visits, bookings and channel partner management in one platform for Indian developers and channel partner agencies.',
   alternates: { canonical: '/' },
 }
 
@@ -48,8 +49,8 @@ const FEATURES = [
 
 const FAQ = [
   { q: 'How long does setup take?', a: 'We set it up with you: connect your lead sources, create your teams and routing rules, and import your existing leads. How long it takes depends mainly on how many sources you connect and whether they need third-party approval (Meta, Google, portals).' },
-  { q: 'Can we keep Sell.Do or our current CRM?', a: 'Yes. You can run REGrow in front of your current CRM for lead capture and response, or move fully with our import. Many teams start side by side.' },
-  { q: 'Do you charge per lead?', a: 'No. The plan price covers unlimited leads and reminders. Only services that cost us per message — such as WhatsApp alerts beyond the included volume — are billed at usage.' },
+  { q: 'We already use a CRM. Can we move to REGrow?', a: 'Yes. We start with an assessment of your current system and a sample of your data, then plan the import of leads and contacts, project and inventory setup, workflows and team onboarding with you. Many teams run REGrow alongside their current tools during the transition.' },
+  { q: 'What does REGrow include besides lead management?', a: 'Projects and property inventory with holds and bookings, site visits, channel partner sharing and buyer registration, sales analytics, roles and an audit log — in the same platform as your leads.' },
   { q: 'What happens to a lead when nobody is available?', a: 'It stays unassigned instead of going to someone who is off duty or over their daily limit, and your managers are notified straight away.' },
   { q: 'Who owns the data?', a: 'You do. Channel-partner agencies have their own independent workspace and own their leads.' },
 ]
@@ -59,8 +60,6 @@ export default async function HomePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (user) redirect('/select-org')
 
-  const leads = PUBLIC_PLANS.find((p) => p.id === 'leads')!
-
   return (
     <MarketingShell>
       {/* Hero */}
@@ -69,25 +68,25 @@ export default async function HomePage() {
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-14 pb-16 md:pt-20 md:pb-24 grid gap-12 md:grid-cols-[1.1fr_1fr] items-center">
           <div>
             <p className="inline-flex items-center gap-2 text-[13px] font-medium text-[var(--brand)] bg-[var(--brand-light)] border border-blue-200 rounded-full px-3 py-1">
-              For real-estate developers and channel partners
+              The {PRODUCT_DESCRIPTOR} for developers and channel partners
             </p>
-            <h1 className="mt-5 text-[38px] sm:text-[48px] leading-[1.05] font-extrabold tracking-tight">
-              Every lead called in <span className="text-[var(--brand)]">minutes</span>, not hours.
+            <h1 className="mt-5 text-[36px] sm:text-[48px] leading-[1.05] font-extrabold tracking-tight">
+              Every lead answered. Every unit accounted for. <span className="text-[var(--brand)]">Every partner on record.</span>
             </h1>
             <p className="mt-5 text-[17px] leading-relaxed text-[var(--foreground-muted)] max-w-xl">
-              {PRODUCT_NAME} is the sales operating system for real-estate developers and channel partner agencies. Every enquiry
-              lands in one place, reaches the right salesperson in seconds, and its follow-ups, site visits and bookings stay on track.
+              {PRODUCT_NAME} connects lead management, sales teams, projects and property inventory, site visits, bookings and channel
+              partner workflows in one platform — so real estate developers and agencies sell from the same, current picture.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link href="/demo" className="inline-flex items-center justify-center gap-2 px-5 py-3 text-[15px] font-semibold text-white bg-[var(--brand)] hover:bg-[var(--brand-hover)] rounded-xl shadow-sm transition-colors">
                 Book a 20-minute demo <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </Link>
-              <Link href="/pricing" className="inline-flex items-center justify-center px-5 py-3 text-[15px] font-semibold text-[var(--foreground)] bg-white border border-[var(--border-strong)] hover:bg-[var(--surface-hover)] rounded-xl transition-colors">
-                See pricing
+              <Link href="/features" className="inline-flex items-center justify-center px-5 py-3 text-[15px] font-semibold text-[var(--foreground)] bg-white border border-[var(--border-strong)] hover:bg-[var(--surface-hover)] rounded-xl transition-colors">
+                Explore the product
               </Link>
             </div>
             <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-[var(--foreground-muted)]">
-              {[`${formatInr(leads.monthlyInr!)}/month for ${leads.includedUsers} users`, 'No per-lead charges', 'Set up with you'].map((t) => (
+              {['Built for Indian real estate', 'Developers and agencies', 'Set up with you'].map((t) => (
                 <li key={t} className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-600" aria-hidden="true" />{t}</li>
               ))}
             </ul>
@@ -160,13 +159,28 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Features */}
+      {/* Product areas */}
       <section id="features" aria-labelledby="features-heading" className="mx-auto max-w-6xl px-4 sm:px-6 py-20 scroll-mt-16">
         <div className="max-w-2xl">
-          <p className="text-[13px] font-semibold uppercase tracking-wider text-[var(--brand)]">Built for how Indian real-estate sales teams work</p>
-          <h2 id="features-heading" className="mt-2 text-[30px] sm:text-[36px] font-bold tracking-tight leading-tight">Fast for salespeople. Clear for managers.</h2>
+          <p className="text-[13px] font-semibold uppercase tracking-wider text-[var(--brand)]">One platform for the whole sale</p>
+          <h2 id="features-heading" className="mt-2 text-[30px] sm:text-[36px] font-bold tracking-tight leading-tight">Fast for salespeople. Clear for managers. Fair for partners.</h2>
         </div>
-        <div className="mt-10 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {pagesIn('product').filter((p) => p.path !== '/features').map((p) => (
+            <li key={p.path}>
+              <Link href={p.path} className="group block h-full rounded-2xl border border-[var(--border)] bg-white p-6 hover:border-[var(--brand)] transition-colors">
+                <h3 className="text-[17px] font-semibold group-hover:text-[var(--brand)]">{p.label}</h3>
+                <p className="mt-1.5 text-[14px] text-[var(--foreground-muted)] leading-relaxed">{p.blurb}</p>
+              </Link>
+            </li>
+          ))}
+          <li>
+            <Link href="/features" className="flex h-full items-center justify-center gap-2 rounded-2xl border border-dashed border-[var(--border-strong)] p-6 text-[15px] font-semibold text-[var(--brand)] hover:bg-[var(--surface-hover)]">
+              See every capability <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </Link>
+          </li>
+        </ul>
+        <div className="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (
             <div key={f.title}>
               <span className="w-10 h-10 rounded-xl bg-[var(--brand-light)] text-[var(--brand)] flex items-center justify-center"><f.icon className="w-5 h-5" aria-hidden="true" /></span>
@@ -177,22 +191,43 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Switch */}
-      <section id="switch" aria-labelledby="switch-heading" className="bg-[var(--background)] border-y border-[var(--border)] scroll-mt-16">
+      {/* Audiences */}
+      <section aria-labelledby="audiences-heading" className="mx-auto max-w-6xl px-4 sm:px-6 pb-20">
+        <h2 id="audiences-heading" className="sr-only">Who REGrow is for</h2>
+        <div className="grid gap-5 md:grid-cols-2">
+          {[
+            { href: '/developers', title: 'For developers and builders', body: 'Campaign leads answered, sales teams in control, live inventory by tower and floor, site visits, bookings and the partner network — across every project.', cta: 'REGrow for developers' },
+            { href: '/agencies', title: 'For channel partner agencies', body: 'Your own workspace for buyers and follow-ups, connections with every developer you sell for, shared project inventory and buyer registrations on record.', cta: 'REGrow for agencies' },
+          ].map((x) => (
+            <Link key={x.href} href={x.href} className="group rounded-3xl border border-[var(--border)] bg-[var(--background)] p-8 hover:border-[var(--brand)] transition-colors">
+              <Building2 className="w-7 h-7 text-[var(--brand)]" aria-hidden="true" />
+              <h3 className="mt-4 text-[22px] font-bold tracking-tight">{x.title}</h3>
+              <p className="mt-2 text-[15px] text-[var(--foreground-muted)] leading-relaxed">{x.body}</p>
+              <p className="mt-5 inline-flex items-center gap-2 text-[15px] font-semibold text-[var(--brand)]">{x.cta} <ArrowRight className="w-4 h-4" aria-hidden="true" /></p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Moving to REGrow */}
+      <section id="migration" aria-labelledby="migration-heading" className="bg-[var(--background)] border-y border-[var(--border)] scroll-mt-16">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-20 grid gap-10 md:grid-cols-2 items-center">
           <div>
-            <p className="text-[13px] font-semibold uppercase tracking-wider text-[var(--brand)]">Switching is low-risk</p>
-            <h2 id="switch-heading" className="mt-2 text-[30px] font-bold tracking-tight leading-tight">On Sell.Do, LeadSquared or spreadsheets today?</h2>
+            <p className="text-[13px] font-semibold uppercase tracking-wider text-[var(--brand)]">Migration and onboarding</p>
+            <h2 id="migration-heading" className="mt-2 text-[30px] font-bold tracking-tight leading-tight">Moving to {PRODUCT_NAME}? Let&rsquo;s make it simple.</h2>
             <p className="mt-4 text-[16px] text-[var(--foreground-muted)] leading-relaxed">
-              Start with a 30-day paid pilot. We agree the target with you up front — for example, nine in ten leads contacted within
-              five minutes — and measure it from day one. If you continue, the pilot fee counts towards your annual plan.
+              Coming from another CRM, spreadsheets or WhatsApp groups, we plan the move with you. It starts with an assessment of
+              your current system and data, so you know exactly what moves and how before anything changes.
             </p>
+            <Link href="/migration" className="mt-6 inline-flex items-center gap-2 text-[15px] font-semibold text-[var(--brand)] hover:underline">
+              How migration works <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </Link>
           </div>
           <ul className="space-y-4">
             {[
-              ['Bring your leads with you', 'Import your existing leads from a CSV export of your current CRM.'],
-              ['Run side by side', 'Keep your current CRM for post-sales while REGrow handles capture and response.'],
-              ['See the before and after', 'We measure your current response time from your export, then show the change every week.'],
+              ['Assessment first', 'We review your current setup and a sample export, and agree the migration scope in writing.'],
+              ['Leads, projects and inventory', 'Leads and contacts imported from your exports; projects and unit inventory set up with you.'],
+              ['A guided transition', 'Workflows configured, teams trained, and REGrow run alongside your current tools until you are ready.'],
             ].map(([t, b]) => (
               <li key={t} className="flex gap-3 bg-white rounded-2xl border border-[var(--border)] p-5">
                 <Check className="w-5 h-5 mt-0.5 text-emerald-600 flex-shrink-0" aria-hidden="true" />
@@ -206,22 +241,22 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Pricing teaser */}
+      {/* Plans */}
       <section aria-labelledby="price-heading" className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
         <div className="rounded-3xl bg-gradient-to-br from-[var(--brand)] to-indigo-700 text-white p-8 md:p-12 grid gap-8 md:grid-cols-[1.3fr_1fr] items-center">
           <div>
-            <h2 id="price-heading" className="text-[28px] sm:text-[34px] font-bold tracking-tight leading-tight">One clear price for the whole team</h2>
+            <h2 id="price-heading" className="text-[28px] sm:text-[34px] font-bold tracking-tight leading-tight">Packages for developers and for agencies</h2>
             <p className="mt-3 text-[16px] text-blue-100 leading-relaxed">
-              {leads.name}: {formatInr(leads.monthlyInr!)} a month including {leads.includedUsers} users, then {formatInr(leads.extraUserInr!)} per extra user.
-              Unlimited leads. Pay annually and get two months free.
+              Separate packages for developer sales teams and channel partner agencies, sized to your team. Tell us about your projects and
+              team and we will recommend the right package.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-3 md:justify-self-end">
             <Link href="/pricing" className="inline-flex items-center justify-center px-5 py-3 text-[15px] font-semibold text-[var(--brand)] bg-white hover:bg-blue-50 rounded-xl transition-colors">
-              Compare plans
+              See packages
             </Link>
-            <Link href="/demo" className="inline-flex items-center justify-center px-5 py-3 text-[15px] font-semibold text-white border border-white/40 hover:bg-white/10 rounded-xl transition-colors">
-              Book a demo
+            <Link href="/demo?interest=consultation" className="inline-flex items-center justify-center px-5 py-3 text-[15px] font-semibold text-white border border-white/40 hover:bg-white/10 rounded-xl transition-colors">
+              Request a consultation
             </Link>
           </div>
         </div>

@@ -2,7 +2,10 @@
 // Self-serve billing. Callers authorise first (owner or admin of the organisation). Amounts are computed by
 // the database functions from the plan catalogue (migration 20260056); this file never accepts an amount.
 import { createServiceClient } from '@/lib/supabase/server'
-import { createOrder, fetchPayment, type RazorpayConfig } from '@/lib/billing/razorpay'
+import { fetchPayment, type RazorpayConfig } from '@/lib/billing/razorpay'
+import { razorpayAdapter } from '@/lib/payments/razorpay/adapter'
+import { checkout as paymentsCheckout } from '@/lib/payments/service'
+import type { AdapterResolver } from '@/lib/payments/registry'
 import type { SubscriptionStatus } from '@/lib/billing/plans'
 import type { DalResult } from '@/lib/dal/routing'
 
@@ -152,41 +155,21 @@ export async function runBillingAction(orgId: string, actorProfileId: string, a:
   return { success: true, data: { id: data as string } }
 }
 
-/** A Razorpay order for an unpaid invoice of this organisation (reused if one was already created). */
+/**
+ * A Razorpay order for an unpaid invoice of this organisation (reused if one was already created). Kept for the
+ * existing Razorpay route and tests; it runs the provider-independent checkout (lib/payments/service.ts) with the
+ * Razorpay adapter, so every order is recorded as a payment attempt.
+ */
 export async function checkoutForInvoice(
   cfg: RazorpayConfig, orgId: string, invoiceId: string, authUserId: string, fetchImpl: typeof fetch = fetch
 ): Promise<DalResult<{ orderId: string; amountPaise: number; currency: string; invoiceNumber: string }>> {
-  const db = createServiceClient()
-  const { data: inv } = await db.from('org_subscription_invoices')
-    .select('id, org_id, invoice_number, amount_cents, currency, status, gateway_order_id')
-    .eq('id', invoiceId).eq('org_id', orgId).maybeSingle()
-  if (!inv) return { success: false, error: 'Invoice not found.', status: 404 }
-  if (inv.status !== 'issued') return { success: false, error: inv.status === 'paid' ? 'This invoice is already paid.' : 'This invoice can no longer be paid.', status: 409 }
-
-  let orderId = inv.gateway_order_id as string | null
-  if (!orderId) {
-    try {
-      const order = await createOrder(cfg, {
-        amountPaise: Number(inv.amount_cents), currency: inv.currency, receipt: inv.invoice_number,
-        notes: { org_id: orgId, invoice_id: inv.id, invoice_number: inv.invoice_number },
-      }, fetchImpl)
-      orderId = order.id
-    } catch (e) {
-      console.error('razorpay order failed:', (e as Error).message)
-      return { success: false, error: 'Could not start the payment. Please try again in a minute.', status: 502 }
-    }
-    // Only an unpaid invoice without an order gets this one (a concurrent checkout keeps the first order).
-    const { data: saved } = await db.from('org_subscription_invoices')
-      .update({ gateway: 'razorpay', gateway_order_id: orderId, checkout_by: authUserId, updated_at: new Date().toISOString() })
-      .eq('id', inv.id).eq('status', 'issued').is('gateway_order_id', null).select('gateway_order_id').maybeSingle()
-    if (!saved) {
-      const { data: again } = await db.from('org_subscription_invoices').select('gateway_order_id').eq('id', inv.id).maybeSingle()
-      orderId = again?.gateway_order_id ?? orderId
-    }
-  } else {
-    await db.from('org_subscription_invoices').update({ checkout_by: authUserId }).eq('id', inv.id).eq('status', 'issued')
-  }
-  return { success: true, data: { orderId: orderId!, amountPaise: Number(inv.amount_cents), currency: inv.currency, invoiceNumber: inv.invoice_number } }
+  const adapter = razorpayAdapter(cfg, fetchImpl)
+  const resolver: AdapterResolver = { environment: adapter.environment, get: (code, env = adapter.environment) => (code === 'razorpay' && env === adapter.environment ? adapter : null) }
+  const r = await paymentsCheckout(createServiceClient(), resolver, { orgId, invoiceId, userId: authUserId, customer: {} })
+  if (!r.success) return r
+  if ('alreadyPaid' in r.data) return { success: false, error: 'This invoice is already paid.', status: 409 }
+  if (r.data.provider !== 'razorpay') return { success: false, error: 'Online payment uses a different provider now. Please reload the page.', status: 409 }
+  return { success: true, data: { orderId: r.data.orderId, amountPaise: r.data.amountPaise, currency: r.data.currency, invoiceNumber: r.data.invoiceNumber } }
 }
 
 export type SettleResult = DalResult<{ status: 'settled' | 'already_settled'; orgId: string; invoiceId: string }>
@@ -202,7 +185,10 @@ export async function settlePayment(orderId: string, paymentId: string, amountPa
     const status = /unknown order/.test(error.message) ? 404 : /billing: /.test(error.message) ? 409 : 500
     return { success: false, error: friendly(error.message), status }
   }
-  const r = data as { status: 'settled' | 'already_settled'; org_id: string; invoice_id: string }
+  const r = data as { status: 'settled' | 'already_settled' | 'unapplied'; org_id: string; invoice_id: string; reason?: string }
+  // Money that cannot be applied (invoice already paid, amount differs…) is recorded as an unapplied payment for
+  // finance to refund; to the caller it is still a refusal.
+  if (r.status === 'unapplied') return { success: false, error: 'This payment could not be applied to the invoice; it has been recorded for a refund.', status: 409 }
   return { success: true, data: { status: r.status, orgId: r.org_id, invoiceId: r.invoice_id } }
 }
 
