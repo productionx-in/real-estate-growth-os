@@ -52,17 +52,19 @@ AS $$ SELECT p_code IS NULL OR (p_code ~ '^[0-9]{2}$' AND ((p_code::int BETWEEN 
 CREATE OR REPLACE FUNCTION public.gst_validate_party()
 RETURNS TRIGGER LANGUAGE plpgsql SET search_path = pg_catalog, public, pg_temp
 AS $$
-DECLARE v_gstin TEXT; v_state TEXT;
+DECLARE v_gstin TEXT; v_state TEXT; v_sac TEXT; v_row JSONB := to_jsonb(NEW);
 BEGIN
-  IF TG_TABLE_NAME = 'billing_settings' THEN v_gstin := NEW.supplier_gstin; v_state := NEW.supplier_state_code;
-  ELSE v_gstin := NEW.gstin; v_state := NEW.state_code; END IF;
+  -- Read fields through JSON: the two tables have different columns, and PL/pgSQL resolves NEW.<column> per table.
+  IF TG_TABLE_NAME = 'billing_settings' THEN
+    v_gstin := v_row ->> 'supplier_gstin'; v_state := v_row ->> 'supplier_state_code'; v_sac := v_row ->> 'sac_code';
+  ELSE v_gstin := v_row ->> 'gstin'; v_state := v_row ->> 'state_code'; END IF;
   IF NOT public.gst_state_code_valid(v_state) THEN
     RAISE EXCEPTION 'billing: % is not a valid GST state code', v_state USING ERRCODE = 'check_violation';
   END IF;
   IF v_gstin IS NOT NULL AND v_state IS NOT NULL AND left(v_gstin, 2) <> v_state THEN
     RAISE EXCEPTION 'billing: the GSTIN belongs to state %, not %', left(v_gstin, 2), v_state USING ERRCODE = 'check_violation';
   END IF;
-  IF TG_TABLE_NAME = 'billing_settings' AND NEW.sac_code IS NOT NULL AND NEW.sac_code !~ '^99[0-9]{4}$' THEN
+  IF v_sac IS NOT NULL AND v_sac !~ '^99[0-9]{4}$' THEN
     RAISE EXCEPTION 'billing: a SAC code for services has 6 digits starting with 99' USING ERRCODE = 'check_violation';
   END IF;
   RETURN NEW;

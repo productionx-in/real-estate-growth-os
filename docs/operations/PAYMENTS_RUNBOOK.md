@@ -113,6 +113,32 @@ then `update billing_settings set recurring_payments_enabled = true` (founder ap
 | Code rollback | Revert the PR's application code: migration 20260060 is additive and compatible with the previous code (the old `billing_settle_gateway_payment` keeps its signature) |
 | Database rollback | Not needed for a code rollback. If the migration itself must be reverted: drop the new tables and columns (only new data is lost; no existing row was changed except the backfilled provider columns) — only with founder approval |
 
+## 7a. Alerts and day-to-day operation (migration 20260062)
+
+Checked every 5 minutes with the gateway health job. Each alert is e-mailed to the Platform Owner and finance staff
+when it opens and once a day while it stays open, appears under **Platform Admin → Payments → Open alerts**, and
+closes itself when the condition clears.
+
+| Alert | Opens when | What to do |
+|---|---|---|
+| gateway unhealthy | An enabled gateway failed its last 3 health checks | Check the provider status page and credentials; record a verified outage if it is the provider's |
+| invalid signatures | 5+ webhook calls with a bad signature in an hour | The webhook secret changed or someone is forging calls: compare the secret with the provider dashboard |
+| webhook failures | A signed event still fails after 5 automatic retries | Fix the cause, then re-process it (Platform Owner) |
+| stuck checkouts | 3+ checkouts unconfirmed for over 2 hours | Check webhook delivery in the provider dashboard |
+| unapplied money | Money received but not applied for over a day | Refund it (needs approval) or resolve it |
+| dispute deadline | A dispute must be answered within 3 days | Respond in the provider dashboard |
+| refund failed / refund stuck | A refund failed, or stayed submitted over 3 days (refund status is polled hourly) | Check with the provider; re-request if needed |
+| reconciliation exceptions | An exception open for over 2 days | Investigate and resolve with a note |
+| GST unconfigured | A paying customer exists and the supplier GST particulars are incomplete | Enter them (below) |
+
+**GST particulars.** The Platform Owner enters the supplier legal name, GSTIN, state code and SAC code from the
+accountant in Platform Admin → Payments → GST on invoices. They are validated (state code 01–38 or 97, GSTIN's first
+two digits = state, SAC 6 digits starting 99), recorded in the platform audit log, and copied onto each invoice when it
+is issued — a later change never alters an issued invoice. Customers enter their registered name, GSTIN and state on
+**Plan & billing → Business details for invoices** (owners/admins; recorded in their audit log). An invoice is called
+a *Tax invoice* only when every particular is present; it shows CGST + SGST when both parties are in the same state,
+IGST otherwise. Nothing is pre-filled: until the accountant confirms the values, invoices remain pro-forma / receipts.
+
 ## 8. Outstanding external dependencies
 
 1. Cashfree merchant approval, commercial terms and sandbox keys (blocks the validation gate and go-live).
@@ -120,5 +146,5 @@ then `update billing_settings set recurring_payments_enabled = true` (founder ap
    Preview deployment or with network access granted.
 3. Refund & Cancellation Policy and Contact pages, and the legal company details for Privacy/Terms.
 4. Confirmed production domain (webhook and return URLs).
-5. Accountant confirmation: SAC code, supplier GSTIN and state (then set in `billing_settings`).
+5. Accountant confirmation: supplier legal name, GSTIN, state and SAC code (then entered in Platform Admin → Payments).
 6. Cashfree UPI AutoPay (Subscriptions) approval before recurring payments are enabled.

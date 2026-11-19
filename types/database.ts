@@ -371,6 +371,17 @@ export interface Database {
           gateway_order_id: string | null
           checkout_by: string | null
           issued_by_profile: string | null
+          gst_rate_bps: number | null
+          cgst_cents: number | null
+          sgst_cents: number | null
+          igst_cents: number | null
+          supplier_gstin: string | null
+          supplier_legal_name: string | null
+          supplier_state_code: string | null
+          sac_code: string | null
+          customer_gstin: string | null
+          customer_legal_name: string | null
+          place_of_supply: string | null
         }
         Insert: never
         Update: {
