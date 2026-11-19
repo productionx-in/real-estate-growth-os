@@ -19,6 +19,8 @@ export const AUDIENCES: { id: SignInAudience; label: string; hint: string }[] = 
   { id: 'agency', label: 'Channel partner agency', hint: 'Your buyers, your team and the developers you work with' },
   { id: 'staff', label: 'REGrow team', hint: 'Internal console for REGrow staff (authenticator app required)' },
 ]
+/** Entry points shown on the public sign-in page. Staff sign in through an unlisted address. */
+export const PUBLIC_AUDIENCES = AUDIENCES.filter((a) => a.id !== 'staff')
 export const parseAudience = (v: string | null | undefined): SignInAudience => (v === 'agency' || v === 'staff' ? v : 'developer')
 /** Where to go after sign-in for an audience, unless a safe redirect was requested. */
 export const audienceHome = (a: SignInAudience) => (a === 'staff' ? '/platform' : `/select-org?type=${a === 'agency' ? 'channel_partner' : 'developer'}`)
