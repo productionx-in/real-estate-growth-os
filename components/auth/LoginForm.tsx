@@ -6,10 +6,10 @@ import { Shield, KeyRound, CheckCircle2, ArrowLeft, Loader2 } from 'lucide-react
 import { createClient } from '@/lib/supabase/client'
 import { safeRedirectPath } from '@/lib/auth/safe-redirect'
 
-export function LoginForm() {
+export function LoginForm({ defaultRedirect }: { defaultRedirect?: string } = {}) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = safeRedirectPath(searchParams.get('redirectTo'))
+  const redirectTo = safeRedirectPath(searchParams.get('redirectTo'), defaultRedirect ? safeRedirectPath(defaultRedirect) : undefined)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
