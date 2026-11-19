@@ -45,6 +45,25 @@ export function PaymentsConsole({ overview, role, userId }: { overview: Payments
       </div>
       {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" aria-hidden="true" /> Open alerts</CardTitle>
+          <CardDescription>Checked every 5 minutes. The Platform Owner and finance staff are e-mailed when an alert opens and daily while it stays open; it closes by itself once fixed.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {overview.alerts.length === 0 ? <p className="text-[13px] text-muted">No open alerts.</p> : (
+            <ul className="space-y-2 text-[13px]">
+              {overview.alerts.map((a) => (
+                <li key={a.id} className="rounded-lg border border-[var(--danger)]/30 bg-[var(--danger-bg)] px-3 py-2">
+                  <strong className="capitalize">{a.kind.replace(/_/g, ' ')}</strong>{a.scope ? ` (${a.scope})` : ''} — {a.detail}
+                  <span className="block text-subtle">Open since {when(a.opened_at)} · last seen {when(a.last_seen_at)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
       <section aria-labelledby="gw" className="grid gap-4 md:grid-cols-2">
         <h2 id="gw" className="sr-only">Gateways</h2>
         {overview.gateways.map((g) => (
@@ -172,6 +191,8 @@ export function PaymentsConsole({ overview, role, userId }: { overview: Payments
         </CardContent>
       </Card>
 
+      <GstSettings settings={overview.settings} owner={owner} busy={!!busy} onSave={(v) => act('gst', { action: 'update_gst', ...v }, 'GST particulars saved. They apply to invoices issued from now on.')} />
+
       <p className="text-[12px] text-subtle">Recurring payments: {overview.settings?.recurring_payments_enabled ? 'enabled' : 'disabled until merchant approval and testing are complete'}. Mandates: {overview.mandates.length ? overview.mandates.map(([s, n]) => `${s} ${n}`).join(', ') : 'none'}.</p>
     </div>
   )
@@ -188,5 +209,37 @@ function OutageForm({ busy, onSubmit }: { busy: boolean; onSubmit: (b: Record<st
       <Field label="Evidence (status page or incident reference)" className="sm:col-span-2"><Textarea required minLength={10} value={f.evidence} onChange={(e) => setF({ ...f, evidence: e.target.value })} /></Field>
       <div className="sm:col-span-2"><Button type="submit" disabled={busy}>Record verified outage</Button></div>
     </form>
+  )
+}
+
+type GstValues = { legalName: string; gstin: string; stateCode: string; sacCode: string }
+/** Supplier GST particulars printed on invoices. Values come from the accountant; nothing is pre-filled or assumed. */
+function GstSettings({ settings, owner, busy, onSave }: { settings: PaymentsOverview['settings']; owner: boolean; busy: boolean; onSave: (v: GstValues) => Promise<boolean> }) {
+  const [v, setV] = useState<GstValues>({
+    legalName: settings?.supplier_legal_name ?? '', gstin: settings?.supplier_gstin ?? '',
+    stateCode: settings?.supplier_state_code ?? '', sacCode: settings?.sac_code ?? '',
+  })
+  const missing = [!settings?.supplier_legal_name && 'legal name', !settings?.supplier_gstin && 'GSTIN', !settings?.supplier_state_code && 'state code', !settings?.sac_code && 'SAC code'].filter(Boolean)
+  const set = (k: keyof GstValues) => (e: React.ChangeEvent<HTMLInputElement>) => setV({ ...v, [k]: e.target.value })
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><ShieldCheck className="w-4 h-4" aria-hidden="true" /> GST on invoices</CardTitle>
+        <CardDescription>
+          GST rate {settings?.gst_rate_bps != null ? `${settings.gst_rate_bps / 100}%` : 'not set'}. These particulars are copied onto each invoice when it is issued, so a change never alters an issued invoice.
+          {missing.length > 0 && <> Missing: <strong>{missing.join(', ')}</strong> — until filled, invoices show no GSTIN and no CGST/SGST/IGST split.</>}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form className="grid gap-3 md:grid-cols-2" onSubmit={(e) => { e.preventDefault(); onSave(v) }}>
+          <Field label="Supplier legal name"><Input value={v.legalName} onChange={set('legalName')} disabled={!owner || busy} maxLength={200} /></Field>
+          <Field label="Supplier GSTIN" hint="15 characters, e.g. 27ABCDE1234F1Z5"><Input value={v.gstin} onChange={set('gstin')} disabled={!owner || busy} maxLength={15} className="uppercase" /></Field>
+          <Field label="Supplier state code" hint="2 digits; must match the GSTIN's first two"><Input value={v.stateCode} onChange={set('stateCode')} disabled={!owner || busy} inputMode="numeric" maxLength={2} /></Field>
+          <Field label="SAC code" hint="6 digits starting with 99, from your accountant"><Input value={v.sacCode} onChange={set('sacCode')} disabled={!owner || busy} inputMode="numeric" maxLength={6} /></Field>
+          {owner ? <div className="md:col-span-2"><Button type="submit" size="sm" disabled={busy}>Save GST particulars</Button></div>
+            : <p className="text-[12px] text-muted md:col-span-2">Only the Platform Owner can change these.</p>}
+        </form>
+      </CardContent>
+    </Card>
   )
 }

@@ -1,5 +1,6 @@
 // app/api/admin/organisations/provision/route.ts
 // REGrow Platform Administration: Super Admin Organization & Subscription Provisioning
+import { appUrl } from '@/lib/site/urls'
 import { NextResponse, type NextRequest } from 'next/server'
 import crypto from 'node:crypto'
 import { authenticatePlatformAdmin } from '@/lib/auth/platform'
@@ -131,7 +132,8 @@ export async function POST(request: NextRequest) {
     let emailError: string | null = null
 
     try {
-      const origin = request.nextUrl.origin
+      // Invitation links use the configured app URL, never the Host header of the request (lib/site/urls.ts).
+      const origin = appUrl(request.nextUrl.origin) ?? request.nextUrl.origin
       const inviteUrl = `${origin}/invite/${rawToken}`
       const mailer = getEmailAdapter()
 

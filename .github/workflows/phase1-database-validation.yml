@@ -183,6 +183,7 @@ jobs:
           node tests/db-integration/p21-showroom-enquiry.test.mjs 2>&1 | tee diagnostics/p21-showroom-enquiry.log
           node tests/db-integration/p22-payments.test.mjs 2>&1 | tee diagnostics/p22-payments.log
           node tests/db-integration/p23-internal-portal.test.mjs 2>&1 | tee diagnostics/p23-internal-portal.log
+          node tests/db-integration/p24-payments-operations.test.mjs 2>&1 | tee diagnostics/p24-payments-operations.log
 
       # 11. Execute Application Regression Test Suite (Phase 6)
       - name: Execute Application Regression Test Suite (All 27 Tests)

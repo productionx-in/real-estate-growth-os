@@ -73,7 +73,7 @@ test('one h1 per page template; FAQ answers are visible text, not hidden structu
 })
 
 test('internal links on public pages point at real pages', () => {
-  const known = new Set(['/', ...SITE_PAGES.map((p) => p.path), '/login', '/privacy', '/terms'])
+  const known = new Set(['/', ...SITE_PAGES.map((p) => p.path), '/login', '/privacy', '/terms', '/refund-policy', '/contact'])
   for (const f of [...pages.map((p) => p.file), 'components/marketing/ProductPage.tsx', 'components/marketing/ArticlePage.tsx', 'components/marketing/MarketingHeader.tsx']) {
     for (const m of read(f).matchAll(/(?:href[=:] ?\{?['"`]|href: ')(\/[a-z0-9\-/]*)/g)) {
       assert.ok(known.has(m[1].replace(/\/$/, '') || '/'), `${f}: link to unknown page ${m[1]}`)
