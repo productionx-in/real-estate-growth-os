@@ -10,6 +10,7 @@ import { RoiCalculator } from '@/components/marketing/RoiCalculator'
 export const metadata: Metadata = {
   title: { absolute: `Pricing — ${PRODUCT_NAME}` },
   description: 'Simple pricing for real-estate lead management: one price for your team, unlimited leads, no per-lead charges.',
+  alternates: { canonical: '/pricing' },
 }
 
 const INCLUDED = [

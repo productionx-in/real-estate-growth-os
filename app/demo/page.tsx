@@ -9,6 +9,7 @@ import { DemoRequestForm } from '@/components/marketing/DemoRequestForm'
 export const metadata: Metadata = {
   title: { absolute: `Book a demo — ${PRODUCT_NAME}` },
   description: 'See REGrow on your own lead sources in 20 minutes, and get a free lead-leakage audit of last month’s leads.',
+  alternates: { canonical: '/demo' },
 }
 
 const EXPECT = [

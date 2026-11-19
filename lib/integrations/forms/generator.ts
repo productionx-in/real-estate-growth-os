@@ -1,6 +1,7 @@
 // lib/integrations/forms/generator.ts
 // Generates clean, responsive embed codes and integration snippets for customer project websites.
 
+import { appUrl } from '@/lib/site/urls'
 import type { FormEmbedOptions } from './types'
 
 export interface EmbedSnippets {
@@ -10,7 +11,8 @@ export interface EmbedSnippets {
 }
 
 export function generateFormEmbedSnippets(options: FormEmbedOptions): EmbedSnippets {
-  const baseUrl = (options.appUrl || process.env.NEXT_PUBLIC_APP_URL || 'https://app.productionx.com').replace(/\/$/, '')
+  // The customer pastes this into their website, so it must point at this deployment (lib/site/urls.ts).
+  const baseUrl = (options.appUrl || appUrl() || '').replace(/\/$/, '')
   const title = options.formTitle || 'Enquire Now'
   const button = options.buttonText || 'Schedule Site Visit'
   const projectParam = options.projectId ? ` data-project-id="${options.projectId}"` : ''

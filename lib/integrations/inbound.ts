@@ -24,6 +24,8 @@ export async function processInboundLead(
     actorProfileId?: string | null
     /** When our server received the request (defaults to now); with created_at it times "receipt → saved". */
     receivedAt?: Date
+    /** A project already resolved on the server (e.g. a published project showroom); never taken from a request body. */
+    projectId?: string | null
   }
 ): Promise<InboundProcessingResult> {
   const service = options?.customClient ?? createServiceClient()
@@ -88,7 +90,7 @@ export async function processInboundLead(
   }
 
   // 3. Resolve Project Mapping
-  let resolvedProjectId: string | null = null
+  let resolvedProjectId: string | null = options?.projectId ?? null
   let routingStatus: 'mapped' | 'unmapped' = 'unmapped'
 
   if (payload.connectionId) {

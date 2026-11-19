@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   title: { absolute: `${PRODUCT_NAME} — Real estate sales software for developers and channel partner agencies` },
   description:
     'REGrow captures leads from Meta, Google, property portals, your website and WhatsApp, assigns each one to the right salesperson in seconds and makes sure someone follows up.',
+  alternates: { canonical: '/' },
 }
 
 // Ready to use: work without any third-party approval. With setup: need the customer's own account connected (and,

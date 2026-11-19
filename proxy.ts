@@ -1,10 +1,17 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/types/database'
+import { isIndexablePath } from '@/lib/site/urls'
 
 const PUBLIC_ROUTES = ['/', '/pricing', '/demo', '/leakage-audit', '/privacy', '/terms', '/login', '/auth/callback', '/auth/confirm']
 // Loaded by visitors of customers' websites, who are never signed in to REGrow.
-const PUBLIC_WEBSITE_ASSETS = ['/capture.js', '/forms/embed.js', '/forms/view']
+const PUBLIC_WEBSITE_ASSETS = ['/capture.js', '/forms/embed.js', '/forms/view', '/robots.txt', '/sitemap.xml']
+
+/** Only marketing pages and published project showrooms may be indexed; everything else says so explicitly. */
+function markIndexing(res: NextResponse, pathname: string): NextResponse {
+  if (!isIndexablePath(pathname) && pathname !== '/robots.txt' && pathname !== '/sitemap.xml') res.headers.set('X-Robots-Tag', 'noindex, nofollow')
+  return res
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -86,7 +93,7 @@ export async function proxy(request: NextRequest) {
       url.pathname = '/select-org'
       return NextResponse.redirect(url)
     }
-    return supabaseResponse
+    return markIndexing(supabaseResponse, pathname)
   }
 
   // Protect all other routes
@@ -94,10 +101,10 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirectTo', pathname)
-    return NextResponse.redirect(url)
+    return markIndexing(NextResponse.redirect(url), pathname)
   }
 
-  return supabaseResponse
+  return markIndexing(supabaseResponse, pathname)
 }
 
 export const config = {
