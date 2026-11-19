@@ -47,6 +47,8 @@ export const ROUTES = {
   migration: '/migration',
   privacy: '/privacy',
   terms: '/terms',
+  refundPolicy: '/refund-policy',
+  contact: '/contact',
   login: '/login',
   resetPassword: '/reset-password',
   authCallback: '/auth/callback',
@@ -60,5 +62,9 @@ export const ROUTES = {
 export const MARKETING_PATHS: string[] = [ROUTES.home, ...SITE_PAGES.map((p) => p.path)]
 
 /** Pages that search engines may index (everything else is noindex). */
-export const INDEXABLE_PATHS: string[] = [...MARKETING_PATHS, ROUTES.privacy, ROUTES.terms]
+/** Legal and company pages: public and always light; indexed (meta robots) and in the sitemap only once the company
+ *  particulars in lib/legal.ts are confirmed. */
+export const LEGAL_PATHS: string[] = [ROUTES.privacy, ROUTES.terms, ROUTES.refundPolicy, ROUTES.contact]
+
+export const INDEXABLE_PATHS: string[] = [...MARKETING_PATHS, ...LEGAL_PATHS]
 export const isIndexablePath = (path: string) => INDEXABLE_PATHS.includes(path) || /^\/p\/[a-z0-9-]{1,80}$/.test(path)

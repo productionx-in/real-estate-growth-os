@@ -2,12 +2,12 @@
 // step with lib/legal.ts and the code). Not indexed until the company particulars are confirmed.
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ContactLine, LegalPage } from '@/components/legal/LegalPage'
-import { CUSTOMER_CONNECTED_SERVICES, LEGAL, SUBPROCESSORS } from '@/lib/legal'
+import { ContactLine, LegalPage, Pending } from '@/components/legal/LegalPage'
+import { CUSTOMER_CONNECTED_SERVICES, LEGAL, PENDING_SUBPROCESSORS, SUBPROCESSORS, legalEntity } from '@/lib/legal'
 
 export const metadata: Metadata = {
   title: { absolute: `Privacy Policy — ${LEGAL.product}` },
-  description: `How ${LEGAL.entity} collects, uses and protects personal data in ${LEGAL.product}, the real-estate sales platform, and how to exercise your rights under India’s Digital Personal Data Protection Act, 2023.`,
+  description: `How ${legalEntity()} collects, uses and protects personal data in ${LEGAL.product}, the real-estate sales platform, and how to exercise your rights under India’s Digital Personal Data Protection Act, 2023.`,
   robots: LEGAL.confirmed ? undefined : { index: false, follow: true },
   alternates: { canonical: '/privacy' },
 }
@@ -19,7 +19,7 @@ export default function PrivacyPage() {
       title="Privacy Policy"
       intro={
         <p>
-          This policy explains how {LEGAL.entity} (“we”, “us”) handles personal data when you visit the {LEGAL.product} website,
+          This policy explains how {legalEntity()} (“we”, “us”) handles personal data when you visit the {LEGAL.product} website,
           ask us for a demo, or use {LEGAL.product}, our software for real-estate developers and channel partner agencies. It is
           written to meet India’s Digital Personal Data Protection Act, 2023 (the “DPDP Act”).
         </p>
@@ -70,7 +70,7 @@ export default function PrivacyPage() {
             </p>
             <p>
               We never sell personal data, and we do not use our customers’ buyer or lead data for our own marketing or for any
-              other business of {LEGAL.entity}. Our staff can see a customer’s records only when that customer grants time-limited
+              other business of {legalEntity()}. Our staff can see a customer’s records only when that customer grants time-limited
               support access, and every such view is recorded in the customer’s audit log.
             </p>
           </>,
@@ -79,7 +79,8 @@ export default function PrivacyPage() {
           id: 'sharing', title: 'Who we share it with',
           body: <>
             <p>We use these service providers to run {LEGAL.product}. They process data on our behalf under contract:</p>
-            <ul>{SUBPROCESSORS.map((s) => <li key={s.name}><strong>{s.name}</strong> — {s.purpose}</li>)}</ul>
+            <ul>{[...SUBPROCESSORS, ...PENDING_SUBPROCESSORS.filter((s) => s.active)].map((s) => <li key={s.name}><strong>{s.name}</strong> — {s.purpose}</li>)}</ul>
+            <p>If we add a service provider that processes personal data, we will update this list before it starts.</p>
             <p>
               These services exchange data with a workspace only if the customer connects them: {CUSTOMER_CONNECTED_SERVICES.join('; ')}.
               Their own privacy terms then also apply.
@@ -111,7 +112,7 @@ export default function PrivacyPage() {
             <p>
               Under the DPDP Act you can ask for a summary of your personal data we process, ask us to correct, complete or erase it,
               withdraw consent you have given, nominate someone to act for you, and raise a grievance. Write to us at{' '}
-              <ContactLine email={LEGAL.privacyEmail} />. We may need to confirm your identity first. If we process your data for one
+              <ContactLine email={LEGAL.privacyEmail} what="privacy contact email" />. We may need to confirm your identity first. If we process your data for one
               of our customers, we will pass your request to them.
             </p>
             <p>If you are not satisfied with our response, you may complain to the Data Protection Board of India.</p>
@@ -120,8 +121,8 @@ export default function PrivacyPage() {
         {
           id: 'grievance', title: 'Grievance officer',
           body: grievance
-            ? <p>{grievance.name}, {LEGAL.entity}. Email: <a className="text-[var(--brand)] hover:underline" href={`mailto:${grievance.email}`}>{grievance.email}</a>{LEGAL.registeredAddress ? `. ${LEGAL.registeredAddress}` : ''}.</p>
-            : <p>The name and contact details of our grievance officer will be published here.</p>,
+            ? <p>{grievance.name}, {legalEntity()}. Email: <a className="text-[var(--brand)] hover:underline" href={`mailto:${grievance.email}`}>{grievance.email}</a>. Address: {LEGAL.registeredAddress ?? <Pending what="registered office address" />}.</p>
+            : <p>Grievance officer: <Pending what="name and email of the grievance officer" />. Address: {LEGAL.registeredAddress ?? <Pending what="registered office address" />}. We respond to grievances within the period the DPDP Rules require.</p>,
         },
         {
           id: 'children', title: 'Children',

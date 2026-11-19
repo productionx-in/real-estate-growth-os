@@ -1,6 +1,6 @@
 // app/api/admin/payments/route.ts — Platform Admin payments operations. Every action needs an MFA-verified staff
 // session; the database functions check the role again and write the platform audit log themselves.
-//   Platform Owner (super_admin): gateway status, primary gateway, verified outages, webhook re-processing
+//   Platform Owner (super_admin): gateway status, primary gateway, verified outages, webhook re-processing, GST particulars
 //   Finance admin + Platform Owner: refund requests and decisions (never your own), reconciliation, exceptions
 //   Auditor: read-only overview
 import { NextResponse, type NextRequest } from 'next/server'
@@ -25,9 +25,17 @@ const Action = z.discriminatedUnion('action', [
   z.object({ action: z.literal('resolve_item'), itemId: z.string().uuid(), note }),
   z.object({ action: z.literal('webhook_reprocess'), eventId: z.string().uuid() }),
   z.object({ action: z.literal('health_check') }),
+  // Supplier GST particulars, from the accountant. Empty strings clear a value; nothing is assumed.
+  z.object({
+    action: z.literal('update_gst'),
+    legalName: z.string().trim().max(200),
+    gstin: z.string().trim().toUpperCase().regex(/^$|^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/, 'A GSTIN has 15 characters: state code, PAN, entity number, Z, check character'),
+    stateCode: z.string().trim().regex(/^$|^[0-9]{2}$/, 'The state code has 2 digits'),
+    sacCode: z.string().trim().regex(/^$|^99[0-9]{4}$/, 'A SAC code for services has 6 digits starting with 99'),
+  }),
 ])
 
-const OWNER_ONLY = new Set(['gateway_status', 'set_primary', 'outage_record', 'webhook_reprocess'])
+const OWNER_ONLY = new Set(['gateway_status', 'set_primary', 'outage_record', 'webhook_reprocess', 'update_gst'])
 const friendly = (m: string) => m.replace(/^.*?(billing|payments): /, '').replace(/^./, (c) => c.toUpperCase())
 
 export async function GET() {
@@ -104,6 +112,8 @@ export async function POST(request: NextRequest) {
       }
       case 'health_check':
         return NextResponse.json({ results: await checkHealth(db, resolver) })
+      case 'update_gst':
+        return NextResponse.json(await rpc('billing_settings_update_gst', { p_actor: actor, p_legal_name: a.legalName, p_gstin: a.gstin, p_state: a.stateCode, p_sac: a.sacCode }))
     }
   } catch (e) {
     const err = e as Error & { status?: number }

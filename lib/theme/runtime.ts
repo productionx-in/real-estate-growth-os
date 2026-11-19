@@ -13,7 +13,7 @@ import { MARKETING_PATHS } from '@/lib/site/urls'
 export function themeRuntime(lightPaths: string[] = MARKETING_PATHS) {
   const KEY = 'regrow-theme'
   const PREFS = ['sun', 'system', 'light', 'dark']
-  const LIGHT_ONLY = [/^\/privacy(\/|$)/, /^\/terms(\/|$)/, /^\/p\//, /^\/d\//, /^\/forms(\/|$)/] // plus every marketing page (lightPaths)
+  const LIGHT_ONLY = [/^\/privacy(\/|$)/, /^\/terms(\/|$)/, /^\/refund-policy(\/|$)/, /^\/contact(\/|$)/, /^\/p\//, /^\/d\//, /^\/forms(\/|$)/] // plus every marketing page (lightPaths)
 
   // Representative coordinates for common timezones; others are estimated from the UTC offset.
   const ZONES: Record<string, [number, number]> = {
