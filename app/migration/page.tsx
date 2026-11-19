@@ -11,7 +11,7 @@ import { JsonLd, breadcrumbJsonLd, webPageJsonLd } from '@/components/marketing/
 
 const TITLE = `Moving to ${PRODUCT_NAME} — CRM migration and onboarding for real estate teams`
 const DESCRIPTION =
-  'Moving to REGrow from an existing CRM or spreadsheets? We assess your current system and data, then plan lead and contact import, project and inventory setup, sales workflows and team onboarding with you.'
+  'Moving to REGrow from another CRM or spreadsheets? We assess your system and data, then plan lead import, inventory setup, workflows and team onboarding with you.'
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
