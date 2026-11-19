@@ -17,6 +17,7 @@ export function MarketingFooter() {
           <p className="font-semibold text-slate-200">Product</p>
           <p><Link className="hover:text-white" href="/#how-it-works">How it works</Link></p>
           <p><Link className="hover:text-white" href="/pricing">Pricing</Link></p>
+          <p><Link className="hover:text-white" href="/migration">Migration and onboarding</Link></p>
           <p><Link className="hover:text-white" href="/leakage-audit">Free lead-leakage audit</Link></p>
           <p><Link className="hover:text-white" href="/demo">Book a demo</Link></p>
         </div>

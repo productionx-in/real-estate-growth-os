@@ -1,9 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/types/database'
-import { isIndexablePath } from '@/lib/site/urls'
+import { isIndexablePath, MARKETING_PATHS } from '@/lib/site/urls'
 
-const PUBLIC_ROUTES = ['/', '/pricing', '/demo', '/leakage-audit', '/privacy', '/terms', '/login', '/auth/callback', '/auth/confirm']
+const PUBLIC_ROUTES = [...MARKETING_PATHS, '/privacy', '/terms', '/login', '/auth/callback', '/auth/confirm']
 // Loaded by visitors of customers' websites, who are never signed in to REGrow.
 const PUBLIC_WEBSITE_ASSETS = ['/capture.js', '/forms/embed.js', '/forms/view', '/robots.txt', '/sitemap.xml']
 

@@ -42,6 +42,7 @@ export const ROUTES = {
   pricing: '/pricing',
   demo: '/demo',
   leakageAudit: '/leakage-audit',
+  migration: '/migration',
   privacy: '/privacy',
   terms: '/terms',
   login: '/login',
@@ -52,6 +53,9 @@ export const ROUTES = {
   signup: null as string | null,
 } as const
 
+/** Public marketing pages: open without sign-in (proxy.ts), always light (lib/theme/runtime.ts), indexable. */
+export const MARKETING_PATHS: string[] = [ROUTES.home, ROUTES.pricing, ROUTES.demo, ROUTES.leakageAudit, ROUTES.migration]
+
 /** Pages that search engines may index (everything else is noindex). */
-export const INDEXABLE_PATHS: string[] = [ROUTES.home, ROUTES.pricing, ROUTES.demo, ROUTES.leakageAudit, ROUTES.privacy, ROUTES.terms]
+export const INDEXABLE_PATHS: string[] = [...MARKETING_PATHS, ROUTES.privacy, ROUTES.terms]
 export const isIndexablePath = (path: string) => INDEXABLE_PATHS.includes(path) || /^\/p\/[a-z0-9-]{1,80}$/.test(path)
