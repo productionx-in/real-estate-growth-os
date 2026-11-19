@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/types/database'
 
-const PUBLIC_ROUTES = ['/', '/pricing', '/demo', '/leakage-audit', '/login', '/auth/callback', '/auth/confirm']
+const PUBLIC_ROUTES = ['/', '/pricing', '/demo', '/leakage-audit', '/privacy', '/terms', '/login', '/auth/callback', '/auth/confirm']
 // Loaded by visitors of customers' websites, who are never signed in to REGrow.
 const PUBLIC_WEBSITE_ASSETS = ['/capture.js', '/forms/embed.js', '/forms/view']
 
@@ -78,7 +78,8 @@ export async function proxy(request: NextRequest) {
     isInviteRoute ||
     PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith('/auth/')) ||
     PUBLIC_WEBSITE_ASSETS.includes(pathname) ||
-    /^\/d\/[A-Za-z0-9_-]{43}$/.test(pathname) // documents shared with buyers (the link is the key)
+    /^\/d\/[A-Za-z0-9_-]{43}$/.test(pathname) || // documents shared with buyers (the link is the key)
+    /^\/p\/[a-z0-9-]{1,80}$/.test(pathname) // a project's public showroom: the page itself shows only published microsites
   ) {
     if (user && pathname === '/login') {
       const url = request.nextUrl.clone()

@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react'
 import { CheckCircle2, Loader2 } from 'lucide-react'
 import { PUBLIC_PLANS, type PublicPlan } from '@/lib/marketing/pricing'
 
-const CURRENT_TOOLS = ['Sell.Do', 'LeadSquared', 'TeleCRM', 'Another CRM', 'Spreadsheets / WhatsApp', 'Nothing yet']
+const CURRENT_TOOLS = ['Sell.Do', 'LeadSquared', 'Zoho CRM', 'Salesforce', 'TeleCRM', 'Another real-estate CRM', 'Excel / Google Sheets / WhatsApp', 'No CRM yet', 'Other']
 const LEAD_VOLUMES = ['Under 300', '300–1,000', '1,000–3,000', 'Over 3,000']
 
 const input = 'w-full px-3.5 py-2.5 text-[15px] rounded-xl border border-[var(--border-strong)] bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-[var(--brand)]'
@@ -145,7 +145,6 @@ export function DemoRequestForm({ initialPlan, connectionId }: { initialPlan: Pu
         Request my demo
       </button>
       <p className="text-[12px] text-[var(--foreground-subtle)] text-center">We use these details only to contact you about REGrow.</p>
-      {!connectionId && <p className="text-[12px] text-amber-700 text-center">Online booking is being set up.</p>}
     </form>
   )
 }
