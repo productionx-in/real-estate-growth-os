@@ -52,7 +52,7 @@ export function MarketingHeader() {
             Book a demo
           </Link>
           <MobileMenu groups={[...MENUS.map((m) => ({ label: m.label, links: m.items.map((p) => ({ href: p.path, label: p.label })) })),
-            { label: 'More', links: [...LINKS, { href: '/demo?interest=contact', label: 'Contact the team' }, { href: '/login', label: 'Sign in' }] }]} />
+            { label: 'More', links: [...LINKS, { href: '/contact', label: 'Contact the team' }, { href: '/login', label: 'Sign in' }] }]} />
         </div>
       </div>
     </header>

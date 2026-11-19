@@ -3,6 +3,7 @@
 // awards, customer counts or prices (packages are not final). FAQPage markup is deliberately not emitted: search
 // engines restrict FAQ rich results to authoritative government and health sites, so the FAQs stay as visible content.
 import { COMPANY_NAME, PRODUCT_DESCRIPTOR, PRODUCT_NAME } from '@/lib/brand'
+import { LEGAL } from '@/lib/legal'
 import { absolute, siteUrl } from '@/lib/site/urls'
 
 type Json = Record<string, unknown>
@@ -22,6 +23,9 @@ export function organizationJsonLd(): Json {
   return {
     '@type': 'Organization', '@id': ORG_ID(), name: COMPANY_NAME, url: url('/'),
     brand: { '@type': 'Brand', name: PRODUCT_NAME },
+    // Company particulars are published only once confirmed (lib/legal.ts) — never guessed.
+    ...(LEGAL.confirmed && LEGAL.legalName ? { legalName: LEGAL.legalName } : {}),
+    ...(LEGAL.confirmed && LEGAL.supportEmail ? { contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', email: LEGAL.supportEmail, areaServed: 'IN', availableLanguage: ['en'] } } : {}),
   }
 }
 
