@@ -125,6 +125,12 @@ export function razorpayAdapter(cfg: RazorpayConfig, fetchImpl: typeof fetch = f
       return lines
     },
 
+    async refundStatus({ refundId }) {
+      if (!/^rfnd_[A-Za-z0-9]+$/.test(refundId)) throw new ProviderError('invalid refund id', null, false)
+      const r = await call<{ status: string }>(`/refunds/${refundId}`)
+      return r.status === 'processed' ? 'processed' : r.status === 'failed' ? 'failed' : 'pending'
+    },
+
     async healthCheck() { await call('/orders?count=1') },
 
     // Recurring payments start on Cashfree UPI AutoPay (founder decision); Razorpay mandates are not implemented.

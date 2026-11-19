@@ -1,0 +1,108 @@
+{
+  "ref": "local",
+  "password": "12345678@",
+  "credentials": [
+    {
+      "email": "builder.admin@example.test",
+      "role": "owner",
+      "org": "Apex Developers Demo",
+      "name": "Arjun Mehta (Demo)"
+    },
+    {
+      "email": "builder.manager@example.test",
+      "role": "manager",
+      "org": "Apex Developers Demo",
+      "name": "Kavya Iyer (Demo)"
+    },
+    {
+      "email": "builder.sales@example.test",
+      "role": "sales_exec",
+      "org": "Apex Developers Demo",
+      "name": "Rohan Desai (Demo)"
+    },
+    {
+      "email": "partner.admin@example.test",
+      "role": "owner",
+      "org": "Prime Channel Partners Demo",
+      "name": "Neha Kapoor (Demo)"
+    },
+    {
+      "email": "partner.manager@example.test",
+      "role": "manager",
+      "org": "Prime Channel Partners Demo",
+      "name": "Vikram Sethi (Demo)"
+    },
+    {
+      "email": "partner.sales@example.test",
+      "role": "sales_exec",
+      "org": "Prime Channel Partners Demo",
+      "name": "Pooja Nair (Demo)"
+    },
+    {
+      "email": "agency.admin@example.test",
+      "role": "owner",
+      "org": "Growth Realty Agency Demo",
+      "name": "Sameer Khan (Demo)"
+    },
+    {
+      "email": "agency.manager@example.test",
+      "role": "manager",
+      "org": "Growth Realty Agency Demo",
+      "name": "Ananya Rao (Demo)"
+    },
+    {
+      "email": "agency.sales@example.test",
+      "role": "sales_exec",
+      "org": "Growth Realty Agency Demo",
+      "name": "Karan Joshi (Demo)"
+    },
+    {
+      "email": "superadmin@example.test",
+      "role": "super_admin",
+      "org": "REGrow internal (platform)",
+      "name": "Platform Owner (Demo)",
+      "secret": "WDAFJL6JQZMCNZD4CA3U7KU2HCVLUVWZ",
+      "uri": "otpauth://totp/localhost:3000:superadmin@example.test?algorithm=SHA1&digits=6&issuer=localhost:3000&period=30&secret=WDAFJL6JQZMCNZD4CA3U7KU2HCVLUVWZ"
+    },
+    {
+      "email": "sales@regrow-demo.example.test",
+      "role": "sales_rep",
+      "org": "REGrow internal (platform)",
+      "name": "Internal Sales Executive (Demo)",
+      "secret": "LBC5WNT2HSCRGCXWKF7EVUVOH4W6PGFH",
+      "uri": "otpauth://totp/localhost:3000:sales@regrow-demo.example.test?algorithm=SHA1&digits=6&issuer=localhost:3000&period=30&secret=LBC5WNT2HSCRGCXWKF7EVUVOH4W6PGFH"
+    },
+    {
+      "email": "manager@regrow-demo.example.test",
+      "role": "sales_manager",
+      "org": "REGrow internal (platform)",
+      "name": "Internal Sales Manager (Demo)",
+      "secret": "J3JZOM23PJZ6GA5NCIMZJCPPHR2ALKMJ",
+      "uri": "otpauth://totp/localhost:3000:manager@regrow-demo.example.test?algorithm=SHA1&digits=6&issuer=localhost:3000&period=30&secret=J3JZOM23PJZ6GA5NCIMZJCPPHR2ALKMJ"
+    },
+    {
+      "email": "support@regrow-demo.example.test",
+      "role": "support_agent",
+      "org": "REGrow internal (platform)",
+      "name": "Support Agent (Demo)",
+      "secret": "QMWRJ4FEGF4PXSTJNT4ECUPTTYRCXKGQ",
+      "uri": "otpauth://totp/localhost:3000:support@regrow-demo.example.test?algorithm=SHA1&digits=6&issuer=localhost:3000&period=30&secret=QMWRJ4FEGF4PXSTJNT4ECUPTTYRCXKGQ"
+    },
+    {
+      "email": "finance@regrow-demo.example.test",
+      "role": "finance_admin",
+      "org": "REGrow internal (platform)",
+      "name": "Finance (Demo)",
+      "secret": "P4SKLJRGR77YDWVGDFQNCBCVKSQ3UHXH",
+      "uri": "otpauth://totp/localhost:3000:finance@regrow-demo.example.test?algorithm=SHA1&digits=6&issuer=localhost:3000&period=30&secret=P4SKLJRGR77YDWVGDFQNCBCVKSQ3UHXH"
+    },
+    {
+      "email": "auditor@regrow-demo.example.test",
+      "role": "auditor",
+      "org": "REGrow internal (platform)",
+      "name": "Auditor (Demo)",
+      "secret": "VCHAPSZMWCQDROUEEFMU2NKHGCT2EAQX",
+      "uri": "otpauth://totp/localhost:3000:auditor@regrow-demo.example.test?algorithm=SHA1&digits=6&issuer=localhost:3000&period=30&secret=VCHAPSZMWCQDROUEEFMU2NKHGCT2EAQX"
+    }
+  ]
+}

@@ -11,7 +11,7 @@ export function MarketingFooter() {
     { title: 'Product', links: pagesIn('product').map((p) => ({ href: p.path, label: p.label })) },
     { title: 'Solutions', links: pagesIn('solutions').map((p) => ({ href: p.path, label: p.label })) },
     { title: 'Resources', links: [...pagesIn('resources').map((p) => ({ href: p.path, label: p.label.replace(/^Guide: (.)/, (_, c: string) => c.toUpperCase()) })), { href: '/leakage-audit', label: 'Free lead-leakage audit' }] },
-    { title: 'Company', links: [{ href: '/pricing', label: 'Pricing' }, { href: '/demo', label: 'Book a demo' }, { href: '/demo?interest=contact', label: 'Contact the team' }, { href: '/login', label: 'Sign in' }, { href: '/privacy', label: 'Privacy Policy' }, { href: '/terms', label: 'Terms of Service' }] },
+    { title: 'Company', links: [{ href: '/pricing', label: 'Pricing' }, { href: '/demo', label: 'Book a demo' }, { href: '/contact', label: 'Contact' }, { href: '/login', label: 'Sign in' }, { href: '/privacy', label: 'Privacy Policy' }, { href: '/terms', label: 'Terms of Service' }, { href: '/refund-policy', label: 'Refund & Cancellation' }] },
   ]
   return (
     <footer className="bg-[#0b1220] text-slate-400">
