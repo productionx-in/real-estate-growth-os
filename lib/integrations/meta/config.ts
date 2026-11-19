@@ -2,6 +2,7 @@
 // Central REGrow Meta Developer App Configuration.
 // REGrow operates ONE verified Meta developer app across all customer tenants.
 // Manages OAuth endpoints, app credentials, permissions, and webhook parameters.
+import { appUrl } from '@/lib/site/urls'
 
 export interface MetaAppConfig {
   isConfigured: boolean
@@ -63,10 +64,8 @@ export function getMetaAppConfig(): MetaAppConfig {
  * Resolves the OAuth callback redirect URI based on application host.
  */
 export function getMetaOAuthRedirectUri(requestOrigin?: string): string {
-  const baseUrl =
-    requestOrigin ||
-    process.env.NEXT_PUBLIC_APP_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
-
-  return `${baseUrl.replace(/\/+$/, '')}/api/integrations/meta/callback`
+  // Configured app URL first (lib/site/urls.ts), so the redirect URI matches the one registered with Meta whatever host
+  // served the request; the request's own origin only when nothing is configured (local development).
+  const baseUrl = appUrl(requestOrigin) ?? 'http://localhost:3000'
+  return `${baseUrl}/api/integrations/meta/callback`
 }
