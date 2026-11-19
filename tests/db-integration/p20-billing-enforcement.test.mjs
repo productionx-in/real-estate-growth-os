@@ -216,7 +216,7 @@ async function main() {
     console.log(`\nP20 billing enforcement: ${passed} checks passed.`)
   } finally {
     for (const id of orgIds) {
-      for (const t of ['leads', 'inventory_items', 'projects', 'org_invitations', 'org_subscription_payments', 'org_subscription_invoices', 'org_subscriptions', 'org_members']) {
+      for (const t of ['leads', 'inventory_items', 'projects', 'org_invitations', 'org_subscription_payments', 'payment_attempts', 'org_subscription_invoices', 'org_subscriptions', 'org_members']) {
         await db.query(`DELETE FROM public.${t} WHERE org_id=$1`, [id]).catch((e) => console.error('cleanup', t, e.message))
       }
       await db.query('DELETE FROM public.organisations WHERE id=$1', [id]).catch((e) => console.error('cleanup', e.message))
