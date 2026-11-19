@@ -46,7 +46,7 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
   return (
     <div className="space-y-5">
       <div>
-        <Link href="/platform" className="text-[12px] text-muted hover:text-foreground">← Organisations</Link>
+        <Link href="/platform/organisations" className="text-[12px] text-muted hover:text-foreground">← Organisations</Link>
         <h1 className="mt-1 text-[18px] font-semibold">{org.name}</h1>
         <p className="text-[13px] text-muted">
           {org.slug} · {org.type === 'channel_partner' ? 'Channel partner' : 'Developer'} · plan {org.plan ?? '—'} · {members ?? 0} active {members === 1 ? 'member' : 'members'} · since {when(org.created_at)}
