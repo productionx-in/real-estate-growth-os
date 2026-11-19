@@ -147,7 +147,10 @@ const FIRST = ['Aarav', 'Ishita', 'Kabir', 'Meera', 'Nikhil', 'Sana', 'Tanvi', '
 const LAST = ['Sharma', 'Kulkarni', 'Patil', 'Reddy', 'Bose', 'Menon', 'Chopra', 'Gupta', 'Jain', 'Pillai', 'Shetty', 'Verma', 'Bhat', 'Saxena', 'Joshi', 'Malhotra']
 let phoneSeq = 0
 const demoPhone = () => `+91 90000 ${String(10000 + (phoneSeq++ * 37) % 89999).padStart(5, '0')}` // fictional range
-const buyer = () => { const f = pick(FIRST), l = pick(LAST); return { name: `${f} ${l}`, email: `${f}.${l}.${phoneSeq}@buyers.example.test`.toLowerCase(), phone: demoPhone() } }
+// Every buyer name is unique across the demo, so a name seen in the wrong workspace is a real leak, not a collision.
+const NAMES = FIRST.flatMap((f) => LAST.map((l) => [f, l])).sort((a, b) => ((a[0].length * 7 + a[1].length * 13 + a[0].charCodeAt(1) * 31 + a[1].charCodeAt(2)) % 97) - ((b[0].length * 7 + b[1].length * 13 + b[0].charCodeAt(1) * 31 + b[1].charCodeAt(2)) % 97) || (a[0] + a[1]).localeCompare(b[0] + b[1]))
+let nameSeq = 0
+const buyer = () => { const [f, l] = NAMES[nameSeq++]; return { name: `${f} ${l}`, email: `${f}.${l}.${phoneSeq}@buyers.example.test`.toLowerCase(), phone: demoPhone() } }
 
 async function seedAll(password) {
   const credentials = []
@@ -240,6 +243,15 @@ async function seedAll(password) {
   const apexLeads = await insert('leads', makeLeads('apex', [['new', 6], ['contacted', 7], ['qualified', 6], ['site_visit_scheduled', 4], ['site_visited', 4], ['negotiation', 4], ['booked', 3], ['lost', 2], ['junk', 1]]), 'id, status, assigned_to, project_id, name, phone')
   const primeLeads = await insert('leads', makeLeads('prime', [['new', 3], ['contacted', 4], ['qualified', 3], ['site_visit_scheduled', 2], ['negotiation', 2], ['lost', 1]]), 'id, status, assigned_to, name, phone')
   const growthLeads = await insert('leads', makeLeads('growth', [['new', 3], ['contacted', 3], ['qualified', 3], ['site_visited', 2], ['negotiation', 1], ['lost', 1]]), 'id, status, assigned_to, name, phone')
+
+  // Routing assigns every new lead to the on-duty team; leave two fresh enquiries per workspace in the unassigned
+  // queue so managers have something to assign.
+  for (const leads of [apexLeads, primeLeads, growthLeads]) {
+    const ids = leads.filter((l) => l.status === 'new').slice(0, 2).map((l) => l.id)
+    const { error } = await sb.from('leads').update({ assigned_to: null }).in('id', ids)
+    if (error) throw new Error(`unassign: ${error.message}`)
+    for (const l of leads) if (ids.includes(l.id)) l.assigned_to = null
+  }
 
   // Activities, follow-up tasks (open, overdue, done).
   for (const [key, leads] of [['apex', apexLeads], ['prime', primeLeads], ['growth', growthLeads]]) {
