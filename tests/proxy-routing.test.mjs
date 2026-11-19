@@ -49,6 +49,13 @@ await check('GET', '/capture.jsx', '/login') // exact paths only
 await check('GET', '/d/' + 'A'.repeat(43), null)
 await check('GET', '/d/short', '/login')
 await check('GET', '/d/' + 'A'.repeat(43) + '/x', '/login')
+// Legal pages are public
+await check('GET', '/privacy', null)
+await check('GET', '/terms', null)
+// A project's public showroom (only published microsites render; the rest are 404 on the page itself)
+await check('GET', '/p/skyline-towers', null)
+await check('GET', '/p/skyline-towers/admin', '/login')
+await check('GET', '/p/Skyline_Towers', '/login')
 await check('GET', '/acme/leads', '/login')
 await check('GET', '/select-org', '/login')
 await check('GET', '/apiary', '/login') // only the /api prefix is exempt, not look-alike paths
