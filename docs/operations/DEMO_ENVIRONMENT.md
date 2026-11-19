@@ -98,13 +98,13 @@ role (full control, including team and plan), "Manager" to **manager**, "Sales" 
 |---|---|---|---|---|
 | builder.admin@example.test | owner | Apex Developers Demo (developer) | `/apex-developers-demo` | Everything in Apex: all 38 leads, both projects, 60 units, visits, bookings, deals, partners, team, settings, billing (trial), audit log |
 | builder.manager@example.test | manager | Apex Developers Demo | `/apex-developers-demo` | All Apex leads and team activity, visits, inventory, partners' registrations (can review), no billing/owner settings |
-| builder.sales@example.test | sales_exec | Apex Developers Demo | `/apex-developers-demo/today` or dashboard | Only leads assigned to Rohan, own tasks and visits; inventory (read); no team/billing/settings |
+| builder.sales@example.test | sales_exec | Apex Developers Demo | `/apex-developers-demo/today` or dashboard | Leads assigned to Rohan plus the 2 unassigned enquiries, own tasks and visits; inventory (read); no team/billing/settings |
 | partner.admin@example.test | owner | Prime Channel Partners Demo (channel partner) | `/prime-channel-partners-demo` | Prime's 15 buyers, partnership with Apex (Heights shared with prices, Greens availability only), registrations (1 accepted, 1 submitted) |
 | partner.manager@example.test | manager | Prime Channel Partners Demo | dashboard | All Prime leads, can submit registrations |
-| partner.sales@example.test | sales_exec | Prime Channel Partners Demo | dashboard | Only own assigned Prime leads |
+| partner.sales@example.test | sales_exec | Prime Channel Partners Demo | dashboard | Own assigned Prime leads plus unassigned enquiries |
 | agency.admin@example.test | owner | Growth Realty Agency Demo (channel partner) | `/growth-realty-agency-demo` | Growth's 13 buyers, partnership with Apex (Heights, availability only — no prices), registrations (1 rejected, 1 submitted) |
 | agency.manager@example.test | manager | Growth Realty Agency Demo | dashboard | All Growth leads, can submit registrations |
-| agency.sales@example.test | sales_exec | Growth Realty Agency Demo | dashboard | Only own assigned Growth leads |
+| agency.sales@example.test | sales_exec | Growth Realty Agency Demo | dashboard | Own assigned Growth leads plus unassigned enquiries |
 
 ### Internal REGrow staff (console at `/platform`)
 
@@ -127,7 +127,8 @@ No internal account can open a customer workspace (`/<org>/…`); staff never re
   MagicBricks, WhatsApp, referral and walk-in across every status (one created by accepting Prime's registration).
   Follow-ups: upcoming, overdue and completed. Site visits: today/upcoming, completed with outcomes and ratings, one
   no-show. 3 bookings (one through Prime), deals at blocked / negotiation / visit-done / booked / lost (open pipeline
-  ≈ ₹8.1 crore). Team "Apex Developers Sales Team".
+  ≈ ₹8.1 crore). Team "Apex Developers Sales Team". Two fresh enquiries per workspace are left unassigned for
+  managers to assign; routing assigns every other lead.
 - **Prime Channel Partners Demo** — 15 buyers, active partnership with Apex, 2 registrations (accepted with protection
   window, submitted).
 - **Growth Realty Agency Demo** — 13 buyers, active partnership with Apex (no prices shared), 2 registrations
@@ -142,7 +143,7 @@ No internal account can open a customer workspace (`/<org>/…`); staff never re
 
 1. **Developer**: builder.admin → share Tower B with Growth (availability only), review Prime's pending
    registration → builder.manager → reassign an overdue follow-up, check the visits calendar → builder.sales → log a
-   call on an assigned lead, complete a task, confirm unassigned and colleagues' leads are not listed.
+   call on an assigned lead, complete a task, confirm colleagues' leads are not listed.
 2. **Channel partner**: partner.admin → see Apex Heights inventory with prices → partner.manager → register a buyer
    → partner.sales → see only own leads.
 3. **Agency**: agency.admin → Apex Heights inventory without prices; try opening Prime's or Apex's URLs (refused).
