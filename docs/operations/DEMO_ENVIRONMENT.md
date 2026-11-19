@@ -10,13 +10,17 @@ the test team, privately. Never publish it on the REGrow website.
 
 ## 1. What has to be provisioned (not available yet)
 
-There is no staging Supabase project today. The only REGrow project is production (`rtbvzqwwhefyyuhpoznu`); the seed
+**A staging Supabase project now exists: `regrow-staging` (ref `kkbfaeidwsakwgwserbs`, ap-south-1, Free plan, created
+19 November 2026). It is empty: the steps below give it the schema and the demo data.** Do not reuse the temporary
+password that appeared in Git history (`SECRET_SCANNING.md`); choose a new one for `DEMO_PASSWORD`.
+
+Before that project existed, there was no staging Supabase project. The only REGrow project is production (`rtbvzqwwhefyyuhpoznu`); the seed
 refuses it. To run the demo you need, once:
 
 | # | Item | Who | Notes |
 |---|---|---|---|
-| 1 | A **new Supabase project** for staging (e.g. "REGrow Staging"), region ap-south-1 | Owner | Separate project, not a branch of production. Free/Pro plan is enough. |
-| 2 | Apply all migrations to it | Engineer | `npx supabase@2.122.1 link --project-ref <staging-ref>` then `npx supabase@2.122.1 db push`. Never link production in the same shell. |
+| 1 | ~~A new Supabase project for staging~~ **Done:** `regrow-staging` (`kkbfaeidwsakwgwserbs`) | — | Separate project, not a branch of production |
+| 2 | Apply all migrations to it | Owner | Easiest, with no secret handled by anyone: Supabase → `regrow-staging` → Project settings → Integrations → GitHub → connect `productionx-in/real-estate-growth-os`, production branch `main`, then click *Deploy* / push any commit to `main`. Or, from a trusted machine: `npx supabase@2.122.1 link --project-ref kkbfaeidwsakwgwserbs` then `npx supabase@2.122.1 db push`. Never link production in the same shell. |
 | 3 | Mark it as staging (database owner, SQL editor) | Owner/engineer | Step 2 below. The seed cannot do this itself. |
 | 4 | Auth settings on staging | Engineer | Site URL and redirect URLs = the staging app URL. **Leave custom SMTP unset** (or point it at a sink) so no real email can be sent. MFA (TOTP) enabled — on by default. |
 | 5 | A **separate Vercel deployment** for staging (a second Vercel project, or a Preview environment with its own variables) | Owner | Must use only the staging Supabase URL/keys. See variables below. |
