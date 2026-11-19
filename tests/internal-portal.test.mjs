@@ -16,14 +16,20 @@ function test(name, fn) { fn(); passed++; console.log(`  ✓ ${name}`) }
 
 console.log('INTERNAL PORTAL & SIGN-IN')
 
-test('sign-in: three entry points; each lands in the right place; unknown values fall back safely', () => {
+test('sign-in: two public entry points, staff unlisted; each lands in the right place; unknown values fall back safely', () => {
   assert.deepEqual(S.AUDIENCES.map((a) => a.id), ['developer', 'agency', 'staff'])
+  assert.deepEqual(S.PUBLIC_AUDIENCES.map((a) => a.id), ['developer', 'agency'], 'the staff sign-in is not offered publicly')
   assert.equal(S.audienceHome('staff'), '/platform')
   assert.equal(S.audienceHome('agency'), '/select-org?type=channel_partner')
   assert.equal(S.audienceHome('developer'), '/select-org?type=developer')
   assert.equal(S.parseAudience('https://evil.example'), 'developer')
   const login = read('app/(auth)/login/page.tsx')
   assert.match(login, /redirectTo\?\.startsWith\('\/platform'\) \? 'staff'/, 'console sign-in links open the staff entry')
+  assert.match(login, /PUBLIC_AUDIENCES\.map/, 'the switcher lists public entry points only')
+  assert.doesNotMatch(login, /AUDIENCES\.map\(\(a\) => \{\s*const Icon = ICON\[a\.id\]\s*const active = a\.id === audience\s*return \(\s*<Link key=\{a\.id\} href=\{`\/login\?for=\$\{a\.id\}\$\{a\.id === 'staff'/)
+  for (const f of ['app/page.tsx', 'components/marketing/MarketingHeader.tsx', 'components/marketing/MarketingFooter.tsx', 'components/marketing/MobileMenu.tsx']) {
+    if (fs.existsSync(path.join(root, f))) assert.doesNotMatch(read(f), /for=staff/, `${f} must not link the staff sign-in`)
+  }
   assert.match(read('components/auth/LoginForm.tsx'), /safeRedirectPath\(searchParams\.get\('redirectTo'\), defaultRedirect \? safeRedirectPath\(defaultRedirect\)/, 'redirects stay same-origin')
 })
 

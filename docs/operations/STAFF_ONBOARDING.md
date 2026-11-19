@@ -23,7 +23,8 @@ Give each person the narrowest role their job needs.
 1. Create their sign-in account: Supabase → Authentication → Users → Add user, using their work e-mail. Tick *Auto
    confirm*, or send an invite so they set their own password. Never choose a password for them and share it.
 2. Platform Admin → Staff → enter their e-mail and choose a role. The change is audited.
-3. They sign in and open `/platform`. On their first visit they must set up an authenticator app; no console screen
+3. They sign in at `<app URL>/login?for=staff` (or open `<app URL>/platform` directly). The public sign-in page does not
+   show a staff option; share this address only with staff. On their first visit they must set up an authenticator app; no console screen
    opens without it.
 
 ## Change a role or remove access

@@ -19,7 +19,8 @@ database refuses a second bootstrap.
 
 1. **Create your sign-in account.** In Supabase → Authentication → Users → Add user → Create new user, enter your
    e-mail and password and tick *Auto confirm user*. REGrow has no public sign-up.
-2. **Sign in and turn on two-step verification.** Sign in at `<app URL>/login`, then open `<app URL>/account/security`.
+2. **Sign in and turn on two-step verification.** Sign in at `<app URL>/login?for=staff` (staff sign-in is not listed on the public page), then open
+   `<app URL>/account/security`.
    Scan the QR code with your authenticator app and enter the 6-digit code. The page then says *Two-step verification
    is on*. This page only protects your own account; it grants no access.
 3. **Run the bootstrap on your own computer.** Use a fresh terminal, and run it within 30 seconds of reading the code

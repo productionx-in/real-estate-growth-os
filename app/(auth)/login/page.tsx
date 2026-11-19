@@ -1,12 +1,13 @@
-// app/(auth)/login/page.tsx — one sign-in for everyone, with three entry points: developers and builders, channel
-// partner agencies, and the REGrow team. The choice only sets where you land and what we explain; what you can open
-// is always decided on the server by your memberships (customers) or platform role and MFA (staff).
+// app/(auth)/login/page.tsx — one sign-in for everyone. The public page offers two entry points: developers and
+// builders, and channel partner agencies. REGrow staff use an unlisted address (/login?for=staff, or any /platform link)
+// that is never shown or linked publicly. Hiding it is only tidiness: what anyone can open is always decided on the
+// server by memberships (customers) or platform role plus an authenticator code (staff).
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { Building2, Handshake, ShieldCheck } from 'lucide-react'
 import { LoginForm } from '@/components/auth/LoginForm'
-import { AUDIENCES, audienceHome, parseAudience, type SignInAudience } from '@/lib/workspace/select'
+import { PUBLIC_AUDIENCES, audienceHome, parseAudience, type SignInAudience } from '@/lib/workspace/select'
 
 export const metadata: Metadata = { title: 'Sign In' }
 
@@ -23,12 +24,13 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const keep = sp.redirectTo ? `&redirectTo=${encodeURIComponent(sp.redirectTo)}` : ''
   return (
     <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 sm:p-8 shadow-sm">
-      <nav aria-label="I am signing in as" className="mb-6 grid grid-cols-3 gap-1.5 rounded-xl bg-[var(--surface-hover)] p-1">
-        {AUDIENCES.map((a) => {
+      {audience !== 'staff' && (
+      <nav aria-label="I am signing in as" className="mb-6 grid grid-cols-2 gap-1.5 rounded-xl bg-[var(--surface-hover)] p-1">
+        {PUBLIC_AUDIENCES.map((a) => {
           const Icon = ICON[a.id]
           const active = a.id === audience
           return (
-            <Link key={a.id} href={`/login?for=${a.id}${a.id === 'staff' ? '' : keep}`} aria-current={active ? 'page' : undefined} title={a.hint}
+            <Link key={a.id} href={`/login?for=${a.id}${keep}`} aria-current={active ? 'page' : undefined} title={a.hint}
               className={`flex flex-col items-center gap-1 rounded-lg px-2 py-2 text-center text-[12px] font-medium leading-tight transition-colors ${active ? 'bg-[var(--surface)] text-[var(--brand)] shadow-sm' : 'text-[var(--foreground-muted)] hover:text-[var(--foreground)]'}`}>
               <Icon className="size-4" aria-hidden="true" />
               {a.label}
@@ -36,6 +38,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           )
         })}
       </nav>
+      )}
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-[var(--foreground)]">{HEADING[audience].title}</h1>
         <p className="mt-1 text-sm text-[var(--foreground-muted)]">{HEADING[audience].sub}</p>
