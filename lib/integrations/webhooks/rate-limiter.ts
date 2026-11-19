@@ -86,30 +86,20 @@ export class DatabaseRateLimitAdapter implements RateLimitAdapter {
   async consume(key: string, limit: number, windowMs: number): Promise<RateLimitResult> {
     const now = Date.now()
     const windowBucket = Math.floor(now / windowMs) * windowMs
-    const expiresAt = new Date(windowBucket + windowMs).toISOString()
     const resetMs = Math.max(1, windowBucket + windowMs - now)
 
     try {
-      // First attempt: check or increment in rate_limit_buckets table
+      // Atomic increment in rate_limit_buckets (migration 20260019). An upsert writing count = 1 would reset the
+      // counter on every request and never limit anything.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (this.client as any)
-        .from('rate_limit_buckets')
-        .upsert(
-          {
-            bucket_key: key,
-            window_bucket: windowBucket,
-            count: 1,
-            expires_at: expiresAt,
-          },
-          {
-            onConflict: 'bucket_key,window_bucket',
-          }
-        )
-        .select('count')
-        .single()
+      const { data, error } = await (this.client as any).rpc('increment_rate_limit', {
+        p_key: key,
+        p_window_bucket: windowBucket,
+        p_window_ms: windowMs,
+      })
 
-      if (!error && data) {
-        const count = Number((data as Record<string, unknown>).count ?? 1)
+      if (!error && data != null) {
+        const count = Number(data)
         return {
           allowed: count <= limit,
           remaining: Math.max(0, limit - count),
