@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import type { Json } from '@/types/database'
 
-export type PlatformRole = 'super_admin' | 'sales_rep' | 'finance_admin' | 'support_agent' | 'platform_admin' | 'auditor'
+export type PlatformRole = 'super_admin' | 'sales_manager' | 'sales_rep' | 'finance_admin' | 'support_agent' | 'platform_admin' | 'auditor'
 
 export interface PlatformUserRecord {
   id: string
@@ -209,7 +209,7 @@ export async function logPlatformAction(params: {
 }
 
 /** Every platform role may open the console; what each can do inside is checked per action. */
-export const CONSOLE_ROLES: PlatformRole[] = ['super_admin', 'platform_admin', 'support_agent', 'finance_admin', 'sales_rep', 'auditor']
+export const CONSOLE_ROLES: PlatformRole[] = ['super_admin', 'platform_admin', 'support_agent', 'finance_admin', 'sales_manager', 'sales_rep', 'auditor']
 /** Roles that may read the platform audit trail. */
 export const PLATFORM_AUDIT_READERS: PlatformRole[] = ['super_admin', 'auditor']
 

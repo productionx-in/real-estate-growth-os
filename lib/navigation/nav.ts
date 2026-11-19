@@ -7,7 +7,7 @@ import { canCreateLeads } from '@/lib/auth/permissions'
 
 export type NavKey =
   | 'home' | 'today' | 'leads' | 'visits' | 'inbox' | 'sales' | 'routing' | 'speed' | 'projects' | 'inventory'
-  | 'documents' | 'analytics' | 'integrations' | 'team' | 'settings' | 'billing' | 'audit' | 'support' | 'partners'
+  | 'documents' | 'analytics' | 'integrations' | 'team' | 'settings' | 'billing' | 'audit' | 'support' | 'partners' | 'help'
 
 export interface NavLink {
   key: NavKey
@@ -90,6 +90,9 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
       { title: 'Workspace', items: [L('integrations', 'Integrations', '/integrations'), team, ...adminLinks] },
     ]
   }
+
+  // Everyone can reach REGrow support from their workspace (cases they open; owners and admins see all of the org's).
+  groups[groups.length - 1].items.push(L('help', 'Help & support', '/help'))
 
   return groups
     .map((g) => ({

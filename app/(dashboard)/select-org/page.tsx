@@ -6,7 +6,7 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowRight, Building2, Handshake, Plus } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { PRODUCT_NAME } from '@/lib/brand'
 import { ROLE_LABELS } from '@/lib/auth/permissions'
 import { ORG_TYPE_HINT, ORG_TYPE_LABEL, resolveWorkspaceDestination, type OrgType, type WorkspaceChoice } from '@/lib/workspace/select'
@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic'
 
 interface MembershipRow { role: string | null; organisation: { id: string; name: string; slug: string; type: string } | null }
 
-export default async function SelectOrgPage({ searchParams }: { searchParams: Promise<{ redirectTo?: string; next?: string }> }) {
+export default async function SelectOrgPage({ searchParams }: { searchParams: Promise<{ redirectTo?: string; next?: string; type?: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -44,8 +44,12 @@ export default async function SelectOrgPage({ searchParams }: { searchParams: Pr
     .filter((m) => m.organisation?.slug)
     .map((m) => ({ slug: m.organisation!.slug, name: m.organisation!.name, type: m.organisation!.type as OrgType, role: m.role ?? 'readonly' }))
 
-  const decision = resolveWorkspaceDestination(workspaces, sp.redirectTo ?? sp.next)
+  const preferred = sp.type === 'channel_partner' || sp.type === 'developer' ? sp.type : null
+  const decision = resolveWorkspaceDestination(workspaces, sp.redirectTo ?? sp.next, preferred)
   if (decision.kind === 'redirect') redirect(decision.to)
+  // REGrow staff: the internal console is separate from customer workspaces (platform_users, never org_members).
+  const { data: staffRow } = await createServiceClient().from('platform_users').select('id').eq('user_id', user.id).eq('is_active', true).maybeSingle()
+  if (decision.kind === 'none' && staffRow) redirect('/platform')
   const canCreate = await canCreateOrganisation(user.id)
 
   return (
@@ -103,6 +107,11 @@ export default async function SelectOrgPage({ searchParams }: { searchParams: Pr
             </>
           )}
 
+          {staffRow && (
+            <Link href="/platform" className="mt-5 flex items-center justify-between rounded-xl border border-default p-3.5 text-[14px] font-medium hover:border-brand hover:text-brand">
+              REGrow console (staff) <ArrowRight aria-hidden className="size-4" />
+            </Link>
+          )}
           <div className="mt-6 border-t border-default pt-4">
             {canCreate ? (
               <>

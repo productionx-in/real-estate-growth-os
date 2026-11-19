@@ -13,7 +13,7 @@ export type OrgType = 'developer' | 'channel_partner'
 export type OrgPlan = 'free' | 'growth' | 'enterprise'
 export type MemberRole = 'owner' | 'admin' | 'manager' | 'team_lead' | 'sales_exec' | 'post_sales' | 'readonly'
 export type SupportGrantStatus = 'pending' | 'approved' | 'denied' | 'revoked' | 'cancelled'
-export type PlatformRole = 'super_admin' | 'sales_rep' | 'finance_admin' | 'support_agent' | 'platform_admin' | 'auditor'
+export type PlatformRole = 'super_admin' | 'sales_manager' | 'sales_rep' | 'finance_admin' | 'support_agent' | 'platform_admin' | 'auditor'
 export type OnboardingRequestStatus = 'draft' | 'pending_approval' | 'approved' | 'provisioned' | 'rejected'
 
 // Standard 5 Project Categories
