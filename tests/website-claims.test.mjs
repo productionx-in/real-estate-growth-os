@@ -52,7 +52,7 @@ test('demo page does not show unfinished features', () => {
 
 test('legal pages exist, are linked from the footer, and stay out of search until confirmed', () => {
   const footer = read('components/marketing/MarketingFooter.tsx')
-  assert.match(footer, /href="\/privacy"/); assert.match(footer, /href="\/terms"/)
+  assert.match(footer, /href: '\/privacy'/); assert.match(footer, /href: '\/terms'/)
   for (const f of ['app/privacy/page.tsx', 'app/terms/page.tsx']) assert.match(read(f), /robots: LEGAL\.confirmed \? undefined : \{ index: false/)
   // Every service provider the code uses is named in the Privacy Policy list.
   const legal = read('lib/legal.ts')

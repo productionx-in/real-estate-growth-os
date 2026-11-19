@@ -7,14 +7,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { CheckCircle2, Loader2 } from 'lucide-react'
 import { PUBLIC_PLANS, type PublicPlan } from '@/lib/marketing/pricing'
+import { INTERESTS, type InterestId } from '@/lib/marketing/interests'
 
-const CURRENT_TOOLS = ['Sell.Do', 'LeadSquared', 'Zoho CRM', 'Salesforce', 'TeleCRM', 'Another real-estate CRM', 'Excel / Google Sheets / WhatsApp', 'No CRM yet', 'Other']
+const CURRENT_TOOLS = ['A real estate CRM', 'A general-purpose CRM', 'Excel / Google Sheets / WhatsApp', 'No CRM yet', 'Other']
 const LEAD_VOLUMES = ['Under 300', '300–1,000', '1,000–3,000', 'Over 3,000']
 
 const input = 'w-full px-3.5 py-2.5 text-[15px] rounded-xl border border-[var(--border-strong)] bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-[var(--brand)]'
 const label = 'block text-[14px] font-medium mb-1.5'
 
-export function DemoRequestForm({ initialPlan, connectionId }: { initialPlan: PublicPlan['id']; connectionId: string | null }) {
+export function DemoRequestForm({ initialPlan, connectionId, initialInterest = 'demo' }: { initialPlan: PublicPlan['id']; connectionId: string | null; initialInterest?: InterestId }) {
   const loadedAt = useRef(0)
   useEffect(() => { loadedAt.current = Date.now() }, [])
   const [planId, setPlanId] = useState<PublicPlan['id']>(initialPlan)
@@ -27,7 +28,9 @@ export function DemoRequestForm({ initialPlan, connectionId }: { initialPlan: Pu
     const plan = PUBLIC_PLANS.find((p) => p.id === planId) ?? PUBLIC_PLANS[1]
     const companyType = f.get('companyType') === 'channel_partner' ? 'Channel-partner agency' : 'Developer / builder'
     const text = (k: string) => String(f.get(k) ?? '').trim()
+    const interest = INTERESTS.find((i) => i.id === f.get('interest')) ?? INTERESTS[0]
     const notes = [
+      `Request: ${interest.label}`,
       `Company: ${text('companyName')} (${companyType})`,
       `Interested in: ${plan.name}`,
       `Sales team size: ${text('teamSize') || 'not given'}`,
@@ -53,7 +56,7 @@ export function DemoRequestForm({ initialPlan, connectionId }: { initialPlan: Pu
           email: text('contactEmail'),
           notes,
           utmSource: 'regrow-website',
-          utmMedium: 'demo-form',
+          utmMedium: `${interest.id}-form`,
           utmCampaign: plan.id,
           pageUrl: window.location.href,
           referrer: document.referrer || null,
@@ -86,6 +89,13 @@ export function DemoRequestForm({ initialPlan, connectionId }: { initialPlan: Pu
 
   return (
     <form onSubmit={onSubmit} className="relative space-y-4">
+      <div>
+        <label htmlFor="interest" className={label}>I would like</label>
+        <select id="interest" name="interest" className={input} defaultValue={initialInterest}>
+          {INTERESTS.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}
+        </select>
+      </div>
+
       <fieldset>
         <legend className={label}>I am interested in</legend>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -142,7 +152,7 @@ export function DemoRequestForm({ initialPlan, connectionId }: { initialPlan: Pu
       <button type="submit" disabled={status === 'sending'}
         className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-[15px] font-semibold text-white bg-[var(--brand)] hover:bg-[var(--brand-hover)] disabled:opacity-60 rounded-xl transition-colors">
         {status === 'sending' && <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />}
-        Request my demo
+        Send my request
       </button>
       <p className="text-[12px] text-[var(--foreground-subtle)] text-center">We use these details only to contact you about REGrow.</p>
     </form>
