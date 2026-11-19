@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Check, Clock } from 'lucide-react'
-import { PUBLIC_PLANS, formatInr, monthlyPriceFor } from '@/lib/marketing/pricing'
+import { PRICES_PUBLISHED, PUBLIC_PLANS, formatInr, monthlyPriceFor } from '@/lib/marketing/pricing'
 
 export function PricingPlans() {
   const [annual, setAnnual] = useState(true)
@@ -12,7 +12,7 @@ export function PricingPlans() {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+      {PRICES_PUBLISHED && <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
         <div role="radiogroup" aria-label="Billing period" className="inline-flex p-1 rounded-xl bg-[var(--surface-hover)] border border-[var(--border)]">
           {[
             { v: false, label: 'Monthly' },
@@ -31,7 +31,7 @@ export function PricingPlans() {
             className="w-20 px-3 py-2 rounded-lg border border-[var(--border-strong)] text-[var(--foreground)] font-semibold focus:outline-none focus:ring-2 focus:ring-blue-200" />
           users
         </label>
-      </div>
+      </div>}
 
       <div className="mt-10 grid gap-6 lg:grid-cols-3 items-start">
         {PUBLIC_PLANS.map((plan) => {
@@ -47,7 +47,12 @@ export function PricingPlans() {
               <p className="mt-1 text-[14px] text-[var(--foreground-muted)] min-h-[42px]">{plan.audience}</p>
 
               <div className="mt-5 min-h-[92px]">
-                {monthly === null ? (
+                {!PRICES_PUBLISHED ? (
+                  <>
+                    <p className="text-[26px] font-extrabold tracking-tight">Price on request</p>
+                    <p className="text-[13px] text-[var(--foreground-muted)]">Sized to your team; we recommend the right package</p>
+                  </>
+                ) : monthly === null ? (
                   <>
                     <p className="text-[32px] font-extrabold tracking-tight">Custom</p>
                     <p className="text-[13px] text-[var(--foreground-muted)]">Priced for your teams and cities</p>

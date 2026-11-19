@@ -9,6 +9,8 @@
 //   the request's own origin (server) or window.location.origin (browser), as the last resort.
 // If none is known, functions return null and callers fall back to relative links — never to a guessed domain.
 
+import { SITE_PAGES } from '@/lib/marketing/site-pages'
+
 const clean = (u: string | undefined | null): string | null => {
   if (!u) return null
   const v = u.trim().replace(/\/+$/, '')
@@ -42,6 +44,7 @@ export const ROUTES = {
   pricing: '/pricing',
   demo: '/demo',
   leakageAudit: '/leakage-audit',
+  migration: '/migration',
   privacy: '/privacy',
   terms: '/terms',
   login: '/login',
@@ -52,6 +55,10 @@ export const ROUTES = {
   signup: null as string | null,
 } as const
 
+/** Public marketing pages: open without sign-in (proxy.ts), always light (lib/theme/runtime.ts), indexable, in the
+ *  sitemap. The page map lives in lib/marketing/site-pages.ts. */
+export const MARKETING_PATHS: string[] = [ROUTES.home, ...SITE_PAGES.map((p) => p.path)]
+
 /** Pages that search engines may index (everything else is noindex). */
-export const INDEXABLE_PATHS: string[] = [ROUTES.home, ROUTES.pricing, ROUTES.demo, ROUTES.leakageAudit, ROUTES.privacy, ROUTES.terms]
+export const INDEXABLE_PATHS: string[] = [...MARKETING_PATHS, ROUTES.privacy, ROUTES.terms]
 export const isIndexablePath = (path: string) => INDEXABLE_PATHS.includes(path) || /^\/p\/[a-z0-9-]{1,80}$/.test(path)
