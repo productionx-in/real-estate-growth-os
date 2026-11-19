@@ -199,7 +199,7 @@ export function ProductPage({ c }: { c: ProductPageContent }) {
           <div className="flex flex-col gap-3">
             <Link href="/demo" className={btnPrimary}>Book a demo</Link>
             <Link href="/migration" className={btnSecondary}>Request a migration assessment</Link>
-            <Link href="/demo?interest=contact" className="text-center text-[14px] font-semibold text-[var(--brand)] hover:underline">Contact the team</Link>
+            <Link href="/contact" className="text-center text-[14px] font-semibold text-[var(--brand)] hover:underline">Contact the team</Link>
           </div>
         </div>
       </section>

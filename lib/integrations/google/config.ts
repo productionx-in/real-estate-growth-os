@@ -2,6 +2,7 @@
 // Central REGrow Google Developer App & Google Ads Configuration.
 // REGrow operates a central Google Cloud OAuth client for customer tenants.
 // Manages OAuth endpoints, app credentials, Google Ads scopes, and webhook parameters.
+import { appUrl } from '@/lib/site/urls'
 
 export interface GoogleAppConfig {
   isConfigured: boolean
@@ -57,6 +58,8 @@ export function getGoogleOAuthRedirectUri(requestOrigin?: string): string {
   const configured = process.env.GOOGLE_REDIRECT_URI
   if (configured && !configured.startsWith('YOUR_')) return configured
 
-  const baseUrl = requestOrigin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  return `${baseUrl.replace(/\/$/, '')}/api/integrations/google/callback`
+  // The configured app URL wins over the request's host, so the redirect URI always matches the one registered with
+  // Google (a preview or alternate host would otherwise produce a redirect_uri_mismatch). Never a guessed localhost.
+  const baseUrl = appUrl(requestOrigin) ?? 'http://localhost:3000'
+  return `${baseUrl}/api/integrations/google/callback`
 }
