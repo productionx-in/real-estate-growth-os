@@ -6,6 +6,10 @@
 import assert from 'node:assert/strict'
 import crypto from 'node:crypto'
 
+// Sample keys are derived at run time (deterministic), never written as literals: a literal that looks like a real
+// key trips secret scanners and teaches copy-paste habits. Real keys are px_live_ + 48 hex characters.
+const sampleKey = (n) => 'px_live_' + crypto.createHash('sha256').update(`regrow-sample-key-${n}`).digest('hex').slice(0, 48)
+
 console.log('--- Running Integration APIs & Extensibility (Stage 4H) Tests ---')
 
 // ---------------------------------------------------------------------------
@@ -114,7 +118,7 @@ function verifyOutboundWebhookSignature(params) {
 
 // Test 2: Deterministic SHA-256 Hashing
 {
-  const raw = 'px_live_112233445566778899aabbcc'
+  const raw = `${sampleKey(1)}`
   const hash1 = hashApiKey(raw)
   const hash2 = hashApiKey(raw)
   assert.equal(hash1, hash2, 'Hash must be strictly deterministic')
@@ -125,8 +129,8 @@ function verifyOutboundWebhookSignature(params) {
 
 // Test 3: API Key Format Validation
 {
-  assert.equal(validateApiKeyFormat('Bearer px_live_112233445566778899aabbccddeeff').valid, true)
-  assert.equal(validateApiKeyFormat('px_live_112233445566778899aabbccddeeff').valid, true)
+  assert.equal(validateApiKeyFormat(`Bearer ${sampleKey(2)}`).valid, true)
+  assert.equal(validateApiKeyFormat(`${sampleKey(2)}`).valid, true)
   assert.equal(validateApiKeyFormat('Bearer test_key_123').valid, false)
   assert.equal(validateApiKeyFormat('').valid, false)
   assert.equal(validateApiKeyFormat(null).valid, false)
@@ -259,13 +263,13 @@ function verifyOutboundWebhookSignature(params) {
 // Test 9: Deactivated & Expired Key Defense
 {
   const deactivatedKey = {
-    keyHash: hashApiKey('px_live_deactivated_key'),
+    keyHash: hashApiKey(`${sampleKey(3)}_key`),
     isActive: false,
     expiresAt: null,
   }
 
   const expiredKey = {
-    keyHash: hashApiKey('px_live_expired_key'),
+    keyHash: hashApiKey(`${sampleKey(4)}_key`),
     isActive: true,
     expiresAt: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
   }
