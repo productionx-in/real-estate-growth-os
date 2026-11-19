@@ -18,19 +18,19 @@ console.log('NAVIGATION')
 
 test('each role keeps exactly the pages it had before the redesign', () => {
   const sort = (a) => [...a].sort()
-  assert.deepEqual(keys('owner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'integrations', 'team', 'settings', 'billing', 'audit', 'support']))
+  assert.deepEqual(keys('owner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'integrations', 'team', 'settings', 'billing', 'audit', 'support', 'help']))
   assert.deepEqual(keys('admin'), keys('owner'))
-  assert.deepEqual(keys('manager'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'team']))
-  assert.deepEqual(keys('sales_exec'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'inventory']))
-  assert.deepEqual(keys('readonly'), sort(['home', 'projects', 'inventory', 'documents', 'analytics']))
-  assert.deepEqual(keys('manager', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'team']))
-  assert.deepEqual(keys('owner', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'team', 'settings', 'billing', 'audit', 'support']))
+  assert.deepEqual(keys('manager'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'team', 'help']))
+  assert.deepEqual(keys('sales_exec'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'inventory', 'help']))
+  assert.deepEqual(keys('readonly'), sort(['home', 'projects', 'inventory', 'documents', 'analytics', 'help']))
+  assert.deepEqual(keys('manager', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'team', 'help']))
+  assert.deepEqual(keys('owner', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'team', 'settings', 'billing', 'audit', 'support', 'help']))
 })
 
 test('new roles: a team lead gets the selling pages; post-sales gets customers, bookings and documents, no pipeline tools', () => {
   const sort = (a) => [...a].sort()
-  assert.deepEqual(keys('team_lead'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'inventory']))
-  assert.deepEqual(keys('post_sales'), sort(['home', 'leads', 'inbox', 'sales', 'documents', 'projects', 'inventory']))
+  assert.deepEqual(keys('team_lead'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'inventory', 'help']))
+  assert.deepEqual(keys('post_sales'), sort(['home', 'leads', 'inbox', 'sales', 'documents', 'projects', 'inventory', 'help']))
   for (const k of ['routing', 'speed', 'analytics', 'team', 'settings', 'billing', 'audit', 'support', 'integrations']) {
     assert.ok(!keys('team_lead').includes(k) && !keys('post_sales').includes(k), k)
   }
@@ -48,7 +48,7 @@ test('a switched-off module hides its pages everywhere (sales covers visits and 
   const k = keys('owner', 'developer', ['sales', 'inventory', 'analytics'])
   for (const gone of ['sales', 'partners', 'visits', 'documents', 'inventory', 'analytics']) assert.ok(!k.includes(gone), gone)
   assert.ok(k.includes('leads') && k.includes('today'))
-  assert.equal(nav.navGroups('acme', 'readonly', 'developer', ['inventory', 'analytics', 'sales']).flatMap((g) => g.items).length, 2)
+  assert.deepEqual(nav.navGroups('acme', 'readonly', 'developer', ['inventory', 'analytics', 'sales']).flatMap((g) => g.items).map((i) => i.key), ['home', 'projects', 'help'])
 })
 
 test('Home is first; links stay inside the workspace', () => {
