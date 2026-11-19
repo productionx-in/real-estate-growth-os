@@ -1,0 +1,14 @@
+[
+  {
+    "file": "tests/fixtures/cashfree.mjs",
+    "rule": "assigned-secret",
+    "sha256": "9b9b318cab6f74bd4a6050dc900ca30c640881d83e9d7c4b410bb9ccabdbb35c",
+    "reason": "Fake Cashfree sandbox secret used by the local fake server"
+  },
+  {
+    "file": "tests/phase1-final-corrections.test.mjs",
+    "rule": "assigned-secret",
+    "sha256": "c9e40241dbccd2dd604ff386b19636411aa5bc35f4681ba48799d707c6deebfb",
+    "reason": "Synthetic secret for a local test of the secret-length check"
+  }
+]
