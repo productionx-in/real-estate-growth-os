@@ -93,15 +93,19 @@ await test('billing access: owners/admins; their real role counts only during a 
   assert.equal(billingRoleOf({ role: 'owner', status: 'suspended' }, true), null, 'deactivated workspace: no')
 })
 
-await test('routes: owners/admins only; amounts never come from the browser; the webhook checks the signature first', () => {
-  for (const f of ['app/api/billing/actions/route.ts', 'app/api/billing/invoices/[invoiceId]/checkout/route.ts', 'app/api/billing/razorpay/confirm/route.ts']) {
+await test('routes: owners/admins only; amounts never come from the browser; webhooks check the signature first', () => {
+  for (const f of ['app/api/billing/actions/route.ts', 'app/api/billing/invoices/[invoiceId]/checkout/route.ts', 'app/api/billing/razorpay/confirm/route.ts',
+    'app/api/billing/payments/confirm/route.ts', 'app/api/billing/payments/return/route.ts', 'app/api/billing/mandates/route.ts']) {
     assert.match(read(f), /authorizeBillingAccess\(/, f)
     assert.doesNotMatch(read(f), /amount\s*:\s*z\./, `${f} accepts no amount`)
   }
-  const wh = read('app/api/webhooks/razorpay/route.ts')
-  assert.ok(wh.indexOf('verifyWebhookSignature') < wh.indexOf('JSON.parse'), 'signature before parsing')
-  assert.match(wh, /status: 503/, 'refuses when not configured')
-  assert.match(read('app/api/billing/razorpay/confirm/route.ts'), /verifyCheckoutSignature/)
+  // Both provider webhooks go through one handler that verifies the signature before anything is parsed.
+  for (const f of ['app/api/webhooks/razorpay/route.ts', 'app/api/webhooks/cashfree/route.ts']) assert.match(read(f), /handleWebhook\(/, f)
+  const svc = read('lib/payments/service.ts')
+  const handler = svc.slice(svc.indexOf('export async function handleWebhook'), svc.indexOf('export async function processEvent'))
+  assert.ok(handler.indexOf('verifyWebhook(') > 0 && handler.indexOf('verifyWebhook(') < handler.indexOf('parseWebhook(') && handler.indexOf('verifyWebhook(') < handler.indexOf('JSON.parse'), 'signature before parsing')
+  assert.match(handler, /status: 503/, 'refuses when not configured')
+  assert.match(read('lib/payments/razorpay/adapter.ts'), /verifyCheckoutSignature\(/, 'Razorpay checkout signature still verified')
   for (const f of ['app/(dashboard)/[orgSlug]/billing/page.tsx', 'app/(dashboard)/[orgSlug]/billing/invoices/[invoiceId]/page.tsx']) {
     assert.match(read(f), /billingRoleFor\(org\.id, profile\.id\)/, f)
   }

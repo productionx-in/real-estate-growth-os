@@ -1,11 +1,12 @@
-// app/api/billing/razorpay/confirm/route.ts — the browser reports a finished checkout. The signature is
-// checked with the key secret, the payment is re-read from Razorpay, and only then is the invoice settled.
-// The webhook (/api/webhooks/razorpay) settles the same payment independently; settlement is idempotent.
+// app/api/billing/razorpay/confirm/route.ts — kept for existing Razorpay checkouts (same request body as before).
+// Delegates to the provider-independent confirmation: checkout signature verified with the key secret, payment read
+// from Razorpay, then settled. The webhook (/api/webhooks/razorpay) settles the same payment independently.
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeBillingAccess } from '@/lib/billing/access'
-import { razorpayConfig, verifyCheckoutSignature } from '@/lib/billing/razorpay'
-import { confirmCheckout } from '@/lib/dal/billing'
+import { createServiceClient } from '@/lib/supabase/server'
+import { envResolver } from '@/lib/payments/registry'
+import { confirm } from '@/lib/payments/service'
 
 const Body = z.object({
   orgId: z.string().uuid(),
@@ -20,12 +21,7 @@ export async function POST(request: NextRequest) {
   const b = parsed.data
   const access = await authorizeBillingAccess(b.orgId)
   if (!access.success) return access.response
-  const cfg = razorpayConfig()
-  if (!cfg) return NextResponse.json({ error: 'Online payment is not set up.' }, { status: 503 })
-  if (!verifyCheckoutSignature(b.razorpay_order_id, b.razorpay_payment_id, b.razorpay_signature, cfg.keySecret)) {
-    return NextResponse.json({ error: 'Payment could not be verified.' }, { status: 400 })
-  }
-  const result = await confirmCheckout(cfg, b.orgId, b.razorpay_order_id, b.razorpay_payment_id)
+  const result = await confirm(createServiceClient(), envResolver(), b.orgId, 'razorpay', { ...b, orderId: b.razorpay_order_id })
   if (!result.success) return NextResponse.json({ error: result.error }, { status: result.status })
   return NextResponse.json(result.data)
 }

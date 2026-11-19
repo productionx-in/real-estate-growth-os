@@ -252,7 +252,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
             Click to upload or drag and drop
           </h3>
           <p className="mt-1 text-[12px] text-[var(--foreground-muted)]">
-            CSV up to 5 MB — our template or an export from Sell.Do, LeadSquared or a spreadsheet. Name, phone, source, stage, salesperson, project and enquiry date are recognised.
+            CSV up to 5 MB — our template, an export from your current CRM or a spreadsheet. Name, phone, source, stage, salesperson, project and enquiry date are recognised.
           </p>
         </div>
       ) : (
