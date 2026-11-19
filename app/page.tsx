@@ -13,12 +13,15 @@ import { MarketingShell } from '@/components/marketing/MarketingShell'
 import { LeadFlowPreview } from '@/components/marketing/LeadFlowPreview'
 
 export const metadata: Metadata = {
-  title: { absolute: `${PRODUCT_NAME} — Every real-estate lead called in minutes` },
+  title: { absolute: `${PRODUCT_NAME} — Real estate sales software for developers and channel partner agencies` },
   description:
     'REGrow captures leads from Meta, Google, property portals, your website and WhatsApp, assigns each one to the right salesperson in seconds and makes sure someone follows up.',
 }
 
-const SOURCES = ['Meta lead forms', 'Google Ads', '99acres', 'MagicBricks', 'Housing.com', 'Website forms', 'WhatsApp', 'Walk-ins & referrals', 'CSV import']
+// Ready to use: work without any third-party approval. With setup: need the customer's own account connected (and,
+// for portals, API access granted by the portal) — the site must never imply these work out of the box.
+const SOURCES = ['Website forms', 'Walk-ins & referrals', 'CSV import', 'Webhooks & API']
+const SOURCES_WITH_SETUP = ['Meta lead forms', 'Google Ads lead forms', 'WhatsApp Business', '99acres', 'MagicBricks', 'Housing.com']
 
 const LEAKS = [
   { icon: Inbox, title: 'Leads wait in five inboxes', body: 'Facebook, Google, three portals and the website each keep their own list. Someone has to check them all, every hour.' },
@@ -30,7 +33,7 @@ const STEPS = [
   { n: '1', icon: Inbox, title: 'Capture', body: 'Connect your ad accounts, portals and website once. Every enquiry lands in one list, duplicates merged.' },
   { n: '2', icon: Shuffle, title: 'Route', body: 'Your rules pick the team — by project, source or campaign — and the next salesperson in a fair rotation.' },
   { n: '3', icon: BellRing, title: 'Alert', body: 'The salesperson is notified the moment the lead is theirs, with the buyer’s details one tap away.' },
-  { n: '4', icon: ClipboardList, title: 'Follow up', body: 'Managers see every lead, who has it and why. Follow-up reminders and 5-minute escalation are coming next.' },
+  { n: '4', icon: ClipboardList, title: 'Follow up', body: 'Follow-up reminders keep every promised call on the list, and a lead nobody contacts in time is escalated to a manager. Managers see every lead, who has it and why.' },
 ]
 
 const FEATURES = [
@@ -38,12 +41,12 @@ const FEATURES = [
   { icon: Users, title: 'Fair, adjustable rotation', body: 'Give senior closers a bigger share, cap leads per day, and let people switch themselves off duty for site visits.' },
   { icon: Repeat, title: 'Returning buyers stay with their salesperson', body: 'When the same phone number enquires again, it goes back to whoever already knows them.' },
   { icon: UserCheck, title: 'Every assignment explained', body: 'Managers see which rule fired and why a person was chosen — no more arguments about who got the good leads.' },
-  { icon: Building2, title: 'Built for developers and channel partners', body: 'Channel-partner agencies get their own independent workspace and keep ownership of their leads.' },
+  { icon: Building2, title: 'Built for developers and channel partners', body: 'Agencies have their own independent workspace and keep ownership of their buyers. Developers share chosen projects with partner agencies, who register buyers for review.' },
   { icon: ShieldCheck, title: 'Your data, locked to your company', body: 'Each company’s data is separated inside the database itself, not just hidden in the app. Inactive users lose access immediately.' },
 ]
 
 const FAQ = [
-  { q: 'How long does setup take?', a: 'Most teams are live in a day: we connect your lead sources, set up your teams and rules with you, and import your existing leads.' },
+  { q: 'How long does setup take?', a: 'We set it up with you: connect your lead sources, create your teams and routing rules, and import your existing leads. How long it takes depends mainly on how many sources you connect and whether they need third-party approval (Meta, Google, portals).' },
   { q: 'Can we keep Sell.Do or our current CRM?', a: 'Yes. You can run REGrow in front of your current CRM for lead capture and response, or move fully with our import. Many teams start side by side.' },
   { q: 'Do you charge per lead?', a: 'No. The plan price covers unlimited leads and reminders. Only services that cost us per message — such as WhatsApp alerts beyond the included volume — are billed at usage.' },
   { q: 'What happens to a lead when nobody is available?', a: 'It stays unassigned instead of going to someone who is off duty or over their daily limit, and your managers are notified straight away.' },
@@ -71,8 +74,8 @@ export default async function HomePage() {
               Every lead called in <span className="text-[var(--brand)]">minutes</span>, not hours.
             </h1>
             <p className="mt-5 text-[17px] leading-relaxed text-[var(--foreground-muted)] max-w-xl">
-              {PRODUCT_NAME} pulls enquiries from Meta, Google, property portals, your website and WhatsApp, hands each one to the
-              right salesperson in seconds, and tells them the moment it is theirs.
+              {PRODUCT_NAME} is the sales operating system for real-estate developers and channel partner agencies. Every enquiry
+              lands in one place, reaches the right salesperson in seconds, and its follow-ups, site visits and bookings stay on track.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link href="/demo" className="inline-flex items-center justify-center gap-2 px-5 py-3 text-[15px] font-semibold text-white bg-[var(--brand)] hover:bg-[var(--brand-hover)] rounded-xl shadow-sm transition-colors">
@@ -83,7 +86,7 @@ export default async function HomePage() {
               </Link>
             </div>
             <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-[var(--foreground-muted)]">
-              {[`${formatInr(leads.monthlyInr!)}/month for ${leads.includedUsers} users`, 'No per-lead charges', 'Live in a day'].map((t) => (
+              {[`${formatInr(leads.monthlyInr!)}/month for ${leads.includedUsers} users`, 'No per-lead charges', 'Set up with you'].map((t) => (
                 <li key={t} className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-600" aria-hidden="true" />{t}</li>
               ))}
             </ul>
@@ -98,11 +101,18 @@ export default async function HomePage() {
           <h2 id="sources-heading" className="text-center text-[13px] font-semibold uppercase tracking-wider text-[var(--foreground-subtle)]">
             One inbox for every place buyers enquire
           </h2>
-          <ul className="mt-5 flex flex-wrap justify-center gap-2.5">
+          <ul className="mt-5 flex flex-wrap justify-center gap-2.5" aria-label="Ready to use">
             {SOURCES.map((s) => (
               <li key={s} className="px-3.5 py-1.5 text-[13px] font-medium bg-white border border-[var(--border)] rounded-full text-[var(--foreground)]">{s}</li>
             ))}
           </ul>
+          <p className="mt-5 text-center text-[13px] text-[var(--foreground-muted)]">Connect with your own account — we set these up with you:</p>
+          <ul className="mt-3 flex flex-wrap justify-center gap-2.5" aria-label="Connect with your own account">
+            {SOURCES_WITH_SETUP.map((s) => (
+              <li key={s} className="px-3.5 py-1.5 text-[13px] font-medium bg-[var(--surface-muted)] border border-dashed border-[var(--border-strong)] rounded-full text-[var(--foreground)]">{s}</li>
+            ))}
+          </ul>
+          <p className="mt-3 text-center text-[12px] text-[var(--foreground-subtle)]">Meta, Google and WhatsApp need your business account connected; property portals need API access granted by the portal.</p>
         </div>
       </section>
 
