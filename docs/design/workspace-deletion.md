@@ -1,7 +1,13 @@
 # Workspace archive, deletion and recovery — audit and design (for approval)
 
-Status: proposal, 19 Nov 2026. Nothing implemented. Implementation will be its own PR, separate from the website,
-partner network and internal portal work.
+Status: proposal, updated 19 Nov 2026 with the owner's principles. Nothing implemented. **Permanent deletion will
+not be built until this design and the retention policy are approved; expired trial workspaces are not purged
+automatically.** Implementation is its own branch/PR, separate from the website, partner network, sign-up and portal work.
+
+Owner's principles (19 Nov): archive separate from deletion; owner-only request with fresh authentication and workspace-name
+confirmation; all owners notified; any owner can cancel during 14 days; safe export before deletion; partner-owned buyer
+registrations, financial records and audit history protected; resumable, idempotent, fully audited; concurrent last-owner
+and ownership-transfer problems fixed; staff deletion restricted and audited.
 
 ## 1. Audit — what exists today (verified in code and in the database schema)
 
@@ -133,12 +139,44 @@ customer's audit log; cannot override invoices or legal holds. No other staff ro
 - Backups: erasure is not immediate in backups; the Privacy Policy already says so.
 - Retention periods are a legal decision; the table above is a proposal.
 
-## 4. Decisions needed
+## 4. Delivery plan (each step separately approved)
+
+### Step A — safety migration (proposed first; no visible change)
+Affected tables and the change:
+
+| Table.column | Today | Proposed | Why |
+|---|---|---|---|
+| `deal_registrations.agency_org_id`, `.developer_org_id` | NOT NULL, ON DELETE CASCADE | nullable, ON DELETE SET NULL, plus `agency_name_snapshot` / `developer_name_snapshot` (backfilled) | The surviving partner keeps its registrations |
+| `org_partnerships.developer_org_id`, `.agency_org_id` | CASCADE | nullable, SET NULL, name snapshots | Partnership history survives |
+| `org_subscription_invoices`, `org_subscription_payments`, `org_subscriptions`, `org_subscription_seat_purchases` `.org_id` | CASCADE | RESTRICT | Financial records can never disappear by cascade |
+| `org_audit_logs`, `organisation_state_events`, `support_access_grants` `.org_id` | CASCADE (blocked in practice by immutability triggers) | RESTRICT | Make the intent explicit |
+| `bookings`, `deals`, `channel_partner_commissions` `.org_id` | CASCADE | RESTRICT | Money-related records are removed only by the explicit purge, per the retention policy |
+| new trigger on `org_members` | last-owner check in application code only | `ensure_active_owner` trigger: locks the organisation row and refuses any change leaving zero active owners | Fixes the concurrent last-owner race at the database level |
+| new functions | — | `transfer_ownership(org, from, to)`, `leave_organisation(org, actor)` (atomic, audited) | Safe transfer and leaving |
+
+RLS/security: no new client access; partner DAL shows "Deleted agency/developer" from the snapshot when the other side is
+null; functions are service-role only and re-check roles. Tests (real database): a raw `DELETE` of an organisation with
+invoices fails; a partner's deletion leaves the other side's registrations with the snapshot name; two owners demoting each
+other concurrently leaves one owner; transfer and leave are atomic and audited. Rollback: re-create the original foreign keys
+(no data changes are made by this step except the backfilled name snapshots, which can stay).
+
+### Step B — archive, leave, transfer, export (no deletion)
+Owner archive/unarchive (reusing the lifecycle function), Leave workspace, atomic ownership transfer, and a **workspace
+export**: owners/admins request a ZIP of CSV files (leads with activities, site visits, projects, inventory, documents
+metadata, their side of buyer registrations) built by a background job, downloadable for 7 days, audited.
+
+### Step C — deletion request and cancellation (no purge)
+Request with re-authentication and typed name, impact summary, blockers, 14-day pending state, notifications, cancel.
+
+### Step D — purge (only after you approve this design and the retention policy)
+Checkpointed purge job, tombstone, retained records, platform audit.
+
+## 5. Decisions needed
 
 1. Pending period: 14 days (configurable) — confirm.
 2. During the pending period: read-only with export (proposed) or fully usable?
 3. Can any owner request deletion, or must every owner confirm when there are several? (Proposed: any owner requests,
    all owners notified, any owner can cancel.)
 4. Retention periods in 2.6 — confirm with your accountant.
-5. Expired, unpaid trial workspaces: offer automatic deletion after e.g. 90 days read-only, with two email warnings?
-6. Implementation order: (a) FK safety migration, (b) leave/transfer/archive, (c) deletion request + purge.
+5. Expired, unpaid trial workspaces: **no automatic purge** (your instruction) until retention and recovery rules are agreed.
+6. Approve Step A (safety migration) to be implemented first.

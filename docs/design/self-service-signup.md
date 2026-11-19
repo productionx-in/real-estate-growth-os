@@ -1,7 +1,9 @@
 # Self-service sign-up, free trial and Explore demo — plan (for approval)
 
-Status: proposal, 19 Nov 2026. **Nothing is switched on publicly.** Built behind a launch switch that stays off until
-you approve.
+Status: proposal, updated 19 Nov 2026. **Nothing is switched on publicly.** Built behind a disabled feature flag.
+Packages and prices are **not final**: no trial duration, allowance, seat count or price is hard-coded — all come from the
+commercial catalogue (`docs/design/billing-and-commercial-control.md`). Developer and agency onboarding are both supported.
+The Explore demo is separate from registered customer accounts.
 
 ## 1. What already exists (verified)
 
@@ -49,12 +51,30 @@ you approve.
 - No client-supplied organisation IDs, roles, types or entitlements are trusted; every step re-checks on the server.
 - Every creation, trial start and refusal is in the audit logs.
 
-## 4. Trial limits for approval
+## 4. Trial terms are configuration, not code
 
-Already enforced in the database (DEC-022, adjusted by you on 18 Nov): **14 days, 5 users, 1,000 leads, 5 projects,
-500 inventory units**, no card required, read-only after expiry, data never deleted for non-payment.
+The trial applied at sign-up is the **active trial offer** for the chosen audience in the commercial catalogue (duration,
+allowances, eligibility rule). Today's values (14 days, 5 users, 1,000 leads, 5 projects, 500 units) exist only as data in
+the trial plan rows and will become a draft trial offer to review with the final packaging. Required change before launch:
+`billing_start_trial` reads the trial offer and writes per-organisation entitlements instead of reading fixed plan codes.
 
-## 5. Delivery (separate PRs)
+**Feature flag**: a `commercial_settings.self_serve_signup_enabled` value (default **false**) checked on the server by the
+sign-up routes, the onboarding function and the website buttons; changeable only by a super admin in the CMS, audited.
+
+**Demo separation**: the demo organisation is flagged `is_demo`; it is created by a staff script, never by sign-up; it can
+never receive a membership through sign-up or invitation; demo sessions are read-only and cannot reach any other
+organisation.
+
+## 5. Affected tables, security, tests and rollback
+
+- New: `signup_requests` (idempotency per person and request id, status), `commercial_settings`; organisations get
+  `verification_status` and `is_demo`. No change to existing customer data.
+- RLS: new tables server-only; the onboarding function is service-role only and derives the user from the verified session.
+- Tests (real database): unconfirmed email refused; duplicate/abandoned creation; trial once per person per type; flag off
+  refuses everything; manipulated IDs/types refused; rate limits; demo cannot be joined.
+- Rollback: the flag off disables the whole flow; tables are additive.
+
+## 6. Delivery (separate PRs)
 
 1. `create_self_serve_workspace` + `/signup` + `/onboarding`, behind `SELF_SERVE_SIGNUP` (off) — with real-database
    tests: duplicate/abandoned creation, email-not-confirmed refusal, trial-per-type, rate limits, manipulated IDs.
@@ -63,9 +83,9 @@ Already enforced in the database (DEC-022, adjusted by you on 18 Nov): **14 days
 4. Launch: switch on after you approve, after confirming production Supabase Auth settings (confirmation on, SMTP
    sender configured).
 
-## 6. Decisions needed
+## 7. Decisions needed
 
 1. CAPTCHA provider: Cloudflare Turnstile (free, privacy-friendly) — confirm.
 2. Workspace creation cap: 3 per person per 30 days — confirm.
-3. Should agencies be able to self-sign-up on day one, or developers only first?
-4. Independent CP: launch with its plan later (proposed), or offer agency trials to individuals now?
+3. Trial offer terms — after the pricing research.
+4. Independent CP onboarding — after its package is defined.
