@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: { absolute: `Terms of Service — ${LEGAL.product}` },
   description: `The terms on which ${LEGAL.entity} provides ${LEGAL.product}, the real-estate sales platform for developers and channel partner agencies: accounts, subscriptions, acceptable use, data and liability.`,
   robots: LEGAL.confirmed ? undefined : { index: false, follow: true },
+  alternates: { canonical: '/terms' },
 }
 
 export default function TermsPage() {
