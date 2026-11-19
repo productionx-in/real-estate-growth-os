@@ -95,6 +95,20 @@ await test('every marketing page is public, light-only, indexable, in the sitema
   })
 })
 
+await test('OAuth callbacks and invitation links use the configured app URL, never the request host', async () => {
+  await withEnv({ NEXT_PUBLIC_APP_URL: 'https://app.example.test' }, async () => {
+    const g = await jiti.import(path.join(root, 'lib/integrations/google/config.ts'))
+    const m = await jiti.import(path.join(root, 'lib/integrations/meta/config.ts'))
+    const saved = process.env.GOOGLE_REDIRECT_URI; delete process.env.GOOGLE_REDIRECT_URI
+    assert.equal(g.getGoogleOAuthRedirectUri('https://preview-123.vercel.app'), 'https://app.example.test/api/integrations/google/callback')
+    assert.equal(m.getMetaOAuthRedirectUri('https://evil.example'), 'https://app.example.test/api/integrations/meta/callback')
+    if (saved !== undefined) process.env.GOOGLE_REDIRECT_URI = saved
+  })
+  for (const f of ['app/api/admin/organisations/provision/route.ts', 'app/api/admin/invitations/retry/route.ts', 'app/api/team/invite/route.ts']) {
+    assert.match(read(f), /const origin = appUrl\(request\.nextUrl\.origin\) \?\? request\.nextUrl\.origin/, f)
+  }
+})
+
 await test('the public website names no competitor in navigation, headings, metadata or copy', () => {
   const walk = (d) => fs.readdirSync(path.join(root, d), { withFileTypes: true }).flatMap((e) => e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)])
   const files = ['app/page.tsx', 'app/pricing/page.tsx', 'app/demo/page.tsx', 'app/leakage-audit/page.tsx', 'app/migration/page.tsx', ...walk('components/marketing'), 'components/audit/LeakageAudit.tsx', 'lib/marketing/pricing.ts']

@@ -1,4 +1,5 @@
 // app/api/team/invite/route.ts
+import { appUrl } from '@/lib/site/urls'
 import { NextResponse, type NextRequest } from 'next/server'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -102,7 +103,8 @@ export async function POST(request: NextRequest) {
       .eq('id', targetOrgId)
       .maybeSingle()
 
-    const origin = request.nextUrl.origin
+    // Invitation links use the configured app URL, never the Host header of the request (lib/site/urls.ts).
+      const origin = appUrl(request.nextUrl.origin) ?? request.nextUrl.origin
     if (result.plaintextToken) {
       const inviteUrl = `${origin}/invite/${result.plaintextToken}`
       const mailer = getEmailAdapter()
