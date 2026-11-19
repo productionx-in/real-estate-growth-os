@@ -7,10 +7,13 @@
 // device; 'light'; 'dark'. Stored per browser (localStorage). Public, buyer-facing and marketing pages stay light.
 export type ThemePreference = 'sun' | 'system' | 'light' | 'dark'
 
-export function themeRuntime() {
+import { MARKETING_PATHS } from '@/lib/site/urls'
+
+/** `lightPaths`: the public marketing pages (always light). Passed in, because this function must stay self-contained. */
+export function themeRuntime(lightPaths: string[] = MARKETING_PATHS) {
   const KEY = 'regrow-theme'
   const PREFS = ['sun', 'system', 'light', 'dark']
-  const LIGHT_ONLY = [/^\/$/, /^\/pricing(\/|$)/, /^\/demo(\/|$)/, /^\/leakage-audit(\/|$)/, /^\/migration(\/|$)/, /^\/privacy(\/|$)/, /^\/terms(\/|$)/, /^\/p\//, /^\/d\//, /^\/forms(\/|$)/]
+  const LIGHT_ONLY = [/^\/privacy(\/|$)/, /^\/terms(\/|$)/, /^\/p\//, /^\/d\//, /^\/forms(\/|$)/] // plus every marketing page (lightPaths)
 
   // Representative coordinates for common timezones; others are estimated from the UTC offset.
   const ZONES: Record<string, [number, number]> = {
@@ -60,7 +63,7 @@ export function themeRuntime() {
     return now.valueOf() >= t.rise && now.valueOf() < t.set ? 'light' : 'dark'
   }
 
-  const lightOnly = (path: string) => LIGHT_ONLY.some((re) => re.test(path))
+  const lightOnly = (path: string) => LIGHT_ONLY.some((re) => re.test(path)) || lightPaths.indexOf(path.replace(/\/+$/, '') || '/') >= 0
 
   function apply(path?: string) {
     const p = path ?? location.pathname
@@ -83,4 +86,4 @@ export function themeRuntime() {
 }
 
 /** Inline before first paint. */
-export const THEME_BOOT_SCRIPT = `(function(){try{var t=(${themeRuntime.toString()})();window.__regrowTheme=t;t.apply()}catch(e){}})()`
+export const THEME_BOOT_SCRIPT = `(function(){try{var t=(${themeRuntime.toString()})(${JSON.stringify(MARKETING_PATHS)});window.__regrowTheme=t;t.apply()}catch(e){}})()`

@@ -63,7 +63,10 @@ await test('robots and sitemap come from the same configuration', async () => {
     assert.equal(robots.sitemap, 'https://www.example.test/sitemap.xml')
     for (const p of ['/api/', '/invite/', '/d/', '/platform']) assert.ok(robots.rules[0].disallow.includes(p), p)
     const sitemap = (await jiti.import(path.join(root, 'app/sitemap.ts'))).default()
-    assert.deepEqual(sitemap.map((e) => e.url).slice(0, 4), ['https://www.example.test/', 'https://www.example.test/pricing', 'https://www.example.test/demo', 'https://www.example.test/leakage-audit'])
+    const urls = sitemap.map((e) => e.url)
+    assert.equal(urls[0], 'https://www.example.test/')
+    for (const p of ['/pricing', '/demo', '/leakage-audit', '/inventory-management', '/developers', '/agencies']) assert.ok(urls.includes(`https://www.example.test${p}`), p)
+    assert.equal(new Set(urls).size, urls.length, 'no duplicate URLs')
     assert.ok(!sitemap.some((e) => /\/(login|api|p)\b/.test(e.url)))
   })
 })
@@ -86,7 +89,8 @@ await test('every marketing page is public, light-only, indexable, in the sitema
       assert.equal(u.isIndexablePath(p), true, `${p} indexable`)
       assert.ok(sitemap.includes(`https://www.example.test${p === '/' ? '/' : p}`), `${p} in sitemap`)
       const file = p === '/' ? 'app/page.tsx' : `app${p}/page.tsx`
-      assert.match(read(file), new RegExp(`canonical: '${p.replace(/\//g, '\\/')}'`), `${file} canonical`)
+      const src = read(file), esc = p.replace(/\//g, '\\/')
+      assert.ok(new RegExp(`canonical: '${esc}'`).test(src) || (new RegExp(`path: '${esc}'`).test(src) && /(product|article)Metadata\(/.test(src)), `${file} canonical`)
     }
   })
 })

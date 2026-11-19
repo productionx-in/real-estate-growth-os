@@ -2,29 +2,29 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PRODUCT_NAME } from '@/lib/brand'
-import { ONBOARDING_FEE_INR, formatInr } from '@/lib/marketing/pricing'
+import { ONBOARDING_FEE_INR, PRICES_PUBLISHED, formatInr } from '@/lib/marketing/pricing'
 import { MarketingShell } from '@/components/marketing/MarketingShell'
 import { PricingPlans } from '@/components/marketing/PricingPlans'
 import { RoiCalculator } from '@/components/marketing/RoiCalculator'
 
 export const metadata: Metadata = {
-  title: { absolute: `Pricing — ${PRODUCT_NAME}` },
-  description: 'Simple pricing for real-estate lead management: one price for your team, unlimited leads, no per-lead charges.',
+  title: { absolute: `Pricing and packages — ${PRODUCT_NAME}` },
+  description: 'REGrow packages for real estate developers and channel partner agencies, sized to your team. Ask for a recommendation for your projects and team.',
   alternates: { canonical: '/pricing' },
 }
 
 const INCLUDED = [
-  ['Unlimited leads and sources', 'No charge per lead, per form or per connected account.'],
-  ['Every user gets every lead alert', 'Pricing per company, not per login — nobody shares a password to save money.'],
-  ['Setup done with you', `Source connections, routing and training. ${formatInr(ONBOARDING_FEE_INR)} one-time, waived on annual plans for founding customers.`],
-  ['Usage only where it costs us', 'WhatsApp messages beyond the included volume are billed at cost plus a small margin. Nothing else is metered.'],
+  ['Every lead source', 'No charge per form or per connected account; enquiries from connected sources are always saved.'],
+  ['A login for every user', 'Every salesperson, manager and admin has their own login — no shared accounts.'],
+  ['Setup done with you', PRICES_PUBLISHED ? `Source connections, routing and training. ${formatInr(ONBOARDING_FEE_INR)} one-time.` : 'Source connections, routing, inventory setup and training, planned with you.'],
+  ['Usage only where it costs us', 'WhatsApp message charges set by Meta are passed through. Nothing else is metered.'],
 ]
 
 const FAQ = [
-  { q: 'Is there a free trial?', a: 'We run a 30-day paid pilot with a target agreed up front, such as nine in ten leads contacted within five minutes. If you continue, the pilot fee counts towards your annual plan.' },
+  { q: 'How do we find the right package?', a: 'Tell us about your projects, team size and lead sources. We recommend a package and, for larger teams, a pilot with a target agreed up front.' },
   { q: 'What counts as a user?', a: 'Anyone who signs in: salespeople, managers and admins. Deactivated users free their seat straight away.' },
   { q: 'Can we change team size later?', a: 'Yes. Add users at any time; extra users are charged from the date they are added.' },
-  { q: 'Are prices inclusive of GST?', a: 'No. All prices are in Indian rupees and exclude GST.' },
+  { q: 'Are prices inclusive of GST?', a: 'No. Prices are quoted in Indian rupees and exclude GST, which is shown separately on every invoice.' },
   { q: 'We are a channel-partner agency working with a developer on REGrow. Do we pay?', a: 'Yes — each agency has its own workspace and its own plan (REGrow for Agencies), and your buyers stay yours. A developer partnering with you does not pay for your workspace, and you do not pay for theirs.' },
 ]
 
@@ -34,8 +34,8 @@ export default function PricingPage() {
       <section className="mx-auto max-w-6xl px-4 sm:px-6 pt-14 pb-16">
         <div className="text-center max-w-2xl mx-auto">
           <p className="text-[13px] font-semibold uppercase tracking-wider text-[var(--brand)]">Pricing</p>
-          <h1 className="mt-2 text-[36px] sm:text-[44px] font-extrabold tracking-tight leading-tight">One price for the whole sales team</h1>
-          <p className="mt-4 text-[17px] text-[var(--foreground-muted)]">Unlimited leads. No per-lead charges. Every salesperson gets a login.</p>
+          <h1 className="mt-2 text-[36px] sm:text-[44px] font-extrabold tracking-tight leading-tight">Packages for developers and for agencies</h1>
+          <p className="mt-4 text-[17px] text-[var(--foreground-muted)]">Separate packages for developer sales teams and channel partner agencies, sized to your team. Every salesperson gets their own login.</p>
         </div>
         <div className="mt-12"><PricingPlans /></div>
       </section>

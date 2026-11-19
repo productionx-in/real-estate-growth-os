@@ -5,11 +5,11 @@ import { isIndexablePath, MARKETING_PATHS } from '@/lib/site/urls'
 
 const PUBLIC_ROUTES = [...MARKETING_PATHS, '/privacy', '/terms', '/login', '/auth/callback', '/auth/confirm']
 // Loaded by visitors of customers' websites, who are never signed in to REGrow.
-const PUBLIC_WEBSITE_ASSETS = ['/capture.js', '/forms/embed.js', '/forms/view', '/robots.txt', '/sitemap.xml']
+const PUBLIC_WEBSITE_ASSETS = ['/capture.js', '/forms/embed.js', '/forms/view', '/robots.txt', '/sitemap.xml', '/llms.txt']
 
 /** Only marketing pages and published project showrooms may be indexed; everything else says so explicitly. */
 function markIndexing(res: NextResponse, pathname: string): NextResponse {
-  if (!isIndexablePath(pathname) && pathname !== '/robots.txt' && pathname !== '/sitemap.xml') res.headers.set('X-Robots-Tag', 'noindex, nofollow')
+  if (!isIndexablePath(pathname) && !['/robots.txt', '/sitemap.xml', '/llms.txt'].includes(pathname)) res.headers.set('X-Robots-Tag', 'noindex, nofollow')
   return res
 }
 
