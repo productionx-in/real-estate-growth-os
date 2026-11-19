@@ -160,7 +160,7 @@ export default function MigrationPage() {
             <Link href="/demo?interest=migration" className="inline-flex items-center justify-center gap-2 px-5 py-3 text-[15px] font-semibold text-brand-foreground bg-brand hover:bg-brand-hover rounded-xl transition-colors">
               Request a migration assessment
             </Link>
-            <Link href="/demo?interest=contact" className="inline-flex items-center justify-center px-5 py-3 text-[15px] font-semibold text-foreground bg-surface border border-[var(--border-strong)] hover:bg-surface-hover rounded-xl transition-colors">
+            <Link href="/contact" className="inline-flex items-center justify-center px-5 py-3 text-[15px] font-semibold text-foreground bg-surface border border-[var(--border-strong)] hover:bg-surface-hover rounded-xl transition-colors">
               Talk to the team
             </Link>
           </div>

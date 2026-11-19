@@ -2,12 +2,12 @@
 // COMMERCIAL_RULES.md, DEC-022). Not indexed until the company particulars are confirmed.
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ContactLine, LegalPage } from '@/components/legal/LegalPage'
-import { LEGAL } from '@/lib/legal'
+import { ContactLine, LegalPage, Pending } from '@/components/legal/LegalPage'
+import { LEGAL, legalEntity } from '@/lib/legal'
 
 export const metadata: Metadata = {
   title: { absolute: `Terms of Service — ${LEGAL.product}` },
-  description: `The terms on which ${LEGAL.entity} provides ${LEGAL.product}, the real-estate sales platform for developers and channel partner agencies: accounts, subscriptions, acceptable use, data and liability.`,
+  description: `The terms on which ${legalEntity()} provides ${LEGAL.product}, the real-estate sales platform for developers and channel partner agencies: accounts, subscriptions, acceptable use, data and liability.`,
   robots: LEGAL.confirmed ? undefined : { index: false, follow: true },
   alternates: { canonical: '/terms' },
 }
@@ -18,7 +18,7 @@ export default function TermsPage() {
       title="Terms of Service"
       intro={
         <p>
-          These terms are an agreement between {LEGAL.entity} (“we”) and the organisation that uses {LEGAL.product} (“you”,
+          These terms are an agreement between {legalEntity()} (“we”) and the organisation that uses {LEGAL.product} (“you”,
           the “customer”). By creating or using a workspace, you accept them on behalf of your organisation. A separate signed
           agreement with us, if any, takes precedence where it differs.
         </p>
@@ -47,7 +47,7 @@ export default function TermsPage() {
             <li>A plan includes a number of users; additional users are charged for the rest of the billing period.</li>
             <li>Where a free trial is offered, it lasts for the period and within the limits shown when it starts. When it ends, the workspace becomes read-only until a plan is chosen; nothing is deleted.</li>
             <li>If a paid period ends without renewal, the workspace keeps working for 7 days, then becomes read-only until payment. New enquiries from connected sources continue to be saved.</li>
-            <li>Fees already paid are not refundable except where the law requires or we agree in writing.</li>
+            <li>Refunds and cancellations follow our <Link className="text-[var(--brand)] hover:underline" href="/refund-policy">Refund &amp; Cancellation Policy</Link>.</li>
           </ul>,
         },
         {
@@ -86,7 +86,7 @@ export default function TermsPage() {
         },
         {
           id: 'ip', title: 'Intellectual property',
-          body: <p>{LEGAL.product}, its software and its content belong to {LEGAL.entity}. You receive a right to use the service during your subscription; you may not copy, resell or reverse engineer it.</p>,
+          body: <p>{LEGAL.product}, its software and its content belong to {legalEntity()}. You receive a right to use the service during your subscription; you may not copy, resell or reverse engineer it.</p>,
         },
         {
           id: 'ending', title: 'Ending the service',
@@ -107,13 +107,13 @@ export default function TermsPage() {
         {
           id: 'law', title: 'Governing law',
           body: <p>
-            These terms are governed by the laws of India{LEGAL.jurisdictionCity ? `, and the courts at ${LEGAL.jurisdictionCity} have exclusive jurisdiction` : ''}.
+            These terms are governed by the laws of India, and the courts at {LEGAL.jurisdictionCity ?? <Pending what="jurisdiction city" />} have exclusive jurisdiction.
           </p>,
         },
         {
           id: 'contact', title: 'Changes and contact',
           body: <p>
-            We will post changes here and tell customers of significant changes in advance. Questions: <ContactLine email={LEGAL.privacyEmail} />.
+            We will post changes here and tell customers of significant changes in advance. Questions: <ContactLine email={LEGAL.supportEmail} what="contact email" />, or see our <Link className="text-[var(--brand)] hover:underline" href="/contact">contact page</Link>.
           </p>,
         },
       ]}
