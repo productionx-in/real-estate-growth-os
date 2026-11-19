@@ -6,6 +6,7 @@ import { PRODUCT_NAME } from '@/lib/brand'
 import { siteUrl } from '@/lib/site/urls'
 import { THEME_BOOT_SCRIPT } from '@/lib/theme/runtime'
 import { ThemeController } from '@/components/theme/ThemeController'
+import { DeploymentRibbon } from '@/components/layout/DemoBanner'
 
 const SITE = siteUrl()
 
@@ -43,6 +44,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased">
         <ThemeController />
+        <DeploymentRibbon />
         {children}
       </body>
     </html>

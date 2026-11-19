@@ -31,6 +31,12 @@ export interface EmailAdapter {
   sendInvitationEmail(options: InvitationEmailOptions): Promise<EmailResult>
 }
 
+/** True for addresses on domains reserved for testing: *.test, *.example, *.invalid, *.localhost, example.com/net/org. */
+export function isReservedTestAddress(address: string): boolean {
+  const domain = address.trim().toLowerCase().split('@').pop()?.replace(/>$/, '') ?? ''
+  return /(^|\.)(test|example|invalid|localhost)$/.test(domain) || /(^|\.)example\.(com|net|org)$/.test(domain)
+}
+
 /**
  * Resend Email Adapter: Uses official Resend REST API
  */
@@ -44,6 +50,9 @@ export class ResendEmailAdapter implements EmailAdapter {
   }
 
   async sendEmail(options: SendEmailOptions): Promise<EmailResult> {
+    // Demo and test accounts use reserved domains (RFC 2606/6761); never hand those to the provider.
+    const recipients = (Array.isArray(options.to) ? options.to : [options.to]).filter((r) => !isReservedTestAddress(r))
+    if (recipients.length === 0) return { success: true, id: 'suppressed-test-recipient' }
     try {
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -53,7 +62,7 @@ export class ResendEmailAdapter implements EmailAdapter {
         },
         body: JSON.stringify({
           from: options.from || this.defaultFrom,
-          to: Array.isArray(options.to) ? options.to : [options.to],
+          to: recipients,
           subject: options.subject,
           html: options.html,
           text: options.text,
