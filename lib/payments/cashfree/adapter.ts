@@ -234,6 +234,12 @@ export function cashfreeAdapter(cfg: CashfreeConfig, fetchImpl: typeof fetch = f
       }))
     },
 
+    async refundStatus({ orderId, reference }) {
+      if (!orderId) throw new ProviderError('order id required for a Cashfree refund', null, false)
+      const r = await call<{ refund_status: string }>(`/orders/${encodeURIComponent(orderId)}/refunds/${encodeURIComponent(ref(reference))}`)
+      return r.refund_status === 'SUCCESS' ? 'processed' : r.refund_status === 'CANCELLED' || r.refund_status === 'FAILED' ? 'failed' : 'pending'
+    },
+
     // An authenticated read of an order that cannot exist: 404 proves the API is up and our credentials work.
     async healthCheck() {
       try { await call('/orders/regrow_health_probe') } catch (e) {
