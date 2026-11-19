@@ -276,13 +276,7 @@ export async function executeRefund(db: Db, resolver: AdapterResolver, refundId:
   if (r.status !== 'approved') return fail(`Refund is ${r.status}.`, 409)
   const adapter = resolver.get(r.provider, r.environment)
   if (!adapter) return fail(`${r.provider} is not configured; the refund stays approved until it is.`, 503)
-  let orderId: string | null = null
-  if (r.payment_id) {
-    const { data: p } = await db.from('org_subscription_payments').select('attempt_id').eq('id', r.payment_id).single()
-    if (p?.attempt_id) orderId = (await db.from('payment_attempts').select('provider_order_id').eq('id', p.attempt_id).single()).data?.provider_order_id ?? null
-  } else {
-    orderId = (await db.from('unapplied_payments').select('provider_order_id').eq('id', r.unapplied_id).single()).data?.provider_order_id ?? null
-  }
+  const orderId = await refundOrderId(db, r)
   let out
   try {
     out = await adapter.refund({ orderId: orderId ?? '', paymentId: r.provider_payment_id, amountPaise: Number(r.amount_cents), reference: r.idempotency_key, note: r.reason })
@@ -369,4 +363,51 @@ export async function checkHealth(db: Db, resolver: AdapterResolver): Promise<{ 
     out.push({ provider: a.code, ok, latencyMs, error })
   }
   return out
+}
+
+// ── Late or lost refund webhooks ───────────────────────────────────────────────────────────────
+async function refundOrderId(db: Db, r: { payment_id: string | null; unapplied_id: string | null }): Promise<string | null> {
+  if (r.payment_id) {
+    const { data: p } = await db.from('org_subscription_payments').select('attempt_id').eq('id', r.payment_id).single()
+    if (!p?.attempt_id) return null
+    return (await db.from('payment_attempts').select('provider_order_id').eq('id', p.attempt_id).single()).data?.provider_order_id ?? null
+  }
+  return (await db.from('unapplied_payments').select('provider_order_id').eq('id', r.unapplied_id).single()).data?.provider_order_id ?? null
+}
+
+/** Refunds sent to a provider more than an hour ago without a final result: ask the provider (the webhook may be lost). */
+export async function pollSubmittedRefunds(db: Db, resolver: AdapterResolver, olderThanMinutes = 60): Promise<{ checked: number; completed: number }> {
+  const { data } = await db.from('payment_refunds').select('id, provider, environment, provider_refund_id, idempotency_key, payment_id, unapplied_id')
+    .eq('status', 'submitted').lt('submitted_at', new Date(Date.now() - olderThanMinutes * 60_000).toISOString()).limit(50)
+  let checked = 0, completed = 0
+  for (const r of data ?? []) {
+    const adapter = resolver.get(r.provider, r.environment)
+    if (!adapter || !r.provider_refund_id) continue
+    checked++
+    let status
+    try { status = await adapter.refundStatus({ refundId: r.provider_refund_id, orderId: await refundOrderId(db, r), reference: r.idempotency_key }) } catch { continue }
+    if (status === 'pending') continue
+    const { error } = await db.rpc('payment_refund_result', { p_provider: r.provider, p_env: r.environment, p_provider_refund_id: r.provider_refund_id, p_idempotency_key: r.idempotency_key, p_status: status, p_failure: status === 'failed' ? 'reported failed by the provider' : null })
+    if (!error) completed++
+  }
+  return { checked, completed }
+}
+
+/**
+ * Signed webhook events whose processing failed (e.g. a database blip) are re-processed from the stored payload, up to
+ * 5 attempts, oldest first. Processing is idempotent, so a retry never applies a payment or refund twice.
+ */
+export async function reprocessFailedWebhooks(db: Db, resolver: AdapterResolver, maxAttempts = 5): Promise<{ retried: number; processed: number }> {
+  const { data } = await db.from('payment_webhook_events').select('id, provider, environment, payload, attempts')
+    .eq('outcome', 'failed').eq('signature_valid', true).lt('attempts', maxAttempts).order('received_at').limit(25)
+  let retried = 0, processed = 0
+  for (const ev of data ?? []) {
+    const adapter = resolver.get(ev.provider, ev.environment)
+    if (!adapter || !ev.payload) continue
+    retried++
+    const out = await processEvent(db, adapter, adapter.parseWebhook(JSON.stringify(ev.payload), new Headers()).event)
+    await db.rpc('payment_webhook_outcome', { p_event: ev.id, p_outcome: out.outcome, p_detail: `auto-retry: ${out.detail}` })
+    if (out.outcome !== 'failed') processed++
+  }
+  return { retried, processed }
 }
