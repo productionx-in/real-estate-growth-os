@@ -65,7 +65,7 @@ export function LeakageAudit() {
           className={`block cursor-pointer rounded-3xl border-2 border-dashed p-10 text-center transition-colors ${dragging ? 'border-[var(--brand)] bg-[var(--brand-light)]' : 'border-[var(--border-strong)] bg-white hover:bg-[var(--surface-hover)]'}`}>
           <FileSpreadsheet className="w-10 h-10 mx-auto text-[var(--brand)]" aria-hidden="true" />
           <p className="mt-3 text-[17px] font-semibold">Drop your lead export here</p>
-          <p className="mt-1 text-[14px] text-[var(--foreground-muted)]">CSV or Excel from Sell.Do, LeadSquared, TeleCRM or a spreadsheet — last 1–3 months works best.</p>
+          <p className="mt-1 text-[14px] text-[var(--foreground-muted)]">A CSV or Excel export from your current CRM or a spreadsheet — the last 1–3 months works best.</p>
           <span className="mt-5 inline-block px-5 py-2.5 text-[15px] font-semibold text-white bg-[var(--brand)] rounded-xl">Choose file</span>
           <input type="file" accept=".csv,.xlsx,.xls,text/csv" className="sr-only" onChange={(e) => load(e.target.files?.[0])} />
         </label>

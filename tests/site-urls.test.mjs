@@ -75,4 +75,27 @@ await test('every marketing page declares its canonical path; the root layout se
   assert.match(read('app/layout.tsx'), /metadataBase: new URL\(SITE\)/)
 })
 
+await test('every marketing page is public, light-only, indexable, in the sitemap and declares its canonical', async () => {
+  await withEnv({ NEXT_PUBLIC_SITE_URL: 'https://www.example.test' }, async (u) => {
+    const { themeRuntime } = await jiti.import(path.join(root, 'lib/theme/runtime.ts'))
+    const T = themeRuntime()
+    const sitemap = (await jiti.import(path.join(root, 'app/sitemap.ts'))).default().map((e) => e.url)
+    assert.match(read('proxy.ts'), /PUBLIC_ROUTES = \[\.\.\.MARKETING_PATHS/)
+    for (const p of u.MARKETING_PATHS) {
+      assert.equal(T.lightOnly(p), true, `${p} light-only`)
+      assert.equal(u.isIndexablePath(p), true, `${p} indexable`)
+      assert.ok(sitemap.includes(`https://www.example.test${p === '/' ? '/' : p}`), `${p} in sitemap`)
+      const file = p === '/' ? 'app/page.tsx' : `app${p}/page.tsx`
+      assert.match(read(file), new RegExp(`canonical: '${p.replace(/\//g, '\\/')}'`), `${file} canonical`)
+    }
+  })
+})
+
+await test('the public website names no competitor in navigation, headings, metadata or copy', () => {
+  const walk = (d) => fs.readdirSync(path.join(root, d), { withFileTypes: true }).flatMap((e) => e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)])
+  const files = ['app/page.tsx', 'app/pricing/page.tsx', 'app/demo/page.tsx', 'app/leakage-audit/page.tsx', 'app/migration/page.tsx', ...walk('components/marketing'), 'components/audit/LeakageAudit.tsx', 'lib/marketing/pricing.ts']
+    .filter((f) => fs.existsSync(path.join(root, f)))
+  for (const f of files) assert.doesNotMatch(read(f), /sell\.?do|leadsquared|telecrm|salesforce|zoho|hubspot|kylas|privyr/i, f)
+})
+
 console.log(`\nSite URLs: ${passed} checks passed.`)
