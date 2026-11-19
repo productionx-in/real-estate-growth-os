@@ -1,6 +1,7 @@
 // lib/notifications/push.ts
 // Web Push channel (M1-6). Sends each notification to every device the recipient enabled alerts on.
 // Configured by VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT; without them the channel is skipped.
+import { appUrl as appOrigin } from '@/lib/site/urls'
 import webpush, { WebPushError } from 'web-push'
 import { createServiceClient } from '@/lib/supabase/server'
 import type { ChannelAdapter, DeliveryOutcome, NotificationRecord } from './channels'
@@ -37,7 +38,7 @@ export const pushAdapter: ChannelAdapter = {
     if (error) throw new Error(`push: load subscriptions failed: ${error.message}`)
     if (!subs?.length) return { status: 'skipped', detail: 'no push subscription' }
 
-    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '')
+    const appUrl = appOrigin() ?? ''
     const { data: org } = await db.from('organisations').select('slug').eq('id', notification.org_id).maybeSingle()
     const payload = buildPushPayload(notification, appUrl, org?.slug ?? null)
     let sent = 0

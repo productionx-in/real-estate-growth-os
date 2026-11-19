@@ -3,10 +3,17 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { PRODUCT_NAME } from '@/lib/brand'
+import { siteUrl } from '@/lib/site/urls'
 import { THEME_BOOT_SCRIPT } from '@/lib/theme/runtime'
 import { ThemeController } from '@/components/theme/ThemeController'
 
+const SITE = siteUrl()
+
 export const metadata: Metadata = {
+  // Absolute canonical and Open Graph URLs come from configuration (lib/site/urls.ts), never a literal domain.
+  ...(SITE ? { metadataBase: new URL(SITE) } : {}),
+  openGraph: { siteName: PRODUCT_NAME, type: 'website', locale: 'en_IN' },
+  twitter: { card: 'summary' },
   title: {
     template: `%s | ${PRODUCT_NAME}`,
     default: PRODUCT_NAME,
