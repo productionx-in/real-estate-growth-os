@@ -9,7 +9,7 @@ import { Alert, Button, Card, CardContent, Field, Input, Spinner } from '@/compo
 
 type Step = { kind: 'loading' } | { kind: 'enrol'; factorId: string; qr: string; secret: string } | { kind: 'verify'; factorId: string }
 
-export function MfaGate() {
+export function MfaGate({ intro = 'The REGrow console needs two-step verification.' }: { intro?: string } = {}) {
   const router = useRouter()
   const [step, setStep] = useState<Step>({ kind: 'loading' })
   const [code, setCode] = useState('')
@@ -54,7 +54,7 @@ export function MfaGate() {
           {step.kind === 'loading' && !error && <Spinner label="Preparing two-step verification" />}
           {step.kind === 'enrol' && (
             <div className="space-y-3 text-[13px] text-muted">
-              <p>The REGrow console needs two-step verification. Scan this code with an authenticator app (Google Authenticator, Microsoft Authenticator, 1Password…), then enter the 6-digit code it shows.</p>
+              <p>{intro} Scan this code with an authenticator app (Google Authenticator, Microsoft Authenticator, 1Password…), then enter the 6-digit code it shows.</p>
               {/* QR codes must sit on white in either theme or phones can't read them: fixed primitive, not a semantic token. */}
               {/* eslint-disable-next-line @next/next/no-img-element -- data URL from Supabase, not a remote image */}
               <img src={step.qr} alt="QR code for your authenticator app" className="mx-auto size-44 rounded-lg border border-default bg-[var(--gray-0)] p-2" />
