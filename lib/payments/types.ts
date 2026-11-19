@@ -100,6 +100,8 @@ export interface ProviderAdapter {
   refund(input: { orderId: string; paymentId: string; amountPaise: number; reference: string; note: string }): Promise<{ refundId: string; status: RefundStatus }>
   settlements(from: Date, to: Date): Promise<SettlementLine[]>
   /** Cheap authenticated call; throws when the provider cannot be reached or rejects our credentials. */
+  /** Current state of a refund at the provider (used when its webhook is late or lost). */
+  refundStatus(input: { refundId: string; orderId: string | null; reference: string }): Promise<RefundStatus>
   healthCheck(): Promise<void>
   mandates: MandateAdapter | null
 }

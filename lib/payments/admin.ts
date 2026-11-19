@@ -9,9 +9,9 @@ export async function paymentsOverview(db: Db, environment: 'test' | 'live') {
   const since24h = new Date(Date.now() - 86_400_000).toISOString()
   const since7d = new Date(Date.now() - 7 * 86_400_000).toISOString()
   const stale = new Date(Date.now() - 30 * 60_000).toISOString()
-  const [gateways, settings, events, attempts, refunds, approvals, unapplied, disputes, recon, outages, mandates] = await Promise.all([
+  const [gateways, settings, events, attempts, refunds, approvals, unapplied, disputes, recon, outages, mandates, alerts] = await Promise.all([
     db.from('payment_gateway_configs').select('provider, environment, status, is_primary, public_key_id, last_webhook_at, last_health_at, last_health_ok, last_health_error, notes, updated_at').order('environment').order('provider'),
-    db.from('billing_settings').select('refund_second_approval_above_cents, outage_grace_days, recurring_payments_enabled, gst_rate_bps, sac_code, supplier_state_code, supplier_gstin').single(),
+    db.from('billing_settings').select('refund_second_approval_above_cents, outage_grace_days, recurring_payments_enabled, gst_rate_bps, sac_code, supplier_state_code, supplier_gstin, supplier_legal_name').single(),
     db.from('payment_webhook_events').select('provider, environment, outcome, signature_valid, received_at').gte('received_at', since24h),
     db.from('payment_attempts').select('provider, environment, status, created_at').gte('created_at', since7d),
     db.from('payment_refunds').select('id, provider, environment, provider_payment_id, amount_cents, currency, reason, approvals_required, status, requested_by, requested_at, provider_refund_id, failure_reason, org_id, credit_note_id').order('requested_at', { ascending: false }).limit(50),
@@ -21,6 +21,7 @@ export async function paymentsOverview(db: Db, environment: 'test' | 'live') {
     db.from('payment_reconciliation_items').select('id, kind, provider_payment_id, expected_cents, actual_cents, created_at, run_id').eq('status', 'open').neq('kind', 'matched').order('created_at', { ascending: false }).limit(100),
     db.from('payment_provider_outages').select('id, provider, environment, started_at, ended_at, evidence, grace_days, affected, verified_at').order('verified_at', { ascending: false }).limit(20),
     db.from('payment_mandates').select('status'),
+    db.from('payment_alerts').select('id, kind, scope, detail, opened_at, last_seen_at').is('resolved_at', null).order('opened_at', { ascending: false }),
   ])
   const ev = events.data ?? [], at = attempts.data ?? []
   const health = (gateways.data ?? []).map((g) => {
@@ -39,6 +40,7 @@ export async function paymentsOverview(db: Db, environment: 'test' | 'live') {
   return {
     environment,
     settings: settings.data,
+    alerts: alerts.data ?? [],
     gateways: health,
     refunds: (refunds.data ?? []).map((r) => ({ ...r, approvals: approvalsBy.get(r.id) ?? [] })),
     unapplied: unapplied.data ?? [],
