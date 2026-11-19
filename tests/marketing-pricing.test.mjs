@@ -15,7 +15,7 @@ const agencies = m.PUBLIC_PLANS.find((p) => p.id === 'agencies')
 const enterprise = m.PUBLIC_PLANS.find((p) => p.id === 'enterprise')
 
 console.log('MARKETING PRICING')
-test('REGrow Leads list price matches BUSINESS_MODEL: ₹12,000 incl. 10 users, ₹900 extra, annual = 10 months', () => {
+test('draft list price (not published): ₹12,000 incl. 10 users, ₹900 extra, annual = 10 months', () => {
   assert.deepEqual([leads.monthlyInr, leads.includedUsers, leads.extraUserInr, leads.annualInr], [12000, 10, 900, 120000])
 })
 test('monthly price adds extra users only above the included seats', () => {
@@ -50,6 +50,9 @@ test('feature labels match what is live: follow-ups, escalation and routing are 
   assert.ok(all.some((f) => /reminder/i.test(f.text)), 'follow-up reminders are listed')
   assert.ok(!soon.some((t) => /reminder|escalat|speed-to-lead|routing/i.test(t)), 'live features are not labelled soon')
   assert.ok(!all.some((f) => /sign-on/i.test(f.text)), 'single sign-on is not built and is not listed')
+})
+test('prices are not published until approved (NEXT_PUBLIC_PRICES_PUBLISHED unset)', () => {
+  assert.equal(m.PRICES_PUBLISHED, false)
 })
 test('formatInr uses Indian digit grouping', () => {
   assert.equal(m.formatInr(120000), '₹1,20,000')
