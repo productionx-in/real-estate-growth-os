@@ -5,6 +5,7 @@
 // with database check constraints on credential_ref.
 
 import crypto from 'node:crypto'
+import { devOnlyFallback } from '@/lib/security/dev-fallback'
 
 const ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 12 // Standard 96-bit IV for AES-GCM
@@ -27,9 +28,8 @@ function getEncryptionKey(): Buffer {
     return crypto.createHash('sha256').update(`growth-os-vault-salt:${envKey}`).digest()
   }
 
-  // Fallback for development/testing if no custom secret is provided
-  // Uses a fixed internal seed for predictable testing
-  return crypto.createHash('sha256').update('real-estate-growth-os-internal-vault-seed-2026').digest()
+  // Development and tests only: a fixed seed. A production deployment refuses (lib/security/dev-fallback.ts).
+  return crypto.createHash('sha256').update(devOnlyFallback('ENCRYPTION_KEY', 'real-estate-growth-os-internal-vault-seed-2026')).digest()
 }
 
 /**

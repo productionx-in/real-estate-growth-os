@@ -34,6 +34,8 @@ export interface VerifiedWorkspace {
     created_at?: string
     lifecycle_state: OrgLifecycleState
     lifecycle_changed_at: string | null
+    /** Demo/test workspace (migration 20260063). */
+    is_demo: boolean
   }
   role: MemberRole
   isManager: boolean
@@ -60,7 +62,7 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
   // 2. Fetch organisation by slug
   const { data: org } = await service
     .from('organisations')
-    .select('id, name, slug, type, plan, created_at, lifecycle_state, lifecycle_changed_at')
+    .select('id, name, slug, type, plan, created_at, lifecycle_state, lifecycle_changed_at, is_demo')
     .eq('slug', orgSlug)
     .maybeSingle()
 
@@ -153,6 +155,7 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
       created_at: org.created_at,
       lifecycle_state: (org.lifecycle_state ?? 'active') as OrgLifecycleState,
       lifecycle_changed_at: org.lifecycle_changed_at ?? null,
+      is_demo: org.is_demo === true,
     },
     role,
     isManager,

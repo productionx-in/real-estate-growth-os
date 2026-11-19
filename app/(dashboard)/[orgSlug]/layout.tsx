@@ -11,6 +11,7 @@ import { billingHoldStatus } from '@/lib/billing/access'
 import { SupportAccessBanner } from '@/components/support/SupportAccessBanner'
 import { liveGrantsForOrg } from '@/lib/dal/support-access'
 import { getModules } from '@/lib/auth/entitlements'
+import { DemoBanner } from '@/components/layout/DemoBanner'
 
 interface OrgLayoutProps {
   children: React.ReactNode
@@ -50,6 +51,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
           profile={workspace.profile}
           availableOrgs={workspace.availableOrgs}
         />
+        {workspace.org.is_demo && <DemoBanner kind="workspace" />}
         <WorkspaceStateBanner state={workspace.org.lifecycle_state} billingHold={hold.hold} canPay={hold.canPay} orgSlug={workspace.org.slug} />
         {workspace.isAdmin && <BillingBanner orgId={workspace.org.id} orgSlug={workspace.org.slug} />}
         {liveSupport?.expires_at && (
