@@ -29,19 +29,11 @@ export function DigitalShowroomView({
     setErrorMessage('')
 
     try {
-      const res = await fetch('/api/forms/submit', {
+      // The server finds the project from the showroom's address; only the buyer's details are sent.
+      const res = await fetch(`/api/microsites/${encodeURIComponent(microsite.slug)}/enquiry`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          phone,
-          email,
-          projectId: microsite.project_id,
-          source: 'website',
-          sourcePlatform: 'digital_showroom',
-          campaignName: `Microsite ${microsite.slug}`,
-          notes: `Enquiry via public digital showroom: ${microsite.title}`,
-        }),
+        body: JSON.stringify({ name, phone, email }),
       })
 
       if (!res.ok) {
