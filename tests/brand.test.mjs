@@ -38,7 +38,7 @@ await test('invitation email copy uses REGrow (real adapter, network stubbed)', 
   try {
     const adapter = new ResendEmailAdapter('test-key')
     await adapter.sendInvitationEmail({
-      to: 'new.member@regrow.test', orgName: 'Acme Developers', role: 'sales_exec',
+      to: 'new.member@acme-developers.in', orgName: 'Acme Developers', role: 'sales_exec',
       inviterName: 'Asha', inviteUrl: 'https://example.test/invite/abc',
     })
   } finally {
