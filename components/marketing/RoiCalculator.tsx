@@ -3,7 +3,7 @@
 // "What are slow responses costing you?" — values recovered ad spend only, never claims sales.
 import { useId, useState } from 'react'
 import Link from 'next/link'
-import { estimateRoi, formatInr } from '@/lib/marketing/pricing'
+import { PRICES_PUBLISHED, estimateRoi, formatInr } from '@/lib/marketing/pricing'
 
 interface FieldProps {
   label: string
@@ -48,7 +48,7 @@ export function RoiCalculator() {
         <Field label="Leads per month" value={leads} min={100} max={10000} step={100} format={n} onChange={setLeads} />
         <Field label="Leads not reached in time today" hint="Never called, or called after the buyer moved on" value={leak} min={0} max={80} step={5} format={(v) => `${v}%`} onChange={setLeak} />
         <Field label="Of those, how many faster response would save" value={recovery} min={0} max={100} step={10} format={(v) => `${v}%`} onChange={setRecovery} />
-        <Field label="Salespeople" value={users} min={1} max={100} step={1} format={n} onChange={setUsers} />
+        {PRICES_PUBLISHED && <Field label="Salespeople" value={users} min={1} max={100} step={1} format={n} onChange={setUsers} />}
       </div>
 
       <div className="rounded-2xl bg-[#0b1220] text-white p-6 flex flex-col">
@@ -62,6 +62,7 @@ export function RoiCalculator() {
         <p className="text-[30px] font-extrabold tabular-nums text-emerald-300">{formatInr(r.spendRecovered)} <span className="text-[13px] font-normal text-slate-400">/ month</span></p>
         <p className="text-[13px] text-slate-300">{n(r.leadsRecovered)} more leads reached each month</p>
 
+        {PRICES_PUBLISHED && (
         <div className="mt-5 pt-5 border-t border-white/10">
           <p className="text-[13px] text-slate-400">REGrow Leads for {users} user{users === 1 ? '' : 's'}</p>
           <p className="text-[18px] font-semibold tabular-nums">{formatInr(r.subscription)} / month</p>
@@ -71,6 +72,7 @@ export function RoiCalculator() {
               : 'At these numbers the subscription costs more than the ad value recovered.'}
           </p>
         </div>
+        )}
         <Link href="/leakage-audit" className="mt-6 text-center px-4 py-3 text-[15px] font-semibold text-[#0b1220] bg-white hover:bg-blue-50 rounded-xl transition-colors">
           Get a free lead-leakage audit
         </Link>
