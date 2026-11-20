@@ -79,13 +79,14 @@ export async function POST(request: NextRequest) {
       const inviteUrl = `${origin}/invite/${rawToken}`
       const mailer = getEmailAdapter()
 
-      await mailer.sendInvitationEmail({
+      const sent = await mailer.sendInvitationEmail({
         to: email,
         orgName,
         role,
         inviteUrl,
         inviterName: auth.profile?.full_name || 'REGrow Super Admin',
       })
+      if (!sent.success) throw new Error(sent.error || 'The invitation e-mail could not be sent.')
       emailDispatched = true
 
       // Record successful delivery

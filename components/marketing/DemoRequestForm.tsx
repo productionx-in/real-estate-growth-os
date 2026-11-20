@@ -15,7 +15,8 @@ const LEAD_VOLUMES = ['Under 300', '300–1,000', '1,000–3,000', 'Over 3,000']
 const input = 'w-full px-3.5 py-2.5 text-[15px] rounded-xl border border-[var(--border-strong)] bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-[var(--brand)]'
 const label = 'block text-[14px] font-medium mb-1.5'
 
-export function DemoRequestForm({ initialPlan, connectionId, initialInterest = 'demo' }: { initialPlan: PublicPlan['id']; connectionId: string | null; initialInterest?: InterestId }) {
+// connectionId is accepted for compatibility but no longer needed: requests go to /api/website/demo-request.
+export function DemoRequestForm({ initialPlan, initialInterest = 'demo' }: { initialPlan: PublicPlan['id']; connectionId?: string | null; initialInterest?: InterestId }) {
   const loadedAt = useRef(0)
   useEffect(() => { loadedAt.current = Date.now() }, [])
   const [planId, setPlanId] = useState<PublicPlan['id']>(initialPlan)
@@ -39,27 +40,21 @@ export function DemoRequestForm({ initialPlan, connectionId, initialInterest = '
       text('message') && `Message: ${text('message')}`,
     ].filter(Boolean).join('\n').slice(0, 1000)
 
-    if (!connectionId) {
-      setError('Online booking is not available right now. Please try again later.')
-      return
-    }
     setStatus('sending')
     setError(null)
     try {
-      const res = await fetch('/api/forms/submit', {
+      const res = await fetch('/api/website/demo-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          connectionId,
           name: text('contactName'),
           phone: text('contactPhone'),
           email: text('contactEmail'),
+          companyName: text('companyName'),
+          companyType: f.get('companyType') === 'channel_partner' ? 'channel_partner' : 'developer',
+          teamSize: text('teamSize') || undefined,
+          interest: `${interest.label} · ${plan.name}`,
           notes,
-          utmSource: 'regrow-website',
-          utmMedium: `${interest.id}-form`,
-          utmCampaign: plan.id,
-          pageUrl: window.location.href,
-          referrer: document.referrer || null,
           website_url_hp: text('website_url_hp'),
           formLoadTime: loadedAt.current,
           submissionTime: Date.now(),

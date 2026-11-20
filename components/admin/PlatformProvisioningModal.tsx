@@ -19,6 +19,8 @@ export function PlatformProvisioningModal() {
   const [error, setError] = useState<string | null>(null)
   const [provisionResult, setProvisionResult] = useState<{
     adminEmail?: string
+    emailDispatched?: boolean
+    emailError?: string | null
     orgSlug?: string
     message?: string
   } | null>(null)
@@ -59,9 +61,11 @@ export function PlatformProvisioningModal() {
       }
 
       setProvisionResult({
-        adminEmail: data.activation?.adminEmail,
+        adminEmail: data.invitation?.adminEmail ?? data.activation?.adminEmail ?? adminEmail.trim(),
         orgSlug: data.organisation?.slug,
         message: data.message,
+        emailDispatched: data.emailDispatched !== false,
+        emailError: data.emailError ?? null,
       })
       router.refresh()
     } catch {
@@ -113,8 +117,17 @@ export function PlatformProvisioningModal() {
               <span>Customer Workspace Successfully Provisioned</span>
             </div>
             <p className="text-[12px] text-success leading-relaxed">
-              Workspace <strong>/{provisionResult.orgSlug}</strong> created with {includedSeats} subscription seats. An activation invitation email has been securely dispatched to <strong>{provisionResult.adminEmail}</strong>.
+              Workspace <strong>/{provisionResult.orgSlug}</strong> created with {includedSeats} subscription seats.{' '}
+              {provisionResult.emailDispatched
+                ? <>An activation invitation email has been sent to <strong>{provisionResult.adminEmail}</strong>.</>
+                : null}
             </p>
+            {provisionResult.emailDispatched === false && (
+              <p role="alert" className="rounded-lg border border-warning/30 bg-warning-bg p-2 text-[12px] text-warning">
+                The invitation email to <strong>{provisionResult.adminEmail}</strong> was <strong>not sent</strong>: {provisionResult.emailError ?? 'e-mail delivery failed'}.
+                Once e-mail is set up, resend it from Organisations → this workspace → resend invitation.
+              </p>
+            )}
             <p className="text-[11px] text-success mt-1">
               For security, primary administrator tokens are never exposed in browser responses and are delivered directly via transactional email.
             </p>
