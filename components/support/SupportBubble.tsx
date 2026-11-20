@@ -17,9 +17,9 @@ type Msg = { from: 'rio' | 'me'; text: string; links?: GuideLink[]; handoff?: bo
 
 const GREETING_KEY = 'regrow-rio-greeted'
 const HELLO: Record<GuideContext, string> = {
-  website: 'Hi, I’m Rio 👋 I can tell you what REGrow does, where leads come from, plans and demos. What would you like to know?',
+  website: 'Hi, I’m Rio 👋 I help real estate teams get more from every lead. Are you a developer or a channel-partner agency? Tell me a bit about your team and I’ll show you how REGrow fits.',
   auth: 'Hi, I’m Rio 👋 Trouble signing in, or new to REGrow? Ask me.',
-  workspace: 'Hi, I’m Rio 👋 Ask me how to do anything in REGrow — import leads, add your team, connect Facebook — or report a problem.',
+  workspace: 'Hi, I’m Rio 👋 Stuck on something, or want to set something up? Tell me what you’re trying to do and I’ll walk you through it.',
 }
 
 export function SupportBubble({ context, orgSlug, orgName }: Props) {
@@ -64,19 +64,35 @@ export function SupportBubble({ context, orgSlug, orgName }: Props) {
     return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('mousedown', onDown) }
   }, [open])
 
-  function ask(text: string, viaChip = false) {
+  async function ask(text: string, viaChip = false) {
     const q = text.trim()
     if (!q || typing) return
     setInput('')
-    setMsgs((m) => [...m, { from: 'me', text: q }])
+    const history = [...msgs, { from: 'me' as const, text: q }]
+    setMsgs(history)
     setTyping(true)
-    const a = (viaChip ? answerChip(q, context, orgSlug) : null) ?? answer(q, context, orgSlug)
-    setTimeout(() => {
-      setTyping(false)
-      setMsgs((m) => [...m, a
-        ? { from: 'rio', text: a.text, links: a.links, handoff: a.id === 'human' }
-        : { from: 'rio', text: 'I don’t know that one yet — and I’d rather not guess. A person from our team can help:', handoff: true }])
-    }, 550)
+    const local = () => {
+      const a = (viaChip ? answerChip(q, context, orgSlug) : null) ?? answer(q, context, orgSlug)
+      return a
+        ? { from: 'rio' as const, text: a.text, links: a.links, handoff: a.id === 'human' }
+        : { from: 'rio' as const, text: context === 'workspace' ? 'Let me get the right person from our team on this — the quickest way is below.' : 'That one’s best answered by our team — they can walk you through it on a quick call:', handoff: true }
+    }
+    let reply: Msg
+    try {
+      // AI answers (when switched on); anything unusual falls back to the offline guide.
+      const res = await fetch('/api/assistant', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ context, path: pathname, orgSlug, messages: history.slice(-10).map((m) => ({ role: m.from === 'me' ? 'user' : 'assistant', text: m.text.slice(0, 800) })) }),
+      })
+      if (!res.ok) throw new Error(String(res.status))
+      const r = await res.json() as { answer: string; links: GuideLink[]; handoff: boolean; callbackSaved?: boolean }
+      reply = { from: 'rio', text: r.callbackSaved ? `${r.answer}\n\n✓ Done — our team has your details and will call you.` : r.answer, links: r.links, handoff: r.handoff }
+    } catch {
+      await new Promise((ok) => setTimeout(ok, 350))
+      reply = local()
+    }
+    setTyping(false)
+    setMsgs((m) => [...m, reply])
   }
 
   const wa = whatsAppLink(context === 'workspace'
@@ -147,7 +163,7 @@ export function SupportBubble({ context, orgSlug, orgName }: Props) {
             </button>
           </form>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-default bg-surface px-4 py-2 text-[12px] text-muted">
-            <span>Rio is an automatic guide. Prefer a person?</span>
+            <span>Rio is REGrow’s virtual guide. Want a person?</span>
             {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-8 items-center font-medium text-foreground underline-offset-2 hover:underline">WhatsApp</a>}
             {context === 'workspace' && orgSlug
               ? <Link href={`/${orgSlug}/help`} onClick={() => setOpen(false)} className="inline-flex min-h-8 items-center font-medium text-foreground underline-offset-2 hover:underline">Support case</Link>
@@ -180,7 +196,7 @@ export function SupportBubble({ context, orgSlug, orgName }: Props) {
 function Bubble({ from, children }: { from: 'rio' | 'me'; children: React.ReactNode }) {
   return (
     <div className={cn('flex', from === 'me' ? 'justify-end' : 'justify-start')}>
-      <div className={cn('max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[14px] leading-relaxed shadow-sm',
+      <div className={cn('max-w-[85%] whitespace-pre-line rounded-2xl px-3.5 py-2.5 text-[14px] leading-relaxed shadow-sm',
         from === 'me' ? 'rounded-tr-md bg-[var(--chat-mine)] text-foreground' : 'rounded-tl-md bg-surface text-foreground')}>
         {children}
       </div>
