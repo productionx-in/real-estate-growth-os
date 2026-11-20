@@ -119,6 +119,19 @@ export class MockEmailAdapter implements EmailAdapter {
   }
 }
 
+/**
+ * Used on a production deployment when no e-mail provider is configured: every send fails with a clear reason, so
+ * callers record the failure and tell the user, instead of a silent mock reporting success.
+ */
+export class NotConfiguredEmailAdapter implements EmailAdapter {
+  async sendEmail(): Promise<EmailResult> {
+    return { success: false, error: 'E-mail is not configured (RESEND_API_KEY is not set), so nothing was sent.' }
+  }
+  async sendInvitationEmail(): Promise<EmailResult> {
+    return this.sendEmail()
+  }
+}
+
 let activeAdapter: EmailAdapter | null = null
 
 export function getEmailAdapter(): EmailAdapter {
@@ -127,6 +140,8 @@ export function getEmailAdapter(): EmailAdapter {
   const apiKey = process.env.RESEND_API_KEY
   if (apiKey && apiKey.startsWith('re_')) {
     activeAdapter = new ResendEmailAdapter(apiKey, process.env.RESEND_FROM_EMAIL)
+  } else if (process.env.VERCEL_ENV === 'production') {
+    activeAdapter = new NotConfiguredEmailAdapter()
   } else {
     activeAdapter = new MockEmailAdapter()
   }
