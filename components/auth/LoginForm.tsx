@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Shield, KeyRound, CheckCircle2, ArrowLeft, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { safeRedirectPath } from '@/lib/auth/safe-redirect'
+import { PasswordInput } from '@/components/auth/PasswordInput'
 
 export function LoginForm({ defaultRedirect }: { defaultRedirect?: string } = {}) {
   const router = useRouter()
@@ -191,14 +192,12 @@ export function LoginForm({ defaultRedirect }: { defaultRedirect?: string } = {}
             Forgot password?
           </button>
         </div>
-        <input
+        <PasswordInput
           id="password"
-          type="password"
           autoComplete="current-password"
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors placeholder:text-[var(--foreground-subtle)]"
           placeholder="••••••••"
         />
       </div>

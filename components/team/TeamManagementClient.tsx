@@ -20,6 +20,7 @@ import { DeactivateMemberModal } from './DeactivateMemberModal'
 import type { SeatUsage } from '@/lib/dal/subscriptions'
 import type { MemberRole } from '@/types/database'
 import { ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/lib/auth/permissions'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 export interface TeamMemberItem {
   id: string
@@ -77,7 +78,6 @@ export function TeamManagementClient({
   const router = useRouter()
   const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [deactivateTarget, setDeactivateTarget] = useState<TeamMemberItem | null>(null)
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null)
   const [revokingId, setRevokingId] = useState<string | null>(null)
 
   const activeMembersList = teamMembers
@@ -106,7 +106,6 @@ export function TeamManagementClient({
   }
 
   async function handleChangeRole(memberId: string, newRole: MemberRole) {
-    setActiveMenuId(null)
     try {
       const res = await fetch('/api/team/members/role', {
         method: 'POST',
@@ -245,7 +244,6 @@ export function TeamManagementClient({
             <tbody className="divide-y divide-[var(--border)]">
               {teamMembers.map((m) => {
                 const isDeactivated = m.status === 'deactivated'
-                const isMenuOpen = activeMenuId === m.id
 
                 return (
                   <tr key={m.id} className={`transition-colors ${isDeactivated ? 'opacity-60 bg-surface-muted/50' : 'hover:bg-[var(--surface-hover)]'}`}>
@@ -296,49 +294,26 @@ export function TeamManagementClient({
                       {formatDate(m.joined_at)}
                     </td>
                     {isAdmin && (
-                      <td className="px-5 py-3.5 text-right relative">
+                      <td className="px-5 py-3.5 text-right">
                         {!isDeactivated && (
-                          <div className="inline-block text-left">
-                            <button
-                              type="button"
-                              onClick={() => setActiveMenuId(isMenuOpen ? null : m.id)}
-                              className="p-1 rounded-md text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
-                            >
+                          <DropdownMenu>
+                            <DropdownMenuTrigger aria-label={`Actions for ${m.name}`}
+                              className="inline-grid size-9 place-items-center rounded-md text-[var(--foreground-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]">
                               <MoreVertical className="w-4 h-4" />
-                            </button>
-
-                            {isMenuOpen && (
-                              <div className="absolute right-5 mt-1 w-44 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg z-20 py-1 text-left text-[12px]">
-                                <div className="px-3 py-1 text-[10px] uppercase font-bold text-[var(--foreground-subtle)]">
-                                  Change Role
-                                </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" collisionPadding={12} className="w-52">
+                              <DropdownMenuLabel>Change role</DropdownMenuLabel>
+                              <DropdownMenuRadioGroup value={m.role} onValueChange={(r) => { if (r !== m.role) handleChangeRole(m.id, r as MemberRole) }}>
                                 {CHANGEABLE_ROLES.map((r) => (
-                                  <button
-                                    key={r}
-                                    type="button"
-                                    onClick={() => handleChangeRole(m.id, r)}
-                                    title={ROLE_DESCRIPTIONS[r]}
-                                    aria-current={m.role === r ? 'true' : undefined}
-                                    className="w-full px-3 py-1.5 hover:bg-[var(--surface-hover)] text-left aria-[current=true]:font-semibold"
-                                  >
-                                    {ROLE_LABELS[r]}
-                                  </button>
+                                  <DropdownMenuRadioItem key={r} value={r} title={ROLE_DESCRIPTIONS[r]}>{ROLE_LABELS[r]}</DropdownMenuRadioItem>
                                 ))}
-                                <div className="my-1 border-t border-[var(--border)]" />
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setActiveMenuId(null)
-                                    setDeactivateTarget(m)
-                                  }}
-                                  className="w-full px-3 py-1.5 text-danger hover:bg-danger-bg text-left flex items-center gap-1.5"
-                                >
-                                  <UserX className="w-3.5 h-3.5" />
-                                  <span>Deactivate Member</span>
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                              </DropdownMenuRadioGroup>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem destructive onSelect={() => setDeactivateTarget(m)}>
+                                <UserX aria-hidden /> Deactivate member
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         )}
                       </td>
                     )}
