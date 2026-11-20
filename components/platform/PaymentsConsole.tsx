@@ -38,7 +38,7 @@ export function PaymentsConsole({ overview, role, userId }: { overview: Payments
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-[18px] font-semibold">Payments</h1>
+          <h1 className="text-[22px] font-semibold tracking-tight">Payments</h1>
           <p className="text-[13px] text-muted">Environment: <strong>{overview.environment}</strong>. Gateway credentials are set in the server environment, never here. There is no automatic failover.</p>
         </div>
         {operator && <Button variant="secondary" size="sm" disabled={!!busy} onClick={() => act('health', { action: 'health_check' }, 'Health checked.')}><RefreshCw className="w-4 h-4" aria-hidden="true" /> Check gateways now</Button>}

@@ -158,4 +158,53 @@ test('console shell: nav is built on the server from the role; audit and staff l
   assert.doesNotMatch(read('app/platform/page.tsx'), /Math\.random/, 'dashboard shows real figures only')
 })
 
+const I = await jiti.import(path.join(root, 'lib/platform/insights.ts'))
+
+test('customer health: deductions, bands and reasons follow docs/design/console-roles.md', () => {
+  const now = Date.parse('2026-11-20T12:00:00Z')
+  const ago = (d) => new Date(now - d * 86_400_000).toISOString()
+  const base = { lifecycle: 'active', billingHold: false, subStatus: 'active', periodEnd: ago(-200), lastSignIn: ago(1), urgentCases: 0, staleInvites: 0 }
+  assert.deepEqual(I.healthScore(base, now), { score: 100, band: 'healthy', reasons: [] })
+  assert.equal(I.healthScore({ ...base, lastSignIn: ago(15) }, now).score, 80, '14+ days idle: -20')
+  assert.equal(I.healthScore({ ...base, lastSignIn: ago(31) }, now).score, 65, '30+ days idle: -35')
+  assert.equal(I.healthScore({ ...base, lastSignIn: null }, now).reasons[0], 'Nobody has signed in yet')
+  assert.equal(I.healthScore({ ...base, subStatus: 'trial', periodEnd: ago(-3) }, now).score, 85, 'trial ending within 7 days: -15')
+  const bad = I.healthScore({ ...base, billingHold: true, subStatus: 'past_due', urgentCases: 2, staleInvites: 1, lastSignIn: null }, now)
+  assert.equal(bad.score, 0, 'clamped at 0'); assert.equal(bad.band, 'at_risk')
+  assert.equal(I.healthScore({ ...base, subStatus: 'expired', staleInvites: 1, lastSignIn: ago(20) }, now).band, 'at_risk', '100-25-10-20 = 45')
+  assert.equal(I.healthScore({ ...base, subStatus: 'expired' }, now).band, 'healthy', '75 is healthy')
+  assert.equal(I.healthScore({ ...base, subStatus: 'expired', urgentCases: 1 }, now).band, 'watch', '65 is watch')
+})
+
+test('sales funnel: stage counts, open total, win rate only once deals close', () => {
+  assert.equal(I.funnel([{ stage: 'new' }, { stage: 'qualified' }]).winRate, null)
+  const f = I.funnel([{ stage: 'new' }, { stage: 'won' }, { stage: 'won' }, { stage: 'lost' }, { stage: 'bogus' }])
+  assert.equal(f.byStage.won, 2); assert.equal(f.winRate, 67); assert.equal(f.open, 2)
+})
+
+test('support ages: oldest and median in hours; labels switch to days after 48 h', () => {
+  const now = Date.parse('2026-11-20T12:00:00Z')
+  const h = (n) => new Date(now - n * 3_600_000).toISOString()
+  assert.deepEqual(I.caseAges([h(1), h(10), h(100)], now), { oldestHours: 100, medianHours: 10 })
+  assert.deepEqual(I.caseAges([h(2), h(4)], now), { oldestHours: 4, medianHours: 3 })
+  assert.deepEqual(I.caseAges([], now), { oldestHours: null, medianHours: null })
+  assert.equal(I.ageLabel(47), '47 h'); assert.equal(I.ageLabel(72), '3 d'); assert.equal(I.ageLabel(null), '—')
+})
+
+test('console: sign out is always reachable (user menu, rail, phone menu, authenticator step)', () => {
+  const shell = read('components/platform/ConsoleShell.tsx')
+  assert.match(shell, /auth\.signOut\(\)/)
+  assert.ok((shell.match(/<SignOutButton \/>/g) ?? []).length >= 2, 'rail and phone drawer')
+  assert.match(shell, /onSelect=\{signOut\}/, 'user menu item')
+  assert.match(read('app/platform/layout.tsx'), /mfa_required[\s\S]*<ConsoleShell groups=\{\[\]\}/, 'the authenticator step uses the shell, so sign out is there too')
+})
+
+test('console home: every role has its own focus row and body', () => {
+  const page = read('app/platform/page.tsx')
+  for (const r of ['super_admin', 'platform_admin', 'finance_admin', 'sales_manager', 'sales_rep', 'support_agent', 'auditor']) {
+    assert.match(page, new RegExp(`\\n    ${r}: \\[`), `focus row for ${r}`)
+    assert.match(page, new RegExp(`\\n    ${r}: <>`), `body for ${r}`)
+  }
+})
+
 console.log(`\nInternal portal: ${passed} checks passed.`)

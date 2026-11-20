@@ -3,61 +3,94 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { Users } from 'lucide-react'
 import { getConsoleAccess } from '@/lib/auth/platform'
 import { createServiceClient } from '@/lib/supabase/server'
 import { can, listProspects, type Db, type StaffRole } from '@/lib/platform/portal'
+import { staffNames } from '@/lib/platform/insights'
 import { ImportWebsiteButton, NewProspectForm, STAGE_LABEL } from '@/components/platform/PortalClient'
-import { Badge, Card, CardContent, CardHeader, CardTitle, EmptyState } from '@/components/ui'
-import { Users } from 'lucide-react'
+import { Badge, Card, CardContent, EmptyState } from '@/components/ui'
+import { FilterTabs, PageHeader, TableCard, Td, Th } from '@/components/platform/ConsoleUI'
 
 export const metadata: Metadata = { title: 'Sales' }
 export const dynamic = 'force-dynamic'
+const day = (iso: string) => new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }).format(new Date(iso))
 
-export default async function SalesPage({ searchParams }: { searchParams: Promise<{ stage?: string; mine?: string }> }) {
+type SP = { stage?: string; mine?: string; owner?: string; due?: string; add?: string }
+
+export default async function SalesPage({ searchParams }: { searchParams: Promise<SP> }) {
   const access = await getConsoleAccess()
   if (access.state !== 'ok') return null
   const role = access.role as StaffRole
   if (!can(role, 'salesRead')) notFound()
   const sp = await searchParams
-  const r = await listProspects(createServiceClient() as unknown as Db, { userId: access.userId, role }, { stage: sp.stage, mine: sp.mine === '1' })
-  const rows = r.success ? r.data : []
-  const when = (iso: string | null) => (iso ? new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'Asia/Kolkata' }).format(new Date(iso)) : '—')
-  const overdue = (iso: string | null) => !!iso && new Date(iso) < new Date()
+  const db = createServiceClient() as unknown as Db
+  const r = await listProspects(db, { userId: access.userId, role })
+  const all = r.success ? r.data : []
+  const names = await staffNames(db, all.map((p) => p.owner_user_id))
+  const now = new Date(), endOfToday = new Date(now); endOfToday.setHours(23, 59, 59, 999)
+  const isOpen = (p: (typeof all)[number]) => !['won', 'lost'].includes(p.stage)
+  const overdue = (p: (typeof all)[number]) => isOpen(p) && !!p.next_follow_up_at && new Date(p.next_follow_up_at) < now
+  const dueToday = (p: (typeof all)[number]) => isOpen(p) && !!p.next_follow_up_at && new Date(p.next_follow_up_at) >= now && new Date(p.next_follow_up_at) <= endOfToday
+
+  // Scope (who) × stage × due, each from the URL.
+  const scoped = all.filter((p) => (sp.mine === '1' ? p.owner_user_id === access.userId : sp.owner === 'none' ? !p.owner_user_id : true))
+  const rows = scoped
+    .filter((p) => !sp.stage || p.stage === sp.stage)
+    .filter((p) => (sp.due === 'overdue' ? overdue(p) : sp.due === 'today' ? dueToday(p) || overdue(p) : true))
+    .sort((a, b) => Number(overdue(b)) - Number(overdue(a)) || ((a.next_follow_up_at ?? '9') < (b.next_follow_up_at ?? '9') ? -1 : 1))
+  const href = (over: Partial<SP>) => {
+    const p = new URLSearchParams(Object.entries({ stage: sp.stage, mine: sp.mine, owner: sp.owner, due: sp.due, ...over }).filter(([, v]) => v) as [string, string][])
+    return `/platform/sales${p.toString() ? `?${p}` : ''}`
+  }
+  const canWrite = can(role, 'salesWrite')
+
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-[18px] font-semibold">Sales pipeline</h1>
-          <p className="text-[13px] text-muted">REGrow&apos;s own prospects. {can(role, 'salesAll') ? 'You see every prospect.' : 'You see your prospects and unassigned ones.'}</p>
-        </div>
-        {can(role, 'salesAll') && role !== 'auditor' && <ImportWebsiteButton />}
+      <PageHeader title="Sales pipeline"
+        description={<>REGrow&apos;s own prospects: website requests, referrals and outbound. {can(role, 'salesAll') ? 'You see every prospect.' : 'You see your own prospects and unassigned ones.'}</>}
+        actions={<>
+          {can(role, 'salesAll') && role !== 'auditor' && <ImportWebsiteButton />}
+          {canWrite && <Link href={sp.add ? href({ add: undefined }) : `${href({})}${href({}).includes('?') ? '&' : '?'}add=1#add`} className="inline-flex min-h-10 items-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">{sp.add ? 'Close' : 'Add prospect'}</Link>}
+        </>} />
+
+      {canWrite && sp.add && <Card id="add" className="rounded-2xl"><CardContent className="p-5"><NewProspectForm /></CardContent></Card>}
+
+      <div className="space-y-3">
+        <FilterTabs label="Whose prospects" tabs={[
+          { href: href({ mine: undefined, owner: undefined }), label: can(role, 'salesAll') ? 'Everyone' : 'Mine and unassigned', count: all.filter(isOpen).length, active: !sp.mine && !sp.owner },
+          { href: href({ mine: '1', owner: undefined }), label: 'Mine', count: all.filter((p) => isOpen(p) && p.owner_user_id === access.userId).length, active: sp.mine === '1' },
+          { href: href({ owner: 'none', mine: undefined }), label: 'Unassigned', count: all.filter((p) => isOpen(p) && !p.owner_user_id).length, active: sp.owner === 'none' },
+          { href: href({ due: sp.due === 'today' ? undefined : 'today' }), label: 'Due today', count: scoped.filter((p) => dueToday(p) || overdue(p)).length, active: sp.due === 'today' },
+          { href: href({ due: sp.due === 'overdue' ? undefined : 'overdue' }), label: 'Overdue', count: scoped.filter(overdue).length, active: sp.due === 'overdue', tone: 'danger' },
+        ]} />
+        <FilterTabs label="Stage" tabs={[
+          { href: href({ stage: undefined }), label: 'All stages', active: !sp.stage },
+          ...Object.entries(STAGE_LABEL).map(([v, l]) => ({ href: href({ stage: v }), label: l, count: scoped.filter((p) => p.stage === v).length, active: sp.stage === v })),
+        ]} />
       </div>
-      <nav aria-label="Filter by stage" className="flex flex-wrap gap-2 text-[13px]">
-        <Link href="/platform/sales" className={!sp.stage ? 'font-semibold text-brand' : 'text-muted hover:text-foreground'}>All</Link>
-        {Object.entries(STAGE_LABEL).map(([v, l]) => <Link key={v} href={`/platform/sales?stage=${v}`} className={sp.stage === v ? 'font-semibold text-brand' : 'text-muted hover:text-foreground'}>{l}</Link>)}
-        <Link href="/platform/sales?mine=1" className={sp.mine === '1' ? 'font-semibold text-brand' : 'text-muted hover:text-foreground'}>Mine</Link>
-      </nav>
-      <Card className="overflow-x-auto">
-        {rows.length === 0 ? <EmptyState icon={Users} title="No prospects here yet" /> : (
-          <table className="w-full min-w-[720px] text-[13px]">
-            <thead><tr className="border-b border-default text-left text-muted"><th className="px-4 py-2.5 font-medium">Company</th><th className="px-3 font-medium">Type</th><th className="px-3 font-medium">Stage</th><th className="px-3 font-medium">Source</th><th className="px-3 font-medium">Next follow-up</th><th className="px-3 font-medium">Owner</th></tr></thead>
-            <tbody>
-              {rows.map((p) => (
-                <tr key={p.id} className="border-b border-default last:border-0 hover:bg-surface-hover">
-                  <td className="px-4 py-2.5"><Link href={`/platform/sales/${p.id}`} className="font-medium text-brand hover:underline">{p.company_name}</Link>{p.city && <span className="ml-2 text-subtle">{p.city}</span>}</td>
-                  <td className="px-3 text-muted">{p.org_type === 'channel_partner' ? 'Agency' : 'Developer'}</td>
-                  <td className="px-3"><Badge tone={p.stage === 'won' ? 'success' : p.stage === 'lost' ? 'neutral' : 'brand'}>{STAGE_LABEL[p.stage]}</Badge></td>
-                  <td className="px-3 text-muted">{p.source}</td>
-                  <td className={`px-3 ${overdue(p.next_follow_up_at) && !['won', 'lost'].includes(p.stage) ? 'text-danger font-semibold' : 'text-muted'}`}>{when(p.next_follow_up_at)}</td>
-                  <td className="px-3 text-muted">{p.owner_user_id ? (p.owner_user_id === access.userId ? 'You' : 'Assigned') : 'Unassigned'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </Card>
-      {can(role, 'salesWrite') && (
-        <Card><CardHeader><CardTitle>Add a prospect</CardTitle></CardHeader><CardContent><NewProspectForm /></CardContent></Card>
+
+      {rows.length === 0 ? <Card className="rounded-2xl"><EmptyState icon={Users} title="No prospects here" description={sp.due ? 'Nothing due. Nice.' : 'Change the filters, or add a prospect.'} /></Card> : (
+        <TableCard minWidth={820}>
+          <thead><tr><Th>Company</Th><Th>Stage</Th><Th>Source</Th><Th>Next follow-up</Th><Th>Owner</Th><Th className="text-right">Added</Th></tr></thead>
+          <tbody>
+            {rows.map((p) => (
+              <tr key={p.id} className="hover:bg-surface-hover">
+                <Td>
+                  <Link href={`/platform/sales/${p.id}`} className="font-medium hover:underline">{p.company_name}</Link>
+                  <span className="block text-[12px] text-muted">{p.org_type === 'channel_partner' ? 'Agency' : 'Developer'}{p.city ? ` · ${p.city}` : ''}{p.contact_name ? ` · ${p.contact_name}` : ''}</span>
+                </Td>
+                <Td><Badge tone={p.stage === 'won' ? 'success' : p.stage === 'lost' ? 'neutral' : 'brand'}>{STAGE_LABEL[p.stage]}</Badge></Td>
+                <Td className="text-muted">{p.source === 'website' ? 'Website' : p.source}</Td>
+                <Td className={overdue(p) ? 'font-semibold text-danger' : dueToday(p) ? 'font-medium text-warning' : 'text-muted'}>
+                  {p.next_follow_up_at ? `${overdue(p) ? 'Overdue · ' : dueToday(p) ? 'Today · ' : ''}${day(p.next_follow_up_at)}` : isOpen(p) ? 'Not set' : '—'}
+                </Td>
+                <Td className="text-muted">{p.owner_user_id ? (p.owner_user_id === access.userId ? 'You' : names.get(p.owner_user_id) ?? 'Staff member') : <span className="text-warning">Unassigned</span>}</Td>
+                <Td className="text-right tabular-nums text-muted">{day(p.created_at)}</Td>
+              </tr>
+            ))}
+          </tbody>
+        </TableCard>
       )}
     </div>
   )

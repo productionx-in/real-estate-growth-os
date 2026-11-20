@@ -194,6 +194,40 @@ async function main() {
     assert.ok((await P.dashboardFigures(db, owner.actor)).organisations.developer >= 3)
   })
 
+  await test('console home: every role loader runs against the real schema and stays in scope', async () => {
+    const I = await jiti.import(path.join(root, 'lib/platform/insights.ts'))
+    // A customer with one member who has signed in, and one who never has.
+    const healthy = await mkOrg('Healthyco'), quiet = await mkOrg('Quietco')
+    const signer = await mkUser('signer'), sleeper = await mkUser('sleeper')
+    await sql.query(`INSERT INTO public.org_members (org_id, profile_id, role, status) VALUES ($1,$2,'owner','active'),($3,$4,'owner','active')`, [healthy, signer.profile, quiet, sleeper.profile])
+    const anon = createClient(SUPABASE_URL, ANON_KEY, clientOpts)
+    assert.ok(!(await anon.auth.signInWithPassword({ email: signer.email, password: PASSWORD })).error)
+
+    const health = await I.customerHealth(db, owner.actor)
+    const h = health.find((o) => o.id === healthy), qq = health.find((o) => o.id === quiet)
+    assert.equal(h.members, 1); assert.ok(h.lastSignIn, 'last sign-in comes from the member, not the inviter')
+    assert.ok(!h.reasons.includes('Nobody has signed in yet'))
+    assert.equal(qq.lastSignIn, null); assert.ok(qq.reasons.includes('Nobody has signed in yet')); assert.ok(qq.score <= 65)
+    assert.ok(health.findIndex((o) => o.id === quiet) < health.findIndex((o) => o.id === healthy), 'worst first')
+    assert.equal(await I.customerHealth(db, { userId: 'x', role: 'nobody' }), null)
+
+    const salesAll = await I.salesBoard(db, manager.actor), salesMine = await I.salesBoard(db, repA.actor)
+    assert.equal(salesAll.all, true); assert.equal(salesMine.all, false); assert.deepEqual(salesMine.team, [])
+    assert.ok(salesAll.funnel.open >= salesMine.funnel.open)
+    assert.equal(await I.salesBoard(db, finance.actor), null, 'finance has no pipeline')
+
+    const sup = await I.supportBoard(db, agent.actor)
+    assert.equal(typeof sup.total, 'number'); assert.equal(sup.total, Object.values(sup.byPriority).reduce((a, b) => a + b, 0))
+    assert.equal(await I.supportBoard(db, finance.actor), null)
+
+    const fin = await I.financeBoard(db, finance.actor)
+    for (const k of ['alerts', 'refundsPending', 'unapplied', 'disputes', 'reconciliation', 'renewalsCount']) assert.equal(typeof fin[k], 'number', k)
+    assert.equal(await I.financeBoard(db, repA.actor), null)
+
+    const digest = await I.auditDigest(db, owner.actor)
+    assert.ok(digest.total >= 1); assert.equal(await I.auditDigest(db, repA.actor), null)
+  })
+
   await sql.end()
   console.log(`\nP23 internal portal: ${passed} checks passed.`)
 }
