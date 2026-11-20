@@ -148,10 +148,31 @@ async function main() {
   await test('staff accounts: Platform Owner only; never yourself; always at least one active owner', async () => {
     const newcomer = await mkUser('newcomer')
     assert.equal((await P.addStaff(db, manager.actor, newcomer.email, 'sales_rep')).status, 403)
-    assert.equal((await P.addStaff(db, owner.actor, `nobody-${RUN}@regrow.test`, 'sales_rep')).status, 404, 'accounts are never created here')
-    const added = await P.addStaff(db, owner.actor, newcomer.email, 'sales_rep')
+    // Someone with no account yet: the account is created without a password, and only a one-time link is returned.
+    const ORIGIN = 'http://localhost:3000'
+    const freshEmail = `fresh-${RUN}@regrow.test`
+    assert.equal((await P.addStaff(db, owner.actor, freshEmail, 'sales_rep')).status, 500, 'no app address: nothing is created')
+    assert.equal(await count('SELECT count(*) n FROM auth.users WHERE email=$1', [freshEmail]), 0)
+    const fresh = await P.addStaff(db, owner.actor, freshEmail, 'sales_rep', ORIGIN)
+    assert.equal(fresh.success, true)
+    assert.match(fresh.data.setupLink, /^http:\/\/localhost:3000\/auth\/confirm\?token_hash=[^&]+&type=invite&next=%2Freset-password$/)
+    const freshRow = await one('SELECT p.role, p.is_active, p.mfa_enforced, u.encrypted_password FROM public.platform_users p JOIN auth.users u ON u.id = p.user_id WHERE u.email=$1', [freshEmail])
+    assert.equal(freshRow.role, 'sales_rep'); assert.equal(freshRow.mfa_enforced, true)
+    assert.ok(!freshRow.encrypted_password, 'nobody chose a password for them')
+    const audited = await one(`SELECT metadata FROM public.platform_audit_logs WHERE action='staff.added' AND metadata->>'email'=$1`, [freshEmail])
+    assert.doesNotMatch(JSON.stringify(audited.metadata), /token_hash/, 'the link is never written to the audit log')
+
+    // Existing account that has never signed in: added, with a link; adding again re-issues the link, no duplicate.
+    const added = await P.addStaff(db, owner.actor, newcomer.email, 'sales_rep', ORIGIN)
     assert.equal(added.success, true)
-    assert.equal((await P.addStaff(db, owner.actor, newcomer.email, 'support_agent')).status, 409)
+    assert.match(added.data.setupLink, /type=recovery/)
+    const again = await P.addStaff(db, owner.actor, newcomer.email, 'support_agent', ORIGIN)
+    assert.equal(again.success, true); assert.equal(again.data.reissued, true)
+    assert.equal(await count('SELECT count(*) n FROM public.platform_users WHERE user_id=$1', [newcomer.id]), 1)
+    // Once they have signed in, adding them again is a conflict and no link is issued.
+    const anon = createClient(SUPABASE_URL, ANON_KEY, clientOpts)
+    assert.ok(!(await anon.auth.signInWithPassword({ email: newcomer.email, password: PASSWORD })).error)
+    assert.equal((await P.addStaff(db, owner.actor, newcomer.email, 'support_agent', ORIGIN)).status, 409)
     assert.equal((await P.changeStaff(db, owner.actor, added.data.id, { role: 'support_agent' })).success, true)
     const ownRow = (await one('SELECT id FROM public.platform_users WHERE user_id=$1', [owner.id])).id
     assert.equal((await P.changeStaff(db, owner.actor, ownRow, { active: false })).status, 403, 'not yourself')
