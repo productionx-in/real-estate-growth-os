@@ -13,6 +13,7 @@ import { ORG_TYPE_HINT, ORG_TYPE_LABEL, resolveWorkspaceDestination, type OrgTyp
 import { canCreateOrganisation } from '@/lib/workspace/create'
 import { Badge } from '@/components/ui'
 import { SignOutButton } from '@/components/auth/SignOutButton'
+import { SupportBubble } from '@/components/support/SupportBubble'
 
 export const metadata: Metadata = { title: 'Choose a workspace' }
 export const dynamic = 'force-dynamic'
@@ -129,6 +130,7 @@ export default async function SelectOrgPage({ searchParams }: { searchParams: Pr
           </div>
         </div>
       </div>
+      <SupportBubble context="auth" />
     </div>
   )
 }

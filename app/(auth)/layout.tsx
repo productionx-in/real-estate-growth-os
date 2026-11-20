@@ -2,6 +2,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PRODUCT_NAME } from '@/lib/brand'
+import { SupportBubble } from '@/components/support/SupportBubble'
 
 export const metadata: Metadata = {
   title: 'Sign In',
@@ -26,6 +27,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
         {children}
       </div>
+      <SupportBubble context="auth" />
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { CommandPalette } from '@/components/layout/CommandPalette'
+import { SupportBubble } from '@/components/support/SupportBubble'
 import { WorkspaceStateBanner } from '@/components/layout/WorkspaceStateBanner'
 import { BillingBanner } from '@/components/billing/BillingBanner'
 import { billingHoldStatus } from '@/lib/billing/access'
@@ -61,6 +62,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
         <main id="main" className="flex-1 overflow-y-auto pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
       </div>
       <BottomNav orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={disabledModules} />
+      <SupportBubble context="workspace" orgSlug={workspace.org.slug} orgName={workspace.org.name} />
       <CommandPalette orgId={workspace.org.id} orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={disabledModules} />
     </div>
   )

@@ -2,6 +2,7 @@
 // components/layout/Header.tsx
 // Top bar: where you are, search (⌘K), duty status, notifications, and your account menu.
 import { AppearanceMenu } from '@/components/theme/AppearanceMenu'
+import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Bell, ChevronRight, Menu, Search, LogOut, Compass, Settings } from 'lucide-react'
@@ -112,6 +113,8 @@ export function Header({ orgId, orgName, orgSlug = '', orgType = 'developer', ro
         ) : (
           <span className="flex size-8 items-center justify-center text-muted" aria-hidden="true"><Bell className="size-4" /></span>
         )}
+
+        <ThemeToggle className="hidden sm:grid" />
 
         <DropdownMenu>
           <DropdownMenuTrigger
