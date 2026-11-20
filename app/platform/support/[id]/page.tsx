@@ -29,7 +29,7 @@ export default async function SupportCasePage({ params }: { params: Promise<{ id
     <div className="space-y-5">
       <Link href="/platform/support" className="text-[12px] text-muted hover:text-foreground">← Support cases</Link>
       <div>
-        <h1 className="text-[18px] font-semibold">{c.subject}</h1>
+        <h1 className="text-[22px] font-semibold tracking-tight">{c.subject}</h1>
         <p className="text-[13px] text-muted">
           <Link href={`/platform/organisations/${c.org?.id}`} className="text-brand hover:underline">{c.org?.name}</Link> · {c.org?.type === 'channel_partner' ? 'Agency' : 'Developer'} · {c.category.replace('_', ' ')} · opened {when(c.created_at)}
         </p>

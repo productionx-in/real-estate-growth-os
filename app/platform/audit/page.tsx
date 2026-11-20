@@ -29,10 +29,10 @@ export default async function PlatformAuditPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-[18px] font-semibold">Platform audit log</h1>
+        <h1 className="text-[22px] font-semibold tracking-tight">Platform audit log</h1>
         <p className="text-[13px] text-muted">Latest 200 actions by REGrow staff. Entries cannot be edited or deleted.</p>
       </div>
-      <Card className="overflow-x-auto">
+      <Card className="overflow-x-auto rounded-2xl">
         <table className="w-full min-w-[760px] text-[12px]">
           <thead>
             <tr className="border-b border-default text-left text-muted">

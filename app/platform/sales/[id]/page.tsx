@@ -29,7 +29,7 @@ export default async function ProspectPage({ params }: { params: Promise<{ id: s
     <div className="space-y-5">
       <Link href="/platform/sales" className="text-[12px] text-muted hover:text-foreground">← Sales pipeline</Link>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-[18px] font-semibold">{p.company_name}</h1>
+        <h1 className="text-[22px] font-semibold tracking-tight">{p.company_name}</h1>
         <Badge tone="brand">{STAGE_LABEL[p.stage]}</Badge>
         <span className="text-[13px] text-muted">{p.org_type === 'channel_partner' ? 'Channel partner agency' : 'Developer / builder'}{p.city ? ` · ${p.city}` : ''}{p.team_size ? ` · team of ${p.team_size}` : ''}</span>
       </div>

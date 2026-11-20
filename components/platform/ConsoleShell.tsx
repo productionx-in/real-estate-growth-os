@@ -4,12 +4,14 @@
 // every page and API route checks the role again.
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
-  Building2, CreditCard, LayoutDashboard, LifeBuoy, Menu, PlusCircle, ScrollText, TrendingUp, UserCog, X,
+  Building2, ChevronDown, CreditCard, LayoutDashboard, LifeBuoy, LogOut, Menu, PlusCircle, ScrollText, ShieldCheck, TrendingUp, UserCog, X,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { createClient } from '@/lib/supabase/client'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 export type ConsoleIcon = 'dashboard' | 'organisations' | 'provision' | 'sales' | 'support' | 'payments' | 'audit' | 'staff'
 export interface ConsoleNavItem { href: string; label: string; icon: ConsoleIcon; badge?: number; badgeTone?: 'alert' | 'info' }
@@ -71,10 +73,65 @@ function Brand() {
   )
 }
 
+/** Title for the header, from the deepest matching nav item ("Support", "Organisations"…). */
+function pageTitle(groups: ConsoleNavGroup[], pathname: string) {
+  const items = groups.flatMap((g) => g.items).filter((i) => isActive(pathname, i.href)).sort((a, b) => b.href.length - a.href.length)
+  return items[0]?.label ?? 'Console'
+}
+
+function useSignOut() {
+  const router = useRouter()
+  const [busy, setBusy] = useState(false)
+  return {
+    busy,
+    signOut: async () => {
+      setBusy(true)
+      try { await createClient().auth.signOut() } finally { router.push('/login?for=staff'); router.refresh() }
+    },
+  }
+}
+
+function SignOutButton({ className }: { className?: string }) {
+  const { busy, signOut } = useSignOut()
+  return (
+    <button type="button" onClick={signOut} disabled={busy}
+      className={cn('flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-[13px] font-medium text-rail-text hover:bg-rail-hover hover:text-rail-strong disabled:opacity-60', className)}>
+      <LogOut className="size-[18px] text-rail-muted" aria-hidden="true" />{busy ? 'Signing out…' : 'Sign out'}
+    </button>
+  )
+}
+
+function UserMenu({ userLabel, roleLabel }: { userLabel: string; roleLabel: string }) {
+  const { busy, signOut } = useSignOut()
+  const initial = (userLabel.trim()[0] ?? '?').toUpperCase()
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="flex min-h-11 items-center gap-3 rounded-xl px-2 hover:bg-surface-hover" aria-label={`Account menu for ${userLabel}`}>
+        <span className="hidden text-right sm:block">
+          <span className="block text-[13px] font-medium leading-tight">{userLabel}</span>
+          <span className="block text-[11px] text-muted">{roleLabel}</span>
+        </span>
+        <span aria-hidden="true" className="grid size-9 place-items-center rounded-full bg-rail text-[13px] font-semibold text-rail-strong">{initial}</span>
+        <ChevronDown className="size-4 text-muted" aria-hidden="true" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-60">
+        <div className="px-2.5 py-2">
+          <p className="truncate text-[13px] font-medium">{userLabel}</p>
+          <p className="text-[12px] text-muted">{roleLabel}</p>
+        </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild><Link href="/account/security"><ShieldCheck aria-hidden /> Account security</Link></DropdownMenuItem>
+        <DropdownMenuItem destructive disabled={busy} onSelect={signOut}><LogOut aria-hidden /> {busy ? 'Signing out…' : 'Sign out'}</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 export function ConsoleShell({ groups, userLabel, roleLabel, children }: {
   groups: ConsoleNavGroup[]; userLabel: string; roleLabel: string; children: React.ReactNode
 }) {
   const [open, setOpen] = useState(false)
+  const pathname = usePathname() ?? ''
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
@@ -82,13 +139,13 @@ export function ConsoleShell({ groups, userLabel, roleLabel, children }: {
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
-  const initial = (userLabel.trim()[0] ?? '?').toUpperCase()
   return (
     <div className="min-h-dvh bg-background text-foreground md:flex">
       {/* Desktop rail */}
       <aside className="sticky top-0 hidden h-dvh w-[248px] shrink-0 flex-col border-r border-rail-border bg-rail md:flex">
         <Brand />
         <Rail groups={groups} />
+        <div className="border-t border-rail-border p-3"><SignOutButton /></div>
       </aside>
 
       {/* Phone drawer */}
@@ -104,6 +161,7 @@ export function ConsoleShell({ groups, userLabel, roleLabel, children }: {
               </button>
             </div>
             <Rail groups={groups} onNavigate={() => setOpen(false)} />
+            <div className="border-t border-rail-border p-3"><SignOutButton /></div>
           </aside>
         </div>
       )}
@@ -114,14 +172,8 @@ export function ConsoleShell({ groups, userLabel, roleLabel, children }: {
             className="-ml-2 grid size-11 place-items-center rounded-lg text-muted hover:bg-surface-hover hover:text-foreground md:hidden">
             <Menu className="size-5" aria-hidden="true" />
           </button>
-          <p className="text-[16px] font-semibold md:text-[18px]">Admin console</p>
-          <div className="ml-auto flex items-center gap-3">
-            <div className="hidden text-right sm:block">
-              <p className="text-[13px] font-medium leading-tight">{userLabel}</p>
-              <p className="text-[11px] text-muted">{roleLabel}</p>
-            </div>
-            <span aria-hidden="true" className="grid size-9 place-items-center rounded-full bg-rail text-[13px] font-semibold text-rail-strong">{initial}</span>
-          </div>
+          <p className="truncate text-[16px] font-semibold md:text-[18px]">{groups.length ? pageTitle(groups, pathname) : 'Verify it’s you'}</p>
+          <div className="ml-auto"><UserMenu userLabel={userLabel} roleLabel={roleLabel} /></div>
         </header>
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
       </div>
