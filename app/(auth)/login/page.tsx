@@ -18,7 +18,7 @@ const HEADING: Record<SignInAudience, { title: string; sub: string }> = {
   staff: { title: 'REGrow team sign-in', sub: 'Internal console. You will be asked for your authenticator code.' },
 }
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ for?: string; redirectTo?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ for?: string; redirectTo?: string; error?: string }> }) {
   const sp = await searchParams
   const audience: SignInAudience = sp.redirectTo?.startsWith('/platform') ? 'staff' : parseAudience(sp.for)
   const keep = sp.redirectTo ? `&redirectTo=${encodeURIComponent(sp.redirectTo)}` : ''
@@ -43,6 +43,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <h1 className="text-xl font-semibold text-[var(--foreground)]">{HEADING[audience].title}</h1>
         <p className="mt-1 text-sm text-[var(--foreground-muted)]">{HEADING[audience].sub}</p>
       </div>
+      {sp.error === 'link_invalid' && (
+        <p role="alert" className="mb-4 rounded-lg border border-[var(--border)] bg-[var(--surface-hover)] px-3 py-2 text-[13px] text-[var(--foreground)]">
+          That link has expired or was already used. Ask the person who sent it for a new one.
+        </p>
+      )}
 
       <Suspense fallback={<div>Loading login...</div>}>
         <LoginForm defaultRedirect={audienceHome(audience)} />

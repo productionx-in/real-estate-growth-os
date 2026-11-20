@@ -141,15 +141,43 @@ export function CaseReplyForm({ id }: { id: string }) {
 const ROLE_OPTIONS = [['super_admin', 'Platform Owner'], ['platform_admin', 'Platform admin'], ['finance_admin', 'Finance'], ['sales_manager', 'Sales manager'], ['sales_rep', 'Sales executive'], ['support_agent', 'Support'], ['auditor', 'Auditor (read-only)']]
 
 export function AddStaffForm() {
-  const { busy, msg, run } = useAction()
+  const router = useRouter()
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null)
   const [email, setEmail] = useState('')
   const [role, setRole] = useState('sales_rep')
+  const [link, setLink] = useState<{ email: string; url: string } | null>(null)
+  const [copied, setCopied] = useState(false)
+  async function submit(e: React.FormEvent) {
+    e.preventDefault()
+    setBusy(true); setMsg(null); setLink(null); setCopied(false)
+    try {
+      const r = await send('/api/platform/staff', 'POST', { email, role }) as { setupLink?: string | null; reissued?: boolean }
+      if (r.setupLink) setLink({ email, url: r.setupLink })
+      setMsg({ tone: 'success', text: r.reissued ? 'They had not signed in yet, so here is a fresh setup link.' : r.setupLink ? 'Added. Send them the setup link below.' : 'Added. They sign in with their existing password, then set up an authenticator app.' })
+      setEmail(''); router.refresh()
+    } catch (err) { setMsg({ tone: 'danger', text: (err as Error).message }) } finally { setBusy(false) }
+  }
+  async function copy() {
+    if (!link) return
+    try { await navigator.clipboard.writeText(link.url); setCopied(true) } catch { setCopied(false) }
+  }
   return (
-    <form className="grid gap-3 sm:grid-cols-[1fr_200px_auto] items-end" onSubmit={async (e) => { e.preventDefault(); if (await run(() => send('/api/platform/staff', 'POST', { email, role }), 'Added. They must set up an authenticator app before the console opens.')) setEmail('') }}>
-      <Field label="Email of an existing REGrow account"><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
+    <form className="grid gap-3 sm:grid-cols-[1fr_200px_auto] items-end" onSubmit={submit}>
+      <Field label="Work email"><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
       <Field label="Role"><Select value={role} onChange={(e) => setRole(e.target.value)}>{ROLE_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select></Field>
-      <Button type="submit" disabled={busy}>Add staff member</Button>
+      <Button type="submit" disabled={busy}>{busy ? 'Adding…' : 'Add staff member'}</Button>
       {msg && <div className="sm:col-span-3"><Alert tone={msg.tone}>{msg.text}</Alert></div>}
+      {link && (
+        <div className="sm:col-span-3 grid gap-2 rounded-lg border border-border bg-surface-hover p-3">
+          <p className="text-[13px] text-foreground">One-time setup link for <strong>{link.email}</strong>. Send it to them privately (not in a group chat). It works once and expires soon; if it does, add them again to get a new one.</p>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input readOnly aria-label="Setup link" value={link.url} onFocus={(e) => e.currentTarget.select()} className="font-mono text-[12px]" />
+            <Button type="button" variant="secondary" onClick={copy}>{copied ? 'Copied' : 'Copy link'}</Button>
+          </div>
+          <p className="text-[12px] text-muted">They open it, choose a password, then scan a QR code with an authenticator app. After that they sign in at /login?for=staff.</p>
+        </div>
+      )}
     </form>
   )
 }
