@@ -1,6 +1,7 @@
 // components/marketing/MarketingShell.tsx
 import { MarketingHeader } from './MarketingHeader'
 import { MarketingFooter } from './MarketingFooter'
+import { SupportBubble } from '@/components/support/SupportBubble'
 import { JsonLd, organizationJsonLd, softwareApplicationJsonLd, websiteJsonLd } from './JsonLd'
 
 export function MarketingShell({ children }: { children: React.ReactNode }) {
@@ -12,6 +13,7 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
       <MarketingHeader />
       <main id="main" className="flex-1">{children}</main>
       <MarketingFooter />
+      <SupportBubble variant="website" />
     </div>
   )
 }

@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { createClient } from '@/lib/supabase/client'
+import { ThemeToggle } from '@/components/theme/ThemeToggle'
+import { AppearanceMenu } from '@/components/theme/AppearanceMenu'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 export type ConsoleIcon = 'dashboard' | 'organisations' | 'provision' | 'sales' | 'support' | 'payments' | 'audit' | 'staff'
@@ -121,6 +123,9 @@ function UserMenu({ userLabel, roleLabel }: { userLabel: string; roleLabel: stri
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild><Link href="/account/security"><ShieldCheck aria-hidden /> Account security</Link></DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <AppearanceMenu />
+        <DropdownMenuSeparator />
         <DropdownMenuItem destructive disabled={busy} onSelect={signOut}><LogOut aria-hidden /> {busy ? 'Signing out…' : 'Sign out'}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -173,7 +178,7 @@ export function ConsoleShell({ groups, userLabel, roleLabel, children }: {
             <Menu className="size-5" aria-hidden="true" />
           </button>
           <p className="truncate text-[16px] font-semibold md:text-[18px]">{groups.length ? pageTitle(groups, pathname) : 'Verify it’s you'}</p>
-          <div className="ml-auto"><UserMenu userLabel={userLabel} roleLabel={roleLabel} /></div>
+          <div className="ml-auto flex items-center gap-1"><ThemeToggle /><UserMenu userLabel={userLabel} roleLabel={roleLabel} /></div>
         </header>
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
       </div>

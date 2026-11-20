@@ -12,6 +12,7 @@ or chat. `NEXT_PUBLIC_*` values are public by design (they are built into the br
 | `NEXT_PUBLIC_APP_URL` | | production | Application origin — see `URLS.md` |
 | `NEXT_PUBLIC_SITE_URL` | | optional | Marketing origin if different from the app |
 | `NEXT_PUBLIC_PRICES_PUBLISHED` | | no | `true` shows prices on the website (only once approved) |
+| `NEXT_PUBLIC_SUPPORT_WHATSAPP` | | optional | REGrow's WhatsApp number with country code (e.g. `919876543210`). Shows "Chat on WhatsApp" in the parrot help bubble on the website and in workspaces; hidden while unset. Redeploy after changing it. |
 | `ENCRYPTION_KEY` | secret | yes | Encrypts stored integration credentials |
 | `JOB_WORKER_SECRET` | secret | yes | ≥ 32 chars; must equal Vault secret `regrow_job_worker_secret` (`JOB_WORKER_SETUP.md`) |
 | `RESEND_API_KEY` | secret | yes | Transactional email |
