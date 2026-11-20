@@ -6,19 +6,15 @@ import { ShieldCheck, UserCheck, ArrowRight, Loader2, AlertCircle } from 'lucide
 import { createClient } from '@/lib/supabase/client'
 import { passwordProblem, PASSWORD_MIN_LENGTH } from '@/lib/auth/password-policy'
 import type { ValidatedInvitation } from '@/lib/dal/invitations'
+import { ROLE_LABELS } from '@/lib/auth/permissions'
+import { PasswordInput } from '@/components/auth/PasswordInput'
+import Link from 'next/link'
 
 interface AcceptInviteFormProps {
   invitation: ValidatedInvitation
   token: string
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  owner: 'Organisation Owner',
-  admin: 'Administrator',
-  manager: 'Sales Manager',
-  sales_exec: 'Sales Executive',
-  readonly: 'Read Only Auditor',
-}
 
 export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
   const router = useRouter()
@@ -30,6 +26,8 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // 'create' = new to REGrow; 'signin' = already has an account with this e-mail.
+  const [mode, setMode] = useState<'create' | 'signin'>('create')
 
   useEffect(() => {
     async function checkSession() {
@@ -97,7 +95,8 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
       if (signUpError) {
         // If user already exists, suggest logging in
         if (signUpError.message.toLowerCase().includes('already registered')) {
-          setError('An account with this email already exists. Please sign in below to accept.')
+          setMode('signin'); setPassword('')
+          setError(null)
           setLoading(false)
           return
         }
@@ -106,6 +105,12 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
 
       if (!authData.user) {
         throw new Error('User creation failed.')
+      }
+      // With e-mail confirmation on, an existing address comes back as a user with no identities.
+      if (authData.user.identities && authData.user.identities.length === 0) {
+        setMode('signin'); setPassword('')
+        setLoading(false)
+        return
       }
       if (!authData.session) {
         setError(`We sent a verification link to ${invitation.email}. Open it to confirm your email; you will come back here to join.`)
@@ -134,6 +139,21 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
     }
   }
 
+  // Already has an account: sign in with this invitation's e-mail, then accept.
+  async function handleSignInAndAccept(e: React.FormEvent) {
+    e.preventDefault()
+    if (!password) return
+    setLoading(true)
+    setError(null)
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email: invitation.email, password })
+    if (signInError) {
+      setError('That password doesn’t match this account. Try again, or reset it with “Forgot password?”.')
+      setLoading(false)
+      return
+    }
+    await handleAcceptLoggedIn()
+  }
+
   if (checkingAuth) {
     return (
       <div className="p-8 text-center text-[var(--foreground-muted)] text-[13px] flex items-center justify-center gap-2">
@@ -153,7 +173,7 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
         </div>
         <div className="text-[12px] text-brand space-y-1">
           <p>
-            <strong>{invitation.inviterName}</strong> has invited you to join <strong>{invitation.orgName}</strong> as a <strong>{ROLE_LABELS[invitation.role] ?? invitation.role}</strong>.
+            <strong>{invitation.inviterName}</strong> has invited you to join <strong>{invitation.orgName}</strong> as a <strong>{ROLE_LABELS[invitation.role as keyof typeof ROLE_LABELS] ?? String(invitation.role).replace(/_/g, ' ')}</strong>.
           </p>
           <p className="text-[11px] text-brand">
             Work email: <span className="font-mono font-medium">{invitation.email}</span>
@@ -184,6 +204,28 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
             <span>Accept Invitation &amp; Enter Workspace</span>
           </button>
         </div>
+      ) : mode === 'signin' ? (
+        <form onSubmit={handleSignInAndAccept} className="space-y-4 pt-1">
+          <div className="p-3 rounded-lg bg-surface-muted border border-[var(--border)] text-[12px] text-[var(--foreground-muted)]">
+            You already have a REGrow account with <strong className="text-[var(--foreground)]">{invitation.email}</strong>. Sign in to join {invitation.orgName}.
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label htmlFor="invite-password" className="block text-[12px] font-medium text-[var(--foreground)]">Password</label>
+              <Link href="/login" className="text-[12px] text-[var(--brand)] hover:underline">Forgot password?</Link>
+            </div>
+            <PasswordInput id="invite-password" autoComplete="current-password" required autoFocus value={password} disabled={loading} onChange={(e) => setPassword(e.target.value)} placeholder="Your REGrow password" />
+          </div>
+          <button type="submit" disabled={loading || !password}
+            className="w-full py-2.5 px-4 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 shadow-2xs">
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
+            <span>Sign in &amp; join {invitation.orgName}</span>
+          </button>
+          <p className="text-center text-[12px] text-[var(--foreground-muted)]">
+            New to REGrow?{' '}
+            <button type="button" onClick={() => { setMode('create'); setError(null); setPassword('') }} className="font-medium text-[var(--brand)] hover:underline">Create your account instead</button>
+          </p>
+        </form>
       ) : (
         <form onSubmit={handleCreateAndAccept} className="space-y-4 pt-1">
           <div>
@@ -220,15 +262,14 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
             <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
               Set Password <span className="text-[var(--danger)]">*</span>
             </label>
-            <input
-              type="password"
+            <PasswordInput
+              autoComplete="new-password"
               required
               minLength={PASSWORD_MIN_LENGTH}
               value={password}
               disabled={loading}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={`At least ${PASSWORD_MIN_LENGTH} characters, with a letter and a number`}
-              className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
             />
           </div>
 
@@ -240,6 +281,10 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
             <span>Set Password &amp; Join {invitation.orgName}</span>
           </button>
+          <p className="text-center text-[12px] text-[var(--foreground-muted)]">
+            Already have a REGrow account?{' '}
+            <button type="button" onClick={() => { setMode('signin'); setError(null); setPassword('') }} className="font-medium text-[var(--brand)] hover:underline">Sign in to accept</button>
+          </p>
         </form>
       )}
     </div>

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { slugify } from '@/lib/utils/slugify'
+import { PasswordInput } from '@/components/auth/PasswordInput'
 
 type Step = 'account' | 'org'
 type OrgType = 'developer' | 'channel_partner'
@@ -196,14 +197,14 @@ async function handleSubmit(e: React.FormEvent) {
             <label htmlFor="regPassword" className="block text-[13px] font-medium text-[var(--foreground)]">
               Password
             </label>
-            <input
+            <PasswordInput
               id="regPassword"
-              type="password"
+              autoComplete="new-password"
               required
               minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2.5 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
+              className="py-2.5"
               placeholder="At least 8 characters"
             />
           </div>

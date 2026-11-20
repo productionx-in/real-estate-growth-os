@@ -19,7 +19,10 @@ export default async function InvitePage({ params }: PageProps) {
   const invitation = await validateInvitationToken(token)
 
   return (
-    <div className="min-h-screen bg-[var(--background)] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen bg-[var(--background)] flex flex-col justify-center py-16 sm:px-6 lg:px-8">
+      <Link href="/" className="absolute left-4 top-4 inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-[13px] font-medium text-[var(--foreground-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] sm:left-6 sm:top-6">
+        <ArrowLeft className="size-4" aria-hidden="true" /> Back to home
+      </Link>
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex items-center justify-center gap-2.5 mb-6">
           <div className="w-10 h-10 rounded-xl bg-[var(--brand)] flex items-center justify-center shadow-xs">
