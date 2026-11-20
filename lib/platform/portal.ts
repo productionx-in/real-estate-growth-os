@@ -67,6 +67,55 @@ export async function dashboardFigures(db: Db, actor: Actor) {
   }
 }
 
+/** Counts of `dates` per week for the last `weeks` weeks, oldest first (week = 7 days ending at `now`). */
+export function weeklySeries(dates: (string | null | undefined)[], weeks: number, now = Date.now()): number[] {
+  const out = new Array(weeks).fill(0)
+  const WEEK = 7 * 86_400_000
+  for (const d of dates) {
+    if (!d) continue
+    const age = now - new Date(d).getTime()
+    if (age < 0 || Number.isNaN(age)) continue
+    const i = weeks - 1 - Math.floor(age / WEEK)
+    if (i >= 0) out[i]++
+  }
+  return out
+}
+
+/** Sidebar badges: open support cases and overdue sales follow-ups, only for roles that can see them. */
+export async function consoleNavCounts(db: Db, actor: Actor) {
+  const nowIso = new Date().toISOString()
+  const [cases, due] = await Promise.all([
+    can(actor.role, 'supportRead') ? db.from('support_cases').select('id', { count: 'exact', head: true }).in('status', ['open', 'in_progress', 'waiting_on_customer']) : Promise.resolve({ count: 0 }),
+    can(actor.role, 'salesRead') ? scopedProspects(db, actor).select('stage, next_follow_up_at') : Promise.resolve({ data: [] }),
+  ])
+  const p = ((due as { data?: unknown[] }).data ?? []) as { stage: string; next_follow_up_at: string | null }[]
+  return {
+    support: (cases as { count?: number | null }).count ?? 0,
+    followUps: p.filter((x) => x.next_follow_up_at && x.next_follow_up_at < nowIso && !['won', 'lost'].includes(x.stage)).length,
+  }
+}
+
+const AUDIT_READERS: StaffRole[] = ['super_admin', 'auditor']
+
+/** Dashboard trend and activity. Workspace metadata and staff actions only; never customer business data. */
+export async function dashboardActivity(db: Db, actor: Actor, weeks = 12) {
+  if (!can(actor.role, 'dashboard')) return null
+  const since = new Date(Date.now() - weeks * 7 * 86_400_000).toISOString()
+  const [orgs, prospects, audit] = await Promise.all([
+    db.from('organisations').select('created_at').gte('created_at', since),
+    can(actor.role, 'salesRead') ? scopedProspects(db, actor).select('created_at') : Promise.resolve({ data: [] }),
+    AUDIT_READERS.includes(actor.role)
+      ? db.from('platform_audit_logs').select('id, created_at, actor_role, action, target_entity_type').order('created_at', { ascending: false }).limit(6)
+      : Promise.resolve({ data: [] }),
+  ])
+  const prospectDates = ((prospects as { data?: unknown[] }).data ?? []) as { created_at: string }[]
+  return {
+    workspaces: weeklySeries((orgs.data ?? []).map((o) => o.created_at as string), weeks),
+    prospects: can(actor.role, 'salesRead') ? weeklySeries(prospectDates.map((x) => x.created_at), weeks) : null,
+    recent: ((audit as { data?: unknown[] }).data ?? []) as { id: string; created_at: string; actor_role: string; action: string; target_entity_type: string }[],
+  }
+}
+
 // ── Internal Sales ─────────────────────────────────────────────────────────────────────────────
 export interface Prospect {
   id: string; company_name: string; org_type: 'developer' | 'channel_partner'; city: string | null; team_size: number | null
