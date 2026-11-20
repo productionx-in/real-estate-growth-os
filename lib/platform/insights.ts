@@ -63,8 +63,9 @@ async function lastSignIns(db: Db, ids: string[]) {
   const unique = [...new Set(ids)]
   for (let i = 0; i < unique.length; i += 10) {
     await Promise.all(unique.slice(i, i + 10).map(async (id) => {
+      // One unreadable account (e.g. created outside the auth API) must not break the console: skip it.
       const { data, error } = await db.auth.admin.getUserById(id)
-      if (error && !/not found/i.test(error.message)) throw new Error(`account lookup failed: ${error.message}`)
+      if (error) { console.warn(`[insights] last sign-in unavailable for one account: ${error.message}`); return }
       out.set(id, data?.user?.last_sign_in_at ?? null)
     }))
   }
