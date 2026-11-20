@@ -41,8 +41,8 @@ test('Rio travels the whole journey: website, sign-in, choosing a workspace, inv
   assert.match(bubble, /\{email && <a/, 'e-mail only when configured')
   assert.match(bubble, /rel="noopener noreferrer"/)
   assert.match(bubble, /e\.key === 'Escape'/)
-  assert.match(bubble, /automatic guide/, 'says plainly it is automatic')
-  assert.match(bubble, /rather not guess/, 'unknown questions hand over to a person')
+  assert.match(bubble, /virtual guide/, 'says plainly it is a virtual guide')
+  assert.match(bubble, /best answered by our team|right person from our team/, 'unknown questions hand over to a person')
 })
 
 test('Rio answers common questions in each context, with a link to where it is done', () => {

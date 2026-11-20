@@ -16,40 +16,58 @@ const KB: Entry[] = [
   { id: 'demo', contexts: ['website', 'auth'], chip: 'Book a demo', keys: ['demo', 'walkthrough', 'show me', 'call', 'meeting', 'presentation'],
     text: 'A demo is a short call where we show REGrow on your own lead flow. Leave your details and the team will reach out to fix a time.',
     links: [{ label: 'Book a demo', href: '/demo' }] },
-  { id: 'price', contexts: ['website'], chip: 'Pricing', keys: ['price', 'pricing', 'cost', 'plan', 'plans', 'how much', 'subscription', 'charges', 'rate'],
+  { id: 'price', contexts: ['website', 'auth'], chip: 'Pricing', keys: ['price', 'pricing', 'cost', 'plan', 'how much', 'subscription', 'charge', 'rate', 'fee', 'package', 'expensive', 'afford', 'budget', 'quote'],
     text: 'Plans and what each includes are on the pricing page. The team confirms the right plan for your team size in the demo.',
     links: [{ label: 'View plans', href: '/pricing' }, { label: 'Book a demo', href: '/demo' }] },
   { id: 'trial', contexts: ['website', 'auth'], chip: 'Can I try it?', keys: ['trial', 'free', 'sign up', 'signup', 'register', 'try', 'create account', 'start'],
     text: 'REGrow is set up for you rather than by self sign-up: after a short demo we create your workspace and send your admin an invitation, so your data starts clean and private.',
     links: [{ label: 'Book a demo', href: '/demo' }] },
-  { id: 'sources', contexts: ['website'], chip: 'Where do leads come from?', keys: ['source', 'sources', 'facebook', 'meta', 'google', 'portal', '99acres', 'magicbricks', 'housing', 'integration', 'integrations', 'connect', 'website form', 'import'],
+  { id: 'sources', contexts: ['website', 'auth'], chip: 'Where do leads come from?', keys: ['source', 'sources', 'facebook', 'meta', 'google', 'portal', '99acres', 'magicbricks', 'housing', 'integration', 'integrations', 'connect', 'website form', 'import'],
     text: 'Ready to use: website forms, walk-ins and referrals, CSV import, and webhooks/API. With your own business account or API access: Meta lead forms, Google Ads lead forms, WhatsApp Business, 99acres, MagicBricks and Housing.com.',
     links: [{ label: 'Integrations', href: '/integrations' }] },
-  { id: 'partners', contexts: ['website'], keys: ['channel partner', 'partners', 'broker', 'brokers', 'agent', 'agents', 'cp', 'commission'],
+  { id: 'partners', contexts: ['website', 'auth'], keys: ['channel partner', 'partners', 'broker', 'brokers', 'agent', 'agents', 'cp', 'commission'],
     text: 'Channel partners register buyers with you, you see who brought whom, and deals and commissions are tracked on the record.',
     links: [{ label: 'Channel partner management', href: '/channel-partner-management' }] },
-  { id: 'inventory', contexts: ['website'], keys: ['inventory', 'unit', 'units', 'tower', 'flat', 'flats', 'availability', 'block', 'hold'],
+  { id: 'inventory', contexts: ['website', 'auth'], keys: ['inventory', 'unit', 'units', 'tower', 'flat', 'flats', 'availability', 'block', 'hold'],
     text: 'Projects, towers and units with live availability, so sales never sells a unit twice.',
     links: [{ label: 'Inventory management', href: '/inventory-management' }] },
-  { id: 'visits', contexts: ['website'], keys: ['site visit', 'visits', 'booking', 'bookings'],
+  { id: 'visits', contexts: ['website', 'auth'], keys: ['site visit', 'visits', 'booking', 'bookings'],
     text: 'Schedule site visits, record outcomes and move buyers to booking — with everyone seeing the same picture.',
     links: [{ label: 'Site visits and bookings', href: '/site-visits-and-bookings' }] },
-  { id: 'analytics', contexts: ['website'], keys: ['report', 'reports', 'analytics', 'dashboard', 'conversion', 'roi'],
+  { id: 'analytics', contexts: ['website', 'auth'], keys: ['report', 'reports', 'analytics', 'dashboard', 'conversion', 'roi'],
     text: 'See response times, conversion by source and how each salesperson is doing.',
     links: [{ label: 'Sales analytics', href: '/sales-analytics' }] },
-  { id: 'migrate', contexts: ['website'], keys: ['migrate', 'migration', 'switch', 'move from', 'excel', 'sheet', 'spreadsheet', 'existing crm'],
+  { id: 'migrate', contexts: ['website', 'auth'], keys: ['migrate', 'migration', 'switch', 'move from', 'excel', 'sheet', 'spreadsheet', 'existing crm'],
     text: 'You can bring your existing leads across from spreadsheets or another CRM with a CSV import, and we help map the columns.',
     links: [{ label: 'Moving to REGrow', href: '/migration' }] },
-  { id: 'who', contexts: ['website'], keys: ['developer', 'developers', 'agency', 'agencies', 'builder', 'builders', 'who is it for'],
+  { id: 'who', contexts: ['website', 'auth'], keys: ['developer', 'developers', 'agency', 'agencies', 'builder', 'builders', 'who is it for'],
     text: 'REGrow has a workspace for developers (projects, inventory, sales team, partners) and one for agencies and channel partners (your buyers, your team, the developers you work with).',
     links: [{ label: 'For developers', href: '/developers' }, { label: 'For agencies', href: '/agencies' }] },
+  { id: 'different', contexts: ['website', 'auth'], chip: 'Why REGrow?', keys: ['different', 'difference', 'why regrow', 'why should', 'better', 'compare', 'comparison', 'versus', 'vs', 'unique', 'special', 'alternative', 'competitor', 'other crm', 'advantage', 'benefit'],
+    text: 'What sets REGrow apart: routing rules you can read in plain language; a fair rotation you can tune (bigger share for senior closers, daily caps, off-duty for site visits); returning buyers go back to the salesperson who knows them; managers see why every lead went to whom; agencies keep their own workspace and buyers; and leads, inventory, site visits, bookings and channel partners live in one platform — set up with you.',
+    links: [{ label: 'See all features', href: '/features' }, { label: 'Book a demo', href: '/demo' }] },
+  { id: 'setup', contexts: ['website', 'auth'], keys: ['setup', 'set up', 'onboarding', 'how long', 'implementation', 'go live', 'get started', 'start using'],
+    text: 'We set it up with you: connect your lead sources, create your teams and routing rules, and import your existing leads. How long it takes depends mainly on how many sources you connect and whether they need third-party approval (Meta, Google, portals).',
+    links: [{ label: 'Book a demo', href: '/demo' }] },
+  { id: 'includes', contexts: ['website', 'auth'], keys: ['include', 'features', 'module', 'modules', 'besides', 'all in one', 'what else', 'capabilit'],
+    text: 'Besides lead management: projects and property inventory with holds and bookings, site visits, channel partner sharing and buyer registration, sales analytics, roles and an audit log — in the same platform as your leads.',
+    links: [{ label: 'See all features', href: '/features' }] },
+  { id: 'unavailable', contexts: ['website', 'auth', 'workspace'], keys: ['nobody available', 'no one available', 'off duty', 'on leave', 'unassigned', 'daily limit'],
+    text: 'If nobody is available, the lead stays unassigned instead of going to someone who is off duty or over their daily limit, and your managers are notified straight away.',
+    links: [] },
+  { id: 'owner', contexts: ['website', 'auth', 'workspace'], keys: ['own the data', 'data owner', 'ownership', 'who owns', 'export'],
+    text: 'You own your data. Channel-partner agencies have their own independent workspace and own their leads.',
+    links: [{ label: 'Privacy', href: '/privacy' }] },
+  { id: 'returning', contexts: ['website', 'auth', 'workspace'], keys: ['duplicate', 'returning buyer', 'same buyer', 'repeat enquiry', 'same number', 'enquires again'],
+    text: 'Duplicates are merged, and when the same phone number enquires again it goes back to the salesperson who already knows that buyer.',
+    links: [] },
   { id: 'security', contexts: ['website', 'auth', 'workspace'], keys: ['secure', 'security', 'privacy', 'data', 'safe', 'gdpr', 'dpdp', 'who can see'],
     text: 'Each company’s data is kept separate. REGrow staff cannot open your records unless your admin approves time-limited support access, and every such access is logged.',
     links: [{ label: 'Privacy', href: '/privacy' }] },
-  { id: 'leak', contexts: ['website'], keys: ['leak', 'leakage', 'losing leads', 'missed leads', 'audit'],
+  { id: 'leak', contexts: ['website', 'auth'], keys: ['leak', 'leakage', 'losing leads', 'missed leads', 'audit'],
     text: 'The lead leakage audit shows where enquiries slip through today and what that costs.',
     links: [{ label: 'Lead leakage audit', href: '/leakage-audit' }] },
-  { id: 'refund', contexts: ['website'], keys: ['refund', 'cancel', 'cancellation'],
+  { id: 'refund', contexts: ['website', 'auth'], keys: ['refund', 'cancel', 'cancellation'],
     text: 'Refunds and cancellation are covered in the refund policy.',
     links: [{ label: 'Refund policy', href: '/refund-policy' }] },
 
@@ -74,7 +92,7 @@ const KB: Entry[] = [
   { id: 'w-connect', contexts: ['workspace'], chip: 'Connect Facebook / portals', keys: ['connect', 'facebook', 'meta', 'google', 'portal', '99acres', 'magicbricks', 'housing', 'website form', 'webhook', 'api', 'integration', 'integrations'],
     text: 'Integrations is where owners and admins connect lead sources: website forms and webhooks work straight away; Meta, Google Ads, WhatsApp Business and portals need your own business account or API access.',
     links: [{ label: 'Integrations', href: '/{org}/integrations' }] },
-  { id: 'w-team', contexts: ['workspace'], chip: 'Add my team', keys: ['team', 'invite', 'add user', 'salesperson', 'member', 'members', 'seat', 'seats', 'role', 'roles'],
+  { id: 'w-team', contexts: ['workspace'], chip: 'Add my team', keys: ['team', 'invite', 'add user', 'salesperson', 'salespeople', 'people', 'staff', 'employee', 'colleague', 'user', 'member', 'seat', 'role', 'login for'],
     text: 'Owners and admins invite people from Team and choose their role. Each person gets their own sign-in; seats follow your plan.',
     links: [{ label: 'Team', href: '/{org}/team' }] },
   { id: 'w-routing', contexts: ['workspace'], keys: ['assign', 'assignment', 'routing', 'round robin', 'rotation', 'distribute', 'auto assign'],
@@ -118,7 +136,9 @@ const KB: Entry[] = [
     links: [] },
 ]
 
-const norm = (s: string) => ` ${s.toLowerCase().replace(/[’']/g, "'").replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim()} `
+/** Lower-case words with simple English endings removed, so "prices", "pricing" and "price" all match. */
+const stem = (w: string) => (w.length <= 3 ? w : w.replace(/ies$/, 'y').replace(/(ing|es|s)$/, '').replace(/e$/, ''))
+const norm = (s: string) => ` ${s.toLowerCase().replace(/[’']/g, "'").replace(/[^a-z0-9' ]+/g, ' ').trim().split(/\s+/).map(stem).join(' ')} `
 
 /** Best answer for a question in this context, or null when nothing matches well enough. */
 export function answer(question: string, context: GuideContext, orgSlug?: string): GuideAnswer | null {
@@ -142,15 +162,15 @@ function resolve(e: Entry, orgSlug?: string): GuideAnswer {
 export function suggestions(context: GuideContext, pathname = '/'): string[] {
   const chipOf = (id: string) => KB.find((e) => e.id === id)?.chip
   const pick = (...ids: string[]) => ids.map(chipOf).filter(Boolean) as string[]
-  if (context === 'auth') return pick('forgot', 'noaccount', 'what', 'demo')
+  if (context === 'auth') return pick('forgot', 'noaccount', 'what', 'different', 'price')
   if (context === 'workspace') {
     if (/\/leads/.test(pathname)) return pick('w-import', 'w-connect', 'w-today', 'w-problem')
     if (/\/(team|settings|routing)/.test(pathname)) return pick('w-team', 'w-connect', 'w-problem', 'w-today')
     return pick('w-today', 'w-import', 'w-team', 'w-connect', 'w-problem')
   }
-  if (/\/pricing/.test(pathname)) return pick('price', 'trial', 'demo', 'sources')
+  if (/\/pricing/.test(pathname)) return pick('price', 'different', 'trial', 'demo')
   if (/\/demo/.test(pathname)) return pick('demo', 'trial', 'what', 'price')
-  return pick('what', 'sources', 'price', 'trial', 'demo')
+  return pick('what', 'different', 'sources', 'price', 'demo')
 }
 
 /** Answer a starter chip exactly. */
