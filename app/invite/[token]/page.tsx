@@ -5,6 +5,7 @@ import { Building2, AlertTriangle, ArrowLeft } from 'lucide-react'
 import { validateInvitationToken } from '@/lib/dal/invitations'
 import { AcceptInviteForm } from '@/components/auth/AcceptInviteForm'
 import { PRODUCT_NAME } from '@/lib/brand'
+import { SupportBubble } from '@/components/support/SupportBubble'
 
 export const metadata: Metadata = { title: 'Accept Workspace Invitation' }
 export const dynamic = 'force-dynamic'
@@ -70,6 +71,7 @@ export default async function InvitePage({ params }: PageProps) {
           )}
         </div>
       </div>
+      <SupportBubble context="auth" />
     </div>
   )
 }

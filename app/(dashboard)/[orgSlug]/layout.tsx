@@ -62,7 +62,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
         <main id="main" className="flex-1 overflow-y-auto pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
       </div>
       <BottomNav orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={disabledModules} />
-      <SupportBubble variant="app" helpHref={`/${workspace.org.slug}/help`} orgName={workspace.org.name} />
+      <SupportBubble context="workspace" orgSlug={workspace.org.slug} orgName={workspace.org.name} />
       <CommandPalette orgId={workspace.org.id} orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={disabledModules} />
     </div>
   )

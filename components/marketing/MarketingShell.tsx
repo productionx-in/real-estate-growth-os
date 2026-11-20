@@ -13,7 +13,7 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
       <MarketingHeader />
       <main id="main" className="flex-1">{children}</main>
       <MarketingFooter />
-      <SupportBubble variant="website" />
+      <SupportBubble context="website" />
     </div>
   )
 }
