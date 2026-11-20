@@ -53,18 +53,20 @@ export function ageLabel(hours: number | null) {
 // ── Loaders ─────────────────────────────────────────────────────────────────────────────────────
 const ACTIVE_CASE = ['open', 'in_progress', 'waiting_on_customer']
 
-/** auth user id → { email, last sign-in }. One admin call per 1,000 accounts. */
-async function authUsers(db: Db) {
-  const out = new Map<string, { email: string | null; lastSignIn: string | null }>()
-  // The auth server may return fewer than perPage per page, so keep going until a page comes back empty
-  // (or says there is no next page), never on a short page.
-  for (let page = 1; page <= 200; page++) {
-    const { data, error } = await db.auth.admin.listUsers({ page, perPage: 1000 })
-    if (error) throw new Error(`account lookup failed: ${error.message}`)
-    if (!data?.users.length) break
-    for (const u of data.users) out.set(u.id, { email: u.email ?? null, lastSignIn: u.last_sign_in_at ?? null })
-    const next = (data as { nextPage?: number | null }).nextPage
-    if (next === null) break
+/**
+ * auth user id → last sign-in, for the given accounts only. Looked up one by one (10 at a time): the bulk
+ * "list users" call fails on databases that contain accounts created outside the auth API, and we only ever
+ * need customer members anyway.
+ */
+async function lastSignIns(db: Db, ids: string[]) {
+  const out = new Map<string, string | null>()
+  const unique = [...new Set(ids)]
+  for (let i = 0; i < unique.length; i += 10) {
+    await Promise.all(unique.slice(i, i + 10).map(async (id) => {
+      const { data, error } = await db.auth.admin.getUserById(id)
+      if (error && !/not found/i.test(error.message)) throw new Error(`account lookup failed: ${error.message}`)
+      out.set(id, data?.user?.last_sign_in_at ?? null)
+    }))
   }
   return out
 }
@@ -93,13 +95,12 @@ export interface CustomerHealthRow {
 export async function customerHealth(db: Db, actor: Actor): Promise<CustomerHealthRow[] | null> {
   if (!can(actor.role, 'organisations')) return null
   const weekAgo = new Date(Date.now() - 7 * DAY).toISOString()
-  const [orgs, subs, members, cases, invites, users] = await Promise.all([
+  const [orgs, subs, members, cases, invites] = await Promise.all([
     db.from('organisations').select('id, name, type, plan, lifecycle_state, billing_hold').limit(2000),
     db.from('org_subscriptions').select('org_id, status, current_period_end, included_seats, additional_seats'),
     db.from('org_members').select('org_id, profile_id').is('deactivated_at', null),
     db.from('support_cases').select('org_id, priority').in('status', ACTIVE_CASE),
     db.from('org_invitations').select('org_id').eq('status', 'pending').lt('created_at', weekAgo),
-    authUsers(db),
   ])
   for (const e of [orgs.error, subs.error, members.error, cases.error, invites.error]) if (e) throw new Error(`customer health: ${e.message}`)
   const sub = new Map((subs.data ?? []).map((s) => [s.org_id as string, s]))
@@ -116,6 +117,7 @@ export async function customerHealth(db: Db, actor: Actor): Promise<CustomerHeal
     const authId = authOf.get(m.profile_id as string)
     if (authId) memberIds.set(m.org_id as string, [...(memberIds.get(m.org_id as string) ?? []), authId])
   }
+  const signIns = await lastSignIns(db, [...memberIds.values()].flat())
   const tally = (rows: { org_id: string }[] | null, pred: (r: Record<string, unknown>) => boolean = () => true) => {
     const t = new Map<string, number>()
     for (const r of rows ?? []) if (pred(r as Record<string, unknown>)) t.set(r.org_id, (t.get(r.org_id) ?? 0) + 1)
@@ -127,7 +129,7 @@ export async function customerHealth(db: Db, actor: Actor): Promise<CustomerHeal
   return (orgs.data ?? []).map((o) => {
     const s = sub.get(o.id as string)
     const ids = memberIds.get(o.id as string) ?? []
-    const lastSignIn = ids.map((id) => users.get(id)?.lastSignIn).filter(Boolean).sort().at(-1) ?? null
+    const lastSignIn = ids.map((id) => signIns.get(id)).filter(Boolean).sort().at(-1) ?? null
     const h = healthScore({
       lifecycle: o.lifecycle_state as string, billingHold: Boolean(o.billing_hold), subStatus: (s?.status as string) ?? null,
       periodEnd: (s?.current_period_end as string) ?? null, lastSignIn, urgentCases: urgent.get(o.id as string) ?? 0, staleInvites: stale.get(o.id as string) ?? 0,
