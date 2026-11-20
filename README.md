@@ -22,6 +22,9 @@ cd real-estate-growth-os
 npm install
 ```
 
+The spreadsheet library (`xlsx`) comes from SheetJS's own download site. The project's `.npmrc` sets
+`allow-remote=root`, so npm 11 installs it even when your npm settings block download-link packages.
+
 ### 2. Configure environment
 
 ```bash
