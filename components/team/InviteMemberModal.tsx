@@ -25,6 +25,7 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [inviteUrl, setInviteUrl] = useState<string | null>(null)
+  const [emailSent, setEmailSent] = useState(false)
   const [copied, setCopied] = useState(false)
 
   if (!isOpen) return null
@@ -57,7 +58,8 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
         return
       }
 
-      setInviteUrl(data.inviteUrl)
+      setInviteUrl(data.inviteUrl ?? null)
+      setEmailSent(data.emailDispatched === true)
       router.refresh()
     } catch {
       setError('Network error. Failed to send invitation.')
@@ -130,7 +132,7 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
                 <span>Invitation Created & Seat Reserved</span>
               </div>
               <p className="text-[12px] text-success mt-1 leading-relaxed">
-                Share this secure activation link with <strong>{email}</strong>. The employee will join your workspace directly without creating a new organisation.
+                {emailSent ? <>We emailed the invitation to <strong>{email}</strong>. You can also share this link with them directly.</> : <>Share this secure activation link with <strong>{email}</strong> (no email was sent).</>} They join your workspace directly without creating a new organisation. The link works once and expires.
               </p>
             </div>
 

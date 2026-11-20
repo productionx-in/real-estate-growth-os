@@ -105,23 +105,31 @@ export async function POST(request: NextRequest) {
 
     // Invitation links use the configured app URL, never the Host header of the request (lib/site/urls.ts).
       const origin = appUrl(request.nextUrl.origin) ?? request.nextUrl.origin
-    if (result.plaintextToken) {
-      const inviteUrl = `${origin}/invite/${result.plaintextToken}`
+    let emailDispatched = false
+    let emailError: string | null = null
+    // The link goes to the owner/admin who created the invitation (authorised above) so they can share it themselves,
+    // e.g. on WhatsApp, as the invitation screen offers. It is single-use and expires.
+    const inviteUrl = result.plaintextToken ? `${origin}/invite/${result.plaintextToken}` : null
+    if (inviteUrl) {
       const mailer = getEmailAdapter()
-      await mailer.sendInvitationEmail({
+      const sent = await mailer.sendInvitationEmail({
         to: email,
         orgName: orgData?.name || 'Workspace',
         role: role,
         inviteUrl,
         inviterName: auth.profile.full_name,
       })
+      emailDispatched = sent.success
+      emailError = sent.success ? null : sent.error ?? 'The invitation e-mail could not be sent.'
     }
 
     return NextResponse.json(
       {
         success: true,
         invitation: result.invitation,
-        emailDispatched: true,
+        inviteUrl,
+        emailDispatched,
+        emailError,
       },
       { status: 201 }
     )
