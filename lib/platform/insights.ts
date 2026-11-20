@@ -56,11 +56,15 @@ const ACTIVE_CASE = ['open', 'in_progress', 'waiting_on_customer']
 /** auth user id → { email, last sign-in }. One admin call per 1,000 accounts. */
 async function authUsers(db: Db) {
   const out = new Map<string, { email: string | null; lastSignIn: string | null }>()
-  for (let page = 1; page <= 20; page++) {
+  // The auth server may return fewer than perPage per page, so keep going until a page comes back empty
+  // (or says there is no next page), never on a short page.
+  for (let page = 1; page <= 200; page++) {
     const { data, error } = await db.auth.admin.listUsers({ page, perPage: 1000 })
-    if (error || !data) break
+    if (error) throw new Error(`account lookup failed: ${error.message}`)
+    if (!data?.users.length) break
     for (const u of data.users) out.set(u.id, { email: u.email ?? null, lastSignIn: u.last_sign_in_at ?? null })
-    if (data.users.length < 1000) break
+    const next = (data as { nextPage?: number | null }).nextPage
+    if (next === null) break
   }
   return out
 }
