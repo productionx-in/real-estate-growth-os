@@ -144,4 +144,18 @@ test('setup links: /auth/confirm verifies the token and only redirects same-orig
   assert.match(read('proxy.ts'), /'\/auth\/confirm'/)
 })
 
+test('console dashboard: weekly series buckets real dates, oldest first; future and old dates ignored', () => {
+  const now = Date.parse('2026-11-20T12:00:00Z')
+  const d = (days) => new Date(now - days * 86_400_000).toISOString()
+  assert.deepEqual(P.weeklySeries([d(0), d(1), d(8), d(20), d(400), new Date(now + 86_400_000).toISOString(), null, 'not a date'], 4, now), [0, 1, 1, 2])
+})
+
+test('console shell: nav is built on the server from the role; audit and staff links only for their roles', () => {
+  const layout = read('app/platform/layout.tsx')
+  assert.match(layout, /can\(role, 'staff'\) \? \[\{ href: '\/platform\/staff'/)
+  assert.match(layout, /PLATFORM_AUDIT_READERS\.includes\(access\.role\) \? \[\{ href: '\/platform\/audit'/)
+  assert.match(layout, /state === 'mfa_required'[\s\S]*<MfaGate \/>/, 'no console screen before the authenticator step')
+  assert.doesNotMatch(read('app/platform/page.tsx'), /Math\.random/, 'dashboard shows real figures only')
+})
+
 console.log(`\nInternal portal: ${passed} checks passed.`)

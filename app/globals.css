@@ -95,6 +95,17 @@
   --sidebar-active-bg: var(--blue-50);
   --sidebar-active-text: var(--blue-700);
 
+  /* Internal console: dark navigation rail and a warm highlight, the same in both themes. */
+  --console-rail: var(--gray-950);
+  --console-rail-hover: var(--gray-850);
+  --console-rail-border: var(--gray-800);
+  --console-rail-text: var(--gray-300);
+  --console-rail-muted: var(--gray-400);
+  --console-rail-strong: var(--gray-0);
+  --console-highlight: var(--amber-400);
+  --console-highlight-soft: rgb(251 191 36 / 0.18);
+  --console-highlight-foreground: var(--gray-950);
+
   --shadow-sm: 0 1px 2px rgb(17 24 39 / 0.06);
   --shadow-md: 0 4px 12px rgb(17 24 39 / 0.08), 0 1px 3px rgb(17 24 39 / 0.06);
   --shadow-lg: 0 16px 40px rgb(17 24 39 / 0.16);
@@ -162,6 +173,16 @@
   --sidebar-active-bg: rgb(59 130 246 / 0.16);
   --sidebar-active-text: var(--blue-300);
 
+  --console-rail: var(--gray-950);
+  --console-rail-hover: var(--gray-850);
+  --console-rail-border: var(--gray-800);
+  --console-rail-text: var(--gray-300);
+  --console-rail-muted: var(--gray-400);
+  --console-rail-strong: var(--gray-0);
+  --console-highlight: var(--amber-400);
+  --console-highlight-soft: rgb(251 191 36 / 0.14);
+  --console-highlight-foreground: var(--gray-950);
+
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
   --shadow-md: 0 4px 12px rgb(0 0 0 / 0.45);
   --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.55);
@@ -204,6 +225,15 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-info: var(--info);
   --color-info-bg: var(--info-bg);
+  --color-rail: var(--console-rail);
+  --color-rail-hover: var(--console-rail-hover);
+  --color-rail-border: var(--console-rail-border);
+  --color-rail-text: var(--console-rail-text);
+  --color-rail-muted: var(--console-rail-muted);
+  --color-rail-strong: var(--console-rail-strong);
+  --color-highlight: var(--console-highlight);
+  --color-highlight-soft: var(--console-highlight-soft);
+  --color-highlight-foreground: var(--console-highlight-foreground);
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius);
   --radius-lg: var(--radius-lg);
