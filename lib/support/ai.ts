@@ -1,15 +1,14 @@
 // lib/support/ai.ts — Rio's AI answers (server only). Claude answers from lib/support/knowledge.ts and nothing
 // else; links are kept only if they point at a real REGrow page; anything it can't answer is handed to a person.
 // Switched on by ANTHROPIC_API_KEY (Vercel). Without it the bubble uses the offline guide (lib/support/guide.ts).
-import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
-import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod'
+import { configuredProviders, type ProviderName } from '@/lib/support/providers'
 import { buildKnowledge, WEBSITE_LINKS, WORKSPACE_LINKS } from '@/lib/support/knowledge'
 import type { GuideContext, GuideLink } from '@/lib/support/guide'
 import type { CallbackRequest } from '@/lib/support/prospect'
 
-export const RIO_MODEL = process.env.REGROW_ASSISTANT_MODEL || 'claude-opus-5-5'
-export const aiConfigured = () => Boolean(process.env.ANTHROPIC_API_KEY)
+export const RIO_MODEL = process.env.REGROW_MODEL_ANTHROPIC || process.env.REGROW_ASSISTANT_MODEL || 'claude-opus-5-5'
+export const aiConfigured = () => configuredProviders().length > 0
 
 const Reply = z.object({
   answer: z.string().describe('What you say back, in plain text: short paragraphs, or "- " bullets for steps. No headings, no URLs.'),
@@ -22,6 +21,7 @@ const Reply = z.object({
   }).nullable().describe('Fill ONLY when the person has explicitly agreed to be called back AND has given their name and mobile number in this conversation. Otherwise null.'),
 })
 export type RioReply = { answer: string; links: GuideLink[]; handoff: boolean; callback: CallbackRequest | null }
+export interface RioMeta { provider: ProviderName; model: string; latencyMs: number; inputTokens: number | null; outputTokens: number | null }
 
 const SYSTEM_RULES = `You are Rio, REGrow's guide: think of yourself as REGrow's most experienced person — a senior sales consultant, technical support specialist and customer-success manager rolled into one — who has spent years with Indian real estate developers, sales teams and channel-partner agencies. You show up as a friendly parrot in a chat bubble on REGrow's website and inside customers' workspaces. You are a virtual guide: if anyone asks, say so plainly; never claim to be a human.
 
@@ -71,27 +71,30 @@ const CONTEXT_NOTE: Record<GuideContext, string> = {
   workspace: 'The person is a REGrow customer working in their workspace. Be their technical support and customer-success manager. Do not collect callback details here.',
 }
 
-export async function askRio(input: { context: GuideContext; path: string; orgSlug?: string; history: { role: 'user' | 'assistant'; text: string }[] }): Promise<RioReply> {
-  const client = new Anthropic()
-  const response = await client.beta.messages.parse({
-    model: RIO_MODEL,
-    max_tokens: 4000,
-    betas: ['server-side-fallback-2026-07-01'],
-    fallbacks: 'default',
-    output_config: { effort: 'low', format: betaZodOutputFormat(Reply) },
-    // Stable rules + knowledge first and cached; the per-conversation note comes after the breakpoint.
-    system: [
-      { type: 'text', text: `${SYSTEM_RULES}\n\n${buildKnowledge()}`, cache_control: { type: 'ephemeral' } },
-      { type: 'text', text: `${CONTEXT_NOTE[input.context]} Current page: ${input.path}.\n${linkList(input.context, input.orgSlug)}` },
-    ],
-    messages: input.history.map((m) => ({ role: m.role, content: m.text })),
-  })
-  if (response.stop_reason === 'refusal' || !response.parsed_output) {
-    return { answer: 'Let me get someone from our team on this for you.', links: [], handoff: true, callback: null }
+/** Tries each configured provider in order; the first valid answer wins. Throws when none could answer. */
+export async function askRio(input: { context: GuideContext; path: string; orgSlug?: string; history: { role: 'user' | 'assistant'; text: string }[] }): Promise<{ reply: RioReply; meta: RioMeta }> {
+  const providers = configuredProviders()
+  if (!providers.length) throw new Error('no AI provider configured')
+  const system = `${SYSTEM_RULES}\n\n${buildKnowledge()}` // stable: cached where the provider supports it
+  const systemTail = `${CONTEXT_NOTE[input.context]} Current page: ${input.path}.\n${linkList(input.context, input.orgSlug)}`
+  let lastError: unknown
+  for (const p of providers) {
+    const started = Date.now()
+    try {
+      const out = await p.complete({ system, systemTail, messages: input.history })
+      const meta: RioMeta = { provider: p.name, model: p.model, latencyMs: Date.now() - started, inputTokens: out.inputTokens, outputTokens: out.outputTokens }
+      if (out.refused) return { reply: { answer: 'Let me get someone from our team on this for you.', links: [], handoff: true, callback: null }, meta }
+      const parsed = Reply.safeParse(out.json)
+      if (!parsed.success) throw new Error(`${p.name} returned an unexpected reply shape`)
+      const r = parsed.data
+      return {
+        reply: { answer: r.answer.trim(), links: allowedLinks(r.links, input.context, input.orgSlug), handoff: r.handoff, callback: input.context === 'workspace' ? null : r.callback },
+        meta,
+      }
+    } catch (error) {
+      lastError = error
+      console.error(`[rio] ${p.name} failed, trying the next provider:`, error instanceof Error ? error.message : error)
+    }
   }
-  const out = response.parsed_output
-  return {
-    answer: out.answer.trim(), links: allowedLinks(out.links, input.context, input.orgSlug), handoff: out.handoff,
-    callback: input.context === 'workspace' ? null : out.callback,
-  }
+  throw lastError instanceof Error ? lastError : new Error('all providers failed')
 }

@@ -45,6 +45,7 @@ export default async function PlatformLayout({ children }: { children: React.Rea
       label: 'Administration',
       items: [
         ...(can(role, 'staff') ? [{ href: '/platform/staff', label: 'Staff', icon: 'staff' as const }] : []),
+        ...(can(role, 'staff') ? [{ href: '/platform/assistant', label: 'Rio insights', icon: 'assistant' as const }] : []),
         ...(PLATFORM_AUDIT_READERS.includes(access.role) ? [{ href: '/platform/audit', label: 'Audit log', icon: 'audit' as const }] : []),
       ],
     },

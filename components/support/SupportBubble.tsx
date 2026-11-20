@@ -6,14 +6,14 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CalendarCheck, LifeBuoy, Mail, MessageCircle, SendHorizontal, X } from 'lucide-react'
+import { CalendarCheck, LifeBuoy, Mail, MessageCircle, SendHorizontal, ThumbsDown, ThumbsUp, X } from 'lucide-react'
 import { Parrot } from '@/components/support/Parrot'
 import { supportEmail, whatsAppLink } from '@/lib/support/contact'
 import { answer, answerChip, suggestions, type GuideContext, type GuideLink } from '@/lib/support/guide'
 import { cn } from '@/lib/utils/cn'
 
 type Props = { context: GuideContext; orgSlug?: string; orgName?: string }
-type Msg = { from: 'rio' | 'me'; text: string; links?: GuideLink[]; handoff?: boolean }
+type Msg = { from: 'rio' | 'me'; text: string; links?: GuideLink[]; handoff?: boolean; id?: string; rating?: 1 | -1 }
 
 const GREETING_KEY = 'regrow-rio-greeted'
 const HELLO: Record<GuideContext, string> = {
@@ -25,6 +25,12 @@ const HELLO: Record<GuideContext, string> = {
 export function SupportBubble({ context, orgSlug, orgName }: Props) {
   const pathname = usePathname() ?? '/'
   const storeKey = `regrow-rio-chat:${context}:${orgSlug ?? ''}`
+  // One random id per browser session and context: groups the turns of a conversation for research. No identity.
+  const [conversationId] = React.useState(() => {
+    if (typeof window === 'undefined') return ''
+    const k = `${storeKey}:id`
+    try { const v = sessionStorage.getItem(k); if (v) return v; const n = crypto.randomUUID(); sessionStorage.setItem(k, n); return n } catch { return crypto.randomUUID() }
+  })
   const [open, setOpen] = React.useState(false)
   const [greet, setGreet] = React.useState(false)
   const [typing, setTyping] = React.useState(false)
@@ -82,17 +88,24 @@ export function SupportBubble({ context, orgSlug, orgName }: Props) {
       // AI answers (when switched on); anything unusual falls back to the offline guide.
       const res = await fetch('/api/assistant', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ context, path: pathname, orgSlug, messages: history.slice(-10).map((m) => ({ role: m.from === 'me' ? 'user' : 'assistant', text: m.text.slice(0, 800) })) }),
+        body: JSON.stringify({ conversationId, context, path: pathname, orgSlug, messages: history.slice(-10).map((m) => ({ role: m.from === 'me' ? 'user' : 'assistant', text: m.text.slice(0, 800) })) }),
       })
       if (!res.ok) throw new Error(String(res.status))
-      const r = await res.json() as { answer: string; links: GuideLink[]; handoff: boolean; callbackSaved?: boolean }
-      reply = { from: 'rio', text: r.callbackSaved ? `${r.answer}\n\n✓ Done — our team has your details and will call you.` : r.answer, links: r.links, handoff: r.handoff }
+      const r = await res.json() as { answer: string; links: GuideLink[]; handoff: boolean; callbackSaved?: boolean; messageId?: string | null }
+      reply = { from: 'rio', text: r.callbackSaved ? `${r.answer}\n\n✓ Done — our team has your details and will call you.` : r.answer, links: r.links, handoff: r.handoff, id: r.messageId ?? undefined }
     } catch {
       await new Promise((ok) => setTimeout(ok, 350))
       reply = local()
     }
     setTyping(false)
     setMsgs((m) => [...m, reply])
+  }
+
+  async function rate(index: number, rating: 1 | -1) {
+    const m = msgs[index]
+    if (!m?.id || m.rating) return
+    setMsgs((all) => all.map((x, i) => (i === index ? { ...x, rating } : x)))
+    try { await fetch('/api/assistant/rate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ conversationId, messageId: m.id, rating }) }) } catch { /* best effort */ }
   }
 
   const wa = whatsAppLink(context === 'workspace'
@@ -140,6 +153,15 @@ export function SupportBubble({ context, orgSlug, orgName }: Props) {
                   </div>
                 )}
                 {m.handoff && <div className="pl-1">{handoff}</div>}
+                {m.from === 'rio' && m.id && (
+                  <div className="flex items-center gap-1 pl-1 text-[12px] text-muted">
+                    {m.rating ? <span>Thanks for the feedback</span> : <>
+                      <span className="mr-1">Helpful?</span>
+                      <button type="button" aria-label="Helpful" onClick={() => rate(i, 1)} className="grid size-8 place-items-center rounded-full hover:bg-surface-hover"><ThumbsUp className="size-4" aria-hidden="true" /></button>
+                      <button type="button" aria-label="Not helpful" onClick={() => rate(i, -1)} className="grid size-8 place-items-center rounded-full hover:bg-surface-hover"><ThumbsDown className="size-4" aria-hidden="true" /></button>
+                    </>}
+                  </div>
+                )}
               </div>
             ))}
             {typing && <Bubble from="rio"><span className="inline-flex gap-1 py-1" aria-label="Rio is typing"><Dot /><Dot d="150ms" /><Dot d="300ms" /></span></Bubble>}
@@ -163,7 +185,7 @@ export function SupportBubble({ context, orgSlug, orgName }: Props) {
             </button>
           </form>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-default bg-surface px-4 py-2 text-[12px] text-muted">
-            <span>Rio is REGrow’s virtual guide. Want a person?</span>
+            <span>Rio is REGrow’s virtual guide. Chats are saved to improve REGrow — please don’t share passwords or payment details. Want a person?</span>
             {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-8 items-center font-medium text-foreground underline-offset-2 hover:underline">WhatsApp</a>}
             {context === 'workspace' && orgSlug
               ? <Link href={`/${orgSlug}/help`} onClick={() => setOpen(false)} className="inline-flex min-h-8 items-center font-medium text-foreground underline-offset-2 hover:underline">Support case</Link>

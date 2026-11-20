@@ -50,17 +50,17 @@ await test('links: only real REGrow pages survive (website, or this workspace), 
 await test('the model is grounded and guarded: knowledge cached, rules forbid inventing, competitors, prices, data access', () => {
   const src = read('lib/support/ai.ts')
   assert.equal(A.RIO_MODEL, 'claude-opus-5-5')
-  assert.match(src, /cache_control: \{ type: 'ephemeral' \}/)
+  assert.match(read('lib/support/providers.ts'), /cache_control: \{ type: 'ephemeral' \}/)
   assert.match(src, /Use ONLY the product knowledge below/)
   assert.match(src, /Never name or criticise other companies/)
   assert.match(src, /never state or estimate any amount/)
   assert.match(src, /cannot see or change anyone's data/)
-  assert.match(src, /stop_reason === 'refusal'/)
-  assert.match(src, /allowedLinks\(out\.links/)
+  assert.match(read('lib/support/providers.ts'), /stop_reason === 'refusal'/)
+  assert.match(src, /allowedLinks\(r\.links/)
   assert.match(src, /senior sales consultant, technical support specialist and customer-success manager/)
   assert.match(src, /never claim to be a human/)
   assert.match(src, /Fill ONLY when the person has explicitly agreed to be called back/)
-  assert.match(src, /callback: input\.context === 'workspace' \? null : out\.callback/, 'no callbacks collected inside workspaces')
+  assert.match(src, /callback: input\.context === 'workspace' \? null : r\.callback/, 'no callbacks collected inside workspaces')
 })
 
 await test('callbacks: saved to the Sales pipeline only with usable details; one per number per day', async () => {
@@ -83,14 +83,12 @@ await test('callbacks: saved to the Sales pipeline only with usable details; one
   assert.match(route, /rio-callback:ip:\$\{ip\}`, limit: 3, windowMs: 86_400_000/)
 })
 
-await test('endpoint: 503 without an API key (bubble falls back offline); validates input; rate-limited', async () => {
-  const R = await jiti.import(path.join(root, 'app/api/assistant/route.ts'))
-  const req = new Request('http://x/api/assistant', { method: 'POST', body: JSON.stringify({ context: 'website', path: '/', messages: [{ role: 'user', text: 'hi' }] }) })
-  assert.equal((await R.POST(req)).status, 503)
+await test('endpoint: works without any AI key (offline guide answers); validates input; rate-limited', () => {
   const src = read('app/api/assistant/route.ts')
+  assert.match(src, /catch \{[\s\S]*offlineAnswer\(question/, 'offline guide when no provider or all fail')
   assert.match(src, /checkDistributedRateLimit\(\{ key: `rio:ip:\$\{ip\}`/)
-  assert.match(src, /\.max\(12\)/); assert.match(src, /\.max\(800\)/)
-  assert.match(read('components/support/SupportBubble.tsx'), /fetch\('\/api\/assistant'[\s\S]*catch \{[\s\S]*reply = local\(\)/, 'offline fallback')
+  assert.match(src, /\.max\(12\)/); assert.match(src, /\.max\(800\)/); assert.match(src, /conversationId: z\.string\(\)\.uuid\(\)/)
+  assert.match(read('components/support/SupportBubble.tsx'), /fetch\('\/api\/assistant'[\s\S]*catch \{[\s\S]*reply = local\(\)/, 'network failure: local guide')
 })
 
 await test('offline guide understands everyday wording', () => {
