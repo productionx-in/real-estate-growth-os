@@ -311,16 +311,55 @@ export async function listStaff(db: Db, actor: Actor) {
  * first, and must enrol an authenticator app before any console page opens (AAL2). Production staff accounts are
  * added only with the founder's approval (docs/design/internal-portal.md §5).
  */
-export async function addStaff(db: Db, actor: Actor, email: string, role: StaffRole) {
+export async function addStaff(db: Db, actor: Actor, email: string, role: StaffRole, origin: string | null = null) {
   if (!can(actor.role, 'staff')) return fail('Not permitted.', 403)
-  const target = await findUserByEmail(db, email)
-  if (!target) return fail('No REGrow account uses that email. Ask the person to create an account first.', 404)
+  let target = await findUserByEmail(db, email)
+  let setupLink: string | null = null
+  if (!target) {
+    // No account yet: create it without a password and hand the owner a one-time link to give the person.
+    const invite = await staffSetupLink(db, email, 'invite', origin)
+    if (!invite.success) return invite
+    target = invite.data.userId
+    setupLink = invite.data.link
+  }
   const { data: existing } = await db.from('platform_users').select('id').eq('user_id', target).maybeSingle()
-  if (existing) return fail('This person is already on the staff list; change their role instead.', 409)
+  if (existing) {
+    // Already added but never signed in (e.g. the first link expired): issue a fresh link instead of an error.
+    if (!setupLink && (await neverSignedIn(db, target))) {
+      const again = await staffSetupLink(db, email, 'recovery', origin)
+      if (!again.success) return again
+      await audit(db, actor, 'staff.setup_link_reissued', 'platform_users', existing.id, { email })
+      return { success: true as const, data: { id: existing.id as string, setupLink: again.data.link, reissued: true } }
+    }
+    return fail('This person is already on the staff list; change their role instead.', 409)
+  }
+  if (!setupLink && (await neverSignedIn(db, target))) {
+    const first = await staffSetupLink(db, email, 'recovery', origin)
+    if (first.success) setupLink = first.data.link
+  }
   const { data, error } = await db.from('platform_users').insert({ user_id: target, role, is_active: true, mfa_enforced: true }).select('id').single()
   if (error) return fail(error.message, 400)
-  await audit(db, actor, 'staff.added', 'platform_users', data.id, { email, role })
-  return { success: true as const, data: { id: data.id as string } }
+  await audit(db, actor, 'staff.added', 'platform_users', data.id, { email, role, setup_link_issued: Boolean(setupLink) })
+  return { success: true as const, data: { id: data.id as string, setupLink, reissued: false } }
+}
+
+/** One-time link that signs the person in once and opens "Set a new password". Never logged or audited itself. */
+export function staffSetupUrl(origin: string, tokenHash: string, type: 'invite' | 'recovery') {
+  const q = new URLSearchParams({ token_hash: tokenHash, type, next: '/reset-password' })
+  return `${origin.replace(/\/+$/, '')}/auth/confirm?${q.toString()}`
+}
+
+async function staffSetupLink(db: Db, email: string, type: 'invite' | 'recovery', origin: string | null) {
+  if (!origin) return fail('The app address is not configured, so a setup link cannot be made.', 500)
+  const { data, error } = await db.auth.admin.generateLink({ type, email })
+  const hash = data?.properties?.hashed_token
+  if (error || !hash || !data.user) return fail(`Could not create the sign-in account: ${error?.message ?? 'no link returned'}`, 400)
+  return { success: true as const, data: { userId: data.user.id, link: staffSetupUrl(origin, hash, type) } }
+}
+
+async function neverSignedIn(db: Db, userId: string) {
+  const { data } = await db.auth.admin.getUserById(userId)
+  return Boolean(data?.user && !data.user.last_sign_in_at)
 }
 
 export async function changeStaff(db: Db, actor: Actor, platformUserId: string, change: { role?: StaffRole; active?: boolean }) {

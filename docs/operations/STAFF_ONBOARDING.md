@@ -20,12 +20,16 @@ Give each person the narrowest role their job needs.
 
 ## Add someone (Platform Owner)
 
-1. Create their sign-in account: Supabase → Authentication → Users → Add user, using their work e-mail. Tick *Auto
-   confirm*, or send an invite so they set their own password. Never choose a password for them and share it.
-2. Platform Admin → Staff → enter their e-mail and choose a role. The change is audited.
-3. They sign in at `<app URL>/login?for=staff` (or open `<app URL>/platform` directly). The public sign-in page does not
-   show a staff option; share this address only with staff. On their first visit they must set up an authenticator app; no console screen
-   opens without it.
+1. Platform Admin → Staff → enter their work e-mail and choose a role. The change is audited.
+2. If they have no REGrow account yet, REGrow creates one (with no password) and shows you a **one-time setup link**.
+   Copy it and send it to them privately. It works once and expires (Supabase → Authentication → email OTP
+   expiry, 1 hour by default). If it expires before they use it, add them again: you get a fresh link, and no
+   duplicate is created. Nobody chooses a password for them, and no e-mail service is needed.
+3. They open the link, choose a password, and land in the console, where they must set up an authenticator app
+   before any screen opens. Afterwards they sign in at `<app URL>/login?for=staff`. The public sign-in page does not
+   show a staff option; share this address only with staff.
+
+If they already have a REGrow account and have signed in before, step 2 is skipped: they use their existing password.
 
 ## Change a role or remove access
 

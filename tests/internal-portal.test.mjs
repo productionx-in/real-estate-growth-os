@@ -71,4 +71,77 @@ test('every staff route checks the role and MFA; the customer help route checks 
   assert.match(read('app/api/help/route.ts'), /authorizeOrgAccess\(orgId\)/)
 })
 
+function fakeDb({ existingUser = null, staffRow = null, lastSignIn = null } = {}) {
+  const log = { links: [], inserts: [], audits: [] }
+  const db = {
+    rpc: async () => ({ data: existingUser, error: null }),
+    auth: { admin: {
+      generateLink: async ({ type, email }) => { log.links.push({ type, email }); return { data: { user: { id: existingUser ?? 'new-user' }, properties: { hashed_token: 'h' + log.links.length } }, error: null } },
+      getUserById: async () => ({ data: { user: { id: existingUser, last_sign_in_at: lastSignIn } }, error: null }),
+    } },
+    from: (table) => ({
+      select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: staffRow }) }) }),
+      insert: (row) => {
+        if (table === 'platform_audit_logs') { log.audits.push(row); return Promise.resolve({ error: null }) }
+        log.inserts.push(row)
+        return { select: () => ({ single: async () => ({ data: { id: 'pu1' }, error: null }) }) }
+      },
+    }),
+  }
+  return { db, log }
+}
+const owner = { userId: 'owner', role: 'super_admin' }
+const origin = 'https://app.example.test'
+
+async function atest(name, fn) { await fn(); passed++; console.log(`  ✓ ${name}`) }
+
+await atest('add staff: no account yet → account created, one-time setup link returned, audited without the link', async () => {
+  const { db, log } = fakeDb()
+  const r = await P.addStaff(db, owner, 'new@example.test', 'sales_rep', origin)
+  assert.equal(r.success, true)
+  assert.deepEqual(log.links, [{ type: 'invite', email: 'new@example.test' }])
+  assert.equal(log.inserts[0].user_id, 'new-user')
+  assert.equal(log.inserts[0].mfa_enforced, true)
+  assert.equal(r.data.setupLink, `${origin}/auth/confirm?token_hash=h1&type=invite&next=%2Freset-password`)
+  assert.equal(log.audits[0].action, 'staff.added')
+  assert.doesNotMatch(JSON.stringify(log.audits), /token_hash|h1/, 'the link itself is never written to the audit log')
+})
+
+await atest('add staff: existing account that has signed in → added, no link', async () => {
+  const { db, log } = fakeDb({ existingUser: 'u1', lastSignIn: '2026-01-01T00:00:00Z' })
+  const r = await P.addStaff(db, owner, 'old@example.test', 'auditor', origin)
+  assert.equal(r.success, true)
+  assert.equal(r.data.setupLink, null)
+  assert.equal(log.links.length, 0)
+})
+
+await atest('add staff again before first sign-in → fresh link, no duplicate row; after sign-in → 409', async () => {
+  const a = fakeDb({ existingUser: 'u1', staffRow: { id: 'pu1' } })
+  const r = await P.addStaff(a.db, owner, 'x@example.test', 'sales_rep', origin)
+  assert.equal(r.success, true)
+  assert.equal(r.data.reissued, true)
+  assert.equal(a.log.links[0].type, 'recovery')
+  assert.equal(a.log.inserts.length, 0)
+  const b = fakeDb({ existingUser: 'u1', staffRow: { id: 'pu1' }, lastSignIn: '2026-01-01T00:00:00Z' })
+  const r2 = await P.addStaff(b.db, owner, 'x@example.test', 'sales_rep', origin)
+  assert.equal(r2.success, false)
+  assert.equal(r2.status, 409)
+  assert.equal(b.log.links.length, 0)
+})
+
+await atest('add staff: only the Platform Owner; nothing is created otherwise', async () => {
+  const { db, log } = fakeDb()
+  const r = await P.addStaff(db, { userId: 'a', role: 'platform_admin' }, 'n@example.test', 'sales_rep', origin)
+  assert.equal(r.success, false)
+  assert.equal(r.status, 403)
+  assert.equal(log.links.length + log.inserts.length, 0)
+})
+
+test('setup links: /auth/confirm verifies the token and only redirects same-origin', () => {
+  const route = read('app/auth/confirm/route.ts')
+  assert.match(route, /verifyOtp\(\{ token_hash: tokenHash, type \}\)/)
+  assert.match(route, /safeRedirectPath\(searchParams\.get\('next'\)\)/)
+  assert.match(read('proxy.ts'), /'\/auth\/confirm'/)
+})
+
 console.log(`\nInternal portal: ${passed} checks passed.`)
