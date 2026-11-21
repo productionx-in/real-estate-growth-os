@@ -17,6 +17,7 @@ export const CAN = {
   dashboard: ['super_admin', 'platform_admin', 'finance_admin', 'sales_manager', 'sales_rep', 'support_agent', 'auditor'],
   organisations: ['super_admin', 'platform_admin', 'finance_admin', 'sales_manager', 'sales_rep', 'support_agent', 'auditor'],
   staff: ['super_admin'],
+  people: ['super_admin', 'platform_admin'],
   salesRead: ['super_admin', 'sales_manager', 'sales_rep', 'auditor'],
   salesWrite: ['super_admin', 'sales_manager', 'sales_rep'],
   salesAll: ['super_admin', 'sales_manager', 'auditor'],
@@ -426,7 +427,23 @@ export async function changeStaff(db: Db, actor: Actor, platformUserId: string, 
   if (change.active !== undefined) patch.is_active = change.active
   const { error } = await db.from('platform_users').update(patch).eq('id', s.id)
   if (error) return fail(error.message, 400)
+  // A deactivated staff member is signed out at once (the console already refuses them on every request).
+  if (change.active === false) await db.rpc('revoke_user_sessions', { p_auth_user: s.user_id })
   await audit(db, actor, change.active === false ? 'staff.deactivated' : change.active === true ? 'staff.reactivated' : 'staff.role_changed', 'platform_users', s.id, { from: s.role, ...change })
+  return { success: true as const, data: { id: s.id } }
+}
+
+/** Take a deactivated person off the staff list. Their REGrow sign-in account is kept; the audit trail too. */
+export async function removeStaff(db: Db, actor: Actor, platformUserId: string) {
+  if (!can(actor.role, 'staff')) return fail('Not permitted.', 403)
+  const { data: s } = await db.from('platform_users').select('id, user_id, role, is_active').eq('id', platformUserId).maybeSingle()
+  if (!s) return fail('Staff member not found.', 404)
+  if (s.user_id === actor.userId) return fail('You cannot remove yourself.', 403)
+  if (s.is_active) return fail('Deactivate this person first, then remove them.', 409)
+  const { data: u } = await db.auth.admin.getUserById(s.user_id)
+  const { error } = await db.from('platform_users').delete().eq('id', s.id)
+  if (error) return fail(error.message, 400)
+  await audit(db, actor, 'staff.removed', 'platform_users', s.id, { role: s.role, email: u?.user?.email ?? null })
   return { success: true as const, data: { id: s.id } }
 }
 

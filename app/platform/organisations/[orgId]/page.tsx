@@ -14,6 +14,8 @@ import { GrantStatusBadge } from '@/components/platform/GrantStatusBadge'
 import { ModuleToggles } from '@/components/platform/ModuleToggles'
 import { DeleteOrg, ExtendTrial, RenameOrg } from '@/components/platform/OrgManage'
 import { getModules, MODULES } from '@/lib/auth/entitlements'
+import { listWorkspacePeople } from '@/lib/platform/people'
+import { PersonControls } from '@/components/platform/PeopleActions'
 
 export const metadata: Metadata = { title: 'Organisation' }
 
@@ -40,6 +42,8 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
   const modules = await getModules(orgId)
   const isSupport = (SUPPORT_REQUEST_ROLES as readonly string[]).includes(access.role)
   const isSuper = access.role === 'super_admin'
+  const canPeople = isSuper || access.role === 'platform_admin'
+  const people = canPeople ? await listWorkspacePeople(orgId) : []
   const mine = grants.filter((g) => g.requested_by === access.userId)
   const myLive = mine.find((g) => isGrantLive(g))
   const myPending = mine.find((g) => g.status === 'pending')
@@ -182,6 +186,41 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
           )}
         </CardContent>
       </Card>
+      {canPeople && (
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>People</CardTitle>
+              <CardDescription>
+                Who can use this workspace. Suspend someone’s access here, or {isSuper ? 'block their sign-in to REGrow altogether' : 'ask the Platform Owner to block their sign-in'}.
+                Every change needs a reason and shows in the customer’s audit log.
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            {people.length === 0 ? (
+              <p className="px-5 pb-5 text-[13px] text-muted">Nobody belongs to this workspace yet.</p>
+            ) : (
+              <ul className="divide-y divide-default">
+                {people.map((p) => (
+                  <li key={p.memberId} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-medium">{p.name}</p>
+                      <p className="truncate text-[12px] text-muted">{p.email} · {p.role.replace('_', ' ')} · last sign-in {p.lastSignIn ? when(p.lastSignIn) : 'never'}</p>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {p.status === 'active' ? <Badge tone="success">Active</Badge> : <Badge tone="neutral">Access off ({p.status})</Badge>}
+                        {p.blocked && <Badge tone="danger">Sign-in blocked</Badge>}
+                      </div>
+                    </div>
+                    <PersonControls name={p.name} userId={p.userId} staff={p.staff} blocked={p.blocked} isSelf={p.userId === access.userId}
+                      canAccount={isSuper} canMember orgId={org.id} memberId={p.memberId} memberStatus={p.status} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      )}
       {isSuper && (
         <Card className="border-danger/40">
           <CardHeader><div><CardTitle className="text-danger">Delete workspace</CardTitle><CardDescription>Platform Owner only.</CardDescription></div></CardHeader>
