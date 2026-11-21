@@ -110,7 +110,7 @@ export async function collectPending(db: Db, now = Date.now()): Promise<PendingE
   for (const s of states ?? []) {
     if (s.to_state === 'active' && !['suspended', 'deactivated', 'grace'].includes(s.from_state)) continue // e.g. first activation: the welcome covers it
     out.push({ orgId: s.org_id, kind: 'workspace_state', key: `state:${s.id}`, includeSuspended: true,
-      args: (name, slug) => ({ orgName: name, to: s.to_state, reason: s.reason, url: s.to_state === 'deactivated' ? '/contact' : `/${slug}` }) })
+      args: (name, slug) => ({ orgName: name, to: s.to_state, reason: s.reason, urlPath: s.to_state === 'deactivated' ? '/contact' : `/${slug}` }) })
   }
   return out
 }

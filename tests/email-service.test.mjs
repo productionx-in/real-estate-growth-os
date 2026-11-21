@@ -82,6 +82,7 @@ await test('admin-safe: errors and addresses are masked; no secret ever appears'
 })
 await test('templates: links are built at delivery from paths; unknown templates fail permanently', async () => {
   assert.deepEqual(templates.resolvePaths({ orgName: 'X', urlPath: '/x/billing' }, 'https://app.example.org'), { orgName: 'X', url: 'https://app.example.org/x/billing' })
+  assert.deepEqual(templates.resolvePaths({ url: '/contact', ctaUrl: '/x', site: '/y' }, 'https://app.example.org'), { url: 'https://app.example.org/contact', ctaUrl: 'https://app.example.org/x', site: '/y' }, 'a bare app path in a link field becomes a full link')
   await assert.rejects(() => templates.renderTemplate('no.such', {}, { db: null, orgId: null }), (e) => e.kind === 'permanent')
   for (const t of ['invitation', 'customer', 'daily.member', 'daily.manager', 'demo.confirmation', 'demo.alert', 'site_visit', 'payments.alerts', 'payments.debit_notice', 'staff.email_health']) assert.ok(templates.TEMPLATE_NAMES.includes(t), t)
 })

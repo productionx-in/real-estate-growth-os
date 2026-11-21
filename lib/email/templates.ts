@@ -29,6 +29,7 @@ export function resolvePaths<T extends Payload>(p: T, base = appUrl()): Payload 
   const out: Payload = {}
   for (const [k, v] of Object.entries(p)) {
     if (k.endsWith('Path') && typeof v === 'string' && v.startsWith('/')) out[k.slice(0, -4)] = `${base}${v}`
+    else if (/(^|[a-z])(url|Url)$/.test(k) && typeof v === 'string' && v.startsWith('/')) out[k] = `${base}${v}` // a bare app path in a link field
     else out[k] = v
   }
   return out
