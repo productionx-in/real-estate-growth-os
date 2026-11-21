@@ -3,7 +3,9 @@ import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/types/database'
 import { isIndexablePath, LEGAL_PATHS, MARKETING_PATHS } from '@/lib/site/urls'
 
-const PUBLIC_ROUTES = [...MARKETING_PATHS, ...LEGAL_PATHS, '/login', '/auth/callback', '/auth/confirm']
+// /reset-password is public so a person whose reset link expired sees why (and can ask for a new one) instead of
+// being bounced to sign-in; the form itself needs the short recovery session to change anything.
+const PUBLIC_ROUTES = [...MARKETING_PATHS, ...LEGAL_PATHS, '/login', '/auth/callback', '/auth/confirm', '/reset-password']
 // Loaded by visitors of customers' websites, who are never signed in to REGrow.
 const PUBLIC_WEBSITE_ASSETS = ['/capture.js', '/forms/embed.js', '/forms/view', '/robots.txt', '/sitemap.xml', '/llms.txt']
 
@@ -22,6 +24,26 @@ export async function proxy(request: NextRequest) {
     loginUrl.pathname = '/login'
     loginUrl.searchParams.set('notice', 'closed_saas')
     return NextResponse.redirect(loginUrl)
+  }
+
+  // 1b. An e-mailed auth link that Supabase sent back to the Site URL (the homepage, or any other page) because the
+  //     intended address wasn't on its Redirect URLs allowlist: finish it at /auth/callback instead of dropping it.
+  //     /auth/callback recognises a password reset from the session itself (lib/auth/recovery.ts).
+  if (!pathname.startsWith('/auth/') && !pathname.startsWith('/api/')) {
+    const sp = request.nextUrl.searchParams
+    if (sp.get('code') && /^[A-Za-z0-9_-]{8,}$/.test(sp.get('code') ?? '')) {
+      const to = request.nextUrl.clone()
+      to.pathname = '/auth/callback'
+      to.search = ''
+      to.searchParams.set('code', sp.get('code')!)
+      to.searchParams.set('next', '/select-org')
+      return NextResponse.redirect(to)
+    }
+    if (sp.get('error_code') && (sp.get('error') || sp.get('error_description'))) {
+      const to = request.nextUrl.clone()
+      to.pathname = '/auth/callback'
+      return NextResponse.redirect(to)
+    }
   }
 
   // 2. Allow invitation activation page to load publicly without premature login bounce
