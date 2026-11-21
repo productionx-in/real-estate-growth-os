@@ -4,6 +4,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getChannelAdapters, type NotificationRecord } from '@/lib/notifications/channels'
 import { siteVisitNotify } from '@/lib/jobs/site-visit-notify'
+import { customerLifecycleEmails } from '@/lib/jobs/customer-emails'
 import { paymentsHealthCheck, paymentsMandateCycle, paymentsPollPending, paymentsReconcile } from '@/lib/jobs/payments'
 
 export interface JobRow {
@@ -59,6 +60,7 @@ async function dispatchNotification(job: JobRow, db: Db): Promise<void> {
 export const JOB_HANDLERS: Record<string, JobHandler> = {
   'notification.dispatch': dispatchNotification,
   'site_visit.notify': siteVisitNotify,
+  'email.customer_lifecycle': customerLifecycleEmails,
   'payments.poll_pending': paymentsPollPending,
   'payments.health_check': paymentsHealthCheck,
   'payments.reconcile': paymentsReconcile,

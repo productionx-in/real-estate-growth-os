@@ -10,6 +10,8 @@ export interface SendEmailOptions {
   html: string
   text?: string
   from?: string
+  /** Where replies go. Defaults to RESEND_REPLY_TO (e.g. support@…) when set. */
+  replyTo?: string
 }
 
 export interface InvitationEmailOptions {
@@ -66,6 +68,7 @@ export class ResendEmailAdapter implements EmailAdapter {
           subject: options.subject,
           html: options.html,
           text: options.text,
+          ...((options.replyTo ?? process.env.RESEND_REPLY_TO) ? { reply_to: options.replyTo ?? process.env.RESEND_REPLY_TO } : {}),
         }),
       })
 
