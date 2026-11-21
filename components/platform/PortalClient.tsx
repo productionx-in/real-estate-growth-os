@@ -191,6 +191,12 @@ export function StaffControls({ id, role, active, self }: { id: string; role: st
         {ROLE_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
       </Select>
       <Button size="sm" variant="secondary" disabled={busy} onClick={() => run(() => send(`/api/platform/staff/${id}`, 'PATCH', { active: !active }), active ? 'Deactivated.' : 'Reactivated.')}>{active ? 'Deactivate' : 'Reactivate'}</Button>
+      {!active && (
+        <Button size="sm" variant="danger" disabled={busy}
+          onClick={() => { if (window.confirm('Remove this person from the staff list? Their REGrow account is kept.')) run(() => send(`/api/platform/staff/${id}`, 'DELETE', {}), 'Removed.') }}>
+          Remove
+        </Button>
+      )}
       {msg?.tone === 'danger' && <span className="text-[12px] text-danger">{msg.text}</span>}
     </div>
   )

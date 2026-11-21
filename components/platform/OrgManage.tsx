@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 import { Alert, Button, Field, Input, Textarea } from '@/components/ui'
 import { Dialog, DialogContent, DialogFooter, DialogTrigger } from '@/components/ui/dialog'
+import { ChoiceCard } from '@/components/platform/PeopleActions'
 
 async function call(url: string, method: string, body: unknown) {
   const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -66,24 +67,28 @@ export function ExtendTrial({ orgId, endsAt }: { orgId: string; endsAt: string |
 
 type Preview = { data: Record<string, number>; locked: Record<string, number>; dataText: string; lockedText: string }
 
-export function DeleteOrg({ orgId, name }: { orgId: string; name: string }) {
+/** Facebook-style "Deactivate or delete" for a whole customer workspace (Platform Owner only). */
+export function DeleteOrg({ orgId, name, state }: { orgId: string; name: string; state: string }) {
   const router = useRouter()
+  const deactivated = state === 'deactivated'
   const [open, setOpen] = useState(false)
+  const [choice, setChoice] = useState<'deactivate' | 'delete'>(deactivated ? 'delete' : 'deactivate')
   const [confirm, setConfirm] = useState('')
   const [reason, setReason] = useState('')
-  const [purge, setPurge] = useState(false)
+  const [understood, setUnderstood] = useState(false)
   const [preview, setPreview] = useState<Preview | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [done, setDone] = useState<string | null>(null)
   const url = `/api/admin/organisations/${orgId}/delete`
-  const done = () => { setOpen(false); router.push('/platform/organisations'); router.refresh() }
-  const hasData = Boolean(preview && Object.keys(preview.data).length)
+  const gone = () => { setOpen(false); router.push('/platform/organisations'); router.refresh() }
   const locked = Boolean(preview && Object.keys(preview.locked).length)
+  const reset = () => { setChoice(deactivated ? 'delete' : 'deactivate'); setConfirm(''); setReason(''); setUnderstood(false); setPreview(null); setError(null) }
 
   const loadPreview = async () => {
     try {
       const res = await fetch(url, { cache: 'no-store' })
-      if (res.status === 404) return done()
+      if (res.status === 404) return gone()
       const json = await res.json().catch(() => ({}))
       if (res.ok) setPreview(json); else setError(json.error ?? 'Could not check what this workspace holds.')
     } catch { setError('Could not check what this workspace holds. Check your connection and try again.') }
@@ -92,57 +97,80 @@ export function DeleteOrg({ orgId, name }: { orgId: string; name: string }) {
   const submit = async () => {
     setBusy(true); setError(null)
     try {
-      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirmName: confirm, reason, purgeData: purge }) })
+      if (choice === 'deactivate') {
+        const res = await fetch(`/api/admin/organisations/${orgId}/lifecycle`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ state: 'deactivated', reason }) })
+        const json = await res.json().catch(() => ({}))
+        if (!res.ok) { setError(json.error ?? 'Could not deactivate the workspace.'); setBusy(false); return }
+        setOpen(false); setBusy(false); reset(); setDone(`${name} is deactivated. Its data is kept; reactivate it any time under Workspace state.`); router.refresh()
+        return
+      }
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirmName: confirm, reason, purgeData: true }) })
       const json = await res.json().catch(() => ({}))
-      if (res.ok || res.status === 404) return done()
+      if (res.ok || res.status === 404) return gone()
       setError(json.error ?? 'Something went wrong.')
     } catch {
       // The reply was lost (network, timeout). The delete may still have happened: ask again before saying it failed.
-      try { if ((await fetch(url, { cache: 'no-store' })).status === 404) return done() } catch { /* fall through */ }
-      setError('We couldn’t confirm the delete. Check your connection, then refresh this page to see whether the workspace is still there.')
+      if (choice === 'delete') { try { if ((await fetch(url, { cache: 'no-store' })).status === 404) return gone() } catch { /* fall through */ } }
+      setError('We couldn’t confirm the change. Check your connection, then refresh this page to see the workspace’s state.')
     }
     setBusy(false)
   }
 
+  const deleteReady = !locked && understood && confirm.trim() === name.trim()
   return (
     <div className="space-y-3">
       <p className="text-[13px] text-muted">
-        Permanently removes this workspace, its members’ access to it, settings and invitations. A workspace with leads, projects or inventory can be
-        removed together with that data — use this only for test or duplicate workspaces. Workspaces with invoices or payments can’t be deleted.
-        People’s REGrow accounts are kept. To stop a real customer, use <strong className="text-foreground">Deactivated</strong> under Workspace state: the data is kept.
+        <strong className="text-foreground">Deactivate</strong> to stop everyone using this workspace while keeping all its data — you can bring it back
+        any time. <strong className="text-foreground">Permanently delete</strong> to remove the workspace and everything in it for good.
       </p>
-      <Dialog open={open} onOpenChange={(o) => {
-        setOpen(o)
-        if (o) void loadPreview()
-        else { setConfirm(''); setReason(''); setPurge(false); setPreview(null); setError(null) }
-      }}>
+      {done && <Alert tone="success">{done}</Alert>}
+      <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setDone(null); void loadPreview() } else reset() }}>
         <DialogTrigger asChild>
-          <Button variant="danger"><Trash2 className="size-4" aria-hidden="true" />Delete workspace…</Button>
+          <Button variant="danger"><Trash2 className="size-4" aria-hidden="true" />Deactivate or delete…</Button>
         </DialogTrigger>
-        <DialogContent title={`Delete ${name}?`} description="This can’t be undone. It is recorded in the platform audit log.">
+        <DialogContent title={`Deactivate or delete ${name}`} description="Choose what should happen to this workspace.">
           <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); void submit() }}>
-            {!preview && !error && <p className="text-[13px] text-muted" role="status">Checking what this workspace holds…</p>}
-            {preview && !hasData && !locked && <p className="text-[13px] text-muted">This workspace holds no leads, projects or other data.</p>}
-            {locked && (
-              <Alert tone="danger">This workspace has {preview!.lockedText}, which must be kept, so it can’t be deleted. Deactivate it instead.</Alert>
+            <fieldset className="space-y-2">
+              <legend className="sr-only">What do you want to do?</legend>
+              <ChoiceCard name="org-choice" value="deactivate" checked={choice === 'deactivate'} onSelect={() => setChoice('deactivate')} disabled={deactivated}
+                title="Deactivate workspace" tag="Temporary"
+                body="Nobody can open it and members are signed out. All leads, projects, inventory and settings are kept, and you can reactivate it any time."
+                note={deactivated ? 'Already deactivated.' : undefined} />
+              <ChoiceCard name="org-choice" value="delete" checked={choice === 'delete'} onSelect={() => setChoice('delete')} danger disabled={locked}
+                title="Permanently delete workspace" tag="Can’t be undone"
+                body="The workspace and everything in it are deleted for good. Members’ REGrow accounts are kept."
+                note={locked ? `Not possible: it has ${preview!.lockedText}, which must be kept for tax records. Deactivate it instead.` : undefined} />
+            </fieldset>
+
+            {choice === 'delete' && !locked && (
+              <div className="space-y-3 rounded-lg border border-danger/40 bg-danger-bg p-3 text-[13px]">
+                <p className="font-semibold text-danger">All of this will be permanently lost</p>
+                {!preview ? <p className="text-muted" role="status">Checking what this workspace holds…</p> : (
+                  <ul className="list-disc space-y-1 pl-5">
+                    {preview.dataText && <li>{preview.dataText}</li>}
+                    <li>Every note, follow-up, activity and assignment on those records</li>
+                    <li>Team, routing rules, integrations, invitations and settings</li>
+                    <li>Members’ access to this workspace</li>
+                  </ul>
+                )}
+                <p className="text-muted">There is no backup to restore from. If you might need any of this later, deactivate instead.</p>
+                <label className="flex cursor-pointer items-start gap-2">
+                  <input type="checkbox" checked={understood} onChange={(e) => setUnderstood(e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-current text-danger" />
+                  <span>I understand that {name} and all its data will be permanently deleted and can’t be recovered.</span>
+                </label>
+                <Field label={`Type ${name} to confirm`} required><Input value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="off" /></Field>
+              </div>
             )}
-            {hasData && !locked && (
-              <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-danger/40 bg-danger/5 p-3 text-[13px]">
-                <input type="checkbox" checked={purge} onChange={(e) => setPurge(e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-current text-danger" />
-                <span>
-                  <strong className="font-semibold">Also delete its data:</strong> {preview!.dataText}.
-                  <span className="block text-muted">Only for a test or duplicate workspace. Everything is removed for good.</span>
-                </span>
-              </label>
-            )}
-            <Field label={`Type ${name} to confirm`} required><Input value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="off" disabled={locked} /></Field>
-            <Field label="Reason" required><Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} placeholder="e.g. Test workspace" maxLength={500} disabled={locked} /></Field>
+
+            <Field label="Reason" required hint="Recorded in the audit log.">
+              <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} placeholder={choice === 'delete' ? 'e.g. Test workspace' : 'e.g. Contract ended'} maxLength={500} />
+            </Field>
             {error && <Alert tone="danger">{error}</Alert>}
             <DialogFooter>
               <Button type="button" variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button type="submit" variant="danger"
-                disabled={busy || !preview || locked || (hasData && !purge) || confirm.trim() !== name.trim() || reason.trim().length < 3}>
-                {busy ? 'Deleting…' : hasData ? 'Delete workspace and data' : 'Delete permanently'}
+              <Button type="submit" variant={choice === 'delete' ? 'danger' : 'primary'}
+                disabled={busy || reason.trim().length < 3 || (choice === 'delete' ? !deleteReady : deactivated)}>
+                {busy ? 'Saving…' : choice === 'delete' ? 'Permanently delete' : 'Deactivate workspace'}
               </Button>
             </DialogFooter>
           </form>
