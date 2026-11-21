@@ -172,7 +172,7 @@ export async function changeAccount(actor: StaffActor, userId: string, action: '
       if (profileId) await db.from('profiles').update({ full_name: 'Deleted user', phone: null, avatar_url: null, updated_at: new Date().toISOString() }).eq('id', profileId)
       const { error } = await db.auth.admin.updateUserById(userId, {
         email: `deleted-${userId}@deleted.invalid`, email_confirm: true, user_metadata: { full_name: 'Deleted user' }, ban_duration: FOREVER,
-        password: crypto.randomUUID() + crypto.randomUUID(),
+        password: unusablePassword(),
       } as never)
       if (error) return fail(`Could not erase the account: ${error.message}`)
     }
@@ -185,4 +185,12 @@ export async function changeAccount(actor: StaffActor, userId: string, action: '
 export function maskEmail(email: string) {
   const [u, d] = email.split('@')
   return d ? `${u.slice(0, 2)}***@${d}` : '***'
+}
+
+/** A long random password that meets the strictest Supabase policy (lower, upper, digit, symbol). Never shown or
+ *  stored: it only makes sure the old password stops working. */
+export function unusablePassword() {
+  const bytes = crypto.getRandomValues(new Uint8Array(24))
+  const body = Array.from(bytes, (b) => b.toString(36)).join('')
+  return `Xx9!${body}#Zq7`
 }

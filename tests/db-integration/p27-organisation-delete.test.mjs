@@ -91,6 +91,28 @@ async function main() {
     assert.equal(a.actor_user_id, owner.id); assert.equal(a.metadata.reason, 'Duplicate created by mistake'); assert.equal(a.metadata.members, 1)
   })
 
+  await test('unpaid invoices go with a test workspace; a paid invoice always blocks (20260067)', async () => {
+    const name = `Billed Co ${RUN}`
+    const org = await mkOrg(name)
+    await sql.query(`INSERT INTO public.org_members (org_id, profile_id, role, status) VALUES ($1,$2,'owner','active')`, [org, member.profile])
+    const inv = (await one(`SELECT public.billing_issue_plan_invoice($1, 'leads', 'monthly', $2) AS id`, [org, member.profile])).id
+    const r1 = await del(org, name, 'test workspace', owner.id, false)
+    assert.ifError(r1.error); assert.equal(r1.data.deleted, false); assert.equal(r1.data.purgeable, true); assert.equal(r1.data.blockers.unpaid_invoices, 1)
+
+    await sql.query(`ALTER TABLE public.org_subscription_invoices DISABLE TRIGGER USER`)
+    await sql.query(`UPDATE public.org_subscription_invoices SET status = 'paid' WHERE id = $1`, [inv])
+    await sql.query(`ALTER TABLE public.org_subscription_invoices ENABLE TRIGGER USER`)
+    const r2 = await del(org, name, 'test workspace', owner.id, true)
+    assert.ifError(r2.error); assert.equal(r2.data.deleted, false); assert.equal(r2.data.purgeable, false); assert.equal(r2.data.blockers.paid_invoices, 1)
+
+    await sql.query(`ALTER TABLE public.org_subscription_invoices DISABLE TRIGGER USER`)
+    await sql.query(`UPDATE public.org_subscription_invoices SET status = 'void' WHERE id = $1`, [inv])
+    await sql.query(`ALTER TABLE public.org_subscription_invoices ENABLE TRIGGER USER`)
+    const r3 = await del(org, name, 'test workspace', owner.id, true)
+    assert.ifError(r3.error); assert.equal(r3.data.deleted, true)
+    assert.equal(await count('SELECT count(*) n FROM public.org_subscription_invoices WHERE org_id=$1', [org]), 0)
+  })
+
   await test('clients cannot call it', async () => {
     const r = await one(`SELECT has_function_privilege('anon', 'public.platform_delete_organisation(uuid, text, text, uuid, boolean)', 'EXECUTE') a, has_function_privilege('authenticated', 'public.platform_delete_organisation(uuid, text, text, uuid, boolean)', 'EXECUTE') b`)
     assert.equal(r.a, false); assert.equal(r.b, false)

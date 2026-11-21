@@ -139,7 +139,7 @@ export function DeleteOrg({ orgId, name, state }: { orgId: string; name: string;
               <ChoiceCard name="org-choice" value="delete" checked={choice === 'delete'} onSelect={() => setChoice('delete')} danger disabled={locked}
                 title="Permanently delete workspace" tag="Can’t be undone"
                 body="The workspace and everything in it are deleted for good. Members’ REGrow accounts are kept."
-                note={locked ? `Not possible: it has ${preview!.lockedText}, which must be kept for tax records. Deactivate it instead.` : undefined} />
+                note={locked ? `Not possible: it has ${preview!.lockedText}, which must be kept for tax and payment records. Deactivate it instead.` : undefined} />
             </fieldset>
 
             {choice === 'delete' && !locked && (
@@ -153,6 +153,9 @@ export function DeleteOrg({ orgId, name, state }: { orgId: string; name: string;
                     <li>Members’ access to this workspace</li>
                   </ul>
                 )}
+                {preview?.data.unpaid_invoices ? (
+                  <p className="text-muted">Unpaid invoices are deleted too. If any of them was filed in your GST returns, cancel it with a credit note instead and deactivate the workspace.</p>
+                ) : null}
                 <p className="text-muted">There is no backup to restore from. If you might need any of this later, deactivate instead.</p>
                 <label className="flex cursor-pointer items-start gap-2">
                   <input type="checkbox" checked={understood} onChange={(e) => setUnderstood(e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-current text-danger" />
