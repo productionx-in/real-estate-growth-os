@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { getConsoleAccess } from '@/lib/auth/platform'
 import { MfaGate } from '@/components/platform/MfaGate'
 import { Card, CardContent } from '@/components/ui'
 
@@ -21,6 +22,8 @@ export default async function AccountSecurityPage() {
   if (aal?.currentLevel !== 'aal2') {
     return <div className="min-h-dvh bg-background"><MfaGate intro="Protect your account with an authenticator app." /></div>
   }
+  // Staff continue to the console; everyone else to their workspaces.
+  const staff = (await getConsoleAccess()).state === 'ok'
   return (
     <main className="flex min-h-dvh items-center justify-center bg-background px-4 py-12">
       <Card className="w-full max-w-md">
@@ -30,7 +33,9 @@ export default async function AccountSecurityPage() {
             <h1 className="text-[16px] font-semibold">Two-step verification is on</h1>
           </div>
           <p className="text-[13px] text-muted">Signed in as {user.email}. Your authenticator app is verified for this account.</p>
-          <Link href="/select-org" className="text-[13px] font-medium text-brand hover:underline">Continue</Link>
+          <Link href={staff ? '/platform' : '/select-org'} className="inline-flex min-h-10 items-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">
+            {staff ? 'Continue to the console' : 'Continue to your workspace'}
+          </Link>
         </CardContent>
       </Card>
     </main>
