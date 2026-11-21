@@ -25,7 +25,7 @@ export default async function DocumentsPage({ params }: { params: Promise<{ orgS
         orgType={org.type}
         profile={profile}
         missing={missingForLetterhead(profile)}
-        settingsHref={isAdmin ? `/${orgSlug}/settings#business-details` : null}
+        settingsHref={isAdmin ? `/${orgSlug}/settings/business` : null}
         templates={templates}
         canEdit={isManager}
       />

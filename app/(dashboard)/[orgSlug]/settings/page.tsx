@@ -1,138 +1,51 @@
-// app/(dashboard)/[orgSlug]/settings/page.tsx
+// app/(dashboard)/[orgSlug]/settings/page.tsx — the settings hub: one card per group, with its most-used pages.
+// Everyone sees "You"; company, team and lead settings appear for the roles that manage them (lib/settings/catalog).
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { Plug, ArrowRight } from 'lucide-react'
-import { PageShell } from '@/components/layout/PageShell'
+import { Building2, ChevronRight, ClipboardList, Home, Plug, UserRound, Users } from 'lucide-react'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
-import { IntegrationReadinessPanel } from '@/components/integrations/IntegrationReadinessPanel'
-import { BusinessProfileForm } from '@/components/settings/BusinessProfileForm'
-import { getBusinessProfile } from '@/lib/dal/documents'
+import { settingsFor } from '@/lib/settings/catalog'
+import { SettingsHeader } from '@/components/settings/SettingsSection'
+import type { MemberRole } from '@/types/database'
 
 export const metadata: Metadata = { title: 'Settings' }
 export const dynamic = 'force-dynamic'
 
-interface PageProps {
-  params: Promise<{ orgSlug: string }>
-}
+const ICONS: Record<string, typeof UserRound> = { you: UserRound, company: Building2, team: Users, leads: ClipboardList, properties: Home, apps: Plug }
 
-const ORG_TYPE_LABEL: Record<string, string> = {
-  developer: 'Property Developer / Builder',
-  channel_partner: 'Channel Partner / Brokerage',
-}
-
-export default async function SettingsPage({ params }: PageProps) {
+export default async function SettingsHub({ params }: { params: Promise<{ orgSlug: string }> }) {
   const { orgSlug } = await params
-  const { user, profile, org, role, isAdmin } = await getVerifiedWorkspace(orgSlug)
-
-  // Server-authoritative check: Only organisation administrators can access organisation settings
-  if (!isAdmin) {
-    redirect(`/${orgSlug}`)
-  }
-  const businessProfile = await getBusinessProfile(org.id)
-
+  const { role, org } = await getVerifiedWorkspace(orgSlug)
+  const groups = settingsFor(role as MemberRole)
   return (
-    <PageShell title="Settings" description="Manage your workspace configuration and user profile">
-      <div className="max-w-5xl space-y-6">
-        {/* Organisation info */}
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 shadow-2xs">
-          <h2 className="text-[13px] font-semibold text-[var(--foreground)] mb-4">
-            Organisation Details
-          </h2>
-          <dl className="space-y-3">
-            <div className="flex gap-3">
-              <dt className="w-28 text-[12px] font-medium text-[var(--foreground-muted)]">Name</dt>
-              <dd className="text-[13px] font-semibold text-[var(--foreground)]">{org.name}</dd>
-            </div>
-            <div className="flex gap-3">
-              <dt className="w-28 text-[12px] font-medium text-[var(--foreground-muted)]">Type</dt>
-              <dd className="text-[13px] text-[var(--foreground)]">
-                {ORG_TYPE_LABEL[org.type] ?? org.type}
-              </dd>
-            </div>
-            <div className="flex gap-3">
-              <dt className="w-28 text-[12px] font-medium text-[var(--foreground-muted)]">Workspace URL</dt>
-              <dd className="text-[13px] text-[var(--foreground)] font-mono">/{org.slug}</dd>
-            </div>
-            <div className="flex gap-3">
-              <dt className="w-28 text-[12px] font-medium text-[var(--foreground-muted)]">Plan</dt>
-              <dd>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-brand-light text-brand capitalize border border-brand/30">
-                  {org.plan ?? 'growth'}
-                </span>
-              </dd>
-            </div>
-          </dl>
-          {!isAdmin && (
-            <p className="mt-4 text-[12px] text-[var(--foreground-muted)]">
-              Only workspace owners and administrators can edit organisation settings.
-            </p>
-          )}
-        </div>
-
-        {/* Business details: letterhead, registrations, signatory and bank account on documents (20260071) */}
-        <section id="business-details" aria-labelledby="business-details-title" className="scroll-mt-20 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-2xs">
-          <h2 id="business-details-title" className="text-[14px] font-semibold text-[var(--foreground)]">Business details for documents</h2>
-          <p className="mb-4 text-[12px] text-[var(--foreground-muted)]">Your letterhead on cost sheets, quotations, allotment letters and payment demands.</p>
-          <BusinessProfileForm orgId={org.id} orgName={org.name} initial={businessProfile} />
-        </section>
-
-        {/* Integration Centre Link */}
-        <div className="bg-[var(--surface)] border border-brand/80 rounded-xl p-5 shadow-2xs flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-light text-brand flex items-center justify-center shadow-2xs">
-              <Plug className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-[14px] font-bold text-[var(--foreground)]">Integration Centre</h2>
-              <p className="text-[12px] text-[var(--foreground-muted)]">
-                Connect Meta Lead Ads, manage Facebook Pages, and map forms to your projects.
-              </p>
-            </div>
-          </div>
-          <Link
-            href={`/${orgSlug}/integrations`}
-            className="px-4 py-2 text-[12px] font-semibold text-brand bg-brand-light hover:bg-brand-light border border-brand/30 rounded-xl transition-colors flex items-center gap-1.5"
-          >
-            Open Integration Centre
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        {/* CRM Integration Readiness & Lead Source Architecture (Stage 3G) */}
-        <IntegrationReadinessPanel />
-
-        {/* Profile info */}
-        {profile && (
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 shadow-2xs">
-            <h2 className="text-[13px] font-semibold text-[var(--foreground)] mb-4">Your Profile</h2>
-            <dl className="space-y-3">
-              <div className="flex gap-3">
-                <dt className="w-28 text-[12px] font-medium text-[var(--foreground-muted)]">Name</dt>
-                <dd className="text-[13px] font-semibold text-[var(--foreground)]">
-                  {profile.full_name}
-                </dd>
-              </div>
-              <div className="flex gap-3">
-                <dt className="w-28 text-[12px] font-medium text-[var(--foreground-muted)]">Email</dt>
-                <dd className="text-[13px] text-[var(--foreground)]">{user.email}</dd>
-              </div>
-              <div className="flex gap-3">
-                <dt className="w-28 text-[12px] font-medium text-[var(--foreground-muted)]">Role</dt>
-                <dd className="text-[13px] text-[var(--foreground)] capitalize">
-                  {role.replace('_', ' ')}
-                </dd>
-              </div>
-              {profile.phone && (
-                <div className="flex gap-3">
-                  <dt className="w-28 text-[12px] font-medium text-[var(--foreground-muted)]">Phone</dt>
-                  <dd className="text-[13px] text-[var(--foreground)]">{profile.phone}</dd>
+    <div>
+      <SettingsHeader title="Settings" scope="you" description={`Set up ${org.name}, your team and how leads, deals and messages work. Use the search on the left to jump to anything.`} />
+      <ul className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+        {groups.map((g) => {
+          const Icon = ICONS[g.key] ?? Building2
+          return (
+            <li key={g.key} className="rounded-xl border border-default bg-surface p-4 shadow-2xs">
+              <div className="mb-2 flex gap-3">
+                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-light text-brand"><Icon aria-hidden className="size-4" /></span>
+                <div>
+                  <h2 className="text-[14px] font-semibold text-foreground">{g.title}</h2>
+                  <p className="text-[12px] text-muted">{g.description}</p>
                 </div>
-              )}
-            </dl>
-          </div>
-        )}
-      </div>
-    </PageShell>
+              </div>
+              <ul className="divide-y divide-[var(--border)]">
+                {g.pages.map((p) => (
+                  <li key={p.key}>
+                    <Link href={`/${orgSlug}${p.path}`} className="flex min-h-11 items-center gap-2 rounded-md px-1 text-[13px] text-foreground hover:bg-surface-hover">
+                      <span className="flex-1">{p.label}</span>
+                      <ChevronRight aria-hidden className="size-4 text-subtle" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
   )
 }

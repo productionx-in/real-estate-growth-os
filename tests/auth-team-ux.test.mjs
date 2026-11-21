@@ -43,4 +43,19 @@ test('team actions menu: a portalled dropdown (never clipped), current role tick
   assert.match(read('components/ui/dropdown-menu.tsx'), /<Menu\.Portal>/)
 })
 
+test('team page: no actions on your own row, owners only managed by an owner, title shown once', () => {
+  const t = read('components/team/TeamManagementClient.tsx')
+  assert.match(t, /const isSelf = m\.profileId === currentProfileId/)
+  assert.match(t, /const canManage = !isDeactivated && !isSelf && \(m\.role !== 'owner' \|\| viewerRole === 'owner'\)/)
+  assert.match(t, /\{canManage && \(\s*<DropdownMenu>/, 'the actions menu depends on canManage')
+  assert.doesNotMatch(t, /Team &amp; Access Management/, 'the page title lives in PageShell only')
+  const page = read('app/(dashboard)/[orgSlug]/team/page.tsx')
+  assert.match(page, /currentProfileId=\{workspace\.profile\.id\}/)
+  // The server stays the authority: it refuses self-deactivation, own-role changes and removing the last owner.
+  const dal = read('lib/dal/invitations.ts')
+  assert.match(dal, /You cannot deactivate your own account\./)
+  assert.match(dal, /You cannot change your own role\./)
+  assert.match(dal, /Cannot deactivate the sole owner/)
+})
+
 console.log(`\nAuth & team UX: ${passed} checks passed.`)

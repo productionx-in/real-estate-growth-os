@@ -1,5 +1,6 @@
 'use client'
 // components/team/TeamManagementClient.tsx
+import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -48,6 +49,9 @@ interface TeamManagementClientProps {
   orgName: string
   isAdmin: boolean
   isManager: boolean
+  /** The signed-in person: their own row gets no actions (the server refuses them anyway). */
+  currentProfileId: string
+  viewerRole: MemberRole
   seatUsage: SeatUsage
   teamMembers: TeamMemberItem[]
   pendingInvitations: PendingInvitationItem[]
@@ -69,8 +73,9 @@ const CHANGEABLE_ROLES: MemberRole[] = ['manager', 'team_lead', 'sales_exec', 'p
 
 export function TeamManagementClient({
   orgSlug,
-  orgName,
   isAdmin,
+  currentProfileId,
+  viewerRole,
   seatUsage,
   teamMembers,
   pendingInvitations,
@@ -124,28 +129,18 @@ export function TeamManagementClient({
 
   return (
     <div className="space-y-6">
-      {/* Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-[18px] font-bold text-[var(--foreground)] tracking-tight">
-            Team &amp; Access Management
-          </h2>
-          <p className="text-[12px] text-[var(--foreground-muted)] mt-0.5">
-            Manage authorized staff, sales executive assignments, and subscription seat entitlements for {orgName}.
-          </p>
-        </div>
-
-        {isAdmin && (
+      {isAdmin && (
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={() => setIsInviteOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] hover:bg-[var(--brand-hover)] rounded-md transition-colors shadow-2xs self-start sm:self-auto"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] hover:bg-[var(--brand-hover)] rounded-md transition-colors shadow-2xs"
           >
             <UserPlus className="w-4 h-4" />
             <span>Invite Team Member</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Subscription Seat Meter */}
       <SubscriptionSeatMeter seatUsage={seatUsage} orgSlug={orgSlug} isAdmin={isAdmin} />
@@ -244,6 +239,9 @@ export function TeamManagementClient({
             <tbody className="divide-y divide-[var(--border)]">
               {teamMembers.map((m) => {
                 const isDeactivated = m.status === 'deactivated'
+                const isSelf = m.profileId === currentProfileId
+                // Same rules as the server (lib/dal/invitations.ts): never your own row; owners only by an owner.
+                const canManage = !isDeactivated && !isSelf && (m.role !== 'owner' || viewerRole === 'owner')
 
                 return (
                   <tr key={m.id} className={`transition-colors ${isDeactivated ? 'opacity-60 bg-surface-muted/50' : 'hover:bg-[var(--surface-hover)]'}`}>
@@ -255,6 +253,7 @@ export function TeamManagementClient({
                         <div>
                           <p className="font-semibold text-[var(--foreground)] leading-tight">
                             {m.name}
+                            {isSelf && <span className="ml-1.5 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-surface-hover text-muted align-middle">You</span>}
                           </p>
                           <p className="text-[11px] text-[var(--foreground-muted)] flex items-center gap-1 mt-0.5">
                             <Mail className="w-3 h-3 text-[var(--foreground-subtle)]" />
@@ -295,7 +294,10 @@ export function TeamManagementClient({
                     </td>
                     {isAdmin && (
                       <td className="px-5 py-3.5 text-right">
-                        {!isDeactivated && (
+                        {isSelf && (
+                          <Link href="/account/security" className="text-[12px] font-medium text-[var(--brand)] hover:underline">Your account</Link>
+                        )}
+                        {canManage && (
                           <DropdownMenu>
                             <DropdownMenuTrigger aria-label={`Actions for ${m.name}`}
                               className="inline-grid size-9 place-items-center rounded-md text-[var(--foreground-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]">
