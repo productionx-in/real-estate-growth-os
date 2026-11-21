@@ -11,6 +11,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Tooltip } from '@/components/ui/tooltip'
+import { PlotMap } from '@/components/plots/PlotMap'
+import { sampleLayout } from '@/lib/plots/sample'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -146,6 +148,10 @@ export function Gallery() {
               </Dialog>
             </CardFooter>
           </Card>
+        </Section>
+
+        <Section title="Interactive plot map (add-on) · sample layout">
+          <PlotMap mode="public" {...sampleLayout()} showPrices contact={{ phone: '+91 90000 00000', projectName: 'Sample Enclave', orgName: 'Sample Developers' }} />
         </Section>
 
         <Section title="Loading and empty states">
