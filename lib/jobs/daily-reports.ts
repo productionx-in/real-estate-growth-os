@@ -4,10 +4,9 @@
 // people whose profile has email_daily_report on, never to read-only members, deactivated or erased accounts.
 // The numbers come from computeDay(), a pure function, so they are tested exactly (tests/daily-report.test.mjs).
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { getEmailAdapter } from '@/lib/email/adapter'
-import { managerDayEmail, memberDayEmail, quietDay, type PersonDay, type TeamDay } from '@/lib/email/daily-report'
+import { deliverOne } from '@/lib/email/service'
+import { quietDay, type PersonDay, type TeamDay } from '@/lib/email/daily-report'
 import { emailOf } from '@/lib/jobs/customer-emails'
-import { appUrl } from '@/lib/site/urls'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = SupabaseClient<any, 'public', any>
@@ -112,13 +111,9 @@ async function loadRows(db: Db, orgId: string, now: number): Promise<DayRows> {
 }
 
 export async function dailyReports(_job: unknown, db: Db, now = Date.now()): Promise<void> {
-  if (!process.env.RESEND_API_KEY && process.env.VERCEL_ENV === 'production') return
-  const base = appUrl()
-  if (!base) return
   const { today } = istDay(now)
   const dateKey = new Date(today + IST_OFFSET_MS).toISOString().slice(0, 10)
   const dateLabel = new Intl.DateTimeFormat('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' }).format(new Date(now))
-  const mailer = getEmailAdapter()
 
   const { data: orgs } = await db.from('organisations').select('id, name, slug, lifecycle_state').in('lifecycle_state', ['active', 'grace', 'pending_setup'])
   for (const org of orgs ?? []) {
@@ -134,14 +129,16 @@ export async function dailyReports(_job: unknown, db: Db, now = Date.now()): Pro
       const kind = manager ? 'daily_manager' : 'daily_member'
       const key = `daily:${org.id}:${m.profileId}:${dateKey}`
       const to = await emailOf(db, m.profileId)
-      const { error: claim } = await db.from('customer_email_log').insert({ org_id: org.id, kind, dedupe_key: key, recipients: to.length, status: to.length ? 'sent' : 'skipped', detail: to.length ? null : 'no usable e-mail' })
-      if (claim || !to.length) continue
       const firstName = m.name.trim().split(/\s+/)[0] || 'there'
-      const msg = manager
-        ? managerDayEmail({ orgName: org.name, firstName, dateLabel, team, own, url: `${base}/${org.slug}` })
-        : memberDayEmail({ orgName: org.name, firstName, dateLabel, day: own!, url: `${base}/${org.slug}/today` })
-      const r = await mailer.sendEmail({ to: to[0], subject: msg.subject, html: msg.html, text: msg.text })
-      if (!r.success) await db.from('customer_email_log').update({ status: 'skipped', recipients: 0, detail: (r.error ?? 'send failed').slice(0, 300) }).eq('dedupe_key', key)
+      const args = manager
+        ? { orgName: org.name, firstName, dateLabel, team, own, urlPath: `/${org.slug}` }
+        : { orgName: org.name, firstName, dateLabel, day: own, urlPath: `/${org.slug}/today` }
+      // Log row + outbox row in one transaction; a second run the same day is a no-op.
+      const { data: ids, error } = await db.rpc('enqueue_customer_email', {
+        p_org: org.id, p_kind: kind, p_event_key: key, p_recipients: to, p_template: manager ? 'daily.manager' : 'daily.member', p_payload: { args },
+      } as never)
+      if (error) { console.error('[daily-reports] could not queue', error.message); continue }
+      for (const id of (ids as string[] | null) ?? []) await deliverOne(db, id)
     }
   }
 }

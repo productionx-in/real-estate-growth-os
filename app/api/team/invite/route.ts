@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
 import { createEmployeeInvitation } from '@/lib/dal/invitations'
-import { getEmailAdapter } from '@/lib/email/adapter'
+import { sendInvitation } from '@/lib/email/service'
 import type { MemberRole } from '@/types/database'
 import { recordOrgAudit, requestOrigin } from '@/lib/dal/org-audit'
 import { z } from 'zod'
@@ -109,15 +109,11 @@ export async function POST(request: NextRequest) {
     let emailError: string | null = null
     // The link goes to the owner/admin who created the invitation (authorised above) so they can share it themselves,
     // e.g. on WhatsApp, as the invitation screen offers. It is single-use and expires.
-    const inviteUrl = result.plaintextToken ? `${origin}/invite/${result.plaintextToken}` : null
+    const inviteUrl = result.plaintextToken && result.invitation?.id ? `${origin}/invite/${result.plaintextToken}` : null
     if (inviteUrl) {
-      const mailer = getEmailAdapter()
-      const sent = await mailer.sendInvitationEmail({
-        to: email,
-        orgName: orgData?.name || 'Workspace',
-        role: role,
-        inviteUrl,
-        inviterName: auth.profile.full_name,
+      const sent = await sendInvitation(service, {
+        orgId: targetOrgId, invitationId: result.invitation?.id ?? '', to: email,
+        orgName: orgData?.name || 'Workspace', role, inviteUrl, inviterName: auth.profile.full_name,
       })
       emailDispatched = sent.success
       emailError = sent.success ? null : sent.error ?? 'The invitation e-mail could not be sent.'

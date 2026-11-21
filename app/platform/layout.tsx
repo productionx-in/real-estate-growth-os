@@ -46,6 +46,7 @@ export default async function PlatformLayout({ children }: { children: React.Rea
     {
       label: 'Administration',
       items: [
+        ...(can(role, 'email') ? [{ href: '/platform/email', label: 'E-mail', icon: 'email' as const, badge: counts.emailAttention, badgeTone: 'alert' as const }] : []),
         ...(can(role, 'people') ? [{ href: '/platform/people', label: 'People', icon: 'people' as const }] : []),
         ...(can(role, 'staff') ? [{ href: '/platform/staff', label: 'Staff', icon: 'staff' as const }] : []),
         ...(can(role, 'staff') ? [{ href: '/platform/assistant', label: 'Rio insights', icon: 'assistant' as const }] : []),

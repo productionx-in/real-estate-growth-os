@@ -33,7 +33,7 @@ await test('production without an e-mail key fails clearly; development keeps th
 
 await test('every invitation path checks whether the e-mail was really sent', async () => {
   for (const f of ['app/api/admin/organisations/provision/route.ts', 'app/api/admin/invitations/retry/route.ts']) {
-    assert.match(read(f), /const sent = await mailer\.sendInvitationEmail[\s\S]*?if \(!sent\.success\) throw/, f)
+    assert.match(read(f), /const sent = await sendInvitation\([\s\S]*?if \(!sent\.success\) throw/, f) // via the e-mail outbox (lib/email/service.ts)
   }
   const team = read('app/api/team/invite/route.ts')
   assert.match(team, /emailDispatched = sent\.success/)

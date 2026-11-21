@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import crypto from 'node:crypto'
 import { authenticatePlatformAdmin } from '@/lib/auth/platform'
 import { createServiceClient } from '@/lib/supabase/server'
-import { getEmailAdapter } from '@/lib/email/adapter'
+import { sendInvitation } from '@/lib/email/service'
 import { z } from 'zod'
 
 const RetryInvitationSchema = z.object({
@@ -77,13 +77,10 @@ export async function POST(request: NextRequest) {
       // Invitation links use the configured app URL, never the Host header of the request (lib/site/urls.ts).
       const origin = appUrl(request.nextUrl.origin) ?? request.nextUrl.origin
       const inviteUrl = `${origin}/invite/${rawToken}`
-      const mailer = getEmailAdapter()
-
-      const sent = await mailer.sendInvitationEmail({
-        to: email,
-        orgName,
-        role,
-        inviteUrl,
+      const { data: invRow } = await service.from('org_invitations').select('org_id').eq('id', invitationId).maybeSingle()
+      if (!invRow?.org_id) throw new Error('Invitation not found.')
+      const sent = await sendInvitation(service, {
+        orgId: invRow.org_id, invitationId, to: email, orgName, role, inviteUrl,
         inviterName: auth.profile?.full_name || 'REGrow Super Admin',
       })
       if (!sent.success) throw new Error(sent.error || 'The invitation e-mail could not be sent.')

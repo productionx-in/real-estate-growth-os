@@ -7,7 +7,7 @@ import crypto from 'node:crypto'
 import { z } from 'zod'
 import { authenticatePlatformAdmin, logPlatformAction } from '@/lib/auth/platform'
 import { createServiceClient } from '@/lib/supabase/server'
-import { getEmailAdapter } from '@/lib/email/adapter'
+import { sendInvitation } from '@/lib/email/service'
 import { appUrl } from '@/lib/site/urls'
 
 const Body = z.object({ invitationId: z.string().uuid() })
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   let emailed = false
   let emailError: string | null = null
   try {
-    const sent = await getEmailAdapter().sendInvitationEmail({ to: inv.email, orgName: org?.name ?? 'REGrow', role: ROLE_LABEL[inv.role] ?? inv.role, inviteUrl: url, inviterName: 'REGrow' })
+    const sent = await sendInvitation(db, { orgId, invitationId: inv.id, to: inv.email, orgName: org?.name ?? 'REGrow', role: ROLE_LABEL[inv.role] ?? inv.role, inviteUrl: url, inviterName: 'REGrow' })
     emailed = sent.success
     if (!sent.success) emailError = sent.error ?? 'e-mail not sent'
   } catch (e) { emailError = e instanceof Error ? e.message : 'e-mail not sent' }

@@ -7,9 +7,8 @@ import crypto from 'node:crypto'
 import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/server'
 import { checkDistributedRateLimit } from '@/lib/integrations/webhooks/rate-limiter'
-import { getEmailAdapter } from '@/lib/email/adapter'
-import { demoAlertEmail, demoConfirmationEmail, type DemoRequestDetails } from '@/lib/email/demo-request'
-import { appUrl, siteUrl } from '@/lib/site/urls'
+import { deliverOne, queueEmail } from '@/lib/email/service'
+import type { DemoRequestDetails } from '@/lib/email/demo-request'
 
 const Body = z.object({
   name: z.string().trim().min(2, 'Enter your name').max(120),
@@ -43,6 +42,7 @@ export async function POST(request: NextRequest) {
   const { data: recent } = await db.from('internal_prospects').select('id').eq('contact_phone', b.phone).gte('created_at', since).limit(1)
   if (recent?.length) return NextResponse.json({ success: true })
 
+  const ref = `website-form:${crypto.randomUUID()}`
   const { error } = await db.from('internal_prospects').insert({
     company_name: (b.companyName && b.companyName.length >= 2 ? b.companyName : b.name).slice(0, 200),
     org_type: b.companyType,
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     contact_email: b.email || null,
     contact_phone: b.phone,
     notes: b.notes ?? null,
-    source_ref: `website-form:${crypto.randomUUID()}`,
+    source_ref: ref,
   })
   if (error) {
     console.error('website demo request failed:', error.message)
@@ -70,20 +70,21 @@ export async function POST(request: NextRequest) {
     teamSize: b.teamSize ?? null, interest: b.interest ?? null,
     leadVolume: given(field('Leads per month')), currentTool: given(field('Current tool')), message: given(field('Message')),
   }
+  // Queued now, in the request (right after the request is saved), so a crash later cannot lose them; delivered
+  // after the reply. The sender is read from configuration at delivery (lib/email/config.ts).
+  const service = createServiceClient()
+  const queued: string[] = []
+  if (details.email) {
+    const id = await queueEmail(service, { orgId: null, category: 'sales', template: 'demo.confirmation', to: details.email, payload: { details }, idempotencyKey: `${ref}:confirmation` })
+    if (id) queued.push(id)
+  }
+  const team = (process.env.REGROW_SALES_NOTIFY_EMAIL ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+  for (const addr of team) {
+    const id = await queueEmail(service, { orgId: null, category: 'sales', template: 'demo.alert', to: addr, payload: { details }, idempotencyKey: `${ref}:alert:${addr.toLowerCase()}` })
+    if (id) queued.push(id)
+  }
   after(async () => {
-    const mailer = getEmailAdapter()
-    const site = siteUrl(request.nextUrl.origin) ?? request.nextUrl.origin
-    if (details.email) {
-      const m = demoConfirmationEmail(details, { site })
-      const r = await mailer.sendEmail({ to: details.email, subject: m.subject, html: m.html, text: m.text })
-      if (!r.success) console.warn('demo confirmation e-mail not sent:', r.error)
-    }
-    const team = (process.env.REGROW_SALES_NOTIFY_EMAIL ?? '').split(',').map((s) => s.trim()).filter(Boolean)
-    if (team.length) {
-      const a = demoAlertEmail(details, { console: `${appUrl(request.nextUrl.origin) ?? request.nextUrl.origin}/platform/sales?stage=new` })
-      const r = await mailer.sendEmail({ to: team, subject: a.subject, html: a.html, text: a.text, ...(details.email ? { replyTo: details.email } : {}) })
-      if (!r.success) console.warn('demo alert e-mail not sent:', r.error)
-    }
+    for (const id of queued) await deliverOne(service, id)
   })
   return NextResponse.json({ success: true })
 }

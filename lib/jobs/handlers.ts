@@ -6,6 +6,7 @@ import { getChannelAdapters, type NotificationRecord } from '@/lib/notifications
 import { siteVisitNotify } from '@/lib/jobs/site-visit-notify'
 import { customerLifecycleEmails } from '@/lib/jobs/customer-emails'
 import { dailyReports } from '@/lib/jobs/daily-reports'
+import { deliverDue } from '@/lib/email/service'
 import { paymentsHealthCheck, paymentsMandateCycle, paymentsPollPending, paymentsReconcile } from '@/lib/jobs/payments'
 
 export interface JobRow {
@@ -63,6 +64,8 @@ export const JOB_HANDLERS: Record<string, JobHandler> = {
   'site_visit.notify': siteVisitNotify,
   'email.customer_lifecycle': customerLifecycleEmails,
   'email.daily_reports': (job, db) => dailyReports(job, db),
+  // The outbox: every application e-mail is delivered (and retried) here (lib/email/service.ts, migration 20260070).
+  'email.deliver': async (_job, db) => { await deliverDue(db) },
   'payments.poll_pending': paymentsPollPending,
   'payments.health_check': paymentsHealthCheck,
   'payments.reconcile': paymentsReconcile,

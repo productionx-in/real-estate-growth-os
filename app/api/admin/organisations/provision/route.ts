@@ -6,7 +6,7 @@ import crypto from 'node:crypto'
 import { authenticatePlatformAdmin } from '@/lib/auth/platform'
 import { createServiceClient } from '@/lib/supabase/server'
 import { slugify, isReservedSlug } from '@/lib/utils/slugify'
-import { getEmailAdapter } from '@/lib/email/adapter'
+import { sendInvitation } from '@/lib/email/service'
 import { z } from 'zod'
 
 const ProvisionOrgSchema = z.object({
@@ -140,14 +140,9 @@ export async function POST(request: NextRequest) {
       const origin = appUrl(request.nextUrl.origin) ?? request.nextUrl.origin
       const inviteUrl = `${origin}/invite/${rawToken}`
       shareUrl = inviteUrl
-      const mailer = getEmailAdapter()
-
-      const sent = await mailer.sendInvitationEmail({
-        to: normalizedEmail,
-        orgName: name.trim(),
-        role: 'Owner & Primary Administrator',
-        inviteUrl,
-        inviterName: auth.profile?.full_name || 'REGrow Super Admin',
+      const sent = await sendInvitation(service, {
+        orgId, invitationId, to: normalizedEmail, orgName: name.trim(), role: 'Owner & Primary Administrator',
+        inviteUrl, inviterName: auth.profile?.full_name || 'REGrow Super Admin',
       })
       if (!sent.success) throw new Error(sent.error || 'The invitation e-mail could not be sent.')
       emailDispatched = true

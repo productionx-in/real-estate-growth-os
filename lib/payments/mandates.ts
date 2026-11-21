@@ -7,14 +7,12 @@
 // the amount and date at least the configured notice period (≥ 24 h) before the debit; only then is the charge sent
 // to the provider. Success settles the invoice like any payment (webhook); failure is retried up to 3 times; a
 // cancelled or expired mandate cancels pending charges and the invoice stays payable manually.
-import { getEmailAdapter, type EmailAdapter } from '@/lib/email/adapter'
-import { renderEmail } from '@/lib/email/layout'
+import type { EmailAdapter } from '@/lib/email/adapter'
 import type { AdapterResolver, Db } from './registry'
 import type { ProviderCode } from './types'
 import type { Result } from './service'
 
 const fail = (error: string, status: number): Result<never> => ({ success: false, error, status })
-const rupees = (paise: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(paise / 100)
 
 export async function recurringEnabled(db: Db): Promise<boolean> {
   const { data } = await db.from('billing_settings').select('recurring_payments_enabled').single()
@@ -58,7 +56,7 @@ export async function runMandateCycle(db: Db, resolver: AdapterResolver, opts: {
   const now = opts.now ?? new Date()
   const summary = { skipped: false, invoices: 0, scheduled: 0, notified: 0, submitted: 0, errors: [] as string[] }
   if (!(await recurringEnabled(db))) return { ...summary, skipped: true }
-  const email = opts.email ?? getEmailAdapter()
+  const email = opts.email ?? null // tests pass a mailer; normally the notice goes through the outbox
   const { data: mandates } = await db.from('payment_mandates').select('id, org_id, subscription_id, provider, environment, provider_mandate_id, max_amount_cents').eq('status', 'active')
   for (const m of mandates ?? []) {
     const { data: sub } = await db.from('org_subscriptions').select('current_period_end, status').eq('id', m.subscription_id).single()
@@ -81,7 +79,7 @@ export async function runMandateCycle(db: Db, resolver: AdapterResolver, opts: {
     if (c.status === 'scheduled') {
       const { data: after, error } = await db.rpc('payment_mandate_charge_notified', { p_charge: c.id })
       if (error) { summary.errors.push(`notify ${c.id}: ${error.message}`); continue }
-      await sendDebitNotice(db, email, m.org_id, Number(c.amount_cents), new Date(after as string))
+      await sendDebitNotice(db, email, m.org_id, Number(c.amount_cents), new Date(after as string), c.id)
       await db.from('org_audit_logs').insert({ org_id: m.org_id, actor_kind: 'system', actor_label: 'REGrow billing', action: 'billing.mandate_debit_notice', target_type: 'payment_mandate_charges', target_id: c.id, metadata: { amount_cents: c.amount_cents, debit_after: after } })
       summary.notified++
       continue
@@ -99,7 +97,7 @@ export async function runMandateCycle(db: Db, resolver: AdapterResolver, opts: {
   return summary
 }
 
-async function sendDebitNotice(db: Db, email: EmailAdapter, orgId: string, amountPaise: number, debitAfter: Date) {
+async function sendDebitNotice(db: Db, email: EmailAdapter | null, orgId: string, amountPaise: number, debitAfter: Date, chargeId: string) {
   const { data: org } = await db.from('organisations').select('name').eq('id', orgId).single()
   const { data: owners } = await db.from('org_members').select('profile_id').eq('org_id', orgId).eq('role', 'owner').eq('status', 'active')
   const ids = (owners ?? []).map((o: { profile_id: string }) => o.profile_id)
@@ -111,14 +109,17 @@ async function sendDebitNotice(db: Db, email: EmailAdapter, orgId: string, amoun
     if (data?.user?.email) to.push(data.user.email)
   }
   if (!to.length) return
-  const when = new Intl.DateTimeFormat('en-IN', { dateStyle: 'long', timeStyle: 'short', timeZone: 'Asia/Kolkata' }).format(debitAfter)
-  const { html, text } = renderEmail({
-    preheader: `${rupees(amountPaise)} will be debited for your REGrow renewal`,
-    heading: 'Upcoming automatic payment',
-    paragraphs: [
-      `Your REGrow subscription for ${org?.name ?? 'your workspace'} renews soon. ${rupees(amountPaise)} (including GST) will be debited through your UPI AutoPay mandate on or after ${when}.`,
-      'You can cancel the mandate at any time from Plan & billing in REGrow, or from your UPI app. If you cancel, you can still pay the renewal invoice manually.',
-    ],
-  })
-  await email.sendEmail({ to, subject: `Upcoming REGrow payment of ${rupees(amountPaise)}`, html, text })
+  const payload = { orgName: org?.name ?? null, amountPaise, debitAfter: debitAfter.toISOString() }
+  if (email) {
+    const { renderTemplate } = await import('@/lib/email/templates')
+    const m = await renderTemplate('payments.debit_notice', payload, { db, orgId })
+    if (!('skip' in m)) await email.sendEmail({ to, subject: m.subject, html: m.html, text: m.text })
+    return
+  }
+  // The pre-debit notice is a legal requirement: queued in the outbox (retried, never dropped), once per charge.
+  const { queueEmail, deliverOne } = await import('@/lib/email/service')
+  for (const addr of to) {
+    const id = await queueEmail(db, { orgId, category: 'account', template: 'payments.debit_notice', to: addr, payload, idempotencyKey: `debit-notice:${chargeId}:${addr.toLowerCase()}` })
+    if (id) await deliverOne(db, id)
+  }
 }

@@ -1,9 +1,7 @@
 // lib/payments/monitoring.ts — payment alerts. Runs with the health-check job (every 5 minutes): each condition below
 // opens an alert (payment_alerts), which is emailed to the Platform Owner and finance staff when it opens and daily while
 // it stays open, and resolves itself when the condition clears. Shown in Platform Admin → Payments.
-import { getEmailAdapter, type EmailAdapter } from '@/lib/email/adapter'
-import { renderEmail } from '@/lib/email/layout'
-import { appUrl } from '@/lib/site/urls'
+import type { EmailAdapter } from '@/lib/email/adapter'
 import type { Db } from './registry'
 
 export type AlertKind = 'gateway_unhealthy' | 'webhook_failures' | 'invalid_signatures' | 'stuck_checkouts' | 'unapplied_money'
@@ -63,7 +61,7 @@ export function gstMissing(s: { supplier_gstin?: string | null; supplier_state_c
 }
 
 /** Raise or resolve every alert; email newly opened (and daily open) alerts to the Platform Owner and finance staff. */
-export async function runAlerts(db: Db, email: EmailAdapter = getEmailAdapter()): Promise<{ open: number; notified: number }> {
+export async function runAlerts(db: Db, email: EmailAdapter | null = null): Promise<{ open: number; notified: number }> {
   const notify: Condition[] = []
   let open = 0
   for (const c of await evaluateConditions(db)) {
@@ -79,7 +77,7 @@ export async function runAlerts(db: Db, email: EmailAdapter = getEmailAdapter())
   return { open, notified: notify.length }
 }
 
-async function emailStaff(db: Db, email: EmailAdapter, alerts: Condition[]) {
+async function emailStaff(db: Db, email: EmailAdapter | null, alerts: Condition[]) {
   const { data: staff } = await db.from('platform_users').select('user_id').in('role', ['super_admin', 'finance_admin']).eq('is_active', true)
   const to: string[] = []
   for (const s of staff ?? []) {
@@ -87,13 +85,19 @@ async function emailStaff(db: Db, email: EmailAdapter, alerts: Condition[]) {
     if (data?.user?.email) to.push(data.user.email)
   }
   if (!to.length) { console.error('[payments] alerts open but no Platform Owner or finance staff to notify:', alerts.map((a) => a.kind).join(', ')); return }
-  const app = appUrl()
-  const { html, text } = renderEmail({
-    preheader: `${alerts.length} payment alert(s) need attention`,
-    heading: 'Payment alerts',
-    paragraphs: alerts.map((a) => `**${a.kind.replace(/_/g, ' ')}${a.scope ? ` (${a.scope})` : ''}:** ${a.detail}`),
-    ...(app ? { cta: { label: 'Open Platform Admin → Payments', url: `${app}/platform/payments` } } : {}),
-    footnote: 'You receive this as Platform Owner or finance staff. Each alert repeats daily while it stays open.',
-  })
-  await email.sendEmail({ to, subject: `REGrow payments: ${alerts.length} alert(s)`, html, text })
+  const payload = { alerts: alerts.map((a) => ({ kind: a.kind, scope: a.scope ?? null, detail: a.detail })) }
+  if (email) { // tests pass a mailer
+    const { renderTemplate } = await import('@/lib/email/templates')
+    const m = await renderTemplate('payments.alerts', payload, { db, orgId: null })
+    if (!('skip' in m)) await email.sendEmail({ to, subject: m.subject, html: m.html, text: m.text })
+    return
+  }
+  const { queueEmail, deliverOne } = await import('@/lib/email/service')
+  const day = new Date().toISOString().slice(0, 10)
+  const kinds = alerts.map((a) => `${a.kind}${a.scope ? `@${a.scope}` : ''}`).sort().join(',')
+  const digest = (await import('node:crypto')).createHash('sha256').update(kinds).digest('hex').slice(0, 16)
+  for (const addr of to) {
+    const id = await queueEmail(db, { orgId: null, category: 'staff', template: 'payments.alerts', to: addr, payload, idempotencyKey: `payment-alerts:${day}:${digest}:${addr.toLowerCase()}` })
+    if (id) await deliverOne(db, id)
+  }
 }
