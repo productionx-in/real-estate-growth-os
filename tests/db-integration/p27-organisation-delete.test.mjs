@@ -27,7 +27,7 @@ async function main() {
     return { id: data.user.id, profile: (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [data.user.id])).id }
   }
   const mkOrg = async (name) => (await one(`INSERT INTO public.organisations (name, slug, type) VALUES ($1,$2,'developer') RETURNING id`, [name, `${name.toLowerCase().replace(/\s+/g, '-')}-${RUN}`])).id
-  const del = (org, name, reason, actor) => db.rpc('platform_delete_organisation', { p_org: org, p_confirm_name: name, p_reason: reason, p_actor_user: actor })
+  const del = (org, name, reason, actor, purge) => db.rpc('platform_delete_organisation', { p_org: org, p_confirm_name: name, p_reason: reason, p_actor_user: actor, ...(purge === undefined ? {} : { p_purge_data: purge }) })
 
   console.log('P27 — DELETE A CUSTOMER WORKSPACE')
   const owner = await mkUser('owner'); await sql.query(`INSERT INTO public.platform_users (user_id, role) VALUES ($1, 'super_admin')`, [owner.id])
@@ -49,8 +49,35 @@ async function main() {
     const busy = await mkOrg(`Busy Co ${RUN}`)
     await sql.query(`INSERT INTO public.projects (org_id, name, slug) VALUES ($1, 'Skyline', $2)`, [busy, `skyline-${RUN}`])
     const { data, error } = await del(busy, `Busy Co ${RUN}`, 'test', owner.id)
-    assert.ifError(error); assert.equal(data.deleted, false); assert.equal(data.blockers.projects, 1)
+    assert.ifError(error); assert.equal(data.deleted, false); assert.equal(data.blockers.projects, 1); assert.equal(data.purgeable, true)
     assert.equal(await count('SELECT count(*) n FROM public.organisations WHERE id=$1', [busy]), 1, 'nothing deleted')
+  })
+
+  await test('a test workspace is deleted with its data only when the Owner asks for it (20260066)', async () => {
+    const name = `Test Co ${RUN}`
+    const org = await mkOrg(name)
+    await sql.query(`INSERT INTO public.org_members (org_id, profile_id, role, status) VALUES ($1,$2,'owner','active')`, [org, member.profile])
+    const proj = (await one(`INSERT INTO public.projects (org_id, name, slug) VALUES ($1, 'Test Tower', $2) RETURNING id`, [org, `tt-${RUN}`])).id
+    await sql.query(`INSERT INTO public.inventory_items (org_id, project_id, unit_number, category, area_value, bhk_config, total_price, status) VALUES
+      ($1,$2,'T-1','apartments',1000,'2BHK',9000000,'available'),($1,$2,'T-2','apartments',1200,'3BHK',11000000,'available')`, [org, proj])
+    await sql.query(`INSERT INTO public.leads (org_id, name, phone, source, status, assigned_to, project_id) VALUES ($1,'Asha','9000000101','website','new',$2,$3),($1,'Ravi','9000000102','website','qualified',$2,$3)`, [org, member.profile, proj])
+    const team = (await one(`INSERT INTO public.teams (org_id, name) VALUES ($1,'Desk') RETURNING id`, [org])).id
+    await sql.query(`INSERT INTO public.routing_rules (org_id, name, team_id, priority, sticky_days) VALUES ($1,'All',$2,1,0)`, [org, team])
+
+    const refused = await del(org, name, 'test workspace', owner.id, false)
+    assert.ifError(refused.error); assert.equal(refused.data.deleted, false); assert.equal(refused.data.purgeable, true)
+    assert.equal(refused.data.blockers.leads, 2); assert.equal(refused.data.blockers.inventory_items, 2)
+    assert.equal(await count('SELECT count(*) n FROM public.leads WHERE org_id=$1', [org]), 2, 'nothing removed without the choice')
+
+    const { data, error } = await del(org, name, 'test workspace', owner.id, true)
+    assert.ifError(error); assert.equal(data.deleted, true); assert.equal(data.data_purged.leads, 2)
+    for (const t of ['organisations', 'leads', 'projects', 'inventory_items', 'org_members', 'routing_rules', 'teams']) {
+      const col = t === 'organisations' ? 'id' : 'org_id'
+      assert.equal(await count(`SELECT count(*) n FROM public.${t} WHERE ${col}=$1`, [org]), 0, `${t} removed`)
+    }
+    assert.equal(await count('SELECT count(*) n FROM auth.users WHERE id=$1', [member.id]), 1, 'sign-in account kept')
+    const a = await one(`SELECT metadata FROM public.platform_audit_logs WHERE action='organisation.deleted' AND target_entity_id=$1`, [org])
+    assert.equal(a.metadata.data_purged.leads, 2); assert.equal(a.metadata.data_purged.projects, 1)
   })
 
   await test('an empty workspace is deleted with its members and subscription; accounts are kept; audited', async () => {
@@ -65,7 +92,7 @@ async function main() {
   })
 
   await test('clients cannot call it', async () => {
-    const r = await one(`SELECT has_function_privilege('anon', 'public.platform_delete_organisation(uuid, text, text, uuid)', 'EXECUTE') a, has_function_privilege('authenticated', 'public.platform_delete_organisation(uuid, text, text, uuid)', 'EXECUTE') b`)
+    const r = await one(`SELECT has_function_privilege('anon', 'public.platform_delete_organisation(uuid, text, text, uuid, boolean)', 'EXECUTE') a, has_function_privilege('authenticated', 'public.platform_delete_organisation(uuid, text, text, uuid, boolean)', 'EXECUTE') b`)
     assert.equal(r.a, false); assert.equal(r.b, false)
   })
 
