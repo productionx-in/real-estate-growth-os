@@ -5,7 +5,6 @@
 // Channel today: email (when the lead has an address). WhatsApp follows once the WhatsApp Business connection
 // and an approved template are in place.
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { getEmailAdapter } from '@/lib/email/adapter'
 import { renderEmail } from '@/lib/email/layout'
 import type { JobRow } from '@/lib/jobs/handlers'
 
@@ -43,31 +42,60 @@ export function visitEmail(o: {
   }
 }
 
+type VisitRow = { id: string; org_id: string; status: string; scheduled_at: string; meeting_link: string | null; lead: unknown; project: unknown; agent: unknown; org: unknown }
+const one = <T,>(x: T | T[] | null): T | null => (Array.isArray(x) ? x[0] ?? null : x)
+
+/** Loads the visit FOR THIS ORGANISATION only; null when it no longer exists there. */
+async function loadVisit(db: Db, visitId: string, orgId: string | null): Promise<VisitRow | null> {
+  let q = db.from('site_visits')
+    .select('id, org_id, status, scheduled_at, meeting_link, lead:leads(name, email), project:projects(name, location, city), agent:profiles!site_visits_assigned_to_fkey(full_name, phone), org:organisations(name)')
+    .eq('id', visitId)
+  if (orgId) q = q.eq('org_id', orgId)
+  const { data, error } = await q.maybeSingle()
+  if (error) throw new Error(`site visit load failed: ${error.message}`)
+  return (data as VisitRow | null) ?? null
+}
+
+/** Why this message should not go out any more, or null when it still should. */
+function staleReason(v: VisitRow | null, payload: Record<string, unknown>): string | null {
+  if (!v) return 'visit not found in this organisation'
+  if (!LIVE.includes(v.status)) return `visit is ${v.status}`
+  if (typeof payload.scheduled_at === 'string' && new Date(payload.scheduled_at).getTime() !== new Date(v.scheduled_at).getTime()) return 'visit was moved'
+  return null
+}
+
+/** The 'site_visit' outbox template: re-checked at delivery, so a moved or cancelled visit is never announced. */
+export async function renderSiteVisit(db: Db, orgId: string | null, payload: Record<string, unknown>) {
+  if (!orgId) return { skip: 'site visit e-mail without an organisation' }
+  const v = await loadVisit(db, String(payload.visit_id ?? ''), orgId)
+  const stale = staleReason(v, payload)
+  if (stale) return { skip: stale }
+  const lead = one(v!.lead as { name: string; email: string | null } | null)
+  const project = one(v!.project as { name: string; location: string | null; city: string | null } | null)
+  const agent = one(v!.agent as { full_name: string; phone: string | null } | null)
+  const org = one(v!.org as { name: string } | null)
+  const kind = payload.kind === 'reminder' ? 'reminder' : payload.kind === 'rescheduled' ? 'rescheduled' : 'confirmation'
+  return visitEmail({
+    kind, minutesBefore: typeof payload.minutes_before === 'number' ? payload.minutes_before : undefined,
+    buyer: lead?.name ?? '', orgName: org?.name ?? 'Your developer', project: project?.name ?? 'the project',
+    location: [project?.location, project?.city].filter(Boolean).join(', ') || null,
+    when: new Date(v!.scheduled_at), agentName: agent?.full_name ?? null, agentPhone: agent?.phone ?? null, meetingLink: v!.meeting_link,
+  })
+}
+
+/** The site_visit.notify job (queued by the database with the visit, migration 20260049): puts the buyer's e-mail in
+ *  the outbox and makes the first attempt. Retries, holds and logging are the outbox's job from here. */
 export async function siteVisitNotify(job: JobRow, db: Db): Promise<void> {
   const visitId = job.payload.visit_id
   if (typeof visitId !== 'string') throw new Error('site_visit.notify: missing visit_id')
-  const { data: v, error } = await db.from('site_visits')
-    .select('id, org_id, status, scheduled_at, meeting_link, lead:leads(name, email), project:projects(name, location, city), agent:profiles!site_visits_assigned_to_fkey(full_name, phone), org:organisations(name)')
-    .eq('id', visitId).maybeSingle()
-  if (error) throw new Error(`site_visit.notify: load failed: ${error.message}`)
-  if (!v || !LIVE.includes(v.status)) return
-  // Stale job: the visit was moved after this was queued.
-  if (typeof job.payload.scheduled_at === 'string' && new Date(job.payload.scheduled_at).getTime() !== new Date(v.scheduled_at).getTime()) return
-
-  const one = <T,>(x: T | T[] | null): T | null => (Array.isArray(x) ? x[0] ?? null : x)
-  const lead = one(v.lead as unknown as { name: string; email: string | null } | null)
+  const v = await loadVisit(db, visitId, job.org_id)
+  if (staleReason(v, job.payload)) return
+  const lead = one(v!.lead as { name: string; email: string | null } | null)
   if (!lead?.email) return // nothing to send to; WhatsApp comes with the WhatsApp connection
-  const project = one(v.project as unknown as { name: string; location: string | null; city: string | null } | null)
-  const agent = one(v.agent as unknown as { full_name: string; phone: string | null } | null)
-  const org = one(v.org as unknown as { name: string } | null)
-
-  const kind = job.payload.kind === 'reminder' ? 'reminder' : job.payload.kind === 'rescheduled' ? 'rescheduled' : 'confirmation'
-  const email = visitEmail({
-    kind, minutesBefore: typeof job.payload.minutes_before === 'number' ? job.payload.minutes_before : undefined,
-    buyer: lead.name, orgName: org?.name ?? 'Your developer', project: project?.name ?? 'the project',
-    location: [project?.location, project?.city].filter(Boolean).join(', ') || null,
-    when: new Date(v.scheduled_at), agentName: agent?.full_name ?? null, agentPhone: agent?.phone ?? null, meetingLink: v.meeting_link,
+  const { sendEmailNow } = await import('@/lib/email/service')
+  const key = ['site_visit', visitId, String(job.payload.kind ?? 'confirmation'), String(job.payload.minutes_before ?? 0), String(job.payload.scheduled_at ?? v!.scheduled_at)].join(':')
+  await sendEmailNow(db, {
+    orgId: v!.org_id, category: 'buyer', template: 'site_visit', to: lead.email, idempotencyKey: key,
+    payload: { visit_id: visitId, kind: job.payload.kind ?? 'confirmation', minutes_before: job.payload.minutes_before ?? null, scheduled_at: job.payload.scheduled_at ?? v!.scheduled_at },
   })
-  const sent = await getEmailAdapter().sendEmail({ to: lead.email, ...email })
-  if (!sent.success) throw new Error(`site_visit.notify: email failed: ${sent.error}`)
 }

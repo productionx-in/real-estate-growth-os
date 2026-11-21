@@ -18,6 +18,7 @@ export const CAN = {
   organisations: ['super_admin', 'platform_admin', 'finance_admin', 'sales_manager', 'sales_rep', 'support_agent', 'auditor'],
   staff: ['super_admin'],
   people: ['super_admin', 'platform_admin'],
+  email: ['super_admin', 'platform_admin'],
   salesRead: ['super_admin', 'sales_manager', 'sales_rep', 'auditor'],
   salesWrite: ['super_admin', 'sales_manager', 'sales_rep'],
   salesAll: ['super_admin', 'sales_manager', 'auditor'],
@@ -89,12 +90,20 @@ export async function consoleNavCounts(db: Db, actor: Actor) {
     can(actor.role, 'supportRead') ? db.from('support_cases').select('id', { count: 'exact', head: true }).in('status', ['open', 'in_progress', 'waiting_on_customer']) : Promise.resolve({ count: 0 }),
     can(actor.role, 'salesRead') ? scopedProspects(db, actor).select('stage, next_follow_up_at') : Promise.resolve({ data: [] }),
   ])
+  const [emailHeld, emailFailed] = can(actor.role, 'email')
+    ? await Promise.all([
+        db.from('email_outbox').select('id', { count: 'exact', head: true }).eq('status', 'held'),
+        db.from('email_outbox').select('id', { count: 'exact', head: true }).eq('status', 'failed').gte('updated_at', new Date(Date.now() - 7 * 86_400_000).toISOString()),
+      ])
+    : [{ count: 0 }, { count: 0 }]
   const p = ((due as { data?: unknown[] }).data ?? []) as { stage: string; next_follow_up_at: string | null }[]
   return {
     support: (cases as { count?: number | null }).count ?? 0,
     followUps: p.filter((x) => x.next_follow_up_at && x.next_follow_up_at < nowIso && !['won', 'lost'].includes(x.stage)).length,
     // New demo / contact requests nobody has picked up yet (stage "new").
     newRequests: p.filter((x) => x.stage === 'new').length,
+    // Application e-mails held (configuration invalid) or failed: they need someone to look.
+    emailAttention: can(actor.role, 'email') ? (emailHeld.count ?? 0) + (emailFailed.count ?? 0) : 0,
   }
 }
 

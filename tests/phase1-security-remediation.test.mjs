@@ -67,7 +67,9 @@ function testProvisionRouteContracts() {
 
   assert.equal(content.includes("'provision_organisation_atomic'"), true, 'Must invoke provision_organisation_atomic RPC')
   assert.equal(content.includes("activationUrl: data.activation?.activationUrl"), false, 'Must not return activation URL in API response')
-  assert.equal(content.includes("sendInvitationEmail"), true, 'Must dispatch invitation email via adapter after commit')
+  // The invitation goes through the e-mail outbox (lib/email/service.ts sendInvitation), after the provisioning commit.
+  assert.equal(content.includes("sendInvitation("), true, 'Must dispatch invitation email after commit')
+  assert.ok(content.indexOf("sendInvitation(") > content.indexOf("'provision_organisation_atomic'"), 'Invitation e-mail only after the provisioning commit')
   assert.equal(content.includes("authenticatePlatformAdmin(['super_admin'], true)"), true, 'Must require Super Admin with MFA AAL2')
 
   console.log('✓ Suite 1 Test 2 Passed: Organisation provisioning route enforces single-operation atomicity and token non-disclosure')
