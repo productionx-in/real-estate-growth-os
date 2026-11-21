@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { PASSWORD_MIN_LENGTH, passwordProblem } from '@/lib/auth/password-policy'
+import { PASSWORD_HINT, PASSWORD_MIN_LENGTH, passwordProblem } from '@/lib/auth/password-policy'
 
 export function ResetPasswordForm() {
   const router = useRouter()
@@ -20,13 +20,25 @@ export function ResetPasswordForm() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState(false)
+  // Accounts with two-step verification (all REGrow staff) must enter their authenticator code before Supabase
+  // lets the password change: the recovery link alone is only the first step (AAL1).
+  const [mfaFactor, setMfaFactor] = useState<string | null>(null)
+  const [code, setCode] = useState('')
 
   useEffect(() => {
     let alive = true
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (!alive) return
       setEmail(data.user?.email ?? null)
-      setReady(data.user ? 'ok' : 'no-session')
+      if (data.user) {
+        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+        if (aal?.nextLevel === 'aal2' && aal.currentLevel !== 'aal2') {
+          const { data: f } = await supabase.auth.mfa.listFactors()
+          const totp = f?.totp?.find((x) => x.status === 'verified')
+          if (alive && totp) setMfaFactor(totp.id)
+        }
+      }
+      if (alive) setReady(data.user ? 'ok' : 'no-session')
     })
     return () => { alive = false }
   }, [supabase])
@@ -37,11 +49,16 @@ export function ResetPasswordForm() {
     const problem = passwordProblem(password, email)
     if (problem) { setError(problem); return }
     if (password !== confirm) { setError('The two passwords don’t match.'); return }
+    if (mfaFactor && !/^\d{6}$/.test(code.trim())) { setError('Enter the 6-digit code from your authenticator app.'); return }
     setBusy(true)
+    if (mfaFactor) {
+      const { error: mfaError } = await supabase.auth.mfa.challengeAndVerify({ factorId: mfaFactor, code: code.trim() })
+      if (mfaError) { setBusy(false); setError('That code didn’t work. Check your authenticator app and try the newest code.'); return }
+    }
     const { error: updateError } = await supabase.auth.updateUser({ password })
     if (updateError) {
       setBusy(false)
-      setError(/same/i.test(updateError.message) ? 'Choose a password you haven’t used for this account.' : /weak|password should|characters/i.test(updateError.message) ? updateError.message : 'Your reset link has expired. Request a new one from the sign-in page.')
+      setError(resetErrorMessage(updateError))
       return
     }
     // Anyone else signed in with the old password is signed out; this browser stays signed in.
@@ -83,7 +100,7 @@ export function ResetPasswordForm() {
             {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         </div>
-        <p id="password-help" className="text-xs text-[var(--foreground-muted)]">At least {PASSWORD_MIN_LENGTH} characters, with a letter and a number.</p>
+        <p id="password-help" className="text-xs text-[var(--foreground-muted)]">{PASSWORD_HINT}</p>
       </div>
       <div className="space-y-1">
         <label htmlFor="confirm-password" className="block text-sm font-medium">Confirm new password</label>
@@ -91,6 +108,15 @@ export function ResetPasswordForm() {
           value={confirm} onChange={(e) => setConfirm(e.target.value)}
           className="w-full px-3 py-2.5 text-base sm:text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light" />
       </div>
+      {mfaFactor && (
+        <div className="space-y-1">
+          <label htmlFor="mfa-code" className="block text-sm font-medium">Authenticator code</label>
+          <input id="mfa-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength={6} required
+            value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+            className="w-full px-3 py-2.5 text-base sm:text-sm tracking-[0.3em] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light" />
+          <p className="text-xs text-[var(--foreground-muted)]">Your account uses two-step verification: enter the 6-digit code from your authenticator app.</p>
+        </div>
+      )}
       {error && <p role="alert" className="p-3 rounded-md bg-[var(--danger-bg)] border border-danger/30 text-sm text-[var(--danger)]">{error}</p>}
       <button type="submit" disabled={busy}
         className="w-full py-2.5 px-4 text-sm font-semibold text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 flex items-center justify-center gap-2">
@@ -98,4 +124,17 @@ export function ResetPasswordForm() {
       </button>
     </form>
   )
+}
+
+/** What to tell the person when Supabase refuses the new password. Only a missing or expired session says
+ *  "expired"; everything else says what is actually wrong. */
+export function resetErrorMessage(err: { code?: string; message?: string }): string {
+  const code = err.code ?? ''
+  const msg = err.message ?? ''
+  if (code === 'same_password' || /same/i.test(msg)) return 'Choose a password you haven’t used for this account.'
+  if (code === 'weak_password' || /password should|weak|characters/i.test(msg)) return msg || 'Choose a stronger password.'
+  if (code === 'insufficient_aal' || /aal2|AAL2/.test(msg)) return 'Your account uses two-step verification. Reload this page and enter your authenticator code too.'
+  if (code === 'reauthentication_needed') return 'For security, request a new reset link and use it straight away.'
+  if (code === 'session_not_found' || code === 'session_expired' || /session|jwt|expired/i.test(msg)) return 'Your reset link has expired. Request a new one from the sign-in page.'
+  return msg ? `Couldn’t save the new password: ${msg}` : 'Couldn’t save the new password. Please try again.'
 }

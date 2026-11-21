@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ShieldCheck, UserCheck, ArrowRight, Loader2, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { passwordProblem, PASSWORD_MIN_LENGTH } from '@/lib/auth/password-policy'
+import { passwordProblem, PASSWORD_HINT, PASSWORD_MIN_LENGTH } from '@/lib/auth/password-policy'
 import type { ValidatedInvitation } from '@/lib/dal/invitations'
 import { ROLE_LABELS } from '@/lib/auth/permissions'
 import { PasswordInput } from '@/components/auth/PasswordInput'
@@ -269,7 +269,7 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
               value={password}
               disabled={loading}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={`At least ${PASSWORD_MIN_LENGTH} characters, with a letter and a number`}
+              placeholder={PASSWORD_HINT}
             />
           </div>
 
