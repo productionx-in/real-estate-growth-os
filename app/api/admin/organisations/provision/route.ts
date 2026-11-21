@@ -19,6 +19,7 @@ const ProvisionOrgSchema = z.object({
   adminName: z.string().optional(),
   billingCycle: z.enum(['monthly', 'annual']),
   onboardingRequestId: z.string().uuid().optional(),
+  prospectId: z.string().uuid().optional(),
   commercialOverrideCode: z.string().min(3).max(100).optional(),
 })
 
@@ -130,11 +131,15 @@ export async function POST(request: NextRequest) {
     // 6. AFTER DB COMMIT: Transactional email dispatch via provider-independent mailer
     let emailDispatched = false
     let emailError: string | null = null
+    // The one-time link also goes back to the MFA-verified Platform Owner who created it, so they can share it
+    // themselves (WhatsApp, or when e-mail isn't set up) — the same rule as team invitations (app/api/team/invite).
+    let shareUrl: string | null = null
 
     try {
       // Invitation links use the configured app URL, never the Host header of the request (lib/site/urls.ts).
       const origin = appUrl(request.nextUrl.origin) ?? request.nextUrl.origin
       const inviteUrl = `${origin}/invite/${rawToken}`
+      shareUrl = inviteUrl
       const mailer = getEmailAdapter()
 
       const sent = await mailer.sendInvitationEmail({
@@ -189,13 +194,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 7. Return HTTP 201 Created
-    // CRITICAL: NEVER return the raw invitation token or token_hash in API response
+    // 6b. Activating a website demo request: link it to the new workspace and move it to "Trial started".
+    if (parsed.data.prospectId && orgId) {
+      const sales = service as unknown as { from: (t: string) => any } // eslint-disable-line @typescript-eslint/no-explicit-any
+      const { data: prospect } = await sales.from('internal_prospects').select('id, linked_org_id').eq('id', parsed.data.prospectId).maybeSingle()
+      if (prospect && !prospect.linked_org_id) {
+        await sales.from('internal_prospects').update({ linked_org_id: orgId, stage: 'trial_started', updated_at: new Date().toISOString() }).eq('id', prospect.id)
+        await sales.from('internal_prospect_activities').insert({
+          prospect_id: prospect.id, kind: 'stage_change', actor: auth.user.id,
+          body: `Workspace created (/${orgSlug}) and ${normalizedEmail} invited as owner${emailDispatched ? ' by e-mail' : ' — link shared by hand'}.`,
+        })
+      }
+    }
+
+    // 7. Return HTTP 201 Created. The token hash is never returned; the one-time link goes only to the verified
+    // Platform Owner who created it (shareUrl above).
     return NextResponse.json(
       {
         success: true,
         emailDispatched,
         emailError,
+        inviteUrl: shareUrl,
         message: emailDispatched
           ? 'Customer organisation provisioned successfully. Activation email dispatched.'
           : 'Customer organisation provisioned successfully. Invitation email delivery failed; retry available.',

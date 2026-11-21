@@ -12,7 +12,7 @@ import { SupportRequestForm } from '@/components/platform/SupportRequestForm'
 import { GrantActions } from '@/components/platform/GrantActions'
 import { GrantStatusBadge } from '@/components/platform/GrantStatusBadge'
 import { ModuleToggles } from '@/components/platform/ModuleToggles'
-import { DeleteOrg, ExtendTrial, RenameOrg } from '@/components/platform/OrgManage'
+import { DeleteOrg, ExtendTrial, InviteLinkButton, RenameOrg } from '@/components/platform/OrgManage'
 import { getModules, MODULES } from '@/lib/auth/entitlements'
 import { listWorkspacePeople } from '@/lib/platform/people'
 import { PersonControls } from '@/components/platform/PeopleActions'
@@ -21,6 +21,9 @@ export const metadata: Metadata = { title: 'Organisation' }
 
 const when = (iso: string | null) =>
   iso ? new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata' }).format(new Date(iso)) : '—'
+
+/** Outside render: whether an ISO time has passed. */
+function isPast(iso: string) { return new Date(iso).getTime() < Date.now() }
 
 export default async function PlatformOrgPage({ params }: { params: Promise<{ orgId: string }> }) {
   const access = await getConsoleAccess()
@@ -44,6 +47,12 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
   const isSuper = access.role === 'super_admin'
   const canPeople = isSuper || access.role === 'platform_admin'
   const people = canPeople ? await listWorkspacePeople(orgId) : []
+  type PendingInvite = { id: string; email: string; role: string; delivery_status: string | null; expires_at: string; expired?: boolean }
+  const pendingInvites: PendingInvite[] = isSuper
+    ? (((await (service as unknown as { from: (t: string) => any }).from('org_invitations') // eslint-disable-line @typescript-eslint/no-explicit-any
+      .select('id, email, role, delivery_status, expires_at').eq('org_id', orgId).eq('status', 'pending').order('created_at', { ascending: false })).data ?? []) as PendingInvite[])
+      .map((i) => ({ ...i, expired: isPast(i.expires_at) }))
+    : []
   const mine = grants.filter((g) => g.requested_by === access.userId)
   const myLive = mine.find((g) => isGrantLive(g))
   const myPending = mine.find((g) => g.status === 'pending')
@@ -186,6 +195,29 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
           )}
         </CardContent>
       </Card>
+      {isSuper && pendingInvites.length > 0 && (
+        <Card className="border-warning/40">
+          <CardHeader>
+            <div>
+              <CardTitle>Waiting to join</CardTitle>
+              <CardDescription>These people were invited but haven’t set up their account yet. Get a link and send it to them yourself — for example on WhatsApp.</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {pendingInvites.map((i) => (
+              <div key={i.id} className="space-y-2 border-b border-default pb-4 last:border-0 last:pb-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-[13px] font-medium">{i.email}</p>
+                  <Badge tone="neutral">{i.role.replace('_', ' ')}</Badge>
+                  {i.delivery_status === 'failed' ? <Badge tone="warning">E-mail not sent</Badge> : i.delivery_status === 'delivered' ? <Badge tone="info">E-mailed</Badge> : null}
+                  {i.expired && <Badge tone="danger">Link expired</Badge>}
+                </div>
+                <InviteLinkButton orgId={org.id} invitationId={i.id} email={i.email} orgName={org.name} />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
       {canPeople && (
         <Card>
           <CardHeader>

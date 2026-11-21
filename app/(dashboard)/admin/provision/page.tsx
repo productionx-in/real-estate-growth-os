@@ -8,7 +8,7 @@ import { PlatformProvisioningModal } from '@/components/admin/PlatformProvisioni
 export const metadata: Metadata = { title: 'Platform Provisioning' }
 export const dynamic = 'force-dynamic'
 
-export default async function PlatformProvisioningPage() {
+export default async function PlatformProvisioningPage({ searchParams }: { searchParams: Promise<{ prospect?: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -29,13 +29,24 @@ export default async function PlatformProvisioningPage() {
     redirect('/select-org')
   }
 
+  // Activating a demo request: start from what the person told us.
+  const prospectId = (await searchParams).prospect
+  let prefill: { prospectId: string; name: string; type: 'developer' | 'channel_partner'; adminEmail: string; adminName: string } | undefined
+  if (prospectId && /^[0-9a-f-]{36}$/i.test(prospectId)) {
+    const sales = service as unknown as { from: (t: string) => any } // eslint-disable-line @typescript-eslint/no-explicit-any
+    const { data: p } = await sales.from('internal_prospects').select('id, company_name, org_type, contact_email, contact_name, linked_org_id').eq('id', prospectId).maybeSingle()
+    if (p && !p.linked_org_id) {
+      prefill = { prospectId: p.id, name: p.company_name, type: p.org_type === 'channel_partner' ? 'channel_partner' : 'developer', adminEmail: p.contact_email ?? '', adminName: p.contact_name ?? '' }
+    }
+  }
+
   return (
     <PageShell
       title="Platform Customer Onboarding"
       description="Authorised REGrow workspace provisioning and subscription seat entitlement management"
     >
       <div className="py-6">
-        <PlatformProvisioningModal />
+        <PlatformProvisioningModal prefill={prefill} />
       </div>
     </PageShell>
   )

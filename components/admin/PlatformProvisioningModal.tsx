@@ -5,15 +5,18 @@ import { useRouter } from 'next/navigation'
 import { Building2, Shield, Check, Copy, AlertCircle, Loader2 } from 'lucide-react'
 import { PLAN_CONFIGS, type PlanTier } from '@/lib/subscriptions/config'
 
-export function PlatformProvisioningModal() {
+export interface ProvisionPrefill { prospectId: string; name: string; type: 'developer' | 'channel_partner'; adminEmail: string; adminName: string }
+
+export function PlatformProvisioningModal({ prefill }: { prefill?: ProvisionPrefill } = {}) {
   const router = useRouter()
-  const [name, setName] = useState('')
+  const [name, setName] = useState(prefill?.name ?? '')
   const [slug, setSlug] = useState('')
-  const [type, setType] = useState<'developer' | 'channel_partner'>('developer')
+  const [type, setType] = useState<'developer' | 'channel_partner'>(prefill?.type ?? 'developer')
   const [planTier, setPlanTier] = useState<PlanTier>('growth')
   const [includedSeats, setIncludedSeats] = useState<number>(PLAN_CONFIGS.growth.defaultIncludedSeats)
-  const [adminEmail, setAdminEmail] = useState('')
-  const [adminName, setAdminName] = useState('')
+  const [adminEmail, setAdminEmail] = useState(prefill?.adminEmail ?? '')
+  const [adminName, setAdminName] = useState(prefill?.adminName ?? '')
+  const [copied, setCopied] = useState(false)
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -23,6 +26,7 @@ export function PlatformProvisioningModal() {
     emailError?: string | null
     orgSlug?: string
     message?: string
+    inviteUrl?: string | null
   } | null>(null)
 
   function handleTierChange(tier: PlanTier) {
@@ -50,6 +54,7 @@ export function PlatformProvisioningModal() {
           adminEmail: adminEmail.trim(),
           adminName: adminName.trim() || undefined,
           billingCycle,
+          prospectId: prefill?.prospectId,
         }),
       })
 
@@ -66,6 +71,7 @@ export function PlatformProvisioningModal() {
         message: data.message,
         emailDispatched: data.emailDispatched !== false,
         emailError: data.emailError ?? null,
+        inviteUrl: data.inviteUrl ?? null,
       })
       router.refresh()
     } catch {
@@ -102,6 +108,13 @@ export function PlatformProvisioningModal() {
         </p>
       </div>
 
+      {prefill && !provisionResult && (
+        <div className="mb-5 rounded-lg border border-brand/30 bg-brand-light p-3 text-[12px]">
+          Activating a demo request. The company, type and contact are filled in from the request; check them, choose the plan, then provision.
+          {!prefill.adminEmail && <strong> The request has no e-mail address: add the owner’s e-mail.</strong>}
+        </div>
+      )}
+
       {error && (
         <div className="mb-5 p-3 rounded-lg bg-[var(--danger-bg)] border border-danger/30 text-[12px] text-[var(--danger)] flex items-start gap-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -125,12 +138,29 @@ export function PlatformProvisioningModal() {
             {provisionResult.emailDispatched === false && (
               <p role="alert" className="rounded-lg border border-warning/30 bg-warning-bg p-2 text-[12px] text-warning">
                 The invitation email to <strong>{provisionResult.adminEmail}</strong> was <strong>not sent</strong>: {provisionResult.emailError ?? 'e-mail delivery failed'}.
-                Once e-mail is set up, resend it from Organisations → this workspace → resend invitation.
+                Share the invitation link below instead (copy it or send it on WhatsApp).
               </p>
             )}
-            <p className="text-[11px] text-success mt-1">
-              For security, primary administrator tokens are never exposed in browser responses and are delivered directly via transactional email.
-            </p>
+            {provisionResult.inviteUrl && (
+              <div className="space-y-2 rounded-lg border border-default bg-surface p-3 text-foreground">
+                <p className="text-[12px] font-semibold">Invitation link for {provisionResult.adminEmail}</p>
+                <p className="text-[12px] text-muted">
+                  {provisionResult.emailDispatched ? 'Also sent by e-mail. ' : 'Send it yourself — '}it works once, only for this e-mail address, and expires in 14 days. Don’t post it anywhere public.
+                </p>
+                <p className="break-all rounded-md bg-surface-hover p-2 font-mono text-[11px]">{provisionResult.inviteUrl}</p>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(provisionResult.inviteUrl!); setCopied(true) } catch { setCopied(false) } }}
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-default px-3 text-[12px] font-medium hover:bg-surface-hover">
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}{copied ? 'Copied' : 'Copy link'}
+                  </button>
+                  <a target="_blank" rel="noopener noreferrer"
+                    href={`https://wa.me/?text=${encodeURIComponent(`Your REGrow workspace "${name}" is ready. Set up your account here: ${provisionResult.inviteUrl}`)}`}
+                    className="inline-flex min-h-9 items-center rounded-md bg-success px-3 text-[12px] font-medium text-success-foreground hover:opacity-90">
+                    Share on WhatsApp
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="pt-3">

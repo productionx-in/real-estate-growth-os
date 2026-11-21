@@ -82,7 +82,7 @@ export function weeklySeries(dates: (string | null | undefined)[], weeks: number
   return out
 }
 
-/** Sidebar badges: open support cases and overdue sales follow-ups, only for roles that can see them. */
+/** Sidebar badges: open support cases, new demo requests and overdue sales follow-ups, only for roles that can see them. */
 export async function consoleNavCounts(db: Db, actor: Actor) {
   const nowIso = new Date().toISOString()
   const [cases, due] = await Promise.all([
@@ -93,6 +93,8 @@ export async function consoleNavCounts(db: Db, actor: Actor) {
   return {
     support: (cases as { count?: number | null }).count ?? 0,
     followUps: p.filter((x) => x.next_follow_up_at && x.next_follow_up_at < nowIso && !['won', 'lost'].includes(x.stage)).length,
+    // New demo / contact requests nobody has picked up yet (stage "new").
+    newRequests: p.filter((x) => x.stage === 'new').length,
   }
 }
 

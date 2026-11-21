@@ -34,11 +34,24 @@ export default async function OrganisationsPage({ searchParams }: { searchParams
     return `/platform/organisations${s ? `?${s}` : ''}`
   }
   const count = (b?: string) => inType.filter((o) => !b || o.band === b).length
+  // Demo / contact requests from the website that nobody has picked up yet.
+  const { data: fresh } = can(role, 'salesRead')
+    ? await (createServiceClient() as unknown as Db).from('internal_prospects').select('id, company_name, contact_name, created_at').eq('stage', 'new').order('created_at', { ascending: false }).limit(5)
+    : { data: [] as { id: string; company_name: string; contact_name: string | null; created_at: string }[] }
 
   return (
     <div className="space-y-5">
       <PageHeader title="Organisations" description="Every customer workspace, least healthy first. Health uses workspace details only. Opening a customer's records needs their approval through a support access grant."
         actions={role === 'super_admin' ? <Button asChild><Link href="/admin/provision"><Plus className="size-4" aria-hidden="true" />Provision customer</Link></Button> : undefined} />
+      {fresh && fresh.length > 0 && (
+        <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand-light px-4 py-3">
+          <div className="min-w-0">
+            <p className="text-[14px] font-semibold">{fresh.length === 1 ? '1 new demo request' : `${fresh.length}${fresh.length === 5 ? '+' : ''} new demo requests`}</p>
+            <p className="truncate text-[13px] text-muted">{fresh.map((f) => f.company_name).join(' · ')}</p>
+          </div>
+          <Button asChild size="sm"><Link href="/platform/sales?stage=new">Review and activate</Link></Button>
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <FilterTabs label="Filter by health" tabs={[
           { href: q({ health: undefined }), label: 'All', count: count(), active: !sp.health },
