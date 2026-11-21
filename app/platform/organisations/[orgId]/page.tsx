@@ -12,6 +12,7 @@ import { SupportRequestForm } from '@/components/platform/SupportRequestForm'
 import { GrantActions } from '@/components/platform/GrantActions'
 import { GrantStatusBadge } from '@/components/platform/GrantStatusBadge'
 import { ModuleToggles } from '@/components/platform/ModuleToggles'
+import { DeleteOrg, ExtendTrial, RenameOrg } from '@/components/platform/OrgManage'
 import { getModules, MODULES } from '@/lib/auth/entitlements'
 
 export const metadata: Metadata = { title: 'Organisation' }
@@ -33,6 +34,7 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
     .maybeSingle()
   if (!org) notFound()
   const { count: members } = await service.from('org_members').select('*', { count: 'exact', head: true }).eq('org_id', orgId).eq('status', 'active')
+  const { data: sub } = await service.from('org_subscriptions').select('status, current_period_end').eq('org_id', orgId).maybeSingle()
 
   const grants = await listGrantsForOrg(orgId, 20)
   const modules = await getModules(orgId)
@@ -82,6 +84,23 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
           </CardContent>
         </Card>
       </div>
+
+      {(isSuper || access.role === 'platform_admin' || (access.role === 'finance_admin' && sub?.status === 'trial')) && (
+        <div className="grid gap-5 lg:grid-cols-2">
+          {(isSuper || access.role === 'platform_admin') && (
+            <Card>
+              <CardHeader><div><CardTitle>Details</CardTitle><CardDescription>Change how this customer appears in REGrow.</CardDescription></div></CardHeader>
+              <CardContent><RenameOrg orgId={org.id} name={org.name} /></CardContent>
+            </Card>
+          )}
+          {(isSuper || access.role === 'finance_admin') && sub?.status === 'trial' && (
+            <Card>
+              <CardHeader><div><CardTitle>Trial</CardTitle><CardDescription>Give a customer more time to evaluate. Recorded in the audit log.</CardDescription></div></CardHeader>
+              <CardContent><ExtendTrial orgId={org.id} endsAt={sub.current_period_end} /></CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       <Card>
         <CardHeader>
@@ -163,6 +182,12 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
           )}
         </CardContent>
       </Card>
+      {isSuper && (
+        <Card className="border-danger/40">
+          <CardHeader><div><CardTitle className="text-danger">Delete workspace</CardTitle><CardDescription>Platform Owner only.</CardDescription></div></CardHeader>
+          <CardContent><DeleteOrg orgId={org.id} name={org.name} /></CardContent>
+        </Card>
+      )}
     </div>
   )
 }
