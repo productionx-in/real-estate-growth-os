@@ -129,6 +129,8 @@ export default async function TeamPage({ params }: PageProps) {
         orgName={workspace.org.name}
         isAdmin={workspace.isAdmin}
         isManager={workspace.isManager}
+        currentProfileId={workspace.profile.id}
+        viewerRole={workspace.role as MemberRole}
         seatUsage={seatUsage}
         teamMembers={teamMembers}
         pendingInvitations={pendingInvitations}

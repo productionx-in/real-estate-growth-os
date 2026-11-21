@@ -52,7 +52,6 @@ export function Header({ orgId, orgName, orgSlug = '', orgType = 'developer', ro
 
   const name = profile?.full_name || 'Your account'
   const initials = (profile?.full_name || 'U').split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase()
-  const isAdmin = role === 'owner' || role === 'admin'
 
   return (
     <header
@@ -133,13 +132,11 @@ export function Header({ orgId, orgName, orgSlug = '', orgType = 'developer', ro
               </p>
             </div>
             <DropdownMenuSeparator />
-            {isAdmin && (
-              <DropdownMenuItem asChild><Link href={`/${orgSlug}/settings`}><Settings aria-hidden /> Workspace settings</Link></DropdownMenuItem>
-            )}
+            <DropdownMenuItem asChild><Link href={`/${orgSlug}/settings`}><Settings aria-hidden /> Settings</Link></DropdownMenuItem>
             {availableOrgs.length > 1 && (
               <DropdownMenuItem asChild><Link href="/select-org"><Compass aria-hidden /> Switch workspace</Link></DropdownMenuItem>
             )}
-            <DropdownMenuItem asChild><Link href="/account/notifications"><Mail aria-hidden /> E-mail notifications</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link href={`/${orgSlug}/settings/notifications`}><Mail aria-hidden /> My notifications</Link></DropdownMenuItem>
             <DropdownMenuSeparator />
             <AppearanceMenu />
             <DropdownMenuSeparator />
