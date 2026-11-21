@@ -1,4 +1,5 @@
 // app/layout.tsx — Root layout
+import { AuthLinkCatcher } from '@/components/auth/AuthLinkCatcher'
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ThemeController />
         <DeploymentRibbon />
+        <AuthLinkCatcher />
         {children}
       </body>
     </html>

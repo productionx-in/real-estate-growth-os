@@ -21,6 +21,8 @@ export const TEMPLATES = {
     heading: 'Confirm your email address',
     paragraphs: ['Confirm that this is your email address to finish setting up your REGrow account.'],
     cta: 'Confirm email',
+    // Token-hash links go to /auth/confirm and work on any device (a PKCE link only in the requesting browser).
+    link: '{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/select-org',
     footnote: 'If you didn’t create a REGrow account, you can ignore this email.',
   },
   recovery: {
@@ -29,6 +31,7 @@ export const TEMPLATES = {
     heading: 'Reset your password',
     paragraphs: ['We received a request to reset the password for your REGrow account. Choose a new one with the button below.'],
     cta: 'Choose a new password',
+    link: '{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password',
     footnote: 'This link works once and expires soon. If you didn’t ask to reset your password, ignore this email — your password stays the same. After a reset, other devices are signed out.',
   },
   magic_link: {
@@ -37,6 +40,7 @@ export const TEMPLATES = {
     heading: 'Sign in to REGrow',
     paragraphs: ['Use the button below to sign in.'],
     cta: 'Sign in',
+    link: '{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/select-org',
     footnote: 'This link works once and expires soon. If you didn’t try to sign in, ignore this email.',
   },
   email_change: {
@@ -51,7 +55,7 @@ export const TEMPLATES = {
 
 const build = (t) =>
   renderEmail({ preheader: t.preheader, heading: t.heading, paragraphs: t.paragraphs, cta: { label: t.cta, url: PLACEHOLDER }, footnote: t.footnote })
-    .html.replaceAll(PLACEHOLDER, '{{ .ConfirmationURL }}')
+    .html.replaceAll(PLACEHOLDER, t.link ?? '{{ .ConfirmationURL }}')
     .replace(/© \d{4}/, '©') // templates are static: no year that goes stale
 
 const check = process.argv.includes('--check')

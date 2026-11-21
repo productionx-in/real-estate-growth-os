@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Shield, KeyRound, CheckCircle2, ArrowLeft, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { safeRedirectPath } from '@/lib/auth/safe-redirect'
+import { appUrl } from '@/lib/site/urls'
 import { PasswordInput } from '@/components/auth/PasswordInput'
 
 export function LoginForm({ defaultRedirect }: { defaultRedirect?: string } = {}) {
@@ -18,7 +19,8 @@ export function LoginForm({ defaultRedirect }: { defaultRedirect?: string } = {}
   const [error, setError] = useState<string | null>(null)
 
   // Forgot password flow
-  const [isForgotMode, setIsForgotMode] = useState(false)
+  // ?mode=forgot (a reset link that expired or was used) opens "Forgot password" straight away.
+  const [isForgotMode, setIsForgotMode] = useState(searchParams.get('mode') === 'forgot')
   const [resetSuccess, setResetSuccess] = useState(false)
 
   const supabase = createClient()
@@ -52,7 +54,9 @@ export function LoginForm({ defaultRedirect }: { defaultRedirect?: string } = {}
 
     try {
       const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+        // The address must be on Supabase's Redirect URLs allowlist (docs/operations/ENVIRONMENT.md). If the e-mail
+        // template uses {{ .TokenHash }} instead, the link goes to /auth/confirm and works on any device.
+        redirectTo: `${appUrl() ?? window.location.origin}/auth/callback?next=/reset-password`,
       })
 
       if (resetErr) {
