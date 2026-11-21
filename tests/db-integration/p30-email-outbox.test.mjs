@@ -36,7 +36,8 @@ async function main() {
   const mkOrg = async (n) => (await one(`INSERT INTO public.organisations (name, slug, type) VALUES ($1,$2,'developer') RETURNING id`, [`${n} ${RUN}`, `${n.toLowerCase()}-${RUN}`])).id
   const orgA = await mkOrg('OutboxA'); const orgB = await mkOrg('OutboxB')
   const owner = await service_user(db, `owner-${RUN}@regrow-mail-check.com`) // inviter + Platform Owner for the alert check
-  const invite = async (org, email, tokenHash) => (await one(`INSERT INTO public.org_invitations (org_id, email, role, invited_by, token_hash) VALUES ($1,$2,'sales_exec',$3,$4) RETURNING id`, [org, email, owner, tokenHash])).id
+  const ownerProfile = (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [owner])).id // invited_by is a profile
+  const invite = async (org, email, tokenHash) => (await one(`INSERT INTO public.org_invitations (org_id, email, role, invited_by, token_hash) VALUES ($1,$2,'sales_exec',$3,$4) RETURNING id`, [org, email, ownerProfile, tokenHash])).id
   const q = (key, to, extra = {}) => svc.queueEmail(db, { orgId: orgA, category: 'account', template: 'customer', to, idempotencyKey: key,
     payload: { kind: 'trial_ended', args: { orgName: `OutboxA ${RUN}`, urlPath: '/outbox-a/billing' } }, ...extra })
 
