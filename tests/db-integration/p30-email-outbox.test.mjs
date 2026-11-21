@@ -50,7 +50,7 @@ async function main() {
   })
 
   await test('tenant isolation: clients cannot read the outbox or call its functions; a payload pointing at another organisation is refused', async () => {
-    const r = await one(`SELECT relrowsecurity rls, has_table_privilege('authenticated','public.email_outbox','SELECT') a, has_table_privilege('anon','public.email_outbox','SELECT') b,
+    const r = await one(`SELECT (SELECT relrowsecurity FROM pg_class WHERE oid = 'public.email_outbox'::regclass) rls, has_table_privilege('authenticated','public.email_outbox','SELECT') a, has_table_privilege('anon','public.email_outbox','SELECT') b,
       has_function_privilege('authenticated','public.enqueue_email(uuid,text,text,text,jsonb,text,timestamptz)','EXECUTE') c, has_function_privilege('authenticated','public.claim_emails(integer,text,integer)','EXECUTE') d`)
     assert.deepEqual([r.rls, r.a, r.b, r.c, r.d], [true, false, false, false, false])
     // An invitation row in org A that names org B's invitation must fail permanently, never render.
