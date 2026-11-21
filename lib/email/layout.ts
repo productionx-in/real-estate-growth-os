@@ -24,6 +24,8 @@ export interface EmailContent {
   cta?: { label: string; url: string }
   /** Small print under the button (expiry, "ignore if unexpected"). */
   footnote?: string
+  /** Why the person got this e-mail, in the footer. Defaults to an action in a workspace. */
+  reason?: string
 }
 
 const BRAND = '#1d4ed8'
@@ -68,7 +70,7 @@ export function renderEmail(content: EmailContent): { html: string; text: string
     </td></tr>
     <tr><td style="padding:16px 4px;font-size:12px;line-height:18px;color:${SUBTLE};">
       ${escapeHtml(PRODUCT_FULL_NAME)} · Lead management for real-estate developers and channel partners.<br>
-      You received this because of an action in a ${PRODUCT_NAME} workspace. © ${new Date().getFullYear()} ${escapeHtml(COMPANY_NAME)}.
+      ${escapeHtml(content.reason ?? `You received this because of an action in a ${PRODUCT_NAME} workspace.`)} © ${new Date().getFullYear()} ${escapeHtml(COMPANY_NAME)}.
     </td></tr>
   </table>
 </td></tr></table>

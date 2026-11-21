@@ -8,6 +8,8 @@ or chat. `NEXT_PUBLIC_*` values are public by design (they are built into the br
 |---|---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | | yes | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | | yes | Supabase anon key (RLS applies) |
+| `REGROW_SALES_NOTIFY_EMAIL` | | no | Comma-separated addresses that get an e-mail for every website demo/contact request |
+| `RESEND_REPLY_TO` | | no | Where customers' replies to REGrow e-mails go (e.g. your support address) |
 | `SUPABASE_SERVICE_ROLE_KEY` | secret | yes | Server-only database access (bypasses RLS) |
 | `NEXT_PUBLIC_APP_URL` | | production | Application origin — see `URLS.md` |
 | `NEXT_PUBLIC_SITE_URL` | | optional | Marketing origin if different from the app |

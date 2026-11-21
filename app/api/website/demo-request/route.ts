@@ -2,11 +2,14 @@
 // so it is rate-limited per address, ignores bots (hidden field, too-fast submissions) and accepts only plain fields.
 // A request becomes a prospect in REGrow's internal Sales pipeline (staff console → Sales); nothing is written to any
 // customer workspace, and no setting is needed for it to work.
-import { NextResponse, type NextRequest } from 'next/server'
+import { after, NextResponse, type NextRequest } from 'next/server'
 import crypto from 'node:crypto'
 import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase/server'
 import { checkDistributedRateLimit } from '@/lib/integrations/webhooks/rate-limiter'
+import { getEmailAdapter } from '@/lib/email/adapter'
+import { demoAlertEmail, demoConfirmationEmail, type DemoRequestDetails } from '@/lib/email/demo-request'
+import { appUrl, siteUrl } from '@/lib/site/urls'
 
 const Body = z.object({
   name: z.string().trim().min(2, 'Enter your name').max(120),
@@ -57,5 +60,30 @@ export async function POST(request: NextRequest) {
     console.error('website demo request failed:', error.message)
     return NextResponse.json({ error: 'We could not save your request. Please try again or email us.' }, { status: 500 })
   }
+
+  // After the reply: a confirmation to the person (if they gave an e-mail) and an alert to REGrow's sales team
+  // (REGROW_SALES_NOTIFY_EMAIL, comma-separated). A failed e-mail never fails the request — it is already saved.
+  const field = (label: string) => b.notes?.match(new RegExp(`^${label}: (.+)$`, 'm'))?.[1]?.trim() ?? null
+  const given = (v: string | null) => (v && v !== 'not given' ? v : null)
+  const details: DemoRequestDetails = {
+    name: b.name, phone: b.phone, email: b.email || null, companyName: b.companyName ?? null, companyType: b.companyType,
+    teamSize: b.teamSize ?? null, interest: b.interest ?? null,
+    leadVolume: given(field('Leads per month')), currentTool: given(field('Current tool')), message: given(field('Message')),
+  }
+  after(async () => {
+    const mailer = getEmailAdapter()
+    const site = siteUrl(request.nextUrl.origin) ?? request.nextUrl.origin
+    if (details.email) {
+      const m = demoConfirmationEmail(details, { site })
+      const r = await mailer.sendEmail({ to: details.email, subject: m.subject, html: m.html, text: m.text })
+      if (!r.success) console.warn('demo confirmation e-mail not sent:', r.error)
+    }
+    const team = (process.env.REGROW_SALES_NOTIFY_EMAIL ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+    if (team.length) {
+      const a = demoAlertEmail(details, { console: `${appUrl(request.nextUrl.origin) ?? request.nextUrl.origin}/platform/sales?stage=new` })
+      const r = await mailer.sendEmail({ to: team, subject: a.subject, html: a.html, text: a.text, ...(details.email ? { replyTo: details.email } : {}) })
+      if (!r.success) console.warn('demo alert e-mail not sent:', r.error)
+    }
+  })
   return NextResponse.json({ success: true })
 }

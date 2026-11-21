@@ -10,7 +10,8 @@ export interface Rendered { subject: string; html: string; text: string }
 
 const inr = (cents: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(cents / 100)
 const day = (iso: string) => new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'Asia/Kolkata' }).format(new Date(iso))
-const out = (subject: string, c: Parameters<typeof renderEmail>[0]): Rendered => ({ subject, ...renderEmail(c) })
+const out = (subject: string, c: Parameters<typeof renderEmail>[0]): Rendered =>
+  ({ subject, ...renderEmail({ reason: 'You received this because you own or manage a REGrow workspace.', ...c }) })
 
 export const customerEmails = {
   welcome: (o: { orgName: string; url: string }) =>
