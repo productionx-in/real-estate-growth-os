@@ -158,13 +158,46 @@ async function main() {
       assert.equal(again.success, true, 'the name can be reused after removal')
     })
 
+    await test('letterhead (20260071): business details on the document, frozen when shared; edits for one buyer stay on that document', async () => {
+      const lhm = await jiti.import(path.join(root, 'lib/documents/letterhead.ts'))
+      const { profile, errors } = lhm.normaliseProfile({ legalName: 'Skyline Developers Pvt Ltd', address: '29 MG Road', city: 'Bengaluru', gstin: '29abcde1234f1z5', reraNumber: 'PRM/KA/1', bankAccountNumber: '50200012345678', bankIfsc: 'hdfc0000123' })
+      assert.deepEqual(errors, {})
+      assert.equal(await docs.saveBusinessProfile(org, manager.pid, profile), true)
+      const demand = await docs.saveTemplate(org, manager.pid, { name: `Demand ${RUN}`, kind: 'demand', body: 'Unit {{unit.number}} — amount due ________\n\n{{org.bank_details}}\n\nFor {{org.legal_name}}' })
+      assert.equal(demand.success, true, demand.error)
+      const p = await docs.previewDocument(org, lead, demand.data.id, unit)
+      assert.equal(p.letterhead.name, 'Skyline Developers Pvt Ltd')
+      assert.deepEqual(p.letterhead.registrations, ['GSTIN 29ABCDE1234F1Z5', 'RERA PRM/KA/1'])
+      assert.match(p.body, /\| IFSC \| HDFC0000123 \|/)
+      const filled = p.body.replace('________', '₹14,50,000')
+      const r = await docs.createDocument(org, lead, asha.pid, { templateId: demand.data.id, unitId: unit, body: filled })
+      assert.equal(r.success, true, r.error)
+      const row = await one('SELECT body, edited, letterhead FROM public.lead_documents WHERE id=$1', [r.data.id])
+      assert.deepEqual([row.edited, /amount due ₹14,50,000/.test(row.body)], [true, true])
+      assert.equal(row.letterhead.name, 'Skyline Developers Pvt Ltd')
+      assert.equal((await docs.listTemplates(org)).find((t) => t.id === demand.data.id).body.includes('________'), true, 'the template is unchanged')
+      // A later change of company details does not rewrite what this buyer was sent.
+      assert.equal(await docs.saveBusinessProfile(org, manager.pid, { ...profile, legalName: 'Renamed Ltd' }), true)
+      const shared = await docs.openSharedDocument(r.data.token, PHONE_UA)
+      assert.equal(shared.letterhead.name, 'Skyline Developers Pvt Ltd')
+      // A template without a letterhead freezes none; the old kinds keep working.
+      const plain = await docs.saveTemplate(org, manager.pid, { name: `Plain ${RUN}`, kind: 'letter', body: 'Hi {{lead.name}}', letterhead: false })
+      const r2 = await docs.createDocument(org, lead, asha.pid, { templateId: plain.data.id, unitId: null })
+      assert.equal((await one('SELECT letterhead, edited FROM public.lead_documents WHERE id=$1', [r2.data.id])).letterhead, null)
+      // The database refuses malformed registrations and unknown kinds, whatever the app sends.
+      await assert.rejects(db.query(`UPDATE public.org_business_profiles SET gstin='29ABC' WHERE org_id=$1`, [org]), /check/i)
+      await assert.rejects(db.query(`UPDATE public.document_templates SET kind='invoice' WHERE id=$1`, [plain.data.id]), /check/i)
+      assert.equal((await docs.getBusinessProfile(other)).legalName, null, 'another organisation sees none of it')
+    })
+
     await test('signed-in and anonymous clients cannot read or write these tables, or call the view function', async () => {
       for (const role of ['anon', 'authenticated']) {
         await db.query('BEGIN')
         try {
           await db.query(`SELECT set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub: asha.uid, role })])
           await db.query(`SET LOCAL ROLE ${role}`)
-          for (const sql of ['SELECT * FROM public.lead_documents', 'SELECT * FROM public.document_templates', `SELECT * FROM public.record_document_view('${doc.token}')`]) {
+          for (const sql of ['SELECT * FROM public.lead_documents', 'SELECT * FROM public.document_templates', 'SELECT * FROM public.org_business_profiles',
+            `INSERT INTO public.org_business_profiles (org_id, legal_name) VALUES ('${org}', 'Hijack')`, `SELECT * FROM public.record_document_view('${doc.token}')`]) {
             await db.query('SAVEPOINT s')
             await assert.rejects(db.query(sql), /permission denied/, `${role}: ${sql}`)
             await db.query('ROLLBACK TO SAVEPOINT s')

@@ -31,16 +31,15 @@ export default async function SharedDocumentPage({ params }: { params: Promise<{
   return (
     <main className="min-h-dvh bg-background px-4 py-8 print:bg-surface print:p-0">
       <article className="mx-auto max-w-3xl rounded-xl border border-default bg-surface p-6 shadow-sm sm:p-10 print:border-0 print:shadow-none">
-        <header className="mb-6 flex flex-wrap items-start justify-between gap-3 border-b border-default pb-4">
-          <div>
-            <p className="text-[13px] font-semibold text-foreground">{doc.orgName}</p>
-            <p className="text-[12px] text-muted">
-              {new Date(doc.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'long', year: 'numeric' })}
-            </p>
-          </div>
+        {/* With a letterhead the company's details head the page; otherwise just its name. */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
+          <p className="text-[12px] text-muted">
+            {!doc.letterhead && <span className="font-semibold text-foreground">{doc.orgName} · </span>}
+            {new Date(doc.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
           <PrintButton />
-        </header>
-        <DocumentBody body={doc.body} />
+        </div>
+        <DocumentBody body={doc.body} letterhead={doc.letterhead} />
         {doc.sharedBy && (
           <footer className="mt-8 flex flex-wrap items-center gap-2 border-t border-default pt-4 text-[13px] text-muted print:hidden">
             <span>Sent by {doc.sharedBy.name}</span>

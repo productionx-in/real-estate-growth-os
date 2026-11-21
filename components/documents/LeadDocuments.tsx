@@ -4,10 +4,11 @@
 // WhatsApp. The server checks who may do this (managers or the lead's salesperson) and freezes the text.
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Copy, Eye, FileText, Link2Off, MessageCircle } from 'lucide-react'
-import { Alert, Badge, Button, Field, Input, Select } from '@/components/ui'
+import { Check, Copy, Eye, FileText, Link2Off, MessageCircle, Pencil } from 'lucide-react'
+import { Alert, Badge, Button, Field, Input, Select, Textarea } from '@/components/ui'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogTrigger } from '@/components/ui/dialog'
 import { DocumentBody } from '@/components/documents/DocumentBody'
+import type { Letterhead } from '@/lib/documents/letterhead'
 
 export interface DocRow {
   id: string; title: string; token: string; expiresAt: string; revokedAt: string | null
@@ -28,7 +29,10 @@ export function LeadDocuments({ leadId, leadName, leadPhone, documents, template
   const [templateId, setTemplateId] = useState(templates[0]?.id ?? '')
   const [unitId, setUnitId] = useState('')
   const [days, setDays] = useState(30)
-  const [preview, setPreview] = useState<{ title: string; body: string; missing: string[] } | null>(null)
+  const [preview, setPreview] = useState<{ title: string; body: string; missing: string[]; letterhead: Letterhead | null } | null>(null)
+  // "Edit before sharing": the salesperson fills blanks (________) or adjusts wording for this buyer only.
+  const [editing, setEditing] = useState(false)
+  const [text, setText] = useState('')
   const [created, setCreated] = useState<DocRow | null>(null)
   const [createdLink, setCreatedLink] = useState('')
   const [busy, setBusy] = useState(false)
@@ -50,10 +54,10 @@ export function LeadDocuments({ leadId, leadName, leadPhone, documents, template
 
   async function loadPreview() {
     const out = await call(`/api/leads/${leadId}/documents/preview`, { method: 'POST', body: JSON.stringify({ templateId, unitId: unitId || null }) })
-    if (out) setPreview(out)
+    if (out) { setPreview(out); setText(out.body); setEditing(/_{4,}/.test(out.body)) }
   }
   async function create() {
-    const out = await call(`/api/leads/${leadId}/documents`, { method: 'POST', body: JSON.stringify({ templateId, unitId: unitId || null, validDays: days }) })
+    const out = await call(`/api/leads/${leadId}/documents`, { method: 'POST', body: JSON.stringify({ templateId, unitId: unitId || null, validDays: days, ...(preview && text !== preview.body ? { body: text } : {}) }) })
     if (out?.document) {
       const doc: DocRow = { ...out.document, live: true }
       setCreated(doc)
@@ -84,7 +88,7 @@ export function LeadDocuments({ leadId, leadName, leadPhone, documents, template
       <div className="mb-3 flex items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-[13px] font-semibold text-foreground"><FileText aria-hidden className="size-4 text-brand" /> Documents</h2>
         {canWork && templates.length > 0 && (
-          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setPreview(null); setCreated(null); setError(null) } }}>
+          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setPreview(null); setCreated(null); setError(null); setEditing(false) } }}>
             <DialogTrigger asChild><Button size="sm" variant="secondary">Create document</Button></DialogTrigger>
             <DialogContent title={created ? 'Ready to share' : 'Create a document'} className="max-w-2xl"
               description={created ? `Send this private link to ${leadName}. You’ll see when it’s opened.` : 'Filled in for this buyer. The text is saved as it is now, so later price changes won’t alter it.'}>
@@ -114,9 +118,21 @@ export function LeadDocuments({ leadId, leadName, leadPhone, documents, template
                   {preview && (
                     <>
                       {preview.missing.length > 0 && (
-                        <Alert tone="warning">No value yet for: {preview.missing.join(', ')} — these show as “—”.</Alert>
+                        <Alert tone="warning">No value yet for: {preview.missing.join(', ')} — these show as “—”. You can type them in below.</Alert>
                       )}
-                      <div className="max-h-80 overflow-y-auto rounded-md border border-default p-4"><DocumentBody body={preview.body} /></div>
+                      {/_{4,}/.test(text) && <Alert tone="info">Fill in the blanks (________) for this buyer before sharing.</Alert>}
+                      <div className="flex justify-end">
+                        <Button size="sm" variant="ghost" onClick={() => setEditing((e) => !e)}>
+                          {editing ? <><Eye aria-hidden /> Show preview</> : <><Pencil aria-hidden /> Edit before sharing</>}
+                        </Button>
+                      </div>
+                      {editing ? (
+                        <Field label="Text for this buyer" hint="Changes apply to this document only, not the template.">
+                          <Textarea rows={14} value={text} onChange={(e) => setText(e.target.value)} className="font-mono text-[12px]" />
+                        </Field>
+                      ) : (
+                        <div className="max-h-96 overflow-y-auto rounded-md border border-default p-4"><DocumentBody body={text} letterhead={preview.letterhead} /></div>
+                      )}
                     </>
                   )}
                   {error && <Alert tone="danger">{error}</Alert>}

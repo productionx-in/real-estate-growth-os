@@ -35,6 +35,7 @@ export const SETTINGS: SettingsGroup[] = [
   {
     key: 'company', title: 'Your company', description: 'Organisation details, letterhead, plan and billing.',
     pages: [
+      { key: 'business', label: 'Business details', description: 'Letterhead, GSTIN, RERA, signatory and bank account on documents.', path: '/settings/business', audience: 'admins', keywords: ['letterhead', 'gstin', 'pan', 'rera', 'bank', 'ifsc', 'logo', 'address', 'signatory'] },
       { key: 'organization', label: 'Organisation', description: 'Name, type of business and workspace address.', path: '/settings/organization', audience: 'admins', keywords: ['company', 'developer', 'channel partner', 'business type'] },
       { key: 'billing', label: 'Plan & billing', description: 'Your plan, seats, invoices and payments.', path: '/billing', audience: 'admins', keywords: ['invoice', 'subscription', 'seats', 'payment', 'gst'] },
       { key: 'audit', label: 'Audit log', description: 'Who changed what in the workspace.', path: '/audit-log', audience: 'admins', keywords: ['history', 'activity', 'log'] },

@@ -3071,6 +3071,7 @@ export interface Database {
           name: string
           kind: string
           body: string
+          letterhead: boolean
           archived: boolean
           created_by: string | null
           updated_by: string | null
@@ -3083,6 +3084,7 @@ export interface Database {
           name: string
           kind?: string
           body: string
+          letterhead?: boolean
           archived?: boolean
           created_by?: string | null
           updated_by?: string | null
@@ -3093,6 +3095,7 @@ export interface Database {
           name?: string
           kind?: string
           body?: string
+          letterhead?: boolean
           archived?: boolean
           updated_by?: string | null
           updated_at?: string
@@ -3114,6 +3117,8 @@ export interface Database {
           view_count: number
           first_viewed_at: string | null
           last_viewed_at: string | null
+          letterhead: Json | null
+          edited: boolean
           created_by: string | null
           created_at: string
         }
@@ -3131,6 +3136,8 @@ export interface Database {
           view_count?: number
           first_viewed_at?: string | null
           last_viewed_at?: string | null
+          letterhead?: Json | null
+          edited?: boolean
           created_by?: string | null
           created_at?: string
         }
@@ -3143,6 +3150,80 @@ export interface Database {
         Relationships: [
           { foreignKeyName: 'lead_documents_created_by_fkey'; columns: ['created_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
         ]
+      }
+      org_business_profiles: {
+        Row: {
+          org_id: string
+          legal_name: string | null
+          address: string | null
+          city: string | null
+          state: string | null
+          pincode: string | null
+          gstin: string | null
+          pan: string | null
+          rera_number: string | null
+          phone: string | null
+          email: string | null
+          website: string | null
+          logo_url: string | null
+          signatory_name: string | null
+          signatory_title: string | null
+          bank_account_name: string | null
+          bank_name: string | null
+          bank_account_number: string | null
+          bank_ifsc: string | null
+          footer_note: string | null
+          updated_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          org_id: string
+          legal_name?: string | null
+          address?: string | null
+          city?: string | null
+          state?: string | null
+          pincode?: string | null
+          gstin?: string | null
+          pan?: string | null
+          rera_number?: string | null
+          phone?: string | null
+          email?: string | null
+          website?: string | null
+          logo_url?: string | null
+          signatory_name?: string | null
+          signatory_title?: string | null
+          bank_account_name?: string | null
+          bank_name?: string | null
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
+          footer_note?: string | null
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          legal_name?: string | null
+          address?: string | null
+          city?: string | null
+          state?: string | null
+          pincode?: string | null
+          gstin?: string | null
+          pan?: string | null
+          rera_number?: string | null
+          phone?: string | null
+          email?: string | null
+          website?: string | null
+          logo_url?: string | null
+          signatory_name?: string | null
+          signatory_title?: string | null
+          bank_account_name?: string | null
+          bank_name?: string | null
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
+          footer_note?: string | null
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       scheduled_jobs: {
         Row: {

@@ -21,7 +21,7 @@ test('everyone gets their own settings; managers add team and lead set-up; only 
   for (const role of ['sales_exec', 'team_lead', 'post_sales', 'readonly']) assert.deepEqual(keys(role), ['profile', 'security', 'notifications'], role)
   const mgr = keys('manager')
   assert.ok(mgr.includes('team') && mgr.includes('routing') && mgr.includes('documents'))
-  for (const k of ['organization', 'billing', 'audit', 'support', 'integrations']) assert.ok(!mgr.includes(k), `manager must not see ${k}`)
+  for (const k of ['organization', 'business', 'billing', 'audit', 'support', 'integrations']) assert.ok(!mgr.includes(k), `manager must not see ${k}`)
   for (const role of ['owner', 'admin']) for (const k of ['organization', 'billing', 'audit', 'integrations', 'profile']) assert.ok(keys(role).includes(k), `${role} ${k}`)
 })
 
@@ -44,6 +44,7 @@ test('every settings link points at a page that exists', () => {
 test('the hub is open to every member; organisation settings refuse non-admins on the server', () => {
   assert.doesNotMatch(read('app/(dashboard)/[orgSlug]/settings/page.tsx'), /redirect\(/)
   assert.match(read('app/(dashboard)/[orgSlug]/settings/organization/page.tsx'), /if \(!isAdmin\) redirect\(/)
+  assert.match(read('app/(dashboard)/[orgSlug]/settings/business/page.tsx'), /if \(!isAdmin\) redirect\(/)
 })
 
 test('profile changes only your own name and phone; password and sign-out act on your own session', () => {

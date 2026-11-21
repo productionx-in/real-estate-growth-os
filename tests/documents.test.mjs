@@ -11,6 +11,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const jiti = createJiti(import.meta.url, { alias: { '@': root } })
 const m = await jiti.import(path.join(root, 'lib/documents/merge.ts'))
 const b = await jiti.import(path.join(root, 'lib/documents/blocks.ts'))
+const lh = await jiti.import(path.join(root, 'lib/documents/letterhead.ts'))
+const lib = await jiti.import(path.join(root, 'lib/documents/library.ts'))
 
 let passed = 0
 function test(name, fn) { fn(); passed++; console.log(`  ✓ ${name}`) }
@@ -75,6 +77,59 @@ test('share links are 256-bit random tokens; the public page sends no referrer a
   const page = fs.readFileSync(path.join(root, 'app/d/[token]/page.tsx'), 'utf8')
   assert.match(page, /robots: \{ index: false, follow: false \}/)
   assert.match(page, /referrer: 'no-referrer'/)
+})
+
+test('built-in templates: only real fields, every kind valid, filled in completely with sample data', () => {
+  const kinds = Object.keys((fs.readFileSync(path.join(root, 'lib/documents/kinds.ts'), 'utf8').match(/TEMPLATE_KINDS = \{([\s\S]*?)\}/)[1]).match(/(\w+):/g).map((k) => k.slice(0, -1)).reduce((o, k) => ({ ...o, [k]: 1 }), {}))
+  const migration = fs.readFileSync(path.join(root, 'supabase/migrations/20260071_document_letterhead.sql'), 'utf8')
+  assert.ok(lib.LIBRARY.length >= 8)
+  for (const t of lib.LIBRARY) {
+    assert.deepEqual(m.unknownFields(t.body), [], t.key)
+    assert.ok(kinds.includes(t.kind) && migration.includes(`'${t.kind}'`), `${t.key}: kind ${t.kind} is allowed by the database`)
+    assert.deepEqual(m.missingFields(t.body, ctx), [], `${t.key}: every field has a sample value`)
+    assert.ok(t.body.length < 20000 && t.name.length <= 80)
+  }
+  assert.equal(new Set(lib.LIBRARY.map((t) => t.name)).size, lib.LIBRARY.length, 'names are unique')
+  const dev = lib.libraryFor('developer').map((t) => t.audience); const cp = lib.libraryFor('channel_partner').map((t) => t.audience)
+  assert.ok(!dev.includes('channel_partner') && !cp.includes('developer'), 'each workspace sees the templates that suit it')
+  assert.ok(cp.includes('channel_partner'), 'agencies get agency templates')
+})
+
+test('business details: codes upper-cased, blanks dropped, every rule matches the database CHECK', () => {
+  const ok = lh.normaliseProfile({ legalName: '  Skyline Pvt Ltd ', gstin: '29abcde1234f1z5', pan: 'abcde1234f', bankIfsc: 'hdfc0000123', bankAccountNumber: '5020 0012 3456', pincode: '560001', city: '' })
+  assert.deepEqual(ok.errors, {})
+  assert.deepEqual([ok.profile.legalName, ok.profile.gstin, ok.profile.pan, ok.profile.bankIfsc, ok.profile.bankAccountNumber, ok.profile.city], ['Skyline Pvt Ltd', '29ABCDE1234F1Z5', 'ABCDE1234F', 'HDFC0000123', '502000123456', null])
+  const bad = lh.normaliseProfile({ gstin: '29ABC', pan: '1234', pincode: '012345', email: 'nope', website: 'skyline.in', logoUrl: 'http://x.in/l.png', bankIfsc: 'HDFC1000123' })
+  assert.deepEqual(Object.keys(bad.errors).sort(), ['bankIfsc', 'email', 'gstin', 'logoUrl', 'pan', 'pincode', 'website'])
+  const sql = fs.readFileSync(path.join(root, 'supabase/migrations/20260071_document_letterhead.sql'), 'utf8')
+  for (const col of Object.values(lh.PROFILE_COLUMNS)) assert.match(sql, new RegExp(`\\n  ${col}\\s+TEXT`), `column ${col}`)
+})
+
+test('letterhead: registered name, address line, contacts and registrations; malformed stored data is dropped', () => {
+  const l = lh.buildLetterhead('Skyline', ctx.org.profile)
+  assert.equal(l.name, 'Skyline Developers Private Limited')
+  assert.equal(l.address, '4th Floor, Prestige Meridian, 29 MG Road, Bengaluru, Karnataka 560001')
+  assert.deepEqual(l.contact, ['+91 80 4000 1234', 'sales@skyline.example', 'skyline.example'])
+  assert.deepEqual(l.registrations, ['GSTIN 29ABCDE1234F1Z5', 'RERA PRM/KA/RERA/1251/446/PR/010125/007321'])
+  assert.equal(lh.buildLetterhead('Skyline', lh.EMPTY_PROFILE).name, 'Skyline', 'falls back to the workspace name')
+  assert.deepEqual(lh.parseLetterhead(JSON.parse(JSON.stringify(l))), l, 'survives the jsonb round trip')
+  assert.equal(lh.parseLetterhead({ name: '' }), null)
+  assert.equal(lh.parseLetterhead({ name: 'X', logoUrl: 'javascript:alert(1)' }).logoUrl, null, 'only https logos')
+  assert.deepEqual(lh.missingForLetterhead(lh.EMPTY_PROFILE), ['registered company name', 'address', 'phone or e-mail', 'GSTIN'])
+})
+
+test('bank details print only when account number and IFSC are both set; company fields fall back sensibly', () => {
+  assert.match(m.fieldValue('org.bank_details', ctx), /\| Account number \| 50200012345678 \|\n\| IFSC \| HDFC0000123 \|/)
+  const half = { ...ctx, org: { name: 'X', profile: { ...ctx.org.profile, bankIfsc: null } } }
+  assert.equal(m.fieldValue('org.bank_details', half), null)
+  assert.equal(m.fieldValue('org.legal_name', { ...ctx, org: { name: 'Skyline' } }), 'Skyline', 'no profile: the workspace name')
+})
+
+test('the bank account and PAN never reach the audit log; only owners and admins save business details', () => {
+  const route = fs.readFileSync(path.join(root, 'app/api/settings/business-profile/route.ts'), 'utf8')
+  assert.match(route, /authorizeOrgAccess\(parsed\.data\.orgId, \['owner', 'admin'\]\)/)
+  assert.match(route, /\{ fields_filled: filled \}/)
+  assert.doesNotMatch(route, /auditMember\([^)]*profile\)/)
 })
 
 console.log(`\nDocuments: ${passed} checks passed.`)
