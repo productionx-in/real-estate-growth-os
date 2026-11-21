@@ -6,6 +6,7 @@ import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { getProjectsByOrg } from '@/lib/dal/projects'
 import { getIntegrationConnections, getProjectMappings } from '@/lib/dal/integrations'
 import { IntegrationCentreView } from '@/components/integrations/IntegrationCentreView'
+import { IntegrationReadinessPanel } from '@/components/integrations/IntegrationReadinessPanel'
 
 export const metadata: Metadata = { title: 'Integration Centre' }
 export const dynamic = 'force-dynamic'
@@ -70,6 +71,8 @@ export default async function IntegrationsPage({ params }: PageProps) {
         schemaAvailable={schemaAvailable}
         schemaError={schemaError}
       />
+      {/* Moved here from Settings: how each lead source connects (reference for admins). */}
+      <div className="mt-6"><IntegrationReadinessPanel /></div>
     </PageShell>
   )
 }
