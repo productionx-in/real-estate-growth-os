@@ -188,6 +188,7 @@ jobs:
           node tests/db-integration/p26-assistant-memory.test.mjs 2>&1 | tee diagnostics/p26-assistant-memory.log
           node tests/db-integration/p27-organisation-delete.test.mjs 2>&1 | tee diagnostics/p27-organisation-delete.log
           node tests/db-integration/p28-customer-emails.test.mjs 2>&1 | tee diagnostics/p28-customer-emails.log
+          node tests/db-integration/p29-daily-and-activation-emails.test.mjs 2>&1 | tee diagnostics/p29-daily-and-activation-emails.log
 
       # 11. Execute Application Regression Test Suite (Phase 6)
       - name: Execute Application Regression Test Suite (All 27 Tests)

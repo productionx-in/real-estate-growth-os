@@ -5,7 +5,7 @@ import { AppearanceMenu } from '@/components/theme/AppearanceMenu'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { Bell, ChevronRight, Menu, Search, LogOut, Compass, Settings } from 'lucide-react'
+import { Bell, ChevronRight, Menu, Search, LogOut, Compass, Settings, Mail } from 'lucide-react'
 import { NAV_TOGGLE_EVENT } from '@/components/layout/Sidebar'
 import { PALETTE_OPEN_EVENT } from '@/components/layout/CommandPalette'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
@@ -139,7 +139,8 @@ export function Header({ orgId, orgName, orgSlug = '', orgType = 'developer', ro
             {availableOrgs.length > 1 && (
               <DropdownMenuItem asChild><Link href="/select-org"><Compass aria-hidden /> Switch workspace</Link></DropdownMenuItem>
             )}
-            {(isAdmin || availableOrgs.length > 1) && <DropdownMenuSeparator />}
+            <DropdownMenuItem asChild><Link href="/account/notifications"><Mail aria-hidden /> E-mail notifications</Link></DropdownMenuItem>
+            <DropdownMenuSeparator />
             <AppearanceMenu />
             <DropdownMenuSeparator />
             <DropdownMenuItem destructive onSelect={signOut}><LogOut aria-hidden /> Sign out</DropdownMenuItem>
