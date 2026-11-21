@@ -2,6 +2,7 @@
 // builders, and channel partner agencies. REGrow staff use an unlisted address (/login?for=staff, or any /platform link)
 // that is never shown or linked publicly. Hiding it is only tidiness: what anyone can open is always decided on the
 // server by memberships (customers) or platform role plus an authenticator code (staff).
+import { LINK_PROBLEM_MESSAGE, type LinkProblem } from '@/lib/auth/recovery'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
@@ -43,10 +44,13 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <h1 className="text-xl font-semibold text-[var(--foreground)]">{HEADING[audience].title}</h1>
         <p className="mt-1 text-sm text-[var(--foreground-muted)]">{HEADING[audience].sub}</p>
       </div>
-      {sp.error === 'link_invalid' && (
-        <p role="alert" className="mb-4 rounded-lg border border-[var(--border)] bg-[var(--surface-hover)] px-3 py-2 text-[13px] text-[var(--foreground)]">
-          That link has expired or was already used. Ask the person who sent it for a new one.
+      {sp.error && sp.error in LINK_PROBLEM_MESSAGE && (
+        <p role="alert" className="mb-4 rounded-lg border border-warning/30 bg-warning-bg px-3 py-2 text-[13px] text-[var(--foreground)]">
+          {audience === 'staff' ? 'That link has expired or was already used. Ask the Platform Owner for a new one.' : LINK_PROBLEM_MESSAGE[sp.error as LinkProblem]}
         </p>
+      )}
+      {sp.error === 'auth_callback_failed' && (
+        <p role="alert" className="mb-4 rounded-lg border border-warning/30 bg-warning-bg px-3 py-2 text-[13px] text-[var(--foreground)]">{LINK_PROBLEM_MESSAGE.link_invalid}</p>
       )}
 
       <Suspense fallback={<div>Loading login...</div>}>

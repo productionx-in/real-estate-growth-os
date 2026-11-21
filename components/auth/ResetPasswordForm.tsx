@@ -41,7 +41,7 @@ export function ResetPasswordForm() {
     const { error: updateError } = await supabase.auth.updateUser({ password })
     if (updateError) {
       setBusy(false)
-      setError(/same/i.test(updateError.message) ? 'Choose a password you haven’t used for this account.' : 'Your reset link has expired. Request a new one from the sign-in page.')
+      setError(/same/i.test(updateError.message) ? 'Choose a password you haven’t used for this account.' : /weak|password should|characters/i.test(updateError.message) ? updateError.message : 'Your reset link has expired. Request a new one from the sign-in page.')
       return
     }
     // Anyone else signed in with the old password is signed out; this browser stays signed in.
@@ -57,8 +57,8 @@ export function ResetPasswordForm() {
   if (ready === 'no-session') {
     return (
       <div className="space-y-3 text-sm">
-        <p className="text-[var(--foreground)]">This reset link has expired or was already used.</p>
-        <Link href="/login" className="inline-block font-semibold text-[var(--brand)] hover:underline">Request a new link</Link>
+        <p className="text-[var(--foreground)]">This reset link has expired, was already used, or was opened in a different browser from the one you requested it in.</p>
+        <Link href="/login?mode=forgot" className="inline-block font-semibold text-[var(--brand)] hover:underline">Request a new link</Link>
       </div>
     )
   }
