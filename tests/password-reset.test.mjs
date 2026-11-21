@@ -54,4 +54,10 @@ test('the reset e-mail template uses a token-hash link that works on any device'
   assert.match(t, /\{\{ \.SiteURL \}\}\/auth\/confirm\?token_hash=\{\{ \.TokenHash \}\}&type=recovery&next=\/reset-password/)
   assert.doesNotMatch(t, /ConfirmationURL/)
 })
+test('saving the new password: the real reason is shown, and two-step accounts are asked for their code', () => {
+  const f = read('components/auth/ResetPasswordForm.tsx')
+  assert.match(f, /nextLevel === 'aal2' && aal\.currentLevel !== 'aal2'/); assert.match(f, /challengeAndVerify\(\{ factorId: mfaFactor, code: code\.trim\(\) \}\)/)
+  assert.match(f, /code === 'insufficient_aal'/); assert.match(f, /code === 'weak_password'/)
+  assert.match(f, /code === 'session_not_found' \|\| code === 'session_expired'/, 'only a missing session is called "expired"')
+})
 console.log(`\nPassword reset: ${passed} checks passed.`)
