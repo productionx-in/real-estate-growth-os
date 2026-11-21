@@ -2,6 +2,7 @@
 // Merge fields for document templates: {{lead.name}}, {{unit.total_price}}… One list, used by the template
 // editor (field picker, live preview), document creation (the frozen copy) and the tests.
 // Output is plain text; it is displayed by components/documents/DocumentBody.tsx, which never renders HTML.
+import { EMPTY_PROFILE, formatAddress, type BusinessProfile } from '@/lib/documents/letterhead'
 
 export interface MergeContext {
   lead: { name: string; phone: string; email: string | null }
@@ -13,7 +14,8 @@ export interface MergeContext {
     pricing_breakup: unknown
   } | null
   agent: { name: string; phone: string | null; email: string | null } | null
-  org: { name: string }
+  /** The company's own details (Settings → Business details), for letterheads, signatures and bank details. */
+  org: { name: string; profile?: BusinessProfile }
   today: Date
   timezone: string
 }
@@ -36,9 +38,15 @@ export const FIELD_GROUPS: { group: string; fields: { key: string; label: string
   { group: 'Salesperson', fields: [
     { key: 'agent.name', label: 'Name' }, { key: 'agent.phone', label: 'Phone' }, { key: 'agent.email', label: 'Email' },
   ] },
-  { group: 'Other', fields: [
-    { key: 'org.name', label: 'Company name' }, { key: 'today', label: 'Today’s date' },
-    { key: 'valid_until', label: 'Valid until (15 days)' },
+  { group: 'Your company', fields: [
+    { key: 'org.name', label: 'Company name' }, { key: 'org.legal_name', label: 'Registered name' },
+    { key: 'org.address', label: 'Address' }, { key: 'org.phone', label: 'Phone' }, { key: 'org.email', label: 'Email' },
+    { key: 'org.website', label: 'Website' }, { key: 'org.gstin', label: 'GSTIN' }, { key: 'org.pan', label: 'PAN' },
+    { key: 'org.rera_number', label: 'RERA registration' }, { key: 'org.signatory_name', label: 'Signatory' },
+    { key: 'org.signatory_title', label: 'Signatory’s title' }, { key: 'org.bank_details', label: 'Bank details (table)' },
+  ] },
+  { group: 'Dates', fields: [
+    { key: 'today', label: 'Today’s date' }, { key: 'valid_until', label: 'Valid until (15 days)' },
   ] },
 ]
 
@@ -72,9 +80,23 @@ function breakupTable(v: unknown): string | null {
   return rows.length ? ['| Item | Amount |', '|---|---|', ...rows].join('\n') : null
 }
 
+/** Where buyers pay: a two-column table, only when the account number and IFSC are both set. */
+function bankTable(p: BusinessProfile): string | null {
+  if (!p.bankAccountNumber || !p.bankIfsc) return null
+  const clean = (v: string) => v.replace(/[|\n]/g, ' ')
+  return [
+    '| Bank details | |', '|---|---|',
+    `| Account name | ${clean(p.bankAccountName ?? p.legalName ?? '—')} |`,
+    ...(p.bankName ? [`| Bank | ${clean(p.bankName)} |`] : []),
+    `| Account number | ${p.bankAccountNumber} |`,
+    `| IFSC | ${p.bankIfsc} |`,
+  ].join('\n')
+}
+
 /** The value of one field, or null when the context has none. */
 export function fieldValue(key: string, c: MergeContext): string | null {
   const u = c.unit
+  const p = c.org.profile ?? EMPTY_PROFILE
   const area = (n: number | null | undefined) => num(n, u?.area_unit ? ` ${u.area_unit}` : ' sq ft')
   switch (key) {
     case 'lead.name': return c.lead.name || null
@@ -99,6 +121,17 @@ export function fieldValue(key: string, c: MergeContext): string | null {
     case 'agent.phone': return c.agent?.phone ?? null
     case 'agent.email': return c.agent?.email ?? null
     case 'org.name': return c.org.name
+    case 'org.legal_name': return p.legalName ?? c.org.name
+    case 'org.address': return formatAddress(p)
+    case 'org.phone': return p.phone
+    case 'org.email': return p.email
+    case 'org.website': return p.website
+    case 'org.gstin': return p.gstin
+    case 'org.pan': return p.pan
+    case 'org.rera_number': return p.reraNumber
+    case 'org.signatory_name': return p.signatoryName
+    case 'org.signatory_title': return p.signatoryTitle
+    case 'org.bank_details': return bankTable(p)
     case 'today': return dateText(c.today, c.timezone)
     case 'valid_until': return dateText(new Date(c.today.getTime() + 15 * 86_400_000), c.timezone)
     default: return null
@@ -134,7 +167,17 @@ export const SAMPLE_CONTEXT: MergeContext = {
     pricing_breakup: { 'Base price': 13209000, 'Car park': 400000, 'Club membership': 200000, 'GST (5%)': 690000 },
   },
   agent: { name: 'Asha Menon', phone: '+91 98450 00000', email: 'asha@skyline.example' },
-  org: { name: 'Skyline Developers' },
+  org: {
+    name: 'Skyline Developers',
+    profile: {
+      legalName: 'Skyline Developers Private Limited', address: '4th Floor, Prestige Meridian, 29 MG Road', city: 'Bengaluru',
+      state: 'Karnataka', pincode: '560001', gstin: '29ABCDE1234F1Z5', pan: 'ABCDE1234F', reraNumber: 'PRM/KA/RERA/1251/446/PR/010125/007321',
+      phone: '+91 80 4000 1234', email: 'sales@skyline.example', website: 'https://skyline.example', logoUrl: null,
+      signatoryName: 'Rahul Iyer', signatoryTitle: 'Director, Sales', bankAccountName: 'Skyline Developers Pvt Ltd — Skyline Towers Collection A/c',
+      bankName: 'HDFC Bank, MG Road', bankAccountNumber: '50200012345678', bankIfsc: 'HDFC0000123',
+      footerNote: 'Registered office: 29 MG Road, Bengaluru 560001. CIN U45200KA2010PTC000000.',
+    },
+  },
   today: new Date('2026-11-18T09:00:00Z'),
   timezone: 'Asia/Kolkata',
 }

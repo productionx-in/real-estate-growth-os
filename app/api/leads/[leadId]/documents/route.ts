@@ -11,6 +11,8 @@ const Schema = z.object({
   unitId: z.string().uuid().nullable().optional(),
   title: z.string().trim().max(120).optional(),
   validDays: z.number().int().min(LINK_DAYS.min).max(LINK_DAYS.max).optional(),
+  /** The filled-in text after the salesperson's edits for this buyer (optional). */
+  body: z.string().max(40000, 'Keep the document under 40,000 characters.').optional(),
 })
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ leadId: string }> }) {

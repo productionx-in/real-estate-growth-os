@@ -6,10 +6,12 @@ import crypto from 'node:crypto'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getResponseMinutes } from '@/lib/dal/action-board'
 import { missingFields, renderTemplate, unknownFields, type MergeContext } from '@/lib/documents/merge'
+import { buildLetterhead, parseLetterhead, profileFromRow, profileToRow, type BusinessProfile, type Letterhead } from '@/lib/documents/letterhead'
 import type { DalResult } from '@/lib/dal/routing'
+import type { Json } from '@/types/database'
 
-export const TEMPLATE_KINDS = { cost_sheet: 'Cost sheet', quotation: 'Quotation', letter: 'Letter', other: 'Other' } as const
-export type TemplateKind = keyof typeof TEMPLATE_KINDS
+import { TEMPLATE_KINDS, type TemplateKind } from '@/lib/documents/kinds'
+export { TEMPLATE_KINDS, type TemplateKind }
 export const LINK_DAYS = { min: 1, max: 90, default: 30 }
 
 export interface DocumentTemplate {
@@ -17,24 +19,39 @@ export interface DocumentTemplate {
   name: string
   kind: TemplateKind
   body: string
+  /** Documents from this template carry the company letterhead (20260071). */
+  letterhead: boolean
   updatedAt: string
 }
 
+/** The company's details for documents (Settings → Business details). Empty when never filled in. */
+export async function getBusinessProfile(orgId: string): Promise<BusinessProfile> {
+  const { data } = await createServiceClient().from('org_business_profiles').select('*').eq('org_id', orgId).maybeSingle()
+  return profileFromRow(data as Record<string, unknown> | null)
+}
+
+/** Owners and admins only — the caller authorises. Values must already be normalised (normaliseProfile). */
+export async function saveBusinessProfile(orgId: string, actorId: string, profile: BusinessProfile): Promise<boolean> {
+  const { error } = await createServiceClient().from('org_business_profiles')
+    .upsert({ org_id: orgId, ...profileToRow(profile), updated_by: actorId, updated_at: new Date().toISOString() }, { onConflict: 'org_id' })
+  return !error
+}
+
 export async function listTemplates(orgId: string): Promise<DocumentTemplate[]> {
-  const { data } = await createServiceClient().from('document_templates').select('id, name, kind, body, updated_at')
+  const { data } = await createServiceClient().from('document_templates').select('id, name, kind, body, letterhead, updated_at')
     .eq('org_id', orgId).eq('archived', false).order('name')
-  return (data ?? []).map((t) => ({ id: t.id, name: t.name, kind: t.kind as TemplateKind, body: t.body, updatedAt: t.updated_at }))
+  return (data ?? []).map((t) => ({ id: t.id, name: t.name, kind: t.kind as TemplateKind, body: t.body, letterhead: t.letterhead !== false, updatedAt: t.updated_at }))
 }
 
 export async function saveTemplate(
-  orgId: string, actorId: string, input: { id?: string; name: string; kind: TemplateKind; body: string }
+  orgId: string, actorId: string, input: { id?: string; name: string; kind: TemplateKind; body: string; letterhead?: boolean }
 ): Promise<DalResult<{ id: string }>> {
   const unknown = unknownFields(input.body)
   if (unknown.length) {
     return { success: false, error: `Unknown field${unknown.length > 1 ? 's' : ''}: ${unknown.map((k) => `{{${k}}}`).join(', ')}. Pick fields from the list.`, status: 400 }
   }
   const db = createServiceClient()
-  const row = { name: input.name.trim(), kind: input.kind, body: input.body, updated_by: actorId, updated_at: new Date().toISOString() }
+  const row = { name: input.name.trim(), kind: input.kind, body: input.body, letterhead: input.letterhead !== false, updated_by: actorId, updated_at: new Date().toISOString() }
   const { data, error } = input.id
     ? await db.from('document_templates').update(row).eq('org_id', orgId).eq('id', input.id).eq('archived', false).select('id').maybeSingle()
     : await db.from('document_templates').insert({ ...row, org_id: orgId, created_by: actorId }).select('id').single()
@@ -53,7 +70,7 @@ export async function archiveTemplate(orgId: string, id: string): Promise<boolea
 /** Everything a template can mention for this lead (and unit, if one is chosen). Null if the unit is not this organisation's. */
 export async function buildContext(orgId: string, leadId: string, unitId: string | null, now = new Date()): Promise<MergeContext | null> {
   const db = createServiceClient()
-  const [{ data: lead }, { data: org }, unitRes, { timezone }] = await Promise.all([
+  const [{ data: lead }, { data: org }, unitRes, { timezone }, profile] = await Promise.all([
     db.from('leads').select('name, phone, email, project_id, assigned_to').eq('org_id', orgId).eq('id', leadId).maybeSingle(),
     db.from('organisations').select('name').eq('id', orgId).maybeSingle(),
     unitId
@@ -61,6 +78,7 @@ export async function buildContext(orgId: string, leadId: string, unitId: string
           .eq('org_id', orgId).eq('id', unitId).maybeSingle()
       : Promise.resolve({ data: null }),
     getResponseMinutes(orgId),
+    getBusinessProfile(orgId),
   ])
   if (!lead || !org) return null
   const unit = unitRes.data
@@ -83,7 +101,7 @@ export async function buildContext(orgId: string, leadId: string, unitId: string
     project: project ?? null,
     unit: unit ? { ...unit, pricing_breakup: unit.pricing_breakup } : null,
     agent,
-    org: { name: org.name },
+    org: { name: org.name, profile },
     today: now,
     timezone,
   }
@@ -91,11 +109,12 @@ export async function buildContext(orgId: string, leadId: string, unitId: string
 
 export async function previewDocument(orgId: string, leadId: string, templateId: string, unitId: string | null) {
   const db = createServiceClient()
-  const { data: tpl } = await db.from('document_templates').select('name, body').eq('org_id', orgId).eq('id', templateId).eq('archived', false).maybeSingle()
+  const { data: tpl } = await db.from('document_templates').select('name, body, letterhead').eq('org_id', orgId).eq('id', templateId).eq('archived', false).maybeSingle()
   if (!tpl) return null
   const ctx = await buildContext(orgId, leadId, unitId)
   if (!ctx) return null
-  return { title: tpl.name, body: renderTemplate(tpl.body, ctx), missing: missingFields(tpl.body, ctx) }
+  const letterhead: Letterhead | null = tpl.letterhead === false ? null : buildLetterhead(ctx.org.name, ctx.org.profile!)
+  return { title: tpl.name, body: renderTemplate(tpl.body, ctx), missing: missingFields(tpl.body, ctx), letterhead }
 }
 
 export interface LeadDocument {
@@ -112,10 +131,13 @@ export interface LeadDocument {
 }
 
 export async function createDocument(
-  orgId: string, leadId: string, actorId: string, input: { templateId: string; unitId: string | null; title?: string; validDays?: number }
+  orgId: string, leadId: string, actorId: string, input: { templateId: string; unitId: string | null; title?: string; validDays?: number; body?: string }
 ): Promise<DalResult<LeadDocument>> {
   const preview = await previewDocument(orgId, leadId, input.templateId, input.unitId)
   if (!preview) return { success: false, error: 'Template or unit not found.', status: 404 }
+  // The salesperson may fill in blanks or adjust wording for this buyer before sharing (the filled-in text, never the template).
+  const edited = typeof input.body === 'string' && input.body.trim().length > 0 && input.body !== preview.body
+  const body = edited ? input.body!.replace(/\r\n?/g, '\n').slice(0, 40000) : preview.body
   const days = Math.min(LINK_DAYS.max, Math.max(LINK_DAYS.min, Math.floor(input.validDays ?? LINK_DAYS.default)))
   const db = createServiceClient()
   const { data, error } = await db.from('lead_documents').insert({
@@ -124,7 +146,10 @@ export async function createDocument(
     template_id: input.templateId,
     unit_id: input.unitId,
     title: (input.title?.trim() || preview.title).slice(0, 120),
-    body: preview.body,
+    body,
+    edited,
+    // Frozen: a later change of address or GSTIN never rewrites what this buyer was sent.
+    letterhead: preview.letterhead as unknown as Json | null,
     // 256 random bits: the link is the only key to the document, so it must not be guessable.
     share_token: crypto.randomBytes(32).toString('base64url'),
     expires_at: new Date(Date.now() + days * 86_400_000).toISOString(),
@@ -175,6 +200,7 @@ export interface SharedDocument {
   title: string
   body: string
   orgName: string
+  letterhead: Letterhead | null
   sharedBy: { name: string; phone: string | null } | null
   createdAt: string
 }
@@ -183,9 +209,9 @@ export interface SharedDocument {
 export async function openSharedDocument(token: string, userAgent: string | null): Promise<SharedDocument | null> {
   if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return null
   const db = createServiceClient()
-  let doc: { org_id: string; title: string; body: string; created_by: string | null; created_at: string } | null = null
+  let doc: { id: string; org_id: string; title: string; body: string; created_by: string | null; created_at: string } | null = null
   if (isLinkPreview(userAgent)) {
-    const { data } = await db.from('lead_documents').select('org_id, title, body, created_by, created_at')
+    const { data } = await db.from('lead_documents').select('id, org_id, title, body, created_by, created_at')
       .eq('share_token', token).is('revoked_at', null).gt('expires_at', new Date().toISOString()).maybeSingle()
     doc = data
   } else {
@@ -193,12 +219,14 @@ export async function openSharedDocument(token: string, userAgent: string | null
     doc = (Array.isArray(data) ? data[0] : data) ?? null
   }
   if (!doc) return null
-  const [{ data: org }, { data: by }] = await Promise.all([
+  const [{ data: org }, { data: by }, { data: frozen }] = await Promise.all([
     db.from('organisations').select('name').eq('id', doc.org_id).maybeSingle(),
     doc.created_by ? db.from('profiles').select('full_name, phone').eq('id', doc.created_by).maybeSingle() : Promise.resolve({ data: null }),
+    db.from('lead_documents').select('letterhead').eq('id', doc.id).eq('org_id', doc.org_id).maybeSingle(),
   ])
   return {
     title: doc.title, body: doc.body, orgName: org?.name ?? '', createdAt: doc.created_at,
+    letterhead: parseLetterhead(frozen?.letterhead),
     sharedBy: by ? { name: by.full_name, phone: by.phone } : null,
   }
 }

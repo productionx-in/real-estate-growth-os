@@ -12,6 +12,7 @@ const Schema = z.object({
   name: z.string().trim().min(1, 'Give the template a name.').max(80),
   kind: z.enum(Object.keys(TEMPLATE_KINDS) as [keyof typeof TEMPLATE_KINDS, ...(keyof typeof TEMPLATE_KINDS)[]]),
   body: z.string().trim().min(1, 'Write the template.').max(20000, 'Keep the template under 20,000 characters.'),
+  letterhead: z.boolean().optional(),
 })
 
 export async function POST(request: NextRequest) {

@@ -6,6 +6,8 @@ import { Plug, ArrowRight } from 'lucide-react'
 import { PageShell } from '@/components/layout/PageShell'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { IntegrationReadinessPanel } from '@/components/integrations/IntegrationReadinessPanel'
+import { BusinessProfileForm } from '@/components/settings/BusinessProfileForm'
+import { getBusinessProfile } from '@/lib/dal/documents'
 
 export const metadata: Metadata = { title: 'Settings' }
 export const dynamic = 'force-dynamic'
@@ -27,10 +29,11 @@ export default async function SettingsPage({ params }: PageProps) {
   if (!isAdmin) {
     redirect(`/${orgSlug}`)
   }
+  const businessProfile = await getBusinessProfile(org.id)
 
   return (
     <PageShell title="Settings" description="Manage your workspace configuration and user profile">
-      <div className="max-w-4xl space-y-6">
+      <div className="max-w-5xl space-y-6">
         {/* Organisation info */}
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 shadow-2xs">
           <h2 className="text-[13px] font-semibold text-[var(--foreground)] mb-4">
@@ -66,6 +69,13 @@ export default async function SettingsPage({ params }: PageProps) {
             </p>
           )}
         </div>
+
+        {/* Business details: letterhead, registrations, signatory and bank account on documents (20260071) */}
+        <section id="business-details" aria-labelledby="business-details-title" className="scroll-mt-20 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-2xs">
+          <h2 id="business-details-title" className="text-[14px] font-semibold text-[var(--foreground)]">Business details for documents</h2>
+          <p className="mb-4 text-[12px] text-[var(--foreground-muted)]">Your letterhead on cost sheets, quotations, allotment letters and payment demands.</p>
+          <BusinessProfileForm orgId={org.id} orgName={org.name} initial={businessProfile} />
+        </section>
 
         {/* Integration Centre Link */}
         <div className="bg-[var(--surface)] border border-brand/80 rounded-xl p-5 shadow-2xs flex items-center justify-between">
