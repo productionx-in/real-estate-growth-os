@@ -61,8 +61,8 @@ export default async function OrganisationsPage({ searchParams }: { searchParams
         </div>
       </div>
       {rows.length === 0 ? <TableCard minWidth={0}><tbody><tr><td><EmptyState icon={Building2} title="No organisations match" description="Try another filter or search." /></td></tr></tbody></TableCard> : (
-        <TableCard minWidth={900}>
-          <thead><tr><Th>Customer</Th><Th>Health</Th><Th>Why</Th><Th>Subscription</Th><Th className="text-right">Members / seats</Th><Th className="text-right">Last sign-in</Th><Th className="text-right">Cases</Th></tr></thead>
+        <TableCard minWidth={980}>
+          <thead><tr><Th>Customer</Th><Th>Health</Th><Th>Why</Th><Th>Subscription</Th><Th className="text-right">Members / seats</Th><Th className="text-right">Last sign-in</Th><Th className="text-right">Cases</Th><Th className="text-right"><span className="sr-only">Manage</span></Th></tr></thead>
           <tbody>
             {rows.map((o) => (
               <tr key={o.id} className="hover:bg-surface-hover">
@@ -82,6 +82,7 @@ export default async function OrganisationsPage({ searchParams }: { searchParams
                 <Td className="text-right tabular-nums">{o.members}{o.seats !== null && <span className="text-muted"> / {o.seats}</span>}</Td>
                 <Td className="text-right tabular-nums text-muted">{o.lastSignIn ? day(o.lastSignIn) : 'Never'}</Td>
                 <Td className={`text-right tabular-nums ${o.openCases ? 'font-medium' : 'text-muted'}`}>{o.openCases}</Td>
+                <Td className="text-right"><Link href={`/platform/organisations/${o.id}`} className="inline-flex min-h-9 items-center rounded-lg border border-default px-3 text-[12px] font-medium hover:bg-surface-hover">Manage</Link></Td>
               </tr>
             ))}
           </tbody>
