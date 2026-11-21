@@ -1,7 +1,9 @@
 // lib/jobs/customer-emails.ts — email.customer_lifecycle (hourly, migration 20260068): finds what happened to each
 // customer's account and e-mails the workspace's active owners and admins about it, once.
 //
-//   welcome          an owner joined the workspace (activation finished)
+//   welcome          an owner joined the workspace (activation finished); says when a trial is running
+//   member_joined    a team member joined: a welcome to them, with their role and first steps
+//   plan_active      a paid plan became active
 //   trial_ending     7, 3 and 1 day(s) before a trial ends (only the nearest milestone, once each)
 //   trial_ended      a trial's end date passed in the last 3 days without a paid plan
 //   invoice_issued   an invoice was issued
@@ -21,7 +23,12 @@ import { appUrl } from '@/lib/site/urls'
 type Db = SupabaseClient<any, 'public', any>
 const DAY = 86_400_000
 
-export interface PendingEmail { orgId: string; kind: CustomerEmailKind; key: string; render: (url: (path: string) => string, orgName: string, slug: string) => Rendered; includeSuspended?: boolean }
+export interface PendingEmail {
+  orgId: string; kind: CustomerEmailKind; key: string; render: (url: (path: string) => string, orgName: string, slug: string) => Rendered; includeSuspended?: boolean
+  /** Send only to this person (a profile id) instead of the workspace's owners and admins. */
+  toProfile?: string
+}
+const planName = (tier: string | null | undefined) => (tier ? tier.charAt(0).toUpperCase() + tier.slice(1).replace(/_/g, ' ') : null)
 
 /** Which trial milestone applies now (7, 3 or 1 days left), or null. */
 export function trialMilestone(endsAt: string, now = Date.now()): 7 | 3 | 1 | null {
@@ -42,7 +49,26 @@ export async function collectPending(db: Db, now = Date.now()): Promise<PendingE
 
   const { data: owners } = await db.from('org_members').select('org_id, joined_at').eq('role', 'owner').eq('status', 'active').gte('joined_at', since2)
   for (const o of owners ?? []) {
-    out.push({ orgId: o.org_id, kind: 'welcome', key: `welcome:${o.org_id}`, render: (u, name, slug) => customerEmails.welcome({ orgName: name, url: u(`/${slug}`) }) })
+    const { data: sub } = await db.from('org_subscriptions').select('status, plan_tier, current_period_end').eq('org_id', o.org_id).maybeSingle()
+    const trialEndsAt = sub?.status === 'trial' ? (sub.current_period_end as string | null) : null
+    out.push({ orgId: o.org_id, kind: 'welcome', key: `welcome:${o.org_id}`,
+      render: (u, name, slug) => customerEmails.welcome({ orgName: name, url: u(`/${slug}`), trialEndsAt, plan: planName(sub?.plan_tier) }) })
+  }
+
+  // A team member (not the owner) accepted their invitation: welcome them, personally.
+  const { data: joined } = await db.from('org_members').select('id, org_id, profile_id, role').neq('role', 'owner').eq('status', 'active').gte('joined_at', since2)
+  for (const m of joined ?? []) {
+    const { data: p } = await db.from('profiles').select('full_name').eq('id', m.profile_id).maybeSingle()
+    const firstName = (p?.full_name ?? '').trim().split(/\s+/)[0] || 'there'
+    out.push({ orgId: m.org_id, kind: 'member_joined', key: `member_joined:${m.id}`, toProfile: m.profile_id,
+      render: (u, name, slug) => customerEmails.member_joined({ orgName: name, firstName, role: m.role, url: u(`/${slug}/today`) }) })
+  }
+
+  // A paid plan became active (staff activation or a payment).
+  const { data: active } = await db.from('org_subscriptions').select('org_id, plan_tier, included_seats, additional_seats, current_period_end, activated_at').eq('status', 'active').gte('activated_at', since2)
+  for (const a of active ?? []) {
+    out.push({ orgId: a.org_id, kind: 'plan_active', key: `plan_active:${a.org_id}:${String(a.activated_at).slice(0, 10)}`, includeSuspended: true,
+      render: (u, name, slug) => customerEmails.plan_active({ orgName: name, plan: planName(a.plan_tier), seats: (a.included_seats ?? 0) + (a.additional_seats ?? 0) || null, renewsAt: a.current_period_end, url: u(`/${slug}/billing`) }) })
   }
 
   const { data: trials } = await db.from('org_subscriptions').select('org_id, status, current_period_end').in('status', ['trial', 'expired', 'canceled']).not('current_period_end', 'is', null)
@@ -104,6 +130,17 @@ export async function recipientsFor(db: Db, orgId: string, includeSuspended = fa
   return [...emails]
 }
 
+/** One person's usable e-mail address, as a list (empty for erased, deactivated or test accounts). */
+export async function emailOf(db: Db, profileId: string): Promise<string[]> {
+  const { data: p } = await db.from('profiles').select('auth_user_id').eq('id', profileId).maybeSingle()
+  if (!p?.auth_user_id) return []
+  const { data } = await db.auth.admin.getUserById(p.auth_user_id)
+  const u = data?.user as { email?: string; banned_until?: string | null } | undefined
+  if (!u?.email || isReservedTestAddress(u.email)) return []
+  if (u.banned_until && new Date(u.banned_until).getTime() > Date.now()) return []
+  return [u.email]
+}
+
 export async function customerLifecycleEmails(_job: unknown, db: Db): Promise<void> {
   if (!process.env.RESEND_API_KEY && process.env.VERCEL_ENV === 'production') return // nothing configured: try next hour
   const base = appUrl()
@@ -120,7 +157,7 @@ export async function customerLifecycleEmails(_job: unknown, db: Db): Promise<vo
   for (const p of todo) {
     const { data: org } = await db.from('organisations').select('name, slug').eq('id', p.orgId).maybeSingle()
     if (!org) continue
-    const to = await recipientsFor(db, p.orgId, p.includeSuspended)
+    const to = p.toProfile ? await emailOf(db, p.toProfile) : await recipientsFor(db, p.orgId, p.includeSuspended)
     // Claim the key first: a second run (or a retry) can't send the same e-mail again.
     const { error: claim } = await db.from('customer_email_log').insert({ org_id: p.orgId, kind: p.kind, dedupe_key: p.key, recipients: to.length, status: to.length ? 'sent' : 'skipped', detail: to.length ? null : 'no owner or admin with a usable e-mail' })
     if (claim) continue // already claimed by another run

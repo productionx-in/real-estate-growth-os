@@ -5,6 +5,7 @@
 import { renderEmail } from '@/lib/email/layout'
 
 export type CustomerEmailKind = 'welcome' | 'trial_ending' | 'trial_ended' | 'invoice_issued' | 'payment_received' | 'payment_failed' | 'workspace_state'
+  | 'plan_active' | 'member_joined' | 'daily_member' | 'daily_manager'
 
 export interface Rendered { subject: string; html: string; text: string }
 
@@ -14,12 +15,15 @@ const out = (subject: string, c: Parameters<typeof renderEmail>[0]): Rendered =>
   ({ subject, ...renderEmail({ reason: 'You received this because you own or manage a REGrow workspace.', ...c }) })
 
 export const customerEmails = {
-  welcome: (o: { orgName: string; url: string }) =>
+  welcome: (o: { orgName: string; url: string; trialEndsAt?: string | null; plan?: string | null }) =>
     out(`Your REGrow workspace "${o.orgName}" is ready`, {
-      preheader: 'Three steps to your first leads in REGrow.',
+      preheader: o.trialEndsAt ? `Your free trial runs until ${day(o.trialEndsAt)}.` : 'Three steps to your first leads in REGrow.',
       heading: `Welcome to REGrow, ${o.orgName}`,
       paragraphs: [
-        'Your workspace is ready. Three steps get you to your first leads:',
+        o.trialEndsAt
+          ? `Your workspace is ready and your **free trial has started**${o.plan ? ` on the **${o.plan}** plan` : ''}. It runs until **${day(o.trialEndsAt)}** — everything is switched on.`
+          : `Your workspace is ready${o.plan ? ` on the **${o.plan}** plan` : ''}.`,
+        'Three steps get you to your first leads:',
         '**1. Connect a lead source** — Meta, Google, your website form or a portal, under Integrations.',
         '**2. Invite your team** — add your salespeople under Team, so new leads reach them straight away.',
         '**3. Add a project** — so every lead is tied to the right project and inventory.',
@@ -85,6 +89,43 @@ export const customerEmails = {
       cta: { label: 'Try again', url: o.url },
       footnote: 'If money was taken from your account, it is returned automatically by your bank. Reply to this e-mail if it isn’t.',
     }),
+
+  plan_active: (o: { orgName: string; plan: string | null; seats: number | null; renewsAt: string | null; url: string }) =>
+    out(`Your REGrow plan is active`, {
+      preheader: `${o.orgName}${o.plan ? ` is on the ${o.plan} plan` : ' is active'}.`,
+      heading: 'Your plan is active',
+      paragraphs: [
+        `**${o.orgName}** is now on${o.plan ? ` the **${o.plan}** plan` : ' a paid plan'}${o.seats ? ` with **${o.seats} seats**` : ''}. Thank you for choosing REGrow.`,
+        ...(o.renewsAt ? [`Your current period runs until **${day(o.renewsAt)}**. We’ll remind you before it renews.`] : []),
+        'Invoices, receipts and seats are under Billing.',
+      ],
+      cta: { label: 'Open your workspace', url: o.url },
+    }),
+
+  member_joined: (o: { orgName: string; firstName: string; role: string; url: string }) => {
+    const roleLine: Record<string, string> = {
+      owner: 'As an owner you can do everything, including billing and the team.',
+      admin: 'As an admin you manage the team, lead sources and settings.',
+      manager: 'As a manager you see every lead and can assign and reassign them.',
+      team_lead: 'As a team lead you see your team’s leads and can assign work within the team.',
+      sales_exec: 'New leads assigned to you appear in your list — call them first, then log what happened.',
+      post_sales: 'You look after bookings and buyers after the sale.',
+      readonly: 'You can view the workspace; you can’t change anything.',
+    }
+    return out(`Welcome to ${o.orgName} on REGrow`, {
+      preheader: 'Your account is set up. Here’s how to start.',
+      heading: `Welcome, ${o.firstName}`,
+      paragraphs: [
+        `You’ve joined **${o.orgName}** on REGrow as **${o.role.replace('_', ' ')}**. ${roleLine[o.role] ?? ''}`,
+        '**To start:**',
+        '• open **Today** — it shows who to call now and what’s due',
+        '• allow notifications when asked, so a new lead reaches you within seconds',
+        '• add REGrow to your phone’s home screen to use it like an app',
+        'You’ll also get a short summary of your day by e-mail each morning. You can turn it off in your account settings.',
+      ],
+      cta: { label: 'Open REGrow', url: o.url },
+    })
+  },
 
   workspace_state: (o: { orgName: string; to: string; reason: string | null; url: string }) => {
     const v = {
