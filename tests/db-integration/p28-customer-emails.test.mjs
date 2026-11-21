@@ -54,8 +54,10 @@ async function main() {
     const to = (subj) => mail.sentEmails.filter((e) => e.subject.includes(subj)).map((e) => e.to).sort()
     assert.deepEqual(to(`Mail Co ${RUN}" is ready`), [admin.email, owner.email].sort())
     assert.deepEqual(to('trial ends in 3 days'), [admin.email, owner.email].sort())
-    assert.equal(mail.sentEmails.some((e) => e.to === sales.email), false, 'a salesperson gets no account e-mails')
-    assert.equal(await count(`SELECT count(*) n FROM public.customer_email_log WHERE org_id=$1 AND status='sent'`, [org]), 2)
+    // A salesperson gets no workspace or billing e-mails — only their own team-member welcome (20260069).
+    assert.deepEqual(mail.sentEmails.filter((e) => e.to === sales.email).map((e) => e.subject), [`Welcome to Mail Co ${RUN} on REGrow`], 'a salesperson gets only their own welcome')
+    const kinds = (await sql.query(`SELECT kind, count(*)::int n FROM public.customer_email_log WHERE org_id=$1 AND status='sent' GROUP BY kind ORDER BY kind`, [org])).rows
+    assert.deepEqual(kinds, [{ kind: 'member_joined', n: 2 }, { kind: 'trial_ending', n: 1 }, { kind: 'welcome', n: 1 }])
   })
 
   await test('running again sends nothing twice', async () => {
