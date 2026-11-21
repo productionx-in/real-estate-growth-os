@@ -2,7 +2,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Building2, MapPin, Pencil } from 'lucide-react'
+import { ArrowLeft, Building2, MapPin, Pencil, MapPinned } from 'lucide-react'
 import { createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { ProjectDetailTabs } from '@/components/projects/ProjectDetailTabs'
@@ -108,7 +108,15 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         </div>
       }
       actions={
-        isManager ? (
+        <>
+        <Link
+          href={`/${orgSlug}/projects/${projectId}/map`}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-muted)] transition-colors shadow-sm"
+        >
+          <MapPinned className="w-3.5 h-3.5 text-[var(--foreground-muted)]" />
+          Plot map
+        </Link>
+        {isManager ? (
           <Link
             href={`/${orgSlug}/projects/${projectId}/edit`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-muted)] transition-colors shadow-sm"
@@ -116,7 +124,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             <Pencil className="w-3.5 h-3.5 text-[var(--foreground-muted)]" />
             Edit Project
           </Link>
-        ) : undefined
+        ) : null}
+        </>
       }
     >
       <div className="mb-4">
