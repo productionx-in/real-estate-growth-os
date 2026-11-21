@@ -40,7 +40,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
   return (
     <div className="space-y-5">
       <PageHeader title="People"
-        description="Find anyone who uses REGrow by e-mail. Suspend their access to a workspace, block them from signing in, or delete an account that no longer belongs to any workspace. Every action needs a reason and is audited." />
+        description="Find anyone who uses REGrow by e-mail. Remove them from a workspace, deactivate their account, or permanently delete it. Every action needs a reason and is audited." />
 
       <form className="flex max-w-xl flex-wrap gap-2" role="search">
         <label htmlFor="people-email" className="sr-only">E-mail address</label>
@@ -68,11 +68,11 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
               <div>
                 <p className="text-[13px] font-medium">Sign-in account</p>
                 <p className="text-[12px] text-muted">
-                  {isSuper ? 'Blocking signs them out everywhere. Delete is possible once they belong to no workspace.' : 'Only the Platform Owner can block or delete accounts.'}
+                  {isSuper ? 'Deactivate to stop them signing in (reversible), or permanently delete the account.' : 'Only the Platform Owner can block or delete accounts.'}
                 </p>
               </div>
-              <PersonControls name={acct.name} userId={acct.userId} staff={acct.staff} blocked={acct.blocked} isSelf={acct.userId === access.userId}
-                canAccount={isSuper} canMember={false} workspaceCount={acct.workspaces.length} />
+              <PersonControls name={acct.name} email={acct.email} userId={acct.userId} staff={acct.staff} blocked={acct.blocked} isSelf={acct.userId === access.userId}
+                canAccount={isSuper} canMember={false} workspaces={acct.workspaces.map((w) => w.name)} />
             </div>
 
             <div>
@@ -88,7 +88,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
                         <p className="text-[12px] text-muted">{w.role.replace('_', ' ')} · {w.status === 'active' ? 'access on' : `access off (${w.status})`}</p>
                       </div>
                       {!acct.staff && acct.userId !== access.userId && memberIds[w.orgId] && (
-                        <PersonControls name={acct.name} userId={acct.userId} staff={false} blocked={acct.blocked} isSelf={false}
+                        <PersonControls name={acct.name} email={acct.email} userId={acct.userId} staff={false} blocked={acct.blocked} isSelf={false}
                           canAccount={false} canMember orgId={w.orgId} memberId={memberIds[w.orgId]} memberStatus={w.status} />
                       )}
                     </li>

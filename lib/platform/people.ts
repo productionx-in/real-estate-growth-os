@@ -5,8 +5,8 @@
 //    workspace. Their open leads go to the unassigned queue; when it was their last active workspace they are
 //    signed out. The customer sees the change in their own audit log, attributed to REGrow.
 //  * Sign-in account (Platform Owner only): block or unblock signing in to REGrow at all, or delete the account.
-//    Deleting is only possible once the person belongs to no workspace (remove them, or delete the workspace,
-//    first) and is not REGrow staff; anything that still names them is kept by the database, which then refuses.
+//    Deleting removes them from every workspace and erases their personal details and sign-in for good; work they
+//    did inside a customer's workspace stays with that customer as "Deleted user". Never staff; never a sole owner.
 // Every action needs a reason and is written to the platform audit log. Staff accounts are managed on the
 // Staff page, never here. Nobody can act on their own account.
 import { createServiceClient } from '@/lib/supabase/server'
@@ -153,13 +153,36 @@ export async function changeAccount(actor: StaffActor, userId: string, action: '
     if (error) return fail(`Could not ${action} the account: ${error.message}`)
     if (action === 'block') await db.rpc('revoke_user_sessions', { p_auth_user: userId })
   } else {
-    if (acct.workspaces.length) {
-      return fail(`This person still belongs to ${acct.workspaces.map((w) => w.name).join(', ')}. Remove them from every workspace (or delete those workspaces) first — or block sign-in instead.`, 409)
+    // Permanent delete, like closing a social account: they leave every workspace, their personal details are
+    // erased and the sign-in is gone. Work they did inside a customer's workspace stays with that customer.
+    const p = await db.from('profiles').select('id').eq('auth_user_id', userId).maybeSingle()
+    const profileId = p.data?.id as string | undefined
+    for (const w of acct.workspaces.filter((w) => w.role === 'owner' && w.status === 'active')) {
+      const { count } = await db.from('org_members').select('id', { count: 'exact', head: true }).eq('org_id', w.orgId).eq('role', 'owner').eq('status', 'active')
+      if ((count ?? 0) <= 1) return fail(`${acct.name} is the only owner of ${w.name}. Make someone else an owner there first, or deactivate or delete that workspace.`, 409)
     }
     await db.rpc('revoke_user_sessions', { p_auth_user: userId })
-    const { error } = await db.auth.admin.deleteUser(userId)
-    if (error) return fail('This account is still named on records REGrow must keep, so it can’t be deleted. Block sign-in instead.', 409)
+    if (profileId) {
+      const { error } = await db.from('org_members').delete().eq('profile_id', profileId)
+      if (error) return fail(`Could not remove them from their workspaces: ${error.message}`)
+    }
+    const { error: delErr } = await db.auth.admin.deleteUser(userId)
+    if (delErr) {
+      // Their name is on records a workspace keeps (lead history, assignments): erase the person, keep the record.
+      if (profileId) await db.from('profiles').update({ full_name: 'Deleted user', phone: null, avatar_url: null, updated_at: new Date().toISOString() }).eq('id', profileId)
+      const { error } = await db.auth.admin.updateUserById(userId, {
+        email: `deleted-${userId}@deleted.invalid`, email_confirm: true, user_metadata: { full_name: 'Deleted user' }, ban_duration: FOREVER,
+        password: crypto.randomUUID() + crypto.randomUUID(),
+      } as never)
+      if (error) return fail(`Could not erase the account: ${error.message}`)
+    }
   }
-  await logPlatformAction({ actorUserId: actor.userId, actorRole: actor.role, action: `account.${action === 'delete' ? 'deleted' : action === 'block' ? 'blocked' : 'unblocked'}`, targetEntityType: 'auth_users', targetEntityId: userId, metadata: { email: acct.email, reason } })
+  await logPlatformAction({ actorUserId: actor.userId, actorRole: actor.role, action: `account.${action === 'delete' ? 'deleted' : action === 'block' ? 'blocked' : 'unblocked'}`, targetEntityType: 'auth_users', targetEntityId: userId, metadata: { email: action === 'delete' ? maskEmail(acct.email) : acct.email, reason, workspaces_left: action === 'delete' ? acct.workspaces.length : undefined } })
   return { success: true, data: { action } }
+}
+
+/** "ravi@acme.com" -> "ra***@acme.com": enough to recognise in the audit log, not enough to keep the person. */
+export function maskEmail(email: string) {
+  const [u, d] = email.split('@')
+  return d ? `${u.slice(0, 2)}***@${d}` : '***'
 }

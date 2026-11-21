@@ -16,10 +16,10 @@ test('workspace access: Platform Owner or platform admin; account actions: Platf
   assert.match(read('app/api/admin/organisations/[orgId]/members/[memberId]/route.ts'), /authenticatePlatformAdmin\(MEMBER_ADMINS, true\)/)
   assert.match(read('app/api/admin/accounts/[userId]/route.ts'), /authenticatePlatformAdmin\(ACCOUNT_ADMINS, true\)/)
 })
-test('guards: never yourself, never staff, never the only owner, seats respected, delete only with no workspace', () => {
+test('guards: never yourself, never staff, never the only owner, seats respected', () => {
   assert.match(lib, /You cannot change your own access/); assert.match(lib, /You cannot change your own account/)
   assert.match(lib, /if \(acct\.staff\) return fail/); assert.match(lib, /only owner/)
-  assert.match(lib, /All paid seats are in use/); assert.match(lib, /if \(acct\.workspaces\.length\)/)
+  assert.match(lib, /All paid seats are in use/); assert.match(lib, /is the only owner of \$\{w\.name\}/)
   assert.match(lib, /The workspace itself is deactivated/)
 })
 test('suspending moves open leads to the unassigned queue and signs the person out when it was their last workspace', () => {
@@ -43,5 +43,17 @@ test('console: People in the nav for Owner and platform admin; People card on ea
   assert.match(read('lib/platform/portal.ts'), /people: \['super_admin', 'platform_admin'\]/)
   assert.match(read('app/platform/layout.tsx'), /can\(role, 'people'\)/)
   assert.match(read('app/platform/organisations/[orgId]/page.tsx'), /listWorkspacePeople\(orgId\)/)
+})
+test('permanent delete: leaves every workspace, erases name, contact and sign-in; audit keeps only a masked e-mail', () => {
+  assert.match(lib, /from\('org_members'\)\.delete\(\)\.eq\('profile_id', profileId\)/)
+  assert.match(lib, /full_name: 'Deleted user', phone: null, avatar_url: null/)
+  assert.match(lib, /email: `deleted-\$\{userId\}@deleted\.invalid`/); assert.match(lib, /ban_duration: FOREVER/)
+  assert.match(lib, /maskEmail\(acct\.email\)/)
+})
+test('dialog: deactivate (reversible) or permanently delete, with a disclaimer, an "I understand" tick and the typed e-mail', () => {
+  const ui = read('components/platform/PeopleActions.tsx')
+  assert.match(ui, /title="Deactivate account" tag="Temporary"/); assert.match(ui, /title="Permanently delete account" tag="Can’t be undone"/)
+  assert.match(ui, /This will be permanently lost/)
+  assert.match(ui, /choice === 'deactivate' \|\| \(understood && typed\.trim\(\)\.toLowerCase\(\) === email\.toLowerCase\(\)\)/)
 })
 console.log(`\nPeople control: ${passed} checks passed.`)

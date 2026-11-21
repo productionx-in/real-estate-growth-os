@@ -212,8 +212,8 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
                         {p.blocked && <Badge tone="danger">Sign-in blocked</Badge>}
                       </div>
                     </div>
-                    <PersonControls name={p.name} userId={p.userId} staff={p.staff} blocked={p.blocked} isSelf={p.userId === access.userId}
-                      canAccount={isSuper} canMember orgId={org.id} memberId={p.memberId} memberStatus={p.status} />
+                    <PersonControls name={p.name} email={p.email} userId={p.userId} staff={p.staff} blocked={p.blocked} isSelf={p.userId === access.userId}
+                      canAccount={isSuper} canMember orgId={org.id} memberId={p.memberId} memberStatus={p.status} workspaces={[org.name]} />
                   </li>
                 ))}
               </ul>
@@ -223,8 +223,8 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
       )}
       {isSuper && (
         <Card className="border-danger/40">
-          <CardHeader><div><CardTitle className="text-danger">Delete workspace</CardTitle><CardDescription>Platform Owner only.</CardDescription></div></CardHeader>
-          <CardContent><DeleteOrg orgId={org.id} name={org.name} /></CardContent>
+          <CardHeader><div><CardTitle className="text-danger">Deactivate or delete workspace</CardTitle><CardDescription>Platform Owner only.</CardDescription></div></CardHeader>
+          <CardContent><DeleteOrg orgId={org.id} name={org.name} state={org.lifecycle_state} /></CardContent>
         </Card>
       )}
     </div>
