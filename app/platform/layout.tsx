@@ -37,7 +37,9 @@ export default async function PlatformLayout({ children }: { children: React.Rea
     {
       label: 'Work',
       items: [
-        ...(can(role, 'salesRead') ? [{ href: '/platform/sales', label: 'Sales pipeline', icon: 'sales' as const, badge: counts.followUps, badgeTone: 'info' as const }] : []),
+        ...(can(role, 'salesRead') ? [counts.newRequests
+          ? { href: '/platform/sales?stage=new', label: 'Sales pipeline', icon: 'sales' as const, badge: counts.newRequests, badgeTone: 'alert' as const }
+          : { href: '/platform/sales', label: 'Sales pipeline', icon: 'sales' as const, badge: counts.followUps, badgeTone: 'info' as const }] : []),
         ...(can(role, 'supportRead') ? [{ href: '/platform/support', label: 'Support', icon: 'support' as const, badge: counts.support, badgeTone: 'alert' as const }] : []),
       ],
     },

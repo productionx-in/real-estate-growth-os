@@ -179,3 +179,39 @@ export function DeleteOrg({ orgId, name, state }: { orgId: string; name: string;
     </div>
   )
 }
+
+/** A fresh one-time invitation link for a pending invitation, to copy or send on WhatsApp (Platform Owner only). */
+export function InviteLinkButton({ orgId, invitationId, email, orgName }: { orgId: string; invitationId: string; email: string; orgName: string }) {
+  const router = useRouter()
+  const [busy, setBusy] = useState(false)
+  const [res, setRes] = useState<{ url: string; emailed: boolean; emailError: string | null } | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const get = async () => {
+    if (res && !window.confirm('Make a new link? The previous one will stop working.')) return
+    setBusy(true); setError(null); setCopied(false)
+    try { const r = await call(`/api/admin/organisations/${orgId}/invite-link`, 'POST', { invitationId }); setRes(r); router.refresh() }
+    catch (e) { setError((e as Error).message) } finally { setBusy(false) }
+  }
+  return (
+    <div className="space-y-2">
+      <Button size="sm" variant={res ? 'secondary' : 'primary'} onClick={() => void get()} disabled={busy}>{busy ? 'Making link…' : res ? 'Make a new link' : 'Get invitation link'}</Button>
+      {error && <Alert tone="danger">{error}</Alert>}
+      {res && (
+        <div className="space-y-2 rounded-lg border border-default p-3">
+          <p className="text-[12px] text-muted">
+            {res.emailed ? `Also e-mailed to ${email}. ` : `Not e-mailed${res.emailError ? ` (${res.emailError})` : ''} — send it yourself. `}
+            Works once, only for {email}, for 14 days. The previous link no longer works.
+          </p>
+          <p className="break-all rounded-md bg-surface-hover p-2 font-mono text-[11px]">{res.url}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="secondary" onClick={async () => { try { await navigator.clipboard.writeText(res.url); setCopied(true) } catch { setCopied(false) } }}>{copied ? 'Copied' : 'Copy link'}</Button>
+            <Button size="sm" asChild>
+              <a target="_blank" rel="noopener noreferrer" href={`https://wa.me/?text=${encodeURIComponent(`Your REGrow workspace "${orgName}" is ready. Set up your account here: ${res.url}`)}`}>Share on WhatsApp</a>
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

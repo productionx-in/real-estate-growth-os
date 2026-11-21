@@ -6,7 +6,7 @@ import { getConsoleAccess } from '@/lib/auth/platform'
 import { createServiceClient } from '@/lib/supabase/server'
 import { can, getProspect, type Db, type StaffRole } from '@/lib/platform/portal'
 import { ActivityForm, ProspectControls, STAGE_LABEL } from '@/components/platform/PortalClient'
-import { Badge, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 
 export const metadata: Metadata = { title: 'Prospect' }
 export const dynamic = 'force-dynamic'
@@ -33,6 +33,32 @@ export default async function ProspectPage({ params }: { params: Promise<{ id: s
         <Badge tone="brand">{STAGE_LABEL[p.stage]}</Badge>
         <span className="text-[13px] text-muted">{p.org_type === 'channel_partner' ? 'Channel partner agency' : 'Developer / builder'}{p.city ? ` · ${p.city}` : ''}{p.team_size ? ` · team of ${p.team_size}` : ''}</span>
       </div>
+      <Card className={p.linked_org_id ? '' : 'border-brand/40'}>
+        <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
+          {p.linked_org_id ? (
+            <>
+              <div>
+                <p className="text-[14px] font-semibold">Workspace created</p>
+                <p className="text-[13px] text-muted">This request has a REGrow workspace. Manage it, or get a new invitation link, from its page.</p>
+              </div>
+              <Button asChild variant="secondary"><Link href={`/platform/organisations/${p.linked_org_id}`}>Open workspace</Link></Button>
+            </>
+          ) : (
+            <>
+              <div className="min-w-0">
+                <p className="text-[14px] font-semibold">Activate this customer</p>
+                <p className="text-[13px] text-muted">
+                  Create their workspace and invite {p.contact_email ? <strong className="text-foreground">{p.contact_email}</strong> : 'them'} as the owner. The form is filled in from this request.
+                  {!p.contact_email && ' Add their e-mail address on the next screen.'}
+                </p>
+              </div>
+              {role === 'super_admin'
+                ? <Button asChild><Link href={`/admin/provision?prospect=${p.id}`}>Activate — create workspace</Link></Button>
+                : <p className="text-[12px] text-muted">Only the Platform Owner can create workspaces. Move this to “Qualified” and let them know.</p>}
+            </>
+          )}
+        </CardContent>
+      </Card>
       <div className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
         <Card>
           <CardHeader><CardTitle>Contact</CardTitle></CardHeader>
