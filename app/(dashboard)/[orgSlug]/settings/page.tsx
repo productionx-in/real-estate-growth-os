@@ -16,7 +16,7 @@ const ICONS: Record<string, typeof UserRound> = { you: UserRound, company: Build
 export default async function SettingsHub({ params }: { params: Promise<{ orgSlug: string }> }) {
   const { orgSlug } = await params
   const { role, org } = await getVerifiedWorkspace(orgSlug)
-  const groups = settingsFor(role as MemberRole)
+  const groups = settingsFor(role as MemberRole, org.type as 'developer' | 'channel_partner')
   return (
     <div>
       <SettingsHeader title="Settings" scope="you" description={`Set up ${org.name}, your team and how leads, deals and messages work. Use the search on the left to jump to anything.`} />

@@ -23,8 +23,8 @@ test('each role keeps exactly the pages it had before the redesign', () => {
   assert.deepEqual(keys('manager'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'team', 'help']))
   assert.deepEqual(keys('sales_exec'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'inventory', 'help']))
   assert.deepEqual(keys('readonly'), sort(['home', 'projects', 'inventory', 'documents', 'analytics', 'help']))
-  assert.deepEqual(keys('manager', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'team', 'help']))
-  assert.deepEqual(keys('owner', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'team', 'settings', 'billing', 'audit', 'support', 'help']))
+  assert.deepEqual(keys('manager', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'listings', 'sales', 'partners', 'team', 'help']))
+  assert.deepEqual(keys('owner', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'listings', 'sales', 'partners', 'team', 'settings', 'billing', 'audit', 'support', 'help']))
 })
 
 test('new roles: a team lead gets the selling pages; post-sales gets customers, bookings and documents, no pipeline tools', () => {

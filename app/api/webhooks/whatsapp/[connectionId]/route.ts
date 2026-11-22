@@ -40,8 +40,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   const expectedToken =
     (meta.webhookVerifyToken as string) ||
     process.env.META_WEBHOOK_VERIFY_TOKEN ||
-    process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN ||
-    'productionx_whatsapp_verify_token'
+    process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN
+  if (!expectedToken) {
+    return new NextResponse('WhatsApp webhook verify token is not configured.', { status: 503 })
+  }
 
   const check = verifyWhatsAppWebhookChallenge({
     mode,

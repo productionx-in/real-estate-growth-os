@@ -18,10 +18,11 @@ export async function GET(request: NextRequest) {
   const token = searchParams.get('hub.verify_token')
   const challenge = searchParams.get('hub.challenge')
 
-  const expectedToken =
-    process.env.META_WEBHOOK_VERIFY_TOKEN ||
-    process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN ||
-    'productionx_central_whatsapp_verify_token'
+  // Fail closed: a fixed fallback would be public in this repository, letting anyone register this URL.
+  const expectedToken = process.env.META_WEBHOOK_VERIFY_TOKEN || process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN
+  if (!expectedToken) {
+    return new NextResponse('WhatsApp webhook verify token is not configured.', { status: 503 })
+  }
 
   const check = verifyWhatsAppWebhookChallenge({
     mode,
@@ -104,7 +105,8 @@ export async function POST(request: NextRequest) {
 
   const activeConnections = connections || []
   if (activeConnections.length === 0) {
-    return NextResponse.json({ error: 'No active WhatsApp integrations found' }, { status: 404 })
+    // Signed by Meta but for no connected workspace: acknowledge so Meta does not retry and disable the webhook.
+    return NextResponse.json({ success: true, results: [] })
   }
 
   // Group events by target connection
@@ -115,12 +117,12 @@ export async function POST(request: NextRequest) {
     const selectedPhone = meta.selectedPhoneNumberId as string | undefined
 
     // Check if any entry matches this connection
+    // Match only on identifiers this connection actually has: an unset phone id must never match an event
+    // that also lacks one, or one workspace would receive another's messages.
     const matchingEntries = payload.entry?.filter((entry) => {
       if (wabaId && entry.id === wabaId) return true
-      const hasPhone = entry.changes?.some(
-        (c) => c.value?.metadata?.phone_number_id === selectedPhone
-      )
-      return hasPhone
+      if (!selectedPhone) return false
+      return entry.changes?.some((c) => c.value?.metadata?.phone_number_id === selectedPhone) ?? false
     })
 
     if (matchingEntries && matchingEntries.length > 0) {
@@ -137,16 +139,8 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // If no specific match, default to first active connection if available
-  if (results.length === 0 && activeConnections.length > 0) {
-    const summary = await processWhatsAppWebhookPayload({
-      connectionId: activeConnections[0].id,
-      payload,
-      customServiceClient: service,
-    })
-    results.push({ connectionId: activeConnections[0].id, summary })
-  }
-
+  // An event that matches no connection belongs to no workspace here: acknowledge it (so Meta does not retry
+  // forever) and drop it. Never hand it to some other workspace's connection.
   return NextResponse.json({
     success: true,
     results,

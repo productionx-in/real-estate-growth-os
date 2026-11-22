@@ -19,6 +19,7 @@ export const CAN = {
   staff: ['super_admin'],
   people: ['super_admin', 'platform_admin'],
   email: ['super_admin', 'platform_admin'],
+  integrations: ['super_admin', 'platform_admin'],
   addons: ['super_admin', 'platform_admin'],
   salesRead: ['super_admin', 'sales_manager', 'sales_rep', 'auditor'],
   salesWrite: ['super_admin', 'sales_manager', 'sales_rep'],
