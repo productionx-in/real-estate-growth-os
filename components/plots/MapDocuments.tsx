@@ -11,6 +11,7 @@ import { Dialog, DialogClose, DialogContent, DialogFooter } from '@/components/u
 import { createClient } from '@/lib/supabase/client'
 import { LIMITS, PLOT_MAP_BUCKET } from '@/lib/plots/files'
 import { openPdf, plannedSize, previewPage, renderForUpload, RENDERER, rendererVersion } from '@/lib/plots/browser-render'
+import { VersionReview, type ReviewItem } from '@/components/plots/VersionReview'
 
 type Rotation = 0 | 90 | 180 | 270
 interface Page { page: number; width: number; height: number; rotate: number }
@@ -32,7 +33,11 @@ async function put(ticket: Ticket, body: Blob, contentType: string, upsert = fal
   if (error) throw new Error('The upload did not reach storage. Check your connection and try again.')
 }
 
-export function MapDocuments({ orgId, orgSlug, projectId, layouts, documents, versions }: {
+export function MapDocuments({ orgId, orgSlug, projectId, layouts, documents, versions, canApprove = false, reviews = {} }: {
+  /** Owners and admins: approve, send back and publish. */
+  canApprove?: boolean
+  /** Review history per version id, newest first. */
+  reviews?: Record<string, ReviewItem[]>
   orgId: string; orgSlug: string; projectId: string; layouts: { id: string; name: string }[]; documents: DocRow[]; versions: VersionRow[]
 }) {
   const router = useRouter()
@@ -131,13 +136,14 @@ export function MapDocuments({ orgId, orgSlug, projectId, layouts, documents, ve
                   <div className="space-y-1 p-3 text-[13px]">
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-medium text-foreground">{layoutName(v.layoutId)} · version {v.versionNo}</span>
-                      <Badge tone={v.renderStatus === 'ready' ? 'neutral' : v.renderStatus === 'failed' ? 'danger' : 'warning'}>{v.renderStatus === 'ready' ? (v.status === 'draft' ? 'Draft' : v.status) : v.renderStatus === 'failed' ? 'Failed' : 'Pending'}</Badge>
+                      <Badge tone={v.renderStatus !== 'ready' ? (v.renderStatus === 'failed' ? 'danger' : 'warning') : v.status === 'published' ? 'success' : v.status === 'rejected' ? 'danger' : 'neutral'}>{v.renderStatus === 'ready' ? ({ draft: 'Draft', in_review: 'In review', approved: 'Approved', published: 'Published', superseded: 'Superseded', rejected: 'Sent back' } as Record<string, string>)[v.status] ?? v.status : v.renderStatus === 'failed' ? 'Failed' : 'Pending'}</Badge>
                     </div>
                     <p className="text-[12px] text-muted">Page {v.page}{v.rotation ? ` · rotated ${v.rotation}°` : ''}{v.width ? ` · ${v.width} × ${v.height} px` : ''}</p>
                     {v.renderError && <p className="text-[12px] text-danger">{v.renderError}</p>}
                     {v.renderStatus === 'ready' && (v.status === 'draft' || v.status === 'rejected') && (
                       <a href={`/${orgSlug}/projects/${projectId}/map/versions/${v.id}`} className="inline-flex min-h-8 items-center gap-1 rounded-md border border-default px-2.5 text-[12px] font-medium text-foreground hover:bg-surface-hover">Draw plots</a>
                     )}
+                    {v.renderStatus === 'ready' && <VersionReview orgId={orgId} versionId={v.id} status={v.status} canApprove={canApprove} history={reviews[v.id] ?? []} />}
                     {v.renderStatus !== 'ready' && doc?.status === 'ready' && (
                       <Button size="sm" variant="secondary" onClick={() => setChoose({ doc, retry: v })}><RefreshCw aria-hidden /> Render again</Button>
                     )}
@@ -146,7 +152,7 @@ export function MapDocuments({ orgId, orgSlug, projectId, layouts, documents, ve
               )
             })}
           </ul>
-          <p className="text-[12px] text-muted">Open a draft with “Draw plots” to outline each plot and link it to its unit. Review and publishing come next; the live map below is unchanged until a version is published.</p>
+          <p className="text-[12px] text-muted">Open a draft with “Draw plots” to outline each plot and link it to its unit. Submit a finished version for review; after QA the owner or an admin approves and publishes it. The live map below changes only when a version is published.</p>
         </div>
       )}
 

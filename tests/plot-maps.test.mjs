@@ -98,7 +98,7 @@ test('buyers see available, reserved or sold — never blocked or on hold — an
   const dal = read('lib/dal/plot-layouts.ts')
   const fn = new Function(`return ${dal.match(/export function publicStatus[\s\S]*?\n\}/)[0].replace('export function publicStatus', 'function').replace(/: string\)/, ')').replace(/\): 'available' \| 'reserved' \| 'sold' \{/, ') {')}`)()
   assert.deepEqual(['available', 'on_hold', 'blocked', 'booked', 'sold'].map(fn), ['available', 'reserved', 'reserved', 'sold', 'sold'])
-  assert.match(dal, /withUnits\(layout\.org_id, layout, layout\.show_prices\)/)
+  assert.match(dal, /liveFrom\(layout\.org_id, layout, layout\.show_prices\)/, 'prices follow the developer’s choice')
   assert.match(dal, /crypto\.randomBytes\(32\)\.toString\('base64url'\)/)
   assert.match(dal, /if \(!change\.publish\) patch\.share_enabled = false/, 'unpublishing turns the public link off')
   assert.match(read('proxy.ts'), /\/\^\\\/m\\\/\[A-Za-z0-9_-\]\{43\}\$\/\.test\(pathname\)/)
