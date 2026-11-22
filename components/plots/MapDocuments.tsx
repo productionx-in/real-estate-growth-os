@@ -32,8 +32,8 @@ async function put(ticket: Ticket, body: Blob, contentType: string, upsert = fal
   if (error) throw new Error('The upload did not reach storage. Check your connection and try again.')
 }
 
-export function MapDocuments({ orgId, projectId, layouts, documents, versions }: {
-  orgId: string; projectId: string; layouts: { id: string; name: string }[]; documents: DocRow[]; versions: VersionRow[]
+export function MapDocuments({ orgId, orgSlug, projectId, layouts, documents, versions }: {
+  orgId: string; orgSlug: string; projectId: string; layouts: { id: string; name: string }[]; documents: DocRow[]; versions: VersionRow[]
 }) {
   const router = useRouter()
   const [file, setFile] = useState<File | null>(null)
@@ -135,6 +135,9 @@ export function MapDocuments({ orgId, projectId, layouts, documents, versions }:
                     </div>
                     <p className="text-[12px] text-muted">Page {v.page}{v.rotation ? ` · rotated ${v.rotation}°` : ''}{v.width ? ` · ${v.width} × ${v.height} px` : ''}</p>
                     {v.renderError && <p className="text-[12px] text-danger">{v.renderError}</p>}
+                    {v.renderStatus === 'ready' && (v.status === 'draft' || v.status === 'rejected') && (
+                      <a href={`/${orgSlug}/projects/${projectId}/map/versions/${v.id}`} className="inline-flex min-h-8 items-center gap-1 rounded-md border border-default px-2.5 text-[12px] font-medium text-foreground hover:bg-surface-hover">Draw plots</a>
+                    )}
                     {v.renderStatus !== 'ready' && doc?.status === 'ready' && (
                       <Button size="sm" variant="secondary" onClick={() => setChoose({ doc, retry: v })}><RefreshCw aria-hidden /> Render again</Button>
                     )}
@@ -143,7 +146,7 @@ export function MapDocuments({ orgId, projectId, layouts, documents, versions }:
               )
             })}
           </ul>
-          <p className="text-[12px] text-muted">Drawing plot boundaries on a version, review and publishing come next; the live map below is unchanged until a version is published.</p>
+          <p className="text-[12px] text-muted">Open a draft with “Draw plots” to outline each plot and link it to its unit. Review and publishing come next; the live map below is unchanged until a version is published.</p>
         </div>
       )}
 
