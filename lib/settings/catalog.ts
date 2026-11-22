@@ -49,7 +49,8 @@ export const SETTINGS: SettingsGroup[] = [
   {
     key: 'team', title: 'Your team', description: 'Who is on the team and what each person can do.',
     pages: [
-      { key: 'team', label: 'Team members & roles', description: 'Invite people, change roles, deactivate members.', path: '/team', audience: 'managers', keywords: ['invite', 'users', 'roles', 'permissions', 'deactivate', 'seats'] },
+      { key: 'team', label: 'Team members & roles', description: 'Invite people, change roles, last sign-in, reset e-mails, monthly targets.', path: '/team', audience: 'managers', keywords: ['invite', 'users', 'roles', 'permissions', 'deactivate', 'seats'] },
+      { key: 'roles', label: 'Roles & permissions', description: 'What each role can do, straight from the rules REGrow enforces.', path: '/settings/roles', audience: 'managers', keywords: ['permissions', 'access', 'roles', 'who can', 'rights', 'privileges'] },
       { key: 'alert-defaults', label: 'Notification defaults', description: 'Which alerts reach the team’s devices unless they choose otherwise.', path: '/settings/alerts', audience: 'admins', keywords: ['push', 'alerts', 'notification rules', 'defaults', 'mute'] },
     ],
   },
@@ -60,6 +61,8 @@ export const SETTINGS: SettingsGroup[] = [
       { key: 'lead-settings', label: 'Lead settings', description: 'Reasons offered when a lead is marked Lost or Junk.', path: '/settings/leads', audience: 'admins', keywords: ['lost reason', 'junk reason', 'close lead', 'disqualify', 'why lost'] },
       { key: 'fields', label: 'Fields on leads', description: 'Your own fields on every lead: dropdown lists, numbers, dates, yes/no.', path: '/settings/fields', audience: 'admins', keywords: ['custom fields', 'dropdown', 'drop-down lists', 'picklist', 'extra fields', 'purpose', 'home loan'] },
       { key: 'locations', label: 'Locations', description: 'Localities and cities offered on a buyer’s requirements.', path: '/settings/locations', audience: 'admins', keywords: ['locality', 'area', 'city', 'micro-market', 'location list'] },
+      { key: 'routing-log', label: 'Assignment log', description: 'Every routing decision: who got each lead, and where leads fell through.', path: '/routing/log', audience: 'managers', keywords: ['routing log', 'assignment history', 'round robin', 'nobody available', 'logs'] },
+      { key: 'visit-settings', label: 'Site visits', description: 'Buyer confirmations and reminders, check-in distance, visits per person per day.', path: '/settings/visits', audience: 'admins', keywords: ['site visit', 'reminder', 'confirmation', 'check-in', 'gps', 'limit', 'calendar'] },
       { key: 'speed', label: 'Response targets', description: 'How fast new leads should be called.', path: '/speed-to-lead', audience: 'managers', keywords: ['sla', 'speed to lead', 'first call'] },
     ],
   },
@@ -68,6 +71,7 @@ export const SETTINGS: SettingsGroup[] = [
     pages: [
       { key: 'projects', label: 'Projects', description: 'Your projects and their RERA details.', path: '/projects', audience: 'managers', keywords: ['rera', 'project'] },
       { key: 'inventory-settings', label: 'Inventory settings', description: 'Release units on hold automatically, and the area units new units start with.', path: '/settings/inventory', audience: 'admins', keywords: ['hold', 'on hold', 'block', 'release', 'expiry', 'units', 'area', 'sq ft', 'sq yd', 'acres', 'guntas', 'cents'] },
+      { key: 'matching', label: 'Matching rules', description: 'How strictly units are matched to buyers: budget margin, weak matches, suggestions.', path: '/settings/matching', audience: 'admins', keywords: ['matching', 'property matching', 'budget', 'suggestions', 'interested buyers'] },
       { key: 'listing-share', label: 'Listing share message', description: 'The WhatsApp message agents send with a resale or rental listing.', path: '/settings/listings', audience: 'admins', keywords: ['listing', 'share', 'whatsapp', 'resale', 'rental', 'template', 'message'], orgTypes: ['channel_partner'] },
       { key: 'documents', label: 'Document templates', description: 'Cost sheets, quotations and letters on your letterhead.', path: '/documents', audience: 'managers', keywords: ['cost sheet', 'quotation', 'allotment', 'demand letter', 'letterhead'] },
     ],

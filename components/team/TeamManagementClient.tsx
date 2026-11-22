@@ -13,8 +13,9 @@ import {
   UserX,
   ShieldCheck,
   CheckCircle2,
+  KeyRound,
 } from 'lucide-react'
-import { formatDate } from '@/lib/utils/format'
+import { formatDate, formatRelative } from '@/lib/utils/format'
 import { SubscriptionSeatMeter } from './SubscriptionSeatMeter'
 import { InviteMemberModal } from './InviteMemberModal'
 import { DeactivateMemberModal } from './DeactivateMemberModal'
@@ -33,6 +34,8 @@ export interface TeamMemberItem {
   phone: string | null
   avatar_url: string | null
   status: 'active' | 'deactivated'
+  /** Last time this person signed in (any workspace), or null if never. */
+  lastSignInAt: string | null
 }
 
 export interface PendingInvitationItem {
@@ -55,6 +58,7 @@ interface TeamManagementClientProps {
   seatUsage: SeatUsage
   teamMembers: TeamMemberItem[]
   pendingInvitations: PendingInvitationItem[]
+  orgId: string
 }
 
 
@@ -79,11 +83,27 @@ export function TeamManagementClient({
   seatUsage,
   teamMembers,
   pendingInvitations,
+  orgId,
 }: TeamManagementClientProps) {
   const router = useRouter()
   const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [deactivateTarget, setDeactivateTarget] = useState<TeamMemberItem | null>(null)
   const [revokingId, setRevokingId] = useState<string | null>(null)
+  const [tab, setTab] = useState<'active' | 'deactivated'>('active')
+  const [notice, setNotice] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null)
+  const [now] = useState(() => Date.now())
+  const shown = teamMembers.filter((m) => m.status === tab)
+  const deactivatedCount = teamMembers.filter((m) => m.status === 'deactivated').length
+
+  async function handleSendReset(m: TeamMemberItem) {
+    if (!confirm(`Send ${m.name} an e-mail with a link to set a new password? Their current password keeps working until they change it.`)) return
+    setNotice(null)
+    try {
+      const res = await fetch('/api/team/members/reset-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orgId, memberId: m.id }) })
+      const out = await res.json().catch(() => ({}))
+      setNotice(res.ok ? { tone: 'success', text: `Reset e-mail sent to ${m.email}.` } : { tone: 'danger', text: out.error ?? 'Could not send the e-mail.' })
+    } catch { setNotice({ tone: 'danger', text: 'Network error.' }) }
+  }
 
   const activeMembersList = teamMembers
     .filter((m) => m.status === 'active')
@@ -217,14 +237,20 @@ export function TeamManagementClient({
         <div className="px-5 py-3.5 border-b border-[var(--border)] bg-[var(--surface-hover)] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[var(--brand)]" />
-            <h3 className="text-[13px] font-bold text-[var(--foreground)]">Active Team Members</h3>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-light text-[var(--brand)] border border-brand/30">
-              {teamMembers.filter((m) => m.status === 'active').length} Active
-            </span>
+            <h3 className="text-[13px] font-bold text-[var(--foreground)]">Team Members</h3>
+          </div>
+          <div role="tablist" aria-label="Members" className="inline-flex rounded-lg border border-default bg-surface p-0.5 text-[12px]">
+            {(['active', 'deactivated'] as const).map((t) => (
+              <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
+                className={`min-h-8 rounded-md px-3 font-medium ${tab === t ? 'bg-brand-light text-brand' : 'text-muted hover:text-foreground'}`}>
+                {t === 'active' ? 'Active' : 'Deactivated'} ({t === 'active' ? teamMembers.length - deactivatedCount : deactivatedCount})
+              </button>
+            ))}
           </div>
         </div>
+        {notice && <div className={`border-b border-default px-5 py-2.5 text-[12px] ${notice.tone === 'success' ? 'text-success' : 'text-danger'}`} role="status">{notice.text}</div>}
 
-        {teamMembers.length > 0 ? (
+        {shown.length > 0 ? (
           <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-[var(--border)] bg-[var(--surface-hover)] text-[11px] uppercase tracking-wide text-[var(--foreground-muted)]">
@@ -233,11 +259,12 @@ export function TeamManagementClient({
                 <th className="text-left font-medium px-5 py-3">Status</th>
                 <th className="text-left font-medium px-5 py-3">Contact</th>
                 <th className="text-left font-medium px-5 py-3">Joined</th>
+                <th className="text-left font-medium px-5 py-3">Last signed in</th>
                 {isAdmin && <th className="text-right font-medium px-5 py-3">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
-              {teamMembers.map((m) => {
+              {shown.map((m) => {
                 const isDeactivated = m.status === 'deactivated'
                 const isSelf = m.profileId === currentProfileId
                 // Same rules as the server (lib/dal/invitations.ts): never your own row; owners only by an owner.
@@ -292,6 +319,13 @@ export function TeamManagementClient({
                     <td className="px-5 py-3.5 text-[var(--foreground-muted)] text-[12px]">
                       {formatDate(m.joined_at)}
                     </td>
+                    <td className="px-5 py-3.5 text-[12px]">
+                      {m.lastSignInAt ? (
+                        <span className={now - new Date(m.lastSignInAt).getTime() > 14 * 86_400_000 ? 'text-warning' : 'text-[var(--foreground-muted)]'} title={new Date(m.lastSignInAt).toLocaleString('en-IN')}>
+                          {formatRelative(m.lastSignInAt)}
+                        </span>
+                      ) : <span className="text-subtle">Never</span>}
+                    </td>
                     {isAdmin && (
                       <td className="px-5 py-3.5 text-right">
                         {isSelf && (
@@ -311,6 +345,9 @@ export function TeamManagementClient({
                                 ))}
                               </DropdownMenuRadioGroup>
                               <DropdownMenuSeparator />
+                              <DropdownMenuItem onSelect={() => handleSendReset(m)}>
+                                <KeyRound aria-hidden /> Send password reset e-mail
+                              </DropdownMenuItem>
                               <DropdownMenuItem destructive onSelect={() => setDeactivateTarget(m)}>
                                 <UserX aria-hidden /> Deactivate member
                               </DropdownMenuItem>
@@ -326,7 +363,7 @@ export function TeamManagementClient({
           </table>
         ) : (
           <div className="p-8 text-center text-[var(--foreground-muted)] text-[13px]">
-            No team members registered yet.
+            {tab === 'active' ? 'No team members registered yet.' : 'Nobody has been deactivated.'}
           </div>
         )}
       </div>
