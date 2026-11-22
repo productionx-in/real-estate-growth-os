@@ -3151,6 +3151,110 @@ export interface Database {
           { foreignKeyName: 'lead_documents_created_by_fkey'; columns: ['created_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
         ]
       }
+      org_addons: {
+        Row: {
+          org_id: string
+          addon: string
+          enabled: boolean
+          setup_fee_paise: number
+          monthly_fee_paise: number
+          included_layouts: number
+          notes: string | null
+          updated_by: string | null
+          enabled_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          org_id: string
+          addon: string
+          enabled?: boolean
+          setup_fee_paise?: number
+          monthly_fee_paise?: number
+          included_layouts?: number
+          notes?: string | null
+          updated_by?: string | null
+          enabled_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          setup_fee_paise?: number
+          monthly_fee_paise?: number
+          included_layouts?: number
+          notes?: string | null
+          updated_by?: string | null
+          enabled_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      plot_layouts: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          name: string
+          view_box: string
+          geometry: Json
+          status: string
+          share_token: string | null
+          share_enabled: boolean
+          show_prices: boolean
+          published_at: string | null
+          created_by: string | null
+          updated_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          name: string
+          view_box: string
+          geometry: Json
+          status?: string
+          share_token?: string | null
+          share_enabled?: boolean
+          show_prices?: boolean
+          published_at?: string | null
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          name?: string
+          view_box?: string
+          geometry?: Json
+          status?: string
+          share_token?: string | null
+          share_enabled?: boolean
+          show_prices?: boolean
+          published_at?: string | null
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      plot_layout_links: {
+        Row: {
+          layout_id: string
+          org_id: string
+          shape_key: string
+          unit_id: string
+        }
+        Insert: {
+          layout_id: string
+          org_id: string
+          shape_key: string
+          unit_id: string
+        }
+        Update: {
+
+        }
+        Relationships: []
+      }
       org_business_profiles: {
         Row: {
           org_id: string

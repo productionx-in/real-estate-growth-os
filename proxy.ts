@@ -108,6 +108,7 @@ export async function proxy(request: NextRequest) {
     PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith('/auth/')) ||
     PUBLIC_WEBSITE_ASSETS.includes(pathname) ||
     /^\/d\/[A-Za-z0-9_-]{43}$/.test(pathname) || // documents shared with buyers (the link is the key)
+    /^\/m\/[A-Za-z0-9_-]{43}$/.test(pathname) || // plot maps shared with buyers (the link is the key)
     /^\/p\/[a-z0-9-]{1,80}$/.test(pathname) // a project's public showroom: the page itself shows only published microsites
   ) {
     if (user && pathname === '/login') {

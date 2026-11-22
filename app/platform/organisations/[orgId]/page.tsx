@@ -12,6 +12,8 @@ import { SupportRequestForm } from '@/components/platform/SupportRequestForm'
 import { GrantActions } from '@/components/platform/GrantActions'
 import { GrantStatusBadge } from '@/components/platform/GrantStatusBadge'
 import { ModuleToggles } from '@/components/platform/ModuleToggles'
+import { AddonControl } from '@/components/platform/AddonControl'
+import { ADDONS, ADDON_LIST_PRICE, getAddon } from '@/lib/plots/addons'
 import { DeleteOrg, ExtendTrial, InviteLinkButton, RenameOrg } from '@/components/platform/OrgManage'
 import { getModules, MODULES } from '@/lib/auth/entitlements'
 import { listWorkspacePeople } from '@/lib/platform/people'
@@ -43,6 +45,7 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
 
   const grants = await listGrantsForOrg(orgId, 20)
   const modules = await getModules(orgId)
+  const plotMaps = await getAddon(orgId, 'plot_maps')
   const isSupport = (SUPPORT_REQUEST_ROLES as readonly string[]).includes(access.role)
   const isSuper = access.role === 'super_admin'
   const canPeople = isSuper || access.role === 'platform_admin'
@@ -124,6 +127,18 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
         </CardHeader>
         <CardContent>
           <ModuleToggles orgId={org.id} modules={modules} labels={{ ...MODULES }} canEdit={access.role === 'super_admin' || access.role === 'platform_admin'} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div>
+            <CardTitle>Paid add-ons</CardTitle>
+            <CardDescription>Off unless switched on here. The customer manages their own layouts in the workspace.</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <AddonControl orgId={org.id} addon="plot_maps" name={ADDONS.plot_maps.name} state={plotMaps} canEdit={isSuper} suggested={ADDON_LIST_PRICE.plot_maps} />
         </CardContent>
       </Card>
 
