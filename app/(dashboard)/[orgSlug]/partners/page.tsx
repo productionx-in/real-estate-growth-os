@@ -6,7 +6,8 @@ import { redirect } from 'next/navigation'
 import { PageShell } from '@/components/layout/PageShell'
 import { PartnerNetworkView } from '@/components/partners/PartnerNetworkView'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
-import { getPartnerCode, listPartnerships, listRegistrationsForAgency, listRegistrationsForDeveloper } from '@/lib/dal/partners'
+import { getPartnerCode, listPartnerships, listRegistrationsForAgency, listRegistrationsForDeveloper, listUnitRequests } from '@/lib/dal/partners'
+import { AgencyUnitRequests, DeveloperUnitRequests } from '@/components/partners/UnitRequests'
 import { canManagePartnerships, canRegisterOrReview } from '@/lib/partners/rules'
 import { createServiceClient } from '@/lib/supabase/server'
 
@@ -22,22 +23,25 @@ export default async function PartnersPage({ params }: { params: Promise<{ orgSl
 
   const partnerships = await listPartnerships(org.id)
   if (side === 'developer') {
-    const [{ data: projects }, registrations] = await Promise.all([
+    const [{ data: projects }, registrations, unitRequests] = await Promise.all([
       createServiceClient().from('projects').select('id, name').eq('org_id', org.id).order('name'),
       listRegistrationsForDeveloper(org.id),
+      listUnitRequests(org.id, 'developer'),
     ])
     return (
       <PageShell title="Partner network" description="Agencies you work with, the projects you share with them, and the buyers they register.">
         <PartnerNetworkView orgId={org.id} orgSlug={orgSlug} side="developer" canManage={canManage} partnerships={partnerships}
           projects={projects ?? []} developerRegistrations={registrations} />
+        <div className="mt-6"><DeveloperUnitRequests orgId={org.id} orgSlug={orgSlug} rows={unitRequests} /></div>
       </PageShell>
     )
   }
-  const [code, registrations] = await Promise.all([getPartnerCode(org.id), listRegistrationsForAgency(org.id)])
+  const [code, registrations, unitRequests] = await Promise.all([getPartnerCode(org.id), listRegistrationsForAgency(org.id), listUnitRequests(org.id, 'agency')])
   return (
     <PageShell title="Partner network" description="Developers you work with, the projects they share, and the buyers you have registered.">
       <PartnerNetworkView orgId={org.id} orgSlug={orgSlug} side="agency" canManage={canManage} partnerships={partnerships}
         partnerCode={code} agencyRegistrations={registrations} />
+      <div className="mt-6"><AgencyUnitRequests orgId={org.id} rows={unitRequests} registrations={registrations} /></div>
     </PageShell>
   )
 }
