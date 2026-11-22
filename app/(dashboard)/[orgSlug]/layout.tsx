@@ -13,6 +13,8 @@ import { SupportAccessBanner } from '@/components/support/SupportAccessBanner'
 import { liveGrantsForOrg } from '@/lib/dal/support-access'
 import { getModules } from '@/lib/auth/entitlements'
 import { DemoBanner } from '@/components/layout/DemoBanner'
+import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
+import { WorkspacePrefsProvider } from '@/components/settings/WorkspacePrefs'
 
 interface OrgLayoutProps {
   children: React.ReactNode
@@ -26,6 +28,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
     ? await billingHoldStatus(workspace.org.id, workspace.profile.id) : { hold: false, canPay: false }
   const modules = await getModules(workspace.org.id)
   const disabledModules = Object.entries(modules).filter(([, on]) => !on).map(([m]) => m)
+  const { inventory: inv } = await getWorkspaceSettings(workspace.org.id)
   const liveSupport = (await liveGrantsForOrg(workspace.org.id)).sort((a, b) => (b.expires_at ?? '').localeCompare(a.expires_at ?? ''))[0]
 
   return (
@@ -59,7 +62,9 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
           <SupportAccessBanner orgSlug={workspace.org.slug} until={liveSupport.expires_at} emergency={liveSupport.emergency} canManage={workspace.isAdmin} />
         )}
         {/* On phones, leave room for the tab bar (and the home indicator) below the content. */}
-        <main id="main" className="flex-1 overflow-y-auto pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
+        <main id="main" className="flex-1 overflow-y-auto pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom))] md:pb-0">
+          <WorkspacePrefsProvider value={{ areaUnitBuilt: inv.areaUnitBuilt, areaUnitLand: inv.areaUnitLand }}>{children}</WorkspacePrefsProvider>
+        </main>
       </div>
       <BottomNav orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={disabledModules} />
       <SupportBubble context="workspace" orgSlug={workspace.org.slug} orgName={workspace.org.name} />

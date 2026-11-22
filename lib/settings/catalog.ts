@@ -38,6 +38,7 @@ export const SETTINGS: SettingsGroup[] = [
       { key: 'business', label: 'Business details', description: 'Letterhead, GSTIN, RERA, signatory and bank account on documents.', path: '/settings/business', audience: 'admins', keywords: ['letterhead', 'gstin', 'pan', 'rera', 'bank', 'ifsc', 'logo', 'address', 'signatory'] },
       { key: 'organization', label: 'Organisation', description: 'Name, type of business and workspace address.', path: '/settings/organization', audience: 'admins', keywords: ['company', 'developer', 'channel partner', 'business type'] },
       { key: 'billing', label: 'Plan & billing', description: 'Your plan, seats, invoices and payments.', path: '/billing', audience: 'admins', keywords: ['invoice', 'subscription', 'seats', 'payment', 'gst'] },
+      { key: 'report-settings', label: 'Report settings', description: 'When your financial year and week start, for report periods.', path: '/settings/reports', audience: 'admins', keywords: ['financial year', 'fiscal year', 'fy', 'quarter', 'week', 'april', 'reports'] },
       { key: 'archive', label: 'Archive', description: 'Deleted leads, kept for 30 days — restore anything deleted by mistake.', path: '/settings/archive', audience: 'admins', keywords: ['deleted', 'restore', 'undo', 'recycle bin', 'trash'] },
       { key: 'audit', label: 'Audit log', description: 'Who changed what in the workspace.', path: '/audit-log', audience: 'admins', keywords: ['history', 'activity', 'log'] },
       { key: 'support', label: 'Support access', description: 'Let REGrow support look at your workspace for a limited time.', path: '/support-access', audience: 'admins', keywords: ['help', 'grant', 'support'] },
@@ -53,6 +54,7 @@ export const SETTINGS: SettingsGroup[] = [
     key: 'leads', title: 'Leads and forms', description: 'How leads come in and who gets them.',
     pages: [
       { key: 'routing', label: 'Assignment rules', description: 'Who gets new leads, round robin and teams.', path: '/routing', audience: 'managers', keywords: ['routing', 'round robin', 'assignment', 'distribution'] },
+      { key: 'lead-settings', label: 'Lead settings', description: 'Reasons offered when a lead is marked Lost or Junk.', path: '/settings/leads', audience: 'admins', keywords: ['lost reason', 'junk reason', 'close lead', 'disqualify', 'why lost'] },
       { key: 'speed', label: 'Response targets', description: 'How fast new leads should be called.', path: '/speed-to-lead', audience: 'managers', keywords: ['sla', 'speed to lead', 'first call'] },
     ],
   },
@@ -60,6 +62,7 @@ export const SETTINGS: SettingsGroup[] = [
     key: 'properties', title: 'Properties and deals', description: 'Projects, inventory and documents for buyers.',
     pages: [
       { key: 'projects', label: 'Projects', description: 'Your projects and their RERA details.', path: '/projects', audience: 'managers', keywords: ['rera', 'project'] },
+      { key: 'inventory-settings', label: 'Inventory settings', description: 'Release units on hold automatically, and the area units new units start with.', path: '/settings/inventory', audience: 'admins', keywords: ['hold', 'on hold', 'block', 'release', 'expiry', 'units', 'area', 'sq ft', 'sq yd', 'acres', 'guntas', 'cents'] },
       { key: 'documents', label: 'Document templates', description: 'Cost sheets, quotations and letters on your letterhead.', path: '/documents', audience: 'managers', keywords: ['cost sheet', 'quotation', 'allotment', 'demand letter', 'letterhead'] },
     ],
   },

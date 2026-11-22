@@ -201,6 +201,12 @@ export function InventoryDetailDrawer({
                 </h2>
                 <InventoryStatusBadge status={item.status} className="text-xs px-3 py-1 font-semibold" />
               </div>
+              {/* Hold expiry (Settings → Inventory settings, 20260074) */}
+              {item.status === 'on_hold' && (item as { held_until?: string | null }).held_until && (
+                <p className="mt-1 text-right text-[12px] text-muted">
+                  Hold ends {new Date((item as { held_until?: string | null }).held_until as string).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}
+                </p>
+              )}
 
               {/* Project & Hierarchy Breadcrumb */}
               <div className="mt-2 space-y-1">

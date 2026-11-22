@@ -6,7 +6,9 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { PageShell } from '@/components/layout/PageShell'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
-import { getPipelineTiming, getResponseReport, duration, pct, PIPELINE_STAGES, REPORT_PERIODS, withinTargetPct, type ReportPeriod, type ReportRow } from '@/lib/dal/reports'
+import { getPipelineTiming, getResponseReport, duration, pct, PIPELINE_STAGES, withinTargetPct, type ReportRow } from '@/lib/dal/reports'
+import { PERIODS, isPeriod, resolvePeriod, type PeriodKey } from '@/lib/reports/periods'
+import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 import { getResponseSettings } from '@/lib/dal/follow-ups'
 import { isManagement } from '@/lib/auth/permissions'
 
@@ -83,8 +85,9 @@ export default async function SpeedToLeadPage({ params, searchParams }: { params
   const { period: raw } = await searchParams
   const { org, role } = await getVerifiedWorkspace(orgSlug)
   if (!isManagement(role)) redirect(`/${orgSlug}/today`)
-  const period: ReportPeriod = raw && raw in REPORT_PERIODS ? (raw as ReportPeriod) : '30d'
-  const [report, settings, timing] = await Promise.all([getResponseReport(org.id, period), getResponseSettings(org.id), getPipelineTiming(org.id, period)])
+  const period: PeriodKey = isPeriod(raw) ? raw : '30d'
+  const range = resolvePeriod(period, (await getWorkspaceSettings(org.id)).reports)
+  const [report, settings, timing] = await Promise.all([getResponseReport(org.id, range), getResponseSettings(org.id), getPipelineTiming(org.id, range)])
   const o = report.overall
   const onTime = withinTargetPct(o)
   const peak = Math.max(1, ...report.by_hour.map((h) => h.leads))
@@ -92,13 +95,13 @@ export default async function SpeedToLeadPage({ params, searchParams }: { params
   return (
     <PageShell
       title="Speed to lead"
-      description={`How fast new leads are contacted · target: first call within ${settings.first_response_minutes} working minutes`}
+      description={`${range.label} · how fast new leads are contacted · target: first call within ${settings.first_response_minutes} working minutes`}
       actions={
-        <nav aria-label="Period" className="inline-flex p-0.5 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[12px]">
-          {(Object.keys(REPORT_PERIODS) as ReportPeriod[]).map((p) => (
+        <nav aria-label="Period" className="flex max-w-full flex-wrap gap-0.5 p-0.5 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[12px]">
+          {(Object.keys(PERIODS) as PeriodKey[]).map((p) => (
             <Link key={p} href={`/${orgSlug}/speed-to-lead?period=${p}`} aria-current={p === period ? 'page' : undefined}
               className={`px-3 py-1.5 rounded-md ${p === period ? 'bg-[var(--surface)] shadow-sm font-semibold' : 'text-[var(--foreground-muted)]'}`}>
-              Last {REPORT_PERIODS[p]} days
+              {PERIODS[p]}
             </Link>
           ))}
         </nav>

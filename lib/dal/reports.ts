@@ -34,9 +34,16 @@ export interface ResponseReport {
 export const REPORT_PERIODS = { '7d': 7, '30d': 30, '90d': 90 } as const
 export type ReportPeriod = keyof typeof REPORT_PERIODS
 
-export async function getResponseReport(orgId: string, period: ReportPeriod): Promise<ResponseReport> {
+/** A rolling period ending now ('30d'), or explicit instants (lib/reports/periods.ts resolves calendar periods). */
+export type ReportRange = ReportPeriod | { from: Date; to: Date }
+function toRange(r: ReportRange): { from: Date; to: Date } {
+  if (typeof r !== 'string') return r
   const to = new Date()
-  const from = new Date(to.getTime() - REPORT_PERIODS[period] * 86_400_000)
+  return { from: new Date(to.getTime() - REPORT_PERIODS[r] * 86_400_000), to }
+}
+
+export async function getResponseReport(orgId: string, range: ReportRange): Promise<ResponseReport> {
+  const { from, to } = toRange(range)
   const { data, error } = await createServiceClient().rpc('lead_response_report', {
     p_org: orgId, p_from: from.toISOString(), p_to: to.toISOString(),
   })
@@ -73,9 +80,8 @@ export const PIPELINE_STAGES: { key: PipelineStage; label: string; hint: string 
   { key: 'assigned_to_first_action', label: 'Assigned → first call or message', hint: 'Your team’s response.' },
 ]
 
-export async function getPipelineTiming(orgId: string, period: ReportPeriod): Promise<PipelineTiming> {
-  const to = new Date()
-  const from = new Date(to.getTime() - REPORT_PERIODS[period] * 86_400_000)
+export async function getPipelineTiming(orgId: string, range: ReportRange): Promise<PipelineTiming> {
+  const { from, to } = toRange(range)
   const { data, error } = await createServiceClient().rpc('lead_pipeline_timing', { p_org: orgId, p_from: from.toISOString(), p_to: to.toISOString() })
   if (error) throw new Error(`pipeline timing: ${error.message}`)
   return data as unknown as PipelineTiming

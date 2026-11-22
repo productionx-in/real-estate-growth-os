@@ -113,6 +113,7 @@ export const AUDIT_AREAS = {
   module: 'Modules',
   partner: 'Partner network',
   billing: 'Plan & billing',
+  settings: 'Workspace settings',
 } as const
 export type AuditArea = keyof typeof AUDIT_AREAS
 

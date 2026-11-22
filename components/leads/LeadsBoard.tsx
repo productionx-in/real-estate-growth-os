@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils/cn'
 import { STATUS_LABELS, canTransition, nextStatuses } from '@/lib/leads/transitions'
 import type { LeadStatus } from '@/types/database'
+import { CloseReasonDialog, type CloseReasons } from './CloseReasonDialog'
 
 export interface BoardLead {
   id: string
@@ -35,8 +36,10 @@ function followUp(at: string | null, now: number): { text: string; overdue: bool
   return t < now ? { text: `Overdue · ${date}`, overdue: true } : { text: `Next · ${date}`, overdue: false }
 }
 
-export function LeadsBoard({ leads: initial, columns, orgSlug, canMove, truncated }: {
+export function LeadsBoard({ leads: initial, columns, orgSlug, canMove, truncated, reasons }: {
   leads: BoardLead[]
+  /** The workspace's reasons for closing a lead: moving a card to Lost or Junk asks for one. */
+  reasons: CloseReasons
   columns: LeadStatus[]
   orgSlug: string
   canMove: boolean
@@ -58,6 +61,9 @@ export function LeadsBoard({ leads: initial, columns, orgSlug, canMove, truncate
   const [error, setError] = useState<string | null>(null)
   const [moving, setMoving] = useState<string | null>(null)
   const [now] = useState(() => Date.now())
+  const [closing, setClosing] = useState<{ lead: BoardLead; to: 'lost' | 'junk' } | null>(null)
+  const [closeError, setCloseError] = useState<string | null>(null)
+  const [closeBusy, setCloseBusy] = useState(false)
 
   const byStatus = useMemo(() => {
     const m = new Map<LeadStatus, BoardLead[]>(columns.map((c) => [c, []]))
@@ -65,8 +71,24 @@ export function LeadsBoard({ leads: initial, columns, orgSlug, canMove, truncate
     return m
   }, [leads, columns])
 
+  async function close(reason: string | undefined, note: string | undefined) {
+    if (!closing) return
+    setCloseBusy(true); setCloseError(null)
+    try {
+      const res = await fetch(`/api/leads/${closing.lead.id}/status`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: closing.to, reason, note }),
+      })
+      if (!res.ok) { const body = await res.json().catch(() => ({})); setCloseError(body.error ?? 'The move was not saved.'); return }
+      setClosing(null)
+      startTransition(() => router.refresh())
+    } catch { setCloseError('Network error. Please try again.') } finally { setCloseBusy(false) }
+  }
+
   async function move(lead: BoardLead, to: LeadStatus) {
     if (!canTransition(lead.status, to)) return
+    // Lost and Junk ask why first.
+    if (to === 'lost' || to === 'junk') { setCloseError(null); setClosing({ lead, to }); return }
     setError(null)
     setMoving(lead.id)
     setPending((p) => ({ ...p, [lead.id]: to }))
@@ -179,6 +201,10 @@ export function LeadsBoard({ leads: initial, columns, orgSlug, canMove, truncate
           )
         })}
       </div>
+      {closing && (
+        <CloseReasonDialog open leadName={closing.lead.name} status={closing.to} reasons={reasons} busy={closeBusy} error={closeError}
+          onCancel={() => setClosing(null)} onConfirm={close} />
+      )}
     </div>
   )
 }

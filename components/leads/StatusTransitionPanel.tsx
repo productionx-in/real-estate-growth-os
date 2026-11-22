@@ -8,24 +8,33 @@ import { LeadStatusBadge } from './LeadStatusBadge'
 import type { LeadStatus } from '@/types/database'
 import { cn } from '@/lib/utils/cn'
 import { nextStatuses as allowedNext } from '@/lib/leads/transitions'
+import { CloseReasonDialog, type CloseReasons } from './CloseReasonDialog'
 
 
 interface StatusTransitionPanelProps {
   leadId: string
+  leadName: string
   currentStatus: LeadStatus
+  /** The workspace's reasons for closing a lead (Settings → Lead settings). */
+  reasons: CloseReasons
+  /** Why the lead was closed, when it is Lost or Junk. */
+  closedReason?: string | null
 }
 
-export function StatusTransitionPanel({ leadId, currentStatus }: StatusTransitionPanelProps) {
+export function StatusTransitionPanel({ leadId, leadName, currentStatus, reasons, closedReason }: StatusTransitionPanelProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [note, setNote] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [transitioning, setTransitioning] = useState<LeadStatus | null>(null)
+  const [closing, setClosing] = useState<'lost' | 'junk' | null>(null)
 
   const nextStatuses = allowedNext(currentStatus)
   const isTerminal = ['booked', 'lost', 'junk'].includes(currentStatus)
 
-  async function handleTransition(to: LeadStatus) {
+  async function handleTransition(to: LeadStatus, reason?: string, closeNote?: string) {
+    // Lost and Junk ask why first.
+    if ((to === 'lost' || to === 'junk') && closing !== to) { setError(null); setClosing(to); return }
     setError(null)
     setTransitioning(to)
 
@@ -34,7 +43,7 @@ export function StatusTransitionPanel({ leadId, currentStatus }: StatusTransitio
         const response = await fetch(`/api/leads/${leadId}/status`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: to, note: note.trim() || undefined }),
+          body: JSON.stringify({ status: to, note: closeNote ?? (note.trim() || undefined), reason }),
         })
 
         if (!response.ok) {
@@ -46,6 +55,7 @@ export function StatusTransitionPanel({ leadId, currentStatus }: StatusTransitio
 
         setNote('')
         setTransitioning(null)
+        setClosing(null)
         router.refresh()
       } catch {
         setError('Network error. Please try again.')
@@ -59,6 +69,7 @@ export function StatusTransitionPanel({ leadId, currentStatus }: StatusTransitio
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
         <h3 className="text-[13px] font-semibold text-[var(--foreground)] mb-2">Status</h3>
         <LeadStatusBadge status={currentStatus} />
+        {closedReason && <p className="mt-2 text-[13px] text-foreground">Reason: {closedReason}</p>}
         <p className="mt-2 text-[12px] text-[var(--foreground-muted)]">
           This lead has reached a final state.
         </p>
@@ -122,6 +133,11 @@ export function StatusTransitionPanel({ leadId, currentStatus }: StatusTransitio
           )
         })}
       </div>
+      {closing && (
+        <CloseReasonDialog open leadName={leadName} status={closing} reasons={reasons} busy={isPending} error={error}
+          onCancel={() => { setClosing(null); setError(null) }}
+          onConfirm={(reason, closeNote) => handleTransition(closing, reason, closeNote)} />
+      )}
     </div>
   )
 }
