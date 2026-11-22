@@ -37,6 +37,11 @@ import { LeadCustomFields } from '@/components/leads/LeadCustomFields'
 import { matchUnitsForLead } from '@/lib/dal/matching'
 import { ASSIGNABLE_ROLES, canAssignLeads, canAssignTo, canWorkLead, isManagement, leadScopeOf } from '@/lib/auth/permissions'
 import { resolveLeadViewer } from '@/lib/dal/viewer'
+import { LeadStageStepper } from '@/components/leads/LeadStageStepper'
+import { NextBestAction } from '@/components/leads/NextBestAction'
+import { MoreActions } from '@/components/leads/MoreActions'
+import { nextAction } from '@/lib/leads/next-action'
+import { nextStatuses } from '@/lib/leads/transitions'
 
 export const metadata: Metadata = { title: 'Lead' }
 
@@ -149,6 +154,19 @@ export default async function LeadDetailPage({ params }: PageProps) {
   const assignee = lead.assignee as { id: string; full_name: string } | null
   const project = lead.project as { id: string; name: string; slug: string } | null
 
+  // The suggested next step and how far a closed lead got (from its recorded stage changes).
+  type Act = { type: string; created_at: string; metadata: Record<string, unknown> | null }
+  const acts = (activities ?? []) as unknown as Act[]
+  const closingChange = acts.find((a) => a.type === 'status_changed' && (a.metadata?.to === 'lost' || a.metadata?.to === 'junk'))
+  const reachedStatus = (closingChange?.metadata?.from as LeadStatus | undefined) ?? null
+  const suggestion = nextAction({
+    status: lead.status as LeadStatus, merged: !!lead.merged_into_id, firstActionAt: lead.first_action_at, slaDueAt: lead.sla_due_at,
+    openTasks: tasks.filter((t) => t.status === 'open').map((t) => ({ due_at: t.due_at, kind: t.kind })),
+    matches: modules.inventory ? matching.matches.length : 0, documentsShared: leadDocs.length,
+    lastActivityAt: acts[0]?.created_at ?? null,
+  })
+  const canClose = nextStatuses(lead.status as LeadStatus).some((s) => s === 'lost' || s === 'junk')
+
   // Source details arrive from public web pages: only http(s) URLs become links (never javascript: or data:).
   const landingUrl = safeHttpUrl(lead.source_url)
   const visit = visitDetails(lead.source_metadata)
@@ -201,12 +219,6 @@ export default async function LeadDetailPage({ params }: PageProps) {
               canPickAgent={canAssignLeads(viewerRole)}
             />
           )}
-          {partnerTargets.length > 0 && (
-            <RegisterBuyerDialog orgId={org.id} orgName={org.name} leadId={lead.id} leadName={lead.name} targets={partnerTargets} />
-          )}
-          {isManagement(viewerRole) && !lead.merged_into_id && (
-            <MergeLeadDialog orgId={org.id} leadId={lead.id} leadName={lead.name} />
-          )}
           <Link
             href={`/${orgSlug}/leads/${leadId}/edit`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] transition-colors"
@@ -214,11 +226,27 @@ export default async function LeadDetailPage({ params }: PageProps) {
             <Pencil className="w-3.5 h-3.5" />
             Edit
           </Link>
-          {(viewerRole === 'owner' || viewerRole === 'admin') && <ArchiveLeadButton leadId={lead.id} leadName={lead.name} orgSlug={orgSlug} />}
+          {(partnerTargets.length > 0 || (isManagement(viewerRole) && !lead.merged_into_id) || (canWork && canClose) || viewerRole === 'owner' || viewerRole === 'admin') && (
+            <MoreActions>
+              {canWork && canClose && (
+                <a href="#lead-stage" className="inline-flex min-h-9 items-center rounded-md px-2 text-[13px] text-foreground hover:bg-surface-hover">Mark lost or junk…</a>
+              )}
+              {partnerTargets.length > 0 && (
+                <RegisterBuyerDialog orgId={org.id} orgName={org.name} leadId={lead.id} leadName={lead.name} targets={partnerTargets} />
+              )}
+              {isManagement(viewerRole) && !lead.merged_into_id && (
+                <MergeLeadDialog orgId={org.id} leadId={lead.id} leadName={lead.name} />
+              )}
+              {(viewerRole === 'owner' || viewerRole === 'admin') && <ArchiveLeadButton leadId={lead.id} leadName={lead.name} orgSlug={orgSlug} />}
+            </MoreActions>
+          )}
           </>
         ) : undefined
       }
     >
+      <div id="lead-actions" className="mb-5">
+        <LeadStageStepper status={lead.status as LeadStatus} reachedStatus={reachedStatus} closedReason={(lead as { closed_reason?: string | null }).closed_reason ?? null} />
+      </div>
       {/* Merged, or flagged as a likely duplicate */}
       {lead.merged_into_id ? (
         <div className="mb-5 flex items-start gap-3 rounded-lg border border-default bg-info-bg p-4 text-[13px] text-info">
@@ -458,8 +486,9 @@ export default async function LeadDetailPage({ params }: PageProps) {
 
         {/* ── Right: work the lead. On phones this comes first: the next action matters more than the history. ── */}
         <div className="order-first space-y-5 lg:order-none">
+          {canWork && suggestion && <NextBestAction action={suggestion} />}
           {canWork && (
-            <LeadWorkPanel
+            <div id="lead-work" className="scroll-mt-20"><LeadWorkPanel
               leadId={leadId}
               phone={lead.phone}
               slaState={lead.sla_state}
@@ -467,15 +496,15 @@ export default async function LeadDetailPage({ params }: PageProps) {
               assignedAt={lead.assigned_at}
               firstActionAt={lead.first_action_at}
               tasks={tasks}
-            />
+            /></div>
           )}
-          <StatusTransitionPanel
+          <div id="lead-stage" className="scroll-mt-20"><StatusTransitionPanel
             leadId={leadId}
             leadName={lead.name}
             currentStatus={lead.status as LeadStatus}
             reasons={{ lost: workspaceSettings.leads.lostReasons, junk: workspaceSettings.leads.junkReasons, required: workspaceSettings.leads.requireReason }}
             closedReason={(lead as { closed_reason?: string | null }).closed_reason ?? null}
-          />
+          /></div>
           <LeadCustomFields
             leadId={leadId}
             defs={workspaceSettings.fields.lead}
@@ -484,7 +513,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
             settingsHref={isAdmin ? `/${orgSlug}/settings/fields` : null}
           />
           {matching.requirements && (
-            <LeadMatches
+            <div id="lead-matches" className="scroll-mt-20"><LeadMatches
               leadId={leadId}
               requirements={matching.requirements}
               matches={modules.inventory ? matching.matches : []}
@@ -492,7 +521,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
               showMatches={modules.inventory}
               locations={workspaceSettings.lists.locations}
               agency={isAgency}
-            />
+            /></div>
           )}
           {isAgency && (
             <LeadListingMatches
@@ -506,7 +535,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
             />
           )}
           {salesOn && (
-            <LeadDocuments
+            <div id="lead-documents" className="scroll-mt-20"><LeadDocuments
               leadId={leadId}
               leadName={lead.name}
               leadPhone={lead.phone}
@@ -517,7 +546,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
                 label: [u.project?.name, u.tower_name, u.unit_number, u.bhk_config, u.total_price != null ? inr(u.total_price) : null].filter(Boolean).join(' · '),
               }))}
               canWork={canWork}
-            />
+            /></div>
           )}
         </div>
       </div>
