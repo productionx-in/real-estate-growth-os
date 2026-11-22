@@ -18,8 +18,9 @@ let pdfjsVersion = ''
 
 async function pdfjs() {
   const lib = await import('pdfjs-dist')
-  if (!lib.GlobalWorkerOptions.workerSrc) {
-    lib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString()
+  if (!lib.GlobalWorkerOptions.workerPort) {
+    // The bundler emits the worker as its own file from this module URL; PDF parsing then runs off the main thread.
+    lib.GlobalWorkerOptions.workerPort = new Worker(new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url), { type: 'module' })
   }
   pdfjsVersion = lib.version
   return lib

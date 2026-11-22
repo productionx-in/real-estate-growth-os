@@ -7,7 +7,10 @@ export interface PdfPage { page: number; width: number; height: number; rotate: 
 export type PdfInspection = { ok: true; pages: PdfPage[] } | { ok: false; error: string }
 
 export async function inspectPdf(bytes: Uint8Array): Promise<PdfInspection> {
-  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
+  // Load PDF.js's worker module in this process (static imports the bundler can follow) and hand it to PDF.js, so it
+  // parses in-process instead of fetching a worker file at run time.
+  const [pdfjs, worker] = await Promise.all([import('pdfjs-dist/legacy/build/pdf.mjs'), import('pdfjs-dist/legacy/build/pdf.worker.mjs')])
+  ;(globalThis as { pdfjsWorker?: unknown }).pdfjsWorker = worker
   let doc
   try {
     doc = await pdfjs.getDocument({

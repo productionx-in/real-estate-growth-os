@@ -60,7 +60,8 @@ test('PDFs are parsed on the server: pages, sizes and their own rotation; garbag
   assert.match(many.error, /21 pages/)
   const src = read('lib/plots/pdf-inspect.ts')
   assert.match(src, /isEvalSupported: false/); assert.match(src, /PasswordException/)
-  assert.match(read('next.config.ts'), /serverExternalPackages: \["pdfjs-dist"\]/)
+  assert.match(src, /globalThis as \{ pdfjsWorker\?: unknown \}\)\.pdfjsWorker = worker/, 'the worker is bundled, not fetched at run time')
+  assert.doesNotMatch(read('next.config.ts'), /serverExternalPackages/, 'externalising pdfjs-dist breaks the webpack build of the browser worker')
 })
 
 test('storage is private: no public bucket and no storage policies, so only the server reads or writes', () => {
