@@ -33,6 +33,27 @@ export interface ReportSettings {
   weekStartsOn: 0 | 1
 }
 
+export interface VisitSettings {
+  /** E-mail the buyer when a visit is booked or moved. */
+  buyerConfirmation: boolean
+  /** Remind the buyer the day before (24 h) and shortly before (2 h). */
+  buyerReminder24h: boolean
+  buyerReminder2h: boolean
+  /** A check-in further than this from the project is flagged on the calendar. */
+  checkinRadiusM: number
+  /** Most visits one salesperson can have on one day (India time); 0 = no limit. */
+  maxPerPersonPerDay: number
+}
+
+export interface MatchingSettings {
+  /** How far over a buyer's top budget a unit may be and still be suggested, in %. */
+  overBudgetPct: number
+  /** Matches scoring below this (out of 100) are not shown. */
+  minScore: number
+  /** How many matching units a lead shows. */
+  maxSuggestions: number
+}
+
 export interface ListSettings {
   /** Localities and cities the workspace sells in, offered when recording what a buyer wants. */
   locations: string[]
@@ -43,7 +64,7 @@ export interface FieldSettings {
   lead: FieldDef[]
 }
 
-export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings; notifications: TeamDefaults }
+export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings; notifications: TeamDefaults; visits: VisitSettings; matching: MatchingSettings }
 export type SettingsSection = keyof WorkspaceSettings
 
 // The reasons Indian sales teams record most often; a workspace edits, reorders or replaces them.
@@ -58,6 +79,8 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
   lists: { locations: [] },
   fields: { lead: [] },
   notifications: DEFAULT_TEAM,
+  visits: { buyerConfirmation: true, buyerReminder24h: true, buyerReminder2h: true, checkinRadiusM: 500, maxPerPersonPerDay: 0 },
+  matching: { overBudgetPct: 10, minScore: 0, maxSuggestions: 8 },
 }
 
 export const LIMITS = { reasons: 20, reasonLength: 80, holdHours: 720, locations: 200, locationLength: 60 } as const
@@ -106,6 +129,30 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
     if (locations.length > LIMITS.locations) errors.locations = `At most ${LIMITS.locations} locations.`
     return { value: { locations: locations.slice(0, LIMITS.locations) } as WorkspaceSettings[S], errors }
   }
+  if (section === 'visits' || section === 'matching') {
+    const int = (key: string, min: number, max: number, fallback: number, message: string) => {
+      const v = typeof o[key] === 'number' ? (o[key] as number) : NaN
+      if (Number.isInteger(v) && v >= min && v <= max) return v
+      errors[key] = message
+      return fallback
+    }
+    if (section === 'visits') {
+      const value: VisitSettings = {
+        buyerConfirmation: o.buyerConfirmation !== false,
+        buyerReminder24h: o.buyerReminder24h !== false,
+        buyerReminder2h: o.buyerReminder2h !== false,
+        checkinRadiusM: int('checkinRadiusM', 100, 5000, 500, 'Check-in distance: 100 to 5,000 metres.'),
+        maxPerPersonPerDay: int('maxPerPersonPerDay', 0, 20, 0, 'Visits per person per day: 0 (no limit) to 20.'),
+      }
+      return { value: value as WorkspaceSettings[S], errors }
+    }
+    const value: MatchingSettings = {
+      overBudgetPct: int('overBudgetPct', 0, 25, 10, 'Over budget: 0 to 25%.'),
+      minScore: int('minScore', 0, 80, 0, 'Minimum match: 0 to 80.'),
+      maxSuggestions: int('maxSuggestions', 3, 20, 8, 'Suggestions: 3 to 20.'),
+    }
+    return { value: value as WorkspaceSettings[S], errors }
+  }
   if (section === 'leads') {
     const value: LeadSettings = {
       lostReasons: reasons(o.lostReasons, 'Lost reasons', errors, 'lostReasons'),
@@ -144,7 +191,7 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
 }
 
 /** A stored row (possibly partial or from an older version) merged over the defaults; never throws. */
-export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown; notifications?: unknown } | null | undefined): WorkspaceSettings {
+export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown; notifications?: unknown; visits?: unknown; matching?: unknown } | null | undefined): WorkspaceSettings {
   const merge = <S extends SettingsSection>(s: S, stored: unknown): WorkspaceSettings[S] => {
     if (!stored || typeof stored !== 'object' || Array.isArray(stored) || !Object.keys(stored).length) return DEFAULT_SETTINGS[s]
     const { value } = normaliseSection(s, { ...DEFAULT_SETTINGS[s], ...(stored as object) })
@@ -157,6 +204,7 @@ export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; rep
     // Field definitions are read as stored (they were checked when saved); malformed entries are dropped.
     fields: { lead: fieldsFromStored(stored.lead) },
     notifications: teamFromStored(row?.notifications),
+    visits: merge('visits', row?.visits), matching: merge('matching', row?.matching),
   }
 }
 

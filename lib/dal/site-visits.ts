@@ -2,6 +2,7 @@
 // Site visits: schedule, reschedule, check in (GPS), complete, no-show, cancel; and the calendar list.
 // Tasks, lead stage, activity and buyer reminders follow automatically from the database (migration 20260049).
 import { createServiceClient } from '@/lib/supabase/server'
+import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 
 export const LIVE_STATUSES = ['scheduled', 'rescheduled', 'checked_in'] as const
 export const OUTCOMES = {
@@ -9,7 +10,7 @@ export const OUTCOMES = {
   booked: 'Booked', uninterested: 'Not interested',
 } as const
 export type VisitOutcome = keyof typeof OUTCOMES
-/** A check-in further than this from the project is accepted but flagged. */
+/** Default for Settings → Site visits → check-in distance: a check-in further than this is accepted but flagged. */
 export const CHECKIN_FLAG_METRES = 500
 
 export type DalResult<T> = { ok: true; data: T } | { ok: false; error: string; status: number }
@@ -79,6 +80,8 @@ export async function scheduleVisit(input: {
 }): Promise<DalResult<{ id: string }>> {
   if (input.scheduledAt.getTime() < Date.now() - 5 * 60_000) return { ok: false, error: 'Pick a time in the future.', status: 400 }
   const db = createServiceClient()
+  const full = await overDailyLimit(input.orgId, input.assignedTo, input.scheduledAt)
+  if (full) return { ok: false, error: full, status: 409 }
   const { data, error } = await db.from('site_visits').insert({
     org_id: input.orgId, lead_id: input.leadId, project_id: input.projectId, assigned_to: input.assignedTo,
     scheduled_at: input.scheduledAt.toISOString(), status: 'scheduled', created_by: input.actorId,
@@ -87,6 +90,23 @@ export async function scheduleVisit(input: {
   }).select('id').single()
   if (error) return dbError(error.message)
   return { ok: true, data: { id: data.id } }
+}
+
+/** The workspace's daily limit (Settings → Site visits): a message when the salesperson's day is full, else null. */
+export async function overDailyLimit(orgId: string, assignedTo: string | null, at: Date, ignoreVisitId?: string): Promise<string | null> {
+  if (!assignedTo) return null
+  const max = (await getWorkspaceSettings(orgId)).visits.maxPerPersonPerDay
+  if (!max) return null
+  const IST = 330 * 60_000, DAY = 86_400_000
+  const start = Math.floor((at.getTime() + IST) / DAY) * DAY - IST
+  let q = createServiceClient().from('site_visits').select('id', { count: 'exact', head: true })
+    .eq('org_id', orgId).eq('assigned_to', assignedTo).in('status', [...LIVE_STATUSES, 'completed'])
+    .gte('scheduled_at', new Date(start).toISOString()).lt('scheduled_at', new Date(start + DAY).toISOString())
+  if (ignoreVisitId) q = q.neq('id', ignoreVisitId)
+  const { count } = await q
+  return (count ?? 0) >= max
+    ? `This salesperson already has ${count} site visit${count === 1 ? '' : 's'} that day — the workspace limit is ${max}. Pick another day or another person.`
+    : null
 }
 
 export type VisitAction =
@@ -100,10 +120,14 @@ export async function actOnVisit(visitId: string, orgId: string, actorId: string
   const db = createServiceClient()
   let patch: Record<string, unknown>
   switch (act.action) {
-    case 'reschedule':
+    case 'reschedule': {
       if (act.scheduledAt.getTime() < Date.now() - 5 * 60_000) return { ok: false, error: 'Pick a time in the future.', status: 400 }
+      const { data: cur } = await db.from('site_visits').select('assigned_to').eq('id', visitId).eq('org_id', orgId).maybeSingle()
+      const full = await overDailyLimit(orgId, cur?.assigned_to ?? null, act.scheduledAt, visitId)
+      if (full) return { ok: false, error: full, status: 409 }
       patch = { status: 'rescheduled', scheduled_at: act.scheduledAt.toISOString() }
       break
+    }
     case 'check_in': {
       let distance: number | null = null
       if (act.lat !== null && act.lng !== null) {

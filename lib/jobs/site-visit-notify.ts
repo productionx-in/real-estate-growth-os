@@ -7,6 +7,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { renderEmail } from '@/lib/email/layout'
 import type { JobRow } from '@/lib/jobs/handlers'
+import { settingsFromRow, type VisitSettings } from '@/lib/settings/workspace'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = SupabaseClient<any, 'public', any>
@@ -83,6 +84,17 @@ export async function renderSiteVisit(db: Db, orgId: string | null, payload: Rec
   })
 }
 
+async function visitSettings(db: Db, orgId: string): Promise<VisitSettings> {
+  const { data } = await db.from('org_settings').select('visits').eq('org_id', orgId).maybeSingle()
+  return settingsFromRow({ visits: data?.visits }).visits
+}
+
+/** Whether this kind of buyer message is switched on for the workspace. */
+export function buyerMessageWanted(s: VisitSettings, payload: Record<string, unknown>): boolean {
+  if (payload.kind === 'reminder') return Number(payload.minutes_before) >= 720 ? s.buyerReminder24h : s.buyerReminder2h
+  return s.buyerConfirmation
+}
+
 /** The site_visit.notify job (queued by the database with the visit, migration 20260049): puts the buyer's e-mail in
  *  the outbox and makes the first attempt. Retries, holds and logging are the outbox's job from here. */
 export async function siteVisitNotify(job: JobRow, db: Db): Promise<void> {
@@ -90,6 +102,8 @@ export async function siteVisitNotify(job: JobRow, db: Db): Promise<void> {
   if (typeof visitId !== 'string') throw new Error('site_visit.notify: missing visit_id')
   const v = await loadVisit(db, visitId, job.org_id)
   if (staleReason(v, job.payload)) return
+  // The workspace may have turned some buyer messages off (Settings → Site visits).
+  if (!buyerMessageWanted(await visitSettings(db, v!.org_id), job.payload)) return
   const lead = one(v!.lead as { name: string; email: string | null } | null)
   if (!lead?.email) return // nothing to send to; WhatsApp comes with the WhatsApp connection
   const { sendEmailNow } = await import('@/lib/email/service')

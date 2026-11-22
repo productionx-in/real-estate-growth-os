@@ -63,7 +63,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
         )}
         {/* On phones, leave room for the tab bar (and the home indicator) below the content. */}
         <main id="main" className="flex-1 overflow-y-auto pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom))] md:pb-0">
-          <WorkspacePrefsProvider value={{ areaUnitBuilt: inv.areaUnitBuilt, areaUnitLand: inv.areaUnitLand }}>{children}</WorkspacePrefsProvider>
+          <WorkspacePrefsProvider value={{ areaUnitBuilt: inv.areaUnitBuilt, areaUnitLand: inv.areaUnitLand, canDeleteInventory: workspace.isAdmin }}>{children}</WorkspacePrefsProvider>
         </main>
       </div>
       <BottomNav orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={disabledModules} />

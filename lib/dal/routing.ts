@@ -171,6 +171,34 @@ export async function listRecentRoutingDecisions(orgId: string, limit = 25) {
   return { success: true as const, data }
 }
 
+export const ROUTING_OUTCOMES = {
+  assigned: 'Assigned',
+  sticky: 'Returning buyer',
+  no_matching_rule: 'No rule matched',
+  no_available_member: 'Nobody available',
+  sla_reassigned: 'Reassigned (response target missed)',
+} as const
+export type RoutingOutcome = keyof typeof ROUTING_OUTCOMES
+
+/** One page of the assignment log, newest first, with optional filters; plus counts per outcome over the last 30 days. */
+export async function listRoutingLog(orgId: string, opts: { outcome?: RoutingOutcome | null; assignee?: string | null; page: number; pageSize?: number }) {
+  const service = createServiceClient()
+  const size = opts.pageSize ?? 50
+  let q = service.from('lead_routing_decisions')
+    .select('id, lead_id, decided_at, outcome, strategy, detail, lead:leads(id, name), assignee:profiles!lead_routing_decisions_assigned_to_fkey(id, full_name)', { count: 'exact' })
+    .eq('org_id', orgId)
+  if (opts.outcome) q = q.eq('outcome', opts.outcome)
+  if (opts.assignee) q = q.eq('assigned_to', opts.assignee)
+  const { data, count, error } = await q.order('decided_at', { ascending: false }).range(opts.page * size, opts.page * size + size - 1)
+  if (error) return fail(error, 'Failed to load the assignment log')
+  const since = new Date(Date.now() - 30 * 86_400_000).toISOString()
+  const counts = await Promise.all((Object.keys(ROUTING_OUTCOMES) as RoutingOutcome[]).map(async (o) => {
+    const { count: n } = await service.from('lead_routing_decisions').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('outcome', o).gte('decided_at', since)
+    return [o, n ?? 0] as const
+  }))
+  return { success: true as const, data: { rows: data ?? [], total: count ?? 0, pageSize: size, last30: Object.fromEntries(counts) as Record<RoutingOutcome, number> } }
+}
+
 /** Duty status of the caller across their teams: null when they belong to no team. */
 export async function getOwnDutyStatus(orgId: string, profileId: string): Promise<DalResult<{ teams: number; onDuty: boolean | null }>> {
   const service = createServiceClient()

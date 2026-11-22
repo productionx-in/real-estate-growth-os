@@ -108,6 +108,7 @@ export const AUDIT_AREAS = {
   integration: 'Integrations',
   lead: 'Leads (import, export, delete)',
   project: 'Projects',
+  inventory: 'Inventory',
   organisation: 'Workspace status',
   support: 'Support access',
   module: 'Modules',

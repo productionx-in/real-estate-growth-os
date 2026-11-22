@@ -34,6 +34,7 @@ const OUTCOME_LABELS: Record<string, { label: string; className: string }> = {
   sticky: { label: 'Returning buyer', className: 'bg-brand-light text-brand border-brand/30' },
   no_matching_rule: { label: 'No rule matched', className: 'bg-warning-bg text-warning border-warning/30' },
   no_available_member: { label: 'Nobody available', className: 'bg-danger-bg text-danger border-danger/30' },
+  sla_reassigned: { label: 'Reassigned', className: 'bg-warning-bg text-warning border-warning/30' },
 }
 
 const card = 'bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 shadow-2xs'
@@ -233,9 +234,12 @@ export function RoutingSettingsClient({ orgId, orgSlug, data, loadError }: {
 
       {/* Recent decisions */}
       <section className={card} aria-labelledby="activity-heading">
-        <h2 id="activity-heading" className="text-[13px] font-semibold text-[var(--foreground)] flex items-center gap-2 mb-4">
-          <History className="w-4 h-4" /> Recent routing decisions
-        </h2>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <h2 id="activity-heading" className="text-[13px] font-semibold text-[var(--foreground)] flex items-center gap-2">
+            <History className="w-4 h-4" /> Recent routing decisions
+          </h2>
+          <Link href={`/${orgSlug}/routing/log`} className="text-[12px] font-medium text-brand hover:underline">Full assignment log</Link>
+        </div>
         {data.decisions.length === 0 ? (
           <p className="text-[12px] text-[var(--foreground-muted)]">Nothing routed by rules yet.</p>
         ) : (
