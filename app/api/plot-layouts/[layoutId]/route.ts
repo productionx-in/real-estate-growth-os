@@ -1,12 +1,13 @@
 // app/api/plot-layouts/[layoutId]/route.ts — publish or unpublish a layout, turn its public link on or off (or issue
-// a new one), show or hide prices on it, rename it, or delete it. Owners, admins and managers; add-on required.
+// a new one), show or hide prices on it, rename it, or delete it. Owners, admins and managers; the project's add-on
+// must be active, except to take the map offline (unpublish, link off, delete).
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
 import { requireModule } from '@/lib/auth/entitlements'
-import { requireAddon } from '@/lib/plots/addons'
+import { requireProjectAddon } from '@/lib/plots/addons'
 import { auditMember } from '@/lib/dal/org-audit'
-import { deleteLayout, rotateShareLink, updateLayout } from '@/lib/dal/plot-layouts'
+import { deleteLayout, layoutProject, rotateShareLink, updateLayout } from '@/lib/dal/plot-layouts'
 
 const Patch = z.object({
   orgId: z.string().uuid(),
@@ -17,11 +18,15 @@ const Patch = z.object({
   newLink: z.literal(true).optional(),
 })
 
-async function gate(orgId: string) {
+/** Authorise, then (unless the change only takes the map offline) require the project's add-on to be active.
+ *  Unpublishing, turning the link off and deleting stay possible in every state, so a lapsed map can go offline. */
+async function gate(orgId: string, layoutId: string, takesOffline: boolean) {
   const access = await authorizeOrgAccess(orgId, ['owner', 'admin', 'manager'])
   if (!access.success) return { response: access.response }
   const m = await requireModule(orgId, 'inventory'); if (m) return { response: m }
-  const a = await requireAddon(orgId, 'plot_maps'); if (a) return { response: a }
+  const projectId = await layoutProject(orgId, layoutId)
+  if (!projectId) return { response: NextResponse.json({ error: 'Layout not found.' }, { status: 404 }) }
+  if (!takesOffline) { const a = await requireProjectAddon(orgId, projectId, 'plot_maps'); if (a) return { response: a } }
   return { context: access.context }
 }
 
@@ -30,7 +35,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const parsed = Patch.safeParse(await request.json().catch(() => null))
   if (!z.string().uuid().safeParse(layoutId).success || !parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   const { orgId, newLink, ...change } = parsed.data
-  const g = await gate(orgId)
+  const takesOffline = !newLink && change.name === undefined && change.showPrices === undefined && change.publish !== true && change.share !== true
+  const g = await gate(orgId, layoutId, takesOffline)
   if (g.response) return g.response
   if (newLink && !(await rotateShareLink(orgId, layoutId))) return NextResponse.json({ error: 'Layout not found.' }, { status: 404 })
   const result = await updateLayout(orgId, layoutId, g.context!.profile.id, change)
@@ -43,7 +49,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const { layoutId } = await params
   const orgId = request.nextUrl.searchParams.get('orgId') ?? ''
   if (!z.string().uuid().safeParse(layoutId).success || !z.string().uuid().safeParse(orgId).success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
-  const g = await gate(orgId)
+  const g = await gate(orgId, layoutId, true)
   if (g.response) return g.response
   if (!(await deleteLayout(orgId, layoutId))) return NextResponse.json({ error: 'Layout not found.' }, { status: 404 })
   await auditMember(request, g.context!, orgId, 'plot_layout.deleted', { type: 'plot_layout', id: layoutId }, {})

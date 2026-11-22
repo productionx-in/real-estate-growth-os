@@ -1,6 +1,9 @@
-// app/(dashboard)/[orgSlug]/projects/[projectId]/map/page.tsx — the project's interactive plot map (paid add-on).
+// app/(dashboard)/[orgSlug]/projects/[projectId]/map/page.tsx — the project's Interactive Plot Map (paid add-on,
+// activated per project: lib/plots/addons.ts). States:
+//   not activated → what it is, and "Request activation" for owners/admins;   pending → request recorded;
+//   active, no layout yet → set-up steps and upload;   active → the map;
+//   suspended / expired → the status and reason; nothing of the feature is served (layouts are kept).
 // Everyone on the team sees published layouts; owners, admins and managers also upload, publish and share.
-// Without the add-on the page explains what it is and who to ask — nothing of the feature is served.
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -8,7 +11,9 @@ import { ArrowLeft, MapPinned } from 'lucide-react'
 import { PageShell } from '@/components/layout/PageShell'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { getModules } from '@/lib/auth/entitlements'
-import { ADDONS, getAddon } from '@/lib/plots/addons'
+import { ADDONS, STATE_INFO, getProjectAddon } from '@/lib/plots/addons'
+import { RequestActivationButton } from '@/components/plots/RequestActivationButton'
+import { Badge } from '@/components/ui'
 import { getLiveLayout, listLayouts } from '@/lib/dal/plot-layouts'
 import { createServiceClient } from '@/lib/supabase/server'
 import { PlotMap } from '@/components/plots/PlotMap'
@@ -24,20 +29,39 @@ export default async function ProjectMapPage({ params, searchParams }: {
 }) {
   const { orgSlug, projectId } = await params
   const { layout: wanted, new: adding } = await searchParams
-  const { org, isManager } = await getVerifiedWorkspace(orgSlug)
+  const { org, isManager, isAdmin } = await getVerifiedWorkspace(orgSlug)
   const { data: project } = await createServiceClient().from('projects').select('id, name').eq('org_id', org.id).eq('id', projectId).maybeSingle()
   if (!project) notFound()
   const back = { href: `/${orgSlug}/projects/${projectId}`, label: project.name }
 
-  const [addon, modules] = await Promise.all([getAddon(org.id, 'plot_maps'), getModules(org.id)])
-  if (!addon.enabled || !modules.inventory) {
+  const [addon, modules] = await Promise.all([getProjectAddon(org.id, projectId, 'plot_maps'), getModules(org.id)])
+  const day = (iso: string) => new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'Asia/Kolkata' }).format(new Date(iso))
+  if (addon.state !== 'active' || !modules.inventory) {
+    const info = STATE_INFO[addon.state]
     return (
       <PageShell title="Plot map" description={project.name} back={back}>
-        <div className="mx-auto max-w-xl rounded-xl border border-default bg-surface p-6 text-center shadow-2xs">
-          <span className="mx-auto mb-3 grid size-12 place-items-center rounded-xl bg-brand-light text-brand"><MapPinned aria-hidden className="size-6" /></span>
-          <h2 className="text-[16px] font-semibold text-foreground">{ADDONS.plot_maps.name} is an add-on</h2>
-          <p className="mt-2 text-[13px] text-muted">{ADDONS.plot_maps.pitch}</p>
-          <p className="mt-2 text-[13px] text-muted">We prepare the map from your approved layout plan and keep it up to date as the project changes. Ask your REGrow account manager to add it to this workspace.</p>
+        <div className="mx-auto max-w-xl space-y-3 rounded-xl border border-default bg-surface p-6 text-center shadow-2xs">
+          <span className="mx-auto grid size-12 place-items-center rounded-xl bg-brand-light text-brand"><MapPinned aria-hidden className="size-6" /></span>
+          <h2 className="text-[16px] font-semibold text-foreground">{ADDONS.plot_maps.name}</h2>
+          <Badge tone={info.tone}>{info.label}</Badge>
+          {!modules.inventory ? (
+            <p className="text-[13px] text-muted">The plot map shows your inventory, so the Inventory module must be switched on for this workspace.</p>
+          ) : addon.state === 'not_purchased' ? (
+            <>
+              <p className="text-[13px] text-muted">{ADDONS.plot_maps.pitch}</p>
+              <p className="text-[13px] text-muted">It is activated per project. Upload your approved layout (PDF or image); each plot is linked to its unit in your inventory, so the map is always current.</p>
+              {isAdmin ? <div className="flex justify-center"><RequestActivationButton orgId={org.id} projectId={projectId} /></div>
+                : <p className="text-[13px] text-muted">Ask your workspace owner or admin to request it.</p>}
+            </>
+          ) : (
+            <>
+              <p className="text-[13px] text-muted">{info.customer}</p>
+              {addon.state === 'pending' && addon.requestedAt && <p className="text-[12px] text-subtle">Requested on {day(addon.requestedAt)}.</p>}
+              {(addon.state === 'suspended' || addon.state === 'expired') && addon.statusReason && <p className="text-[12px] text-subtle">Reason: {addon.statusReason}</p>}
+              {addon.state === 'expired' && addon.validUntil && <p className="text-[12px] text-subtle">Ended on {day(addon.validUntil)}.</p>}
+              {addon.state === 'expired' && isAdmin && <div className="flex justify-center"><RequestActivationButton orgId={org.id} projectId={projectId} renewal /></div>}
+            </>
+          )}
         </div>
       </PageShell>
     )
@@ -49,8 +73,18 @@ export default async function ProjectMapPage({ params, searchParams }: {
   const live = current ? await getLiveLayout(org.id, current.id) : null
 
   return (
-    <PageShell title="Plot map" description={`${project.name} · statuses update live from inventory`} back={back}>
+    <PageShell title="Plot map" description={`${project.name} · statuses update live from inventory${addon.validUntil ? ` · active until ${day(addon.validUntil)}` : ''}`} back={back}>
       <div className="space-y-4">
+        {isManager && all.length === 0 && !adding && (
+          <section aria-label="Set up your map" className="rounded-xl border border-default bg-surface p-5 shadow-2xs">
+            <h2 className="text-[15px] font-semibold text-foreground">Set up your plot map</h2>
+            <ol className="mt-2 list-decimal space-y-1 pl-5 text-[13px] text-muted">
+              <li>Upload the approved layout of this project (or one phase).</li>
+              <li>Each plot on the drawing is matched to its unit in your inventory — check the ones that didn’t match.</li>
+              <li>Publish the map for your team, then share the buyer link when you’re ready.</li>
+            </ol>
+          </section>
+        )}
         {(visible.length > 1 || isManager) && (
           <nav aria-label="Layouts" className="flex flex-wrap items-center gap-1.5">
             {visible.map((l) => (

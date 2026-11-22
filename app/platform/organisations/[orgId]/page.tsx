@@ -12,8 +12,9 @@ import { SupportRequestForm } from '@/components/platform/SupportRequestForm'
 import { GrantActions } from '@/components/platform/GrantActions'
 import { GrantStatusBadge } from '@/components/platform/GrantStatusBadge'
 import { ModuleToggles } from '@/components/platform/ModuleToggles'
-import { AddonControl } from '@/components/platform/AddonControl'
-import { ADDONS, ADDON_LIST_PRICE, getAddon } from '@/lib/plots/addons'
+import { ProjectAddonControl } from '@/components/platform/ProjectAddonControl'
+import { ADDONS, ADDON_LIST_PRICE } from '@/lib/plots/addons'
+import { listPlotMapUsage } from '@/lib/plots/addon-usage'
 import { DeleteOrg, ExtendTrial, InviteLinkButton, RenameOrg } from '@/components/platform/OrgManage'
 import { getModules, MODULES } from '@/lib/auth/entitlements'
 import { listWorkspacePeople } from '@/lib/platform/people'
@@ -45,7 +46,7 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
 
   const grants = await listGrantsForOrg(orgId, 20)
   const modules = await getModules(orgId)
-  const plotMaps = await getAddon(orgId, 'plot_maps')
+  const plotMaps = await listPlotMapUsage({ orgId, includeAllProjects: true })
   const isSupport = (SUPPORT_REQUEST_ROLES as readonly string[]).includes(access.role)
   const isSuper = access.role === 'super_admin'
   const canPeople = isSuper || access.role === 'platform_admin'
@@ -133,12 +134,15 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
       <Card>
         <CardHeader>
           <div>
-            <CardTitle>Paid add-ons</CardTitle>
-            <CardDescription>Off unless switched on here. The customer manages their own layouts in the workspace.</CardDescription>
+            <CardTitle>{ADDONS.plot_maps.name}</CardTitle>
+            <CardDescription>Paid add-on, activated per project. Off unless activated here. The customer manages their own layouts in the workspace; only counts are shown.</CardDescription>
           </div>
         </CardHeader>
-        <CardContent>
-          <AddonControl orgId={org.id} addon="plot_maps" name={ADDONS.plot_maps.name} state={plotMaps} canEdit={isSuper} suggested={ADDON_LIST_PRICE.plot_maps} />
+        <CardContent className="divide-y divide-[var(--border)]">
+          {plotMaps.length === 0 ? <p className="text-[13px] text-muted">This workspace has no projects yet.</p> : plotMaps.map((u) => (
+            <ProjectAddonControl key={u.projectId} orgId={org.id} projectId={u.projectId} projectName={u.projectName} addon={u.addon}
+              canEdit={isSuper} suggested={ADDON_LIST_PRICE.plot_maps} usage={u} />
+          ))}
         </CardContent>
       </Card>
 
