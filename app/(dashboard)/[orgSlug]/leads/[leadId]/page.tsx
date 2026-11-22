@@ -30,6 +30,7 @@ import { LeadDocuments } from '@/components/documents/LeadDocuments'
 import { listLeadDocuments, listTemplates } from '@/lib/dal/documents'
 import { inr } from '@/lib/documents/merge'
 import { LeadMatches } from '@/components/matching/LeadMatches'
+import { LeadCustomFields } from '@/components/leads/LeadCustomFields'
 import { matchUnitsForLead } from '@/lib/dal/matching'
 import { ASSIGNABLE_ROLES, canAssignLeads, canAssignTo, canWorkLead, isManagement, leadScopeOf } from '@/lib/auth/permissions'
 import { resolveLeadViewer } from '@/lib/dal/viewer'
@@ -85,7 +86,7 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 
 export default async function LeadDetailPage({ params }: PageProps) {
   const { orgSlug, leadId } = await params
-  const { org, role, profile } = await getVerifiedWorkspace(orgSlug)
+  const { org, role, profile, isAdmin } = await getVerifiedWorkspace(orgSlug)
 
   const lead = await getLeadById(leadId)
   if (!lead || lead.org_id !== org.id) notFound()
@@ -462,6 +463,13 @@ export default async function LeadDetailPage({ params }: PageProps) {
             reasons={{ lost: workspaceSettings.leads.lostReasons, junk: workspaceSettings.leads.junkReasons, required: workspaceSettings.leads.requireReason }}
             closedReason={(lead as { closed_reason?: string | null }).closed_reason ?? null}
           />
+          <LeadCustomFields
+            leadId={leadId}
+            defs={workspaceSettings.fields.lead}
+            values={((lead as { field_values?: unknown }).field_values ?? {}) as Record<string, string | number | boolean>}
+            canEdit={canWork}
+            settingsHref={isAdmin ? `/${orgSlug}/settings/fields` : null}
+          />
           {matching.requirements && (
             <LeadMatches
               leadId={leadId}
@@ -469,6 +477,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
               matches={modules.inventory ? matching.matches : []}
               canWork={canWork}
               showMatches={modules.inventory}
+              locations={workspaceSettings.lists.locations}
             />
           )}
           {salesOn && (

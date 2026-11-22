@@ -5,7 +5,7 @@
 import { renderEmail } from '@/lib/email/layout'
 
 export type CustomerEmailKind = 'welcome' | 'trial_ending' | 'trial_ended' | 'invoice_issued' | 'payment_received' | 'payment_failed' | 'workspace_state'
-  | 'plan_active' | 'member_joined' | 'daily_member' | 'daily_manager'
+  | 'plan_active' | 'member_joined' | 'daily_member' | 'daily_manager' | 'weekly_manager'
 
 export interface Rendered { subject: string; html: string; text: string }
 

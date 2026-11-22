@@ -29,7 +29,7 @@ export const SETTINGS: SettingsGroup[] = [
     pages: [
       { key: 'profile', label: 'Profile & preferences', description: 'Name, phone and how REGrow looks for you.', path: '/settings/profile', audience: 'everyone', keywords: ['name', 'phone', 'theme', 'dark mode', 'appearance'] },
       { key: 'security', label: 'Sign-in & security', description: 'Password, two-step verification and signed-in devices.', path: '/settings/security', audience: 'everyone', keywords: ['password', 'mfa', '2fa', 'otp', 'sessions', 'sign out'] },
-      { key: 'notifications', label: 'My notifications', description: 'Daily report e-mail and alerts on this device.', path: '/settings/notifications', audience: 'everyone', keywords: ['email', 'push', 'alerts', 'daily report', 'digest'] },
+      { key: 'notifications', label: 'My notifications', description: 'Which alerts reach your devices, quiet hours, daily and weekly e-mails.', path: '/settings/notifications', audience: 'everyone', keywords: ['email', 'push', 'alerts', 'daily report', 'digest', 'weekly', 'quiet hours', 'do not disturb', 'mute'] },
     ],
   },
   {
@@ -48,6 +48,7 @@ export const SETTINGS: SettingsGroup[] = [
     key: 'team', title: 'Your team', description: 'Who is on the team and what each person can do.',
     pages: [
       { key: 'team', label: 'Team members & roles', description: 'Invite people, change roles, deactivate members.', path: '/team', audience: 'managers', keywords: ['invite', 'users', 'roles', 'permissions', 'deactivate', 'seats'] },
+      { key: 'alert-defaults', label: 'Notification defaults', description: 'Which alerts reach the team’s devices unless they choose otherwise.', path: '/settings/alerts', audience: 'admins', keywords: ['push', 'alerts', 'notification rules', 'defaults', 'mute'] },
     ],
   },
   {
@@ -55,6 +56,8 @@ export const SETTINGS: SettingsGroup[] = [
     pages: [
       { key: 'routing', label: 'Assignment rules', description: 'Who gets new leads, round robin and teams.', path: '/routing', audience: 'managers', keywords: ['routing', 'round robin', 'assignment', 'distribution'] },
       { key: 'lead-settings', label: 'Lead settings', description: 'Reasons offered when a lead is marked Lost or Junk.', path: '/settings/leads', audience: 'admins', keywords: ['lost reason', 'junk reason', 'close lead', 'disqualify', 'why lost'] },
+      { key: 'fields', label: 'Fields on leads', description: 'Your own fields on every lead: dropdown lists, numbers, dates, yes/no.', path: '/settings/fields', audience: 'admins', keywords: ['custom fields', 'dropdown', 'drop-down lists', 'picklist', 'extra fields', 'purpose', 'home loan'] },
+      { key: 'locations', label: 'Locations', description: 'Localities and cities offered on a buyer’s requirements.', path: '/settings/locations', audience: 'admins', keywords: ['locality', 'area', 'city', 'micro-market', 'location list'] },
       { key: 'routing-log', label: 'Assignment log', description: 'Every routing decision: who got each lead, and where leads fell through.', path: '/routing/log', audience: 'managers', keywords: ['routing log', 'assignment history', 'round robin', 'nobody available', 'logs'] },
       { key: 'visit-settings', label: 'Site visits', description: 'Buyer confirmations and reminders, check-in distance, visits per person per day.', path: '/settings/visits', audience: 'admins', keywords: ['site visit', 'reminder', 'confirmation', 'check-in', 'gps', 'limit', 'calendar'] },
       { key: 'speed', label: 'Response targets', description: 'How fast new leads should be called.', path: '/speed-to-lead', audience: 'managers', keywords: ['sla', 'speed to lead', 'first call'] },
