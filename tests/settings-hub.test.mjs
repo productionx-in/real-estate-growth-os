@@ -26,9 +26,12 @@ test('everyone gets their own settings; managers add team and lead set-up; only 
 })
 
 test('search matches labels, groups and everyday words; every word must match', () => {
-  const all = c.settingsFor('owner')
+  const all = c.settingsFor('owner', 'developer')
   assert.deepEqual(c.searchSettings(all, 'password').map((p) => p.key), ['security'])
   assert.deepEqual(c.searchSettings(all, 'WhatsApp').map((p) => p.key), ['integrations'])
+  // Agency-only settings show only in agencies.
+  assert.ok(c.settingsFor('owner', 'channel_partner').some((g) => g.pages.some((p) => p.key === 'listing-share')))
+  assert.ok(!all.some((g) => g.pages.some((p) => p.key === 'listing-share')))
   assert.ok(c.searchSettings(all, 'round robin').some((p) => p.key === 'routing'))
   assert.deepEqual(c.searchSettings(all, 'password billing'), [])
   assert.deepEqual(c.searchSettings(c.settingsFor('sales_exec'), 'billing'), [], 'a salesperson cannot find what they cannot open')

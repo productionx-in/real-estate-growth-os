@@ -4,6 +4,7 @@
 // retrieves pages/ad accounts, subscribes to leadgen webhooks, and updates connection state.
 
 import { NextResponse, type NextRequest } from 'next/server'
+import { safeRedirectPath } from '@/lib/auth/safe-redirect'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getMetaOAuthRedirectUri } from '@/lib/integrations/meta/config'
 import { verifyOAuthState, exchangeCodeForToken, exchangeForLongLivedToken } from '@/lib/integrations/meta/oauth'
@@ -32,7 +33,8 @@ export async function GET(request: NextRequest) {
   // Retrieve organisation slug for safe redirect
   const { data: org } = await service.from('organisations').select('slug').eq('id', orgId).maybeSingle()
   const fallbackRedirectUrl = org ? `/${org.slug}/integrations` : '/select-org'
-  const redirectTarget = returnUrl || fallbackRedirectUrl
+  // returnUrl came from the browser when the flow started: same-origin paths only.
+  const redirectTarget = safeRedirectPath(returnUrl, fallbackRedirectUrl)
 
   // 2. Handle provider-side denial or error
   if (errorParam || errorDesc) {

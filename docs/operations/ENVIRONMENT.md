@@ -33,8 +33,9 @@ or chat. `NEXT_PUBLIC_*` values are public by design (they are built into the br
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | private key secret | for push | Web push notifications |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (or `KV_REST_API_URL`, `KV_REST_API_TOKEN`) | token secret | optional | Rate limiting store; without it the database store is used |
 | `REGROW_DEMO_FORM_CONNECTION_ID` | | yes | Website-form connection in REGrow's own workspace (demo/contact form) |
-| `META_APP_ID`, `META_APP_SECRET`, `META_API_VERSION`, `META_WEBHOOK_VERIFY_TOKEN` | secret, token | for Meta | Meta lead ads |
-| `WHATSAPP_APP_SECRET`, `WHATSAPP_WEBHOOK_VERIFY_TOKEN` | secret | for WhatsApp | WhatsApp Business |
+| `META_APP_ID`, `META_APP_SECRET`, `META_API_VERSION`, `META_WEBHOOK_VERIFY_TOKEN` | secret, token | for Meta | The one central Meta app: Lead Ads **and** WhatsApp Cloud API. Webhooks fail closed (503) without the verify token and secret |
+| `META_WA_CONFIG_ID` | | for WhatsApp | WhatsApp Embedded Signup configuration id (Facebook Login for Business → Configurations). Public; enables “Connect WhatsApp number” |
+| `WHATSAPP_APP_SECRET`, `WHATSAPP_WEBHOOK_VERIFY_TOKEN` | secret | legacy | Read only when the `META_*` names are absent |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_DEVELOPER_TOKEN`, `GOOGLE_WEBHOOK_KEY`, `GOOGLE_REDIRECT_URI` | secret | for Google | Google Ads lead forms |
 | `PAYMENTS_ENVIRONMENT` | | production | `live` on Production, `test` on Preview (keys of the other environment are refused) |
 | `RAZORPAY_KEY_ID` | | for payments | `rzp_live_…` on Production |

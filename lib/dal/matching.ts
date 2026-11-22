@@ -12,7 +12,7 @@ import type { DalResult } from '@/lib/dal/routing'
 import type { ProjectCategory } from '@/types/database'
 import { leadScopeOf, type LeadViewer } from '@/lib/auth/permissions'
 
-const REQ_COLUMNS = 'budget_min, budget_max, project_id, req_configurations, req_categories, req_locations, req_facing, req_min_area, req_max_area'
+const REQ_COLUMNS = 'budget_min, budget_max, project_id, req_configurations, req_categories, req_locations, req_facing, req_min_area, req_max_area, req_purpose, req_rent_max, req_property_types'
 const UNIT_COLUMNS = 'id, project_id, unit_number, tower_name, floor_number, status, category, bhk_config, facing, total_price, carpet_area, super_built_up_area, area_value, project:projects(name, city, location)'
 
 type UnitRow = UnitForMatch & { unit_number: string; tower_name: string | null; floor_number: number | null }
@@ -102,6 +102,9 @@ export interface RequirementsInput {
   req_facing: string[]
   req_min_area: number | null
   req_max_area: number | null
+  req_purpose?: 'buy' | 'rent' | null
+  req_rent_max?: number | null
+  req_property_types?: string[]
 }
 
 export async function saveRequirements(orgId: string, leadId: string, input: RequirementsInput): Promise<DalResult<null>> {
@@ -111,8 +114,9 @@ export async function saveRequirements(orgId: string, leadId: string, input: Req
   if (input.req_min_area != null && input.req_max_area != null && input.req_min_area > input.req_max_area) {
     return { success: false, error: 'The smallest area is larger than the largest.', status: 400 }
   }
+  // req_purpose / req_rent_max / req_property_types (20260079) are not in the generated types yet.
   const { data, error } = await createServiceClient().from('leads')
-    .update({ ...input, requirements_updated_at: new Date().toISOString() })
+    .update({ ...input, requirements_updated_at: new Date().toISOString() } as never)
     .eq('org_id', orgId).eq('id', leadId).select('id').maybeSingle()
   if (error) return { success: false, error: 'Could not save the requirements.', status: 500 }
   if (!data) return { success: false, error: 'Lead not found.', status: 404 }
