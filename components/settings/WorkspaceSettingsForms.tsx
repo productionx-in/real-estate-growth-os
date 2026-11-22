@@ -1,11 +1,11 @@
 'use client'
-// components/settings/WorkspaceSettingsForms.tsx — Settings → Leads (reasons for Lost and Junk) and Settings →
-// Inventory (hold time). Owners and admins; the server validates and authorises (app/api/settings/workspace).
+// components/settings/WorkspaceSettingsForms.tsx — Settings → Lead settings (reasons for Lost and Junk), Inventory
+// settings (hold time, area units) and Report settings (financial year, week start). Owners and admins; the server validates and authorises (app/api/settings/workspace).
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react'
 import { Alert, Button, Field, Input, Select } from '@/components/ui'
-import { LIMITS, describeHold, normaliseSection, type InventorySettings, type LeadSettings, type SettingsSection } from '@/lib/settings/workspace'
+import { AREA_UNITS, LIMITS, describeHold, normaliseSection, type AreaUnit, type InventorySettings, type LeadSettings, type ReportSettings, type SettingsSection } from '@/lib/settings/workspace'
 
 function useSave(orgId: string, section: SettingsSection) {
   const router = useRouter()
@@ -86,15 +86,54 @@ export function InventorySettingsForm({ orgId, initial }: { orgId: string; initi
   const [value, setValue] = useState(initial)
   const { busy, message, save } = useSave(orgId, 'inventory')
   const choices = HOLD_CHOICES.includes(value.holdHours) ? HOLD_CHOICES : [...HOLD_CHOICES, value.holdHours].sort((a, b) => a - b)
+  const units = Object.entries(AREA_UNITS) as [AreaUnit, string][]
   return (
-    <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save(value, 'Saved. Units put on hold from now on use this hold time; existing holds keep theirs.') }}>
+    <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); save(value, 'Saved. New holds and new units use these settings; existing ones keep theirs.') }}>
       <Field label="Release units on hold after" hint="A unit on hold goes back to Available on its own when the time runs out, so a forgotten hold never blocks a sale. The unit’s history records it.">
-        <Select value={value.holdHours} onChange={(e) => setValue({ holdHours: Number(e.target.value) })} className="max-w-xs">
+        <Select value={value.holdHours} onChange={(e) => setValue({ ...value, holdHours: Number(e.target.value) })} className="max-w-xs">
           {choices.map((h) => <option key={h} value={h}>{h === 0 ? 'Never — release by hand' : describeHold(h)}</option>)}
         </Select>
       </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Area unit for flats, villas and offices" hint="Pre-filled when someone adds a unit; they can still change it.">
+          <Select value={value.areaUnitBuilt} onChange={(e) => setValue({ ...value, areaUnitBuilt: e.target.value as AreaUnit })}>
+            {units.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </Select>
+        </Field>
+        <Field label="Area unit for plots and land" hint="Square yards in much of South India; guntas, cents or acres for larger land.">
+          <Select value={value.areaUnitLand} onChange={(e) => setValue({ ...value, areaUnitLand: e.target.value as AreaUnit })}>
+            {units.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </Select>
+        </Field>
+      </div>
       {message && <Alert tone={message.tone}>{message.text}</Alert>}
       <Button type="submit" loading={busy}>Save inventory settings</Button>
+    </form>
+  )
+}
+
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+export function ReportSettingsForm({ orgId, initial }: { orgId: string; initial: ReportSettings }) {
+  const [value, setValue] = useState(initial)
+  const { busy, message, save } = useSave(orgId, 'reports')
+  return (
+    <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); save(value, 'Saved. Reports use the new periods straight away.') }}>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Financial year starts in" hint="Sets “This quarter” and “This financial year” in reports. April for most Indian companies.">
+          <Select value={value.fyStartMonth} onChange={(e) => setValue({ ...value, fyStartMonth: Number(e.target.value) })}>
+            {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+          </Select>
+        </Field>
+        <Field label="Week starts on" hint="Sets “This week” in reports.">
+          <Select value={value.weekStartsOn} onChange={(e) => setValue({ ...value, weekStartsOn: Number(e.target.value) === 0 ? 0 : 1 })}>
+            <option value={1}>Monday</option>
+            <option value={0}>Sunday</option>
+          </Select>
+        </Field>
+      </div>
+      {message && <Alert tone={message.tone}>{message.text}</Alert>}
+      <Button type="submit" loading={busy}>Save report settings</Button>
     </form>
   )
 }

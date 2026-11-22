@@ -1,6 +1,6 @@
 -- 20260074_workspace_settings.sql
--- Workspace settings (Settings → Leads, Settings → Inventory), and the two features they drive:
---   * org_settings: one row per organisation, one JSON object per section, validated by lib/settings/workspace.ts
+-- Workspace settings (Settings → Lead / Inventory / Report settings), and the features they drive:
+--   * org_settings: one row per organisation, one JSON object per section (leads, inventory, reports), validated by lib/settings/workspace.ts
 --     before it is saved. Server-only like org_business_profiles (20260071): RLS on, no client privileges.
 --   * leads_all.closed_reason: why a lead was marked Lost or Junk, picked from the workspace's list. The column is
 --     added to the table and the live-leads view is recreated (rule from 20260073).
@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS public.org_settings (
   org_id     UUID PRIMARY KEY REFERENCES public.organisations(id) ON DELETE CASCADE,
   leads      JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(leads) = 'object' AND pg_column_size(leads) < 16384),
   inventory  JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(inventory) = 'object' AND pg_column_size(inventory) < 4096),
+  reports    JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(reports) = 'object' AND pg_column_size(reports) < 4096),
   updated_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

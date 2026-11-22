@@ -1,5 +1,5 @@
 // app/(dashboard)/[orgSlug]/settings/inventory/page.tsx — Properties and deals → Inventory settings: how long a unit
-// stays on hold before it is released automatically (20260074). Owners and admins.
+// stays on hold before it is released automatically, and the area units new units start with (20260074). Owners and admins.
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
@@ -18,7 +18,7 @@ export default async function InventorySettingsPage({ params }: { params: Promis
   return (
     <div className="max-w-3xl space-y-4">
       <SettingsHeader title="Inventory settings" scope="org" description="Rules for units across all your projects." />
-      <SettingsCard title="Holds" description="A hold reserves a unit for a buyer for a while, without booking it.">
+      <SettingsCard title="Holds and area units" description="A hold reserves a unit for a buyer for a while, without booking it.">
         <InventorySettingsForm orgId={org.id} initial={settings.inventory} />
       </SettingsCard>
     </div>

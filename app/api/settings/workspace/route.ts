@@ -1,4 +1,4 @@
-// app/api/settings/workspace/route.ts — save one section of the workspace settings (Settings → Leads / Inventory).
+// app/api/settings/workspace/route.ts — save one section of the workspace settings (Settings → Lead / Inventory / Report settings).
 // Owners and admins only; validated by lib/settings/workspace.ts; audited with what changed.
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
@@ -9,7 +9,7 @@ import { normaliseSection } from '@/lib/settings/workspace'
 
 const Schema = z.object({
   orgId: z.string().uuid(),
-  section: z.enum(['leads', 'inventory']),
+  section: z.enum(['leads', 'inventory', 'reports']),
   value: z.record(z.string(), z.unknown()),
 })
 

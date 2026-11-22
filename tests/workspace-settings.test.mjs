@@ -10,6 +10,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const jiti = createJiti(import.meta.url, { alias: { '@': root } })
 const w = await jiti.import(path.join(root, 'lib/settings/workspace.ts'))
 const catalog = await jiti.import(path.join(root, 'lib/settings/catalog.ts'))
+const periods = await jiti.import(path.join(root, 'lib/reports/periods.ts'))
 const read = (f) => fs.readFileSync(path.join(root, f), 'utf8')
 let passed = 0
 function test(name, fn) { fn(); passed++; console.log(`  ✓ ${name}`) }
@@ -29,10 +30,42 @@ test('asking for a reason needs at least one reason in each list', () => {
   assert.deepEqual(w.normaliseSection('leads', { lostReasons: [], junkReasons: [], requireReason: false }).errors, {})
 })
 
-test('hold time is a whole number of hours from 0 to 720', () => {
-  assert.deepEqual(w.normaliseSection('inventory', { holdHours: 48 }), { value: { holdHours: 48 }, errors: {} })
+test('hold time is a whole number of hours from 0 to 720; area units come from the inventory form’s list', () => {
+  assert.deepEqual(w.normaliseSection('inventory', { holdHours: 48, areaUnitBuilt: 'sqft', areaUnitLand: 'guntas' }), { value: { holdHours: 48, areaUnitBuilt: 'sqft', areaUnitLand: 'guntas' }, errors: {} })
+  assert.ok(w.normaliseSection('inventory', { holdHours: 0, areaUnitBuilt: 'sqm', areaUnitLand: 'sqyd' }).errors.areaUnitBuilt)
+  const formUnits = read('lib/validations/inventory.ts').match(/area_unit: z\.enum\(\[([^\]]+)\]/)[1].match(/'(\w+)'/g).map((x) => x.slice(1, -1))
+  assert.deepEqual(Object.keys(w.AREA_UNITS).sort(), formUnits.sort(), 'every setting value is one the inventory form accepts')
   for (const bad of [-1, 721, 1.5, 'x', null]) assert.ok(w.normaliseSection('inventory', { holdHours: bad }).errors.holdHours, String(bad))
   assert.equal(w.describeHold(0), 'Holds stay until someone releases them'); assert.equal(w.describeHold(48), '2 days'); assert.equal(w.describeHold(36), '36 hours')
+})
+
+test('report settings: a month 1–12 and a week that starts on Sunday or Monday', () => {
+  assert.deepEqual(w.normaliseSection('reports', { fyStartMonth: 1, weekStartsOn: 0 }), { value: { fyStartMonth: 1, weekStartsOn: 0 }, errors: {} })
+  for (const bad of [0, 13, 4.5, null]) assert.ok(w.normaliseSection('reports', { fyStartMonth: bad, weekStartsOn: 1 }).errors.fyStartMonth, String(bad))
+  assert.ok(w.normaliseSection('reports', { fyStartMonth: 4, weekStartsOn: 3 }).errors.weekStartsOn)
+})
+
+test('report periods: calendar boundaries at midnight India time, following the financial year and week start', () => {
+  const india = { fyStartMonth: 4, weekStartsOn: 1 }
+  // 22 Nov 2026, 10:00 IST (a Sunday) = 04:30 UTC
+  const now = new Date('2026-11-22T04:30:00Z')
+  const iso = (k, s = india) => periods.resolvePeriod(k, s, now).from.toISOString()
+  assert.equal(iso('month'), '2026-10-31T18:30:00.000Z', '1 Nov 00:00 IST')
+  assert.equal(iso('quarter'), '2026-09-30T18:30:00.000Z', 'Q3 of an April year starts 1 Oct')
+  assert.equal(iso('fy'), '2026-03-31T18:30:00.000Z', 'FY 2026–27 starts 1 Apr 2026')
+  assert.equal(iso('week'), '2026-11-15T18:30:00.000Z', 'a Monday week started Mon 16 Nov')
+  assert.equal(iso('week', { ...india, weekStartsOn: 0 }), '2026-11-21T18:30:00.000Z', 'a Sunday week starts today')
+  assert.equal(iso('fy', { fyStartMonth: 1, weekStartsOn: 1 }), '2025-12-31T18:30:00.000Z', 'calendar-year companies')
+  assert.match(periods.resolvePeriod('fy', india, now).label, /FY 2026–27/)
+  assert.match(periods.resolvePeriod('quarter', india, now).label, /Q3 \(Oct–Dec\)/)
+  // Early January in an April year: Q4 started 1 Jan, the year started the previous April.
+  const jan = new Date('2027-01-02T00:00:00Z')
+  assert.equal(periods.resolvePeriod('quarter', india, jan).from.toISOString(), '2026-12-31T18:30:00.000Z')
+  assert.equal(periods.resolvePeriod('fy', india, jan).from.toISOString(), '2026-03-31T18:30:00.000Z')
+  // A quarter that crosses the calendar year (financial year starting in November).
+  assert.match(periods.resolvePeriod('quarter', { fyStartMonth: 11, weekStartsOn: 1 }, jan).label, /Q1 \(Nov–Jan\)/)
+  assert.equal(periods.resolvePeriod('30d', india, now).from.getTime(), now.getTime() - 30 * 86_400_000)
+  assert.equal(periods.isPeriod('fy'), true); assert.equal(periods.isPeriod('toString'), false)
 })
 
 test('a missing, empty or malformed stored row falls back to the defaults', () => {
@@ -41,6 +74,7 @@ test('a missing, empty or malformed stored row falls back to the defaults', () =
   const s = w.settingsFromRow({ leads: { lostReasons: ['Price'] }, inventory: { holdHours: 'abc' } })
   assert.deepEqual(s.leads.lostReasons, ['Price']); assert.deepEqual(s.leads.junkReasons, w.DEFAULT_SETTINGS.leads.junkReasons)
   assert.equal(s.inventory.holdHours, 0)
+  assert.deepEqual(w.settingsFromRow({ inventory: { holdHours: 12 } }).inventory, { holdHours: 12, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd' }, 'rows saved before a field existed get its default')
 })
 
 test('closing a lead: the reason must be on the workspace’s list, or “Other” with a note', () => {
@@ -58,10 +92,18 @@ test('saving settings: owners and admins only, validated and audited; reading ne
   assert.match(api, /authorizeOrgAccess\(orgId, \['owner', 'admin'\]\)/)
   assert.match(api, /normaliseSection\(section/)
   assert.match(api, /auditMember\([^)]*settings\.\$\{section\}_saved/)
-  for (const page of ['leads', 'inventory']) assert.match(read(`app/(dashboard)/[orgSlug]/settings/${page}/page.tsx`), /if \(!isAdmin\) redirect/)
+  for (const page of ['leads', 'inventory', 'reports']) assert.match(read(`app/(dashboard)/[orgSlug]/settings/${page}/page.tsx`), /if \(!isAdmin\) redirect/)
   const keys = (role) => catalog.settingsFor(role).flatMap((g) => g.pages.map((p) => p.key))
   assert.ok(keys('admin').includes('lead-settings') && keys('admin').includes('inventory-settings'))
   assert.ok(!keys('manager').includes('lead-settings') && !keys('sales_exec').includes('inventory-settings'))
+  assert.ok(keys('owner').includes('report-settings') && !keys('manager').includes('report-settings'))
+})
+
+test('settings are used: Speed to lead uses the report periods, the add-unit form the area units', () => {
+  const page = read('app/(dashboard)/[orgSlug]/speed-to-lead/page.tsx')
+  assert.match(page, /resolvePeriod\(period, \(await getWorkspaceSettings\(org\.id\)\)\.reports\)/)
+  assert.match(read('components/inventory/InventoryForm.tsx'), /prefs\.areaUnitLand : prefs\.areaUnitBuilt/)
+  assert.match(read('app/(dashboard)/[orgSlug]/layout.tsx'), /<WorkspacePrefsProvider value=\{\{ areaUnitBuilt: inv\.areaUnitBuilt, areaUnitLand: inv\.areaUnitLand \}\}>/)
 })
 
 test('the status API checks the close reason on the server and stores it on the lead', () => {

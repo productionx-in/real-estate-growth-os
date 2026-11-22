@@ -44,10 +44,12 @@ async function main() {
 
   await test('a workspace with nothing saved gets the defaults; saving one section leaves the other alone', async () => {
     assert.deepEqual(await dal.getWorkspaceSettings(org), DEFAULT_SETTINGS)
-    assert.equal(await dal.saveWorkspaceSection(org, actor, 'inventory', { holdHours: 24 }), true)
+    assert.equal(await dal.saveWorkspaceSection(org, actor, 'inventory', { holdHours: 24, areaUnitBuilt: 'sqft', areaUnitLand: 'guntas' }), true)
+    assert.equal(await dal.saveWorkspaceSection(org, actor, 'reports', { fyStartMonth: 1, weekStartsOn: 0 }), true)
     assert.equal(await dal.saveWorkspaceSection(org, actor, 'leads', { ...DEFAULT_SETTINGS.leads, lostReasons: ['Price', 'Location'] }), true)
     const s = await dal.getWorkspaceSettings(org)
-    assert.equal(s.inventory.holdHours, 24); assert.deepEqual(s.leads.lostReasons, ['Price', 'Location'])
+    assert.equal(s.inventory.holdHours, 24); assert.equal(s.inventory.areaUnitLand, 'guntas'); assert.deepEqual(s.leads.lostReasons, ['Price', 'Location'])
+    assert.deepEqual(s.reports, { fyStartMonth: 1, weekStartsOn: 0 })
   })
 
   await test('settings belong to one organisation', async () => {

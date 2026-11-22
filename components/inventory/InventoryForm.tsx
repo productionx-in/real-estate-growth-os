@@ -1,6 +1,7 @@
 'use client'
 // components/inventory/InventoryForm.tsx
 // Category-Aware Inventory Creation & Editing Modal (Stage 3C)
+import { useWorkspacePrefs } from '@/components/settings/WorkspacePrefs'
 import { useState, useTransition, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -148,9 +149,11 @@ export function InventoryForm({
   const [areaValue, setAreaValue] = useState<string>(
     initialItem?.area_value ? String(initialItem.area_value) : ''
   )
+  // New units start with the workspace's area units (Settings → Inventory settings).
+  const prefs = useWorkspacePrefs()
   const [areaUnit, setAreaUnit] = useState<string>(
     initialItem?.area_unit ??
-      (unitCategory === 'plotted_developments' ? 'sqyd' : 'sqft')
+      (unitCategory === 'plotted_developments' ? prefs.areaUnitLand : prefs.areaUnitBuilt)
   )
   const [carpetArea, setCarpetArea] = useState<string>(
     initialItem?.carpet_area ? String(initialItem.carpet_area) : ''
@@ -188,11 +191,7 @@ export function InventoryForm({
   const switchCategory = (newCat: ProjectCategory) => {
     setUnitCategory(newCat)
     if (!initialItem) {
-      if (newCat === 'plotted_developments') {
-        setAreaUnit('sqyd')
-      } else {
-        setAreaUnit('sqft')
-      }
+      setAreaUnit(newCat === 'plotted_developments' ? prefs.areaUnitLand : prefs.areaUnitBuilt)
     }
   }
 
@@ -834,7 +833,7 @@ export function InventoryForm({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-medium text-[var(--foreground)]">
-                    Base Rate ({areaUnit === 'sqyd' ? '₹ per sq.yd' : '₹ per sq.ft'})
+                    Base Rate (₹ per {({ sqft: 'sq.ft', sqyd: 'sq.yd', acres: 'acre', guntas: 'gunta', cents: 'cent' } as Record<string, string>)[areaUnit] ?? areaUnit})
                   </label>
                   <input
                     type="number"

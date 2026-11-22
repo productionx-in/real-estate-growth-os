@@ -11,12 +11,27 @@ export interface LeadSettings {
   requireReason: boolean
 }
 
+/** Area units the inventory form accepts (lib/validations/inventory.ts). */
+export const AREA_UNITS = { sqft: 'Square feet (sq ft)', sqyd: 'Square yards (sq yd)', acres: 'Acres', guntas: 'Guntas', cents: 'Cents' } as const
+export type AreaUnit = keyof typeof AREA_UNITS
+
 export interface InventorySettings {
   /** A unit put on hold goes back to Available after this many hours; 0 = holds never expire. */
   holdHours: number
+  /** Area unit pre-filled for new flats, villas and commercial units. */
+  areaUnitBuilt: AreaUnit
+  /** Area unit pre-filled for new plots. */
+  areaUnitLand: AreaUnit
 }
 
-export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings }
+export interface ReportSettings {
+  /** Month the financial year starts, 1–12 (April in India). */
+  fyStartMonth: number
+  /** 0 = Sunday, 1 = Monday. */
+  weekStartsOn: 0 | 1
+}
+
+export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings }
 export type SettingsSection = keyof WorkspaceSettings
 
 // The reasons Indian sales teams record most often; a workspace edits, reorders or replaces them.
@@ -26,7 +41,8 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
     junkReasons: ['Wrong or invalid number', 'Duplicate enquiry', 'Not looking to buy', 'Broker or agent', 'Spam or test'],
     requireReason: true,
   },
-  inventory: { holdHours: 0 },
+  inventory: { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd' },
+  reports: { fyStartMonth: 4, weekStartsOn: 1 },
 }
 
 export const LIMITS = { reasons: 20, reasonLength: 80, holdHours: 720 } as const
@@ -63,23 +79,40 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
     }
     return { value: value as WorkspaceSettings[S], errors }
   }
+  if (section === 'reports') {
+    const m = Number(o.fyStartMonth)
+    const value: ReportSettings = {
+      fyStartMonth: Number.isInteger(m) && m >= 1 && m <= 12 ? m : 4,
+      weekStartsOn: o.weekStartsOn === 0 ? 0 : 1,
+    }
+    if (!(Number.isInteger(m) && m >= 1 && m <= 12)) errors.fyStartMonth = 'Pick the month your financial year starts.'
+    if (o.weekStartsOn !== 0 && o.weekStartsOn !== 1) errors.weekStartsOn = 'The week starts on Sunday or Monday.'
+    return { value: value as WorkspaceSettings[S], errors }
+  }
   // Only real numbers (a form sends them as numbers): Number(null) or Number('') would silently become 0.
   const hours = typeof o.holdHours === 'number' ? o.holdHours : typeof o.holdHours === 'string' && /^\d+$/.test(o.holdHours) ? Number(o.holdHours) : NaN
+  const unit = (v: unknown, fallback: AreaUnit, key: string): AreaUnit => {
+    if (typeof v === 'string' && v in AREA_UNITS) return v as AreaUnit
+    errors[key] = 'Pick an area unit from the list.'
+    return fallback
+  }
   const value: InventorySettings = {
     holdHours: Number.isInteger(hours) && hours >= 0 && hours <= LIMITS.holdHours ? hours : 0,
+    areaUnitBuilt: unit(o.areaUnitBuilt, 'sqft', 'areaUnitBuilt'),
+    areaUnitLand: unit(o.areaUnitLand, 'sqyd', 'areaUnitLand'),
   }
   if (!(Number.isInteger(hours) && hours >= 0 && hours <= LIMITS.holdHours)) errors.holdHours = `Hold time is a whole number of hours from 0 to ${LIMITS.holdHours} (30 days).`
   return { value: value as WorkspaceSettings[S], errors }
 }
 
 /** A stored row (possibly partial or from an older version) merged over the defaults; never throws. */
-export function settingsFromRow(row: { leads?: unknown; inventory?: unknown } | null | undefined): WorkspaceSettings {
+export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown } | null | undefined): WorkspaceSettings {
   const merge = <S extends SettingsSection>(s: S, stored: unknown): WorkspaceSettings[S] => {
     if (!stored || typeof stored !== 'object' || Array.isArray(stored) || !Object.keys(stored).length) return DEFAULT_SETTINGS[s]
     const { value } = normaliseSection(s, { ...DEFAULT_SETTINGS[s], ...(stored as object) })
     return value
   }
-  return { leads: merge('leads', row?.leads), inventory: merge('inventory', row?.inventory) }
+  return { leads: merge('leads', row?.leads), inventory: merge('inventory', row?.inventory), reports: merge('reports', row?.reports) }
 }
 
 /** The reason a person picked when closing a lead, checked against the workspace's list. "Other" needs a note. */
