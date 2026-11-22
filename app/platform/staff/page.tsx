@@ -32,7 +32,7 @@ export default async function StaffPage() {
               <Td>{ROLE_LABEL[s.role as StaffRole] ?? s.role}</Td>
               <Td>{s.mfa ? <Badge tone="success">Set up</Badge> : <Badge tone="warning">Not yet</Badge>}</Td>
               <Td className={s.is_active ? '' : 'text-muted'}>{s.is_active ? 'Active' : 'Deactivated'}</Td>
-              <Td><StaffControls id={s.id} role={s.role} active={s.is_active} self={s.user_id === access.userId} /></Td>
+              <Td><StaffControls id={s.id} role={s.role} active={s.is_active} self={s.user_id === access.userId} founding={s.founding} /></Td>
             </tr>
           ))}
         </tbody>
