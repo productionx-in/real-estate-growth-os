@@ -368,10 +368,11 @@ export async function customerReply(db: Db, orgId: string, member: { profileId: 
 export async function listStaff(db: Db, actor: Actor) {
   if (!can(actor.role, 'staff')) return fail('Not permitted.', 403)
   const { data } = await db.from('platform_users').select('id, user_id, role, is_active, created_at, updated_at').order('created_at')
+  const founding = await foundingStaffRecord(db)
   const out = []
   for (const s of data ?? []) {
     const { data: u } = await db.auth.admin.getUserById(s.user_id)
-    out.push({ ...s, email: u?.user?.email ?? '—', mfa: (u?.user?.factors ?? []).some((f: { status: string }) => f.status === 'verified') })
+    out.push({ ...s, founding: s.id === founding, email: u?.user?.email ?? '—', mfa: (u?.user?.factors ?? []).some((f: { status: string }) => f.status === 'verified') })
   }
   return { success: true as const, data: out }
 }
@@ -453,6 +454,13 @@ export async function changeStaff(db: Db, actor: Actor, platformUserId: string, 
   return { success: true as const, data: { id: s.id } }
 }
 
+/** The staff record of the account that set up the platform (20260032). The bootstrap record refers to it and is
+ *  permanent by design, so that record can be deactivated — which removes all console access — but never deleted. */
+async function foundingStaffRecord(db: Db): Promise<string | null> {
+  const { data } = await db.from('platform_bootstrap_state').select('initial_super_admin_record_id').maybeSingle()
+  return (data?.initial_super_admin_record_id as string | undefined) ?? null
+}
+
 /** Take a deactivated person off the staff list. Their REGrow sign-in account is kept; the audit trail too. */
 export async function removeStaff(db: Db, actor: Actor, platformUserId: string) {
   if (!can(actor.role, 'staff')) return fail('Not permitted.', 403)
@@ -460,9 +468,12 @@ export async function removeStaff(db: Db, actor: Actor, platformUserId: string) 
   if (!s) return fail('Staff member not found.', 404)
   if (s.user_id === actor.userId) return fail('You cannot remove yourself.', 403)
   if (s.is_active) return fail('Deactivate this person first, then remove them.', 409)
+  if (s.id === (await foundingStaffRecord(db))) {
+    return fail('This account set up the platform and stays on the permanent record. Deactivated, it has no console access.', 409)
+  }
   const { data: u } = await db.auth.admin.getUserById(s.user_id)
   const { error } = await db.from('platform_users').delete().eq('id', s.id)
-  if (error) return fail(error.message, 400)
+  if (error) return fail('Could not remove this person. Nothing was changed.', 400)
   await audit(db, actor, 'staff.removed', 'platform_users', s.id, { role: s.role, email: u?.user?.email ?? null })
   return { success: true as const, data: { id: s.id } }
 }
