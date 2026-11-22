@@ -27,7 +27,7 @@ export default async function SecuritySettingsPage({ params }: { params: Promise
             {mfaOn ? 'On — your account asks for an authenticator code.' : 'Off — anyone with your password can sign in.'}
           </p>
           {!mfaOn && (
-            <Link href="/account/security" className="inline-flex min-h-10 items-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">
+            <Link href={`/account/security?next=${encodeURIComponent(`/${orgSlug}/settings/security`)}`} className="inline-flex min-h-10 items-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">
               Turn on
             </Link>
           )}
