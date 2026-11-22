@@ -3538,6 +3538,33 @@ export interface Database {
         }
         Relationships: []
       }
+      plot_map_staff_access: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          granted_by: string | null
+          granted_at: string
+          expires_at: string
+          revoked_by: string | null
+          revoked_at: string | null
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          granted_by?: string | null
+          granted_at?: string
+          expires_at: string
+          revoked_by?: string | null
+          revoked_at?: string | null
+        }
+        Update: {
+          revoked_by?: string | null
+          revoked_at?: string | null
+        }
+        Relationships: []
+      }
       plot_map_setup_assignments: {
         Row: {
           project_id: string
@@ -3761,6 +3788,14 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      plot_map_staff_access_active: {
+        Args: { p_project: string }
+        Returns: boolean
+      }
+      save_plot_map_shapes_as_staff: {
+        Args: { p_org: string; p_version: string; p_actor: string | null; p_shapes: Json }
+        Returns: number
+      }
       plot_map_embed_origins: {
         Args: { p_token: string }
         Returns: string[]
