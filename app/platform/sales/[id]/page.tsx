@@ -5,7 +5,8 @@ import { notFound } from 'next/navigation'
 import { getConsoleAccess } from '@/lib/auth/platform'
 import { createServiceClient } from '@/lib/supabase/server'
 import { can, getProspect, type Db, type StaffRole } from '@/lib/platform/portal'
-import { ActivityForm, ProspectControls, STAGE_LABEL } from '@/components/platform/PortalClient'
+import { ActivityForm, LinkWorkspaceForm, ProspectControls } from '@/components/platform/PortalClient'
+import { STAGE_LABEL, STAGE_TONE, WORKSPACE_STAGES } from '@/lib/platform/stages'
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 
 export const metadata: Metadata = { title: 'Prospect' }
@@ -24,16 +25,28 @@ export default async function ProspectPage({ params }: { params: Promise<{ id: s
   const { data: staff } = await db.from('platform_users').select('user_id, role').in('role', ['sales_rep', 'sales_manager', 'super_admin']).eq('is_active', true)
   const { data: names } = await db.from('profiles').select('auth_user_id, full_name').in('auth_user_id', (staff ?? []).map((s) => s.user_id))
   const salesStaff = (staff ?? []).map((s) => ({ id: s.user_id, label: names?.find((n) => n.auth_user_id === s.user_id)?.full_name ?? 'Staff member' }))
+  // A request past "trial started" without a workspace: the one created earlier was deleted (the link is cleared then).
+  const missing = !p.linked_org_id && WORKSPACE_STAGES.includes(p.stage)
+  const canLink = !p.linked_org_id && (role === 'super_admin' || role === 'sales_manager')
+  let workspaces: { id: string; label: string }[] = []
+  if (canLink) {
+    const [{ data: orgs }, { data: linked }] = await Promise.all([
+      db.from('organisations').select('id, name, slug').order('created_at', { ascending: false }).limit(200),
+      db.from('internal_prospects').select('linked_org_id').not('linked_org_id', 'is', null),
+    ])
+    const taken = new Set((linked ?? []).map((l) => l.linked_org_id as string))
+    workspaces = (orgs ?? []).filter((o) => !taken.has(o.id as string)).map((o) => ({ id: o.id as string, label: `${o.name} (/${o.slug})` }))
+  }
   const when = (iso: string) => new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata' }).format(new Date(iso))
   return (
     <div className="space-y-5">
       <Link href="/platform/sales" className="text-[12px] text-muted hover:text-foreground">← Sales pipeline</Link>
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-[22px] font-semibold tracking-tight">{p.company_name}</h1>
-        <Badge tone="brand">{STAGE_LABEL[p.stage]}</Badge>
+        <Badge tone={STAGE_TONE[p.stage] ?? 'neutral'}>{STAGE_LABEL[p.stage] ?? p.stage}</Badge>
         <span className="text-[13px] text-muted">{p.org_type === 'channel_partner' ? 'Channel partner agency' : 'Developer / builder'}{p.city ? ` · ${p.city}` : ''}{p.team_size ? ` · team of ${p.team_size}` : ''}</span>
       </div>
-      <Card className={p.linked_org_id ? '' : 'border-brand/40'}>
+      <Card className={p.linked_org_id ? '' : missing ? 'border-danger/40' : 'border-brand/40'}>
         <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
           {p.linked_org_id ? (
             <>
@@ -46,7 +59,13 @@ export default async function ProspectPage({ params }: { params: Promise<{ id: s
           ) : (
             <>
               <div className="min-w-0">
-                <p className="text-[14px] font-semibold">Activate this customer</p>
+                <p className="text-[14px] font-semibold">{missing ? 'Workspace missing' : 'Activate this customer'}</p>
+                {missing && (
+                  <p className="text-[13px] text-danger">
+                    This request is at “{STAGE_LABEL[p.stage]}”, but it is not linked to a workspace — the one created earlier was deleted.
+                    Link the customer’s current workspace below, or create a new one.
+                  </p>
+                )}
                 <p className="text-[13px] text-muted">
                   Create their workspace and invite {p.contact_email ? <strong className="text-foreground">{p.contact_email}</strong> : 'them'} as the owner. The form is filled in from this request.
                   {!p.contact_email && ' Add their e-mail address on the next screen.'}
@@ -55,6 +74,7 @@ export default async function ProspectPage({ params }: { params: Promise<{ id: s
               {role === 'super_admin'
                 ? <Button asChild><Link href={`/admin/provision?prospect=${p.id}`}>Activate — create workspace</Link></Button>
                 : <p className="text-[12px] text-muted">Only the Platform Owner can create workspaces. Move this to “Qualified” and let them know.</p>}
+              {canLink && workspaces.length > 0 && <div className="w-full border-t border-default pt-3"><LinkWorkspaceForm id={p.id} workspaces={workspaces} /></div>}
             </>
           )}
         </CardContent>

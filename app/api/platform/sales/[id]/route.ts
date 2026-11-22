@@ -8,6 +8,7 @@ type Ctx = { params: Promise<{ id: string }> }
 const Update = z.object({
   stage: z.enum(STAGES).optional(), lostReason: z.string().trim().max(500).nullish(), ownerUserId: z.string().uuid().nullish(),
   nextFollowUpAt: z.string().datetime().nullish(), notes: z.string().trim().max(4000).nullish(),
+  linkedOrgId: z.string().uuid().optional(),
 })
 const Activity = z.object({ kind: z.enum(['call', 'email', 'meeting', 'note']), body: z.string().trim().min(1).max(4000) })
 

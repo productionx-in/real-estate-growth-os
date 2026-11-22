@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Alert, Button, Field, Input, Select, Textarea } from '@/components/ui'
+import { STAGE_LABEL } from '@/lib/platform/stages'
 
 async function send(url: string, method: string, body: unknown) {
   const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -23,11 +24,6 @@ function useAction() {
   return { busy, msg, run, router }
 }
 
-const STAGE_LABEL: Record<string, string> = {
-  new: 'New', contacted: 'Contacted', interested: 'Interested', qualified: 'Qualified', demo_scheduled: 'Demo scheduled', demo_done: 'Demo done',
-  trial_started: 'Trial started', negotiation: 'Negotiation', won: 'Won', lost: 'Lost',
-}
-export { STAGE_LABEL }
 
 export function NewProspectForm() {
   const { busy, msg, run, router } = useAction()
@@ -202,3 +198,25 @@ export function StaffControls({ id, role, active, self, founding = false }: { id
     </div>
   )
 }
+
+/** Link this prospect to a workspace that already exists (e.g. after the first one was deleted and a new one made). */
+export function LinkWorkspaceForm({ id, workspaces }: { id: string; workspaces: { id: string; label: string }[] }) {
+  const { busy, msg, run } = useAction()
+  const [org, setOrg] = useState('')
+  return (
+    <form className="flex flex-wrap items-end gap-2" onSubmit={(e) => {
+      e.preventDefault()
+      if (org) run(() => send(`/api/platform/sales/${id}`, 'PATCH', { linkedOrgId: org }), 'Linked.')
+    }}>
+      <Field label="Link an existing workspace">
+        <Select value={org} onChange={(e) => setOrg(e.target.value)} className="min-w-56">
+          <option value="">Choose a workspace</option>
+          {workspaces.map((w) => <option key={w.id} value={w.id}>{w.label}</option>)}
+        </Select>
+      </Field>
+      <Button type="submit" variant="secondary" disabled={!org || busy}>Link</Button>
+      {msg && <Alert tone={msg.tone} className="w-full">{msg.text}</Alert>}
+    </form>
+  )
+}
+
