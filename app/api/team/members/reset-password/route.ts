@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   if (!access.success) return access.response
   const db = createServiceClient()
 
-  const { data: member } = await db.from('org_members').select('id, profile_id, role, status').eq('org_id', orgId).eq('id', memberId).maybeSingle()
+  const { data: member } = await db.from('org_members').select('id, profile_id, role, status').eq('org_id', orgId).eq('id', memberId).eq('status', 'active').maybeSingle()
   if (!member || member.status !== 'active') return NextResponse.json({ error: 'This person is not an active member of the workspace.' }, { status: 404 })
   if (member.profile_id === access.context.profile.id) return NextResponse.json({ error: 'To change your own password, use Settings → Sign-in & security.' }, { status: 400 })
   if (member.role === 'owner' && access.context.role !== 'owner') return NextResponse.json({ error: 'Only an owner can send this to another owner.' }, { status: 403 })
