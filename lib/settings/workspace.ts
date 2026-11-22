@@ -1,6 +1,7 @@
 // lib/settings/workspace.ts — workspace-wide settings (org_settings, 20260074): what each section holds, its defaults
 // and the rules a saved value must follow. Pure, so the forms, the API and the tests share one definition.
 // Nothing here is a secret; owners and admins change it (the API authorises), everyone in the workspace reads it.
+import { DEFAULT_TEAM, normaliseTeam, teamFromStored, type TeamDefaults } from '@/lib/notifications/prefs'
 
 export interface LeadSettings {
   /** Choices offered when a lead is marked Lost (in this order). */
@@ -31,7 +32,7 @@ export interface ReportSettings {
   weekStartsOn: 0 | 1
 }
 
-export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings }
+export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; notifications: TeamDefaults }
 export type SettingsSection = keyof WorkspaceSettings
 
 // The reasons Indian sales teams record most often; a workspace edits, reorders or replaces them.
@@ -43,6 +44,7 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
   },
   inventory: { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd' },
   reports: { fyStartMonth: 4, weekStartsOn: 1 },
+  notifications: DEFAULT_TEAM,
 }
 
 export const LIMITS = { reasons: 20, reasonLength: 80, holdHours: 720 } as const
@@ -68,6 +70,10 @@ function reasons(input: unknown, label: string, errors: Errors, key: string): st
 export function normaliseSection<S extends SettingsSection>(section: S, input: unknown): { value: WorkspaceSettings[S]; errors: Errors } {
   const errors: Errors = {}
   const o = (input && typeof input === 'object' && !Array.isArray(input) ? input : {}) as Record<string, unknown>
+  if (section === 'notifications') {
+    const r = normaliseTeam(o)
+    return { value: r.value as WorkspaceSettings[S], errors: r.errors }
+  }
   if (section === 'leads') {
     const value: LeadSettings = {
       lostReasons: reasons(o.lostReasons, 'Lost reasons', errors, 'lostReasons'),
@@ -106,13 +112,13 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
 }
 
 /** A stored row (possibly partial or from an older version) merged over the defaults; never throws. */
-export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown } | null | undefined): WorkspaceSettings {
+export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown; notifications?: unknown } | null | undefined): WorkspaceSettings {
   const merge = <S extends SettingsSection>(s: S, stored: unknown): WorkspaceSettings[S] => {
     if (!stored || typeof stored !== 'object' || Array.isArray(stored) || !Object.keys(stored).length) return DEFAULT_SETTINGS[s]
     const { value } = normaliseSection(s, { ...DEFAULT_SETTINGS[s], ...(stored as object) })
     return value
   }
-  return { leads: merge('leads', row?.leads), inventory: merge('inventory', row?.inventory), reports: merge('reports', row?.reports) }
+  return { leads: merge('leads', row?.leads), inventory: merge('inventory', row?.inventory), reports: merge('reports', row?.reports), notifications: teamFromStored(row?.notifications) }
 }
 
 /** The reason a person picked when closing a lead, checked against the workspace's list. "Other" needs a note. */
