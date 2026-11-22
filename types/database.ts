@@ -3403,6 +3403,59 @@ export interface Database {
         }
         Relationships: []
       }
+      plot_map_shapes: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          version_id: string
+          label: string
+          kind: string
+          points: Json
+          unit_id: string | null
+          linked_by: string | null
+          linked_at: string | null
+          source: string
+          created_by: string | null
+          updated_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          version_id: string
+          label: string
+          kind?: string
+          points: Json
+          unit_id?: string | null
+          linked_by?: string | null
+          linked_at?: string | null
+          source?: string
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          org_id?: string
+          project_id?: string
+          version_id?: string
+          label?: string
+          kind?: string
+          points?: Json
+          unit_id?: string | null
+          linked_by?: string | null
+          linked_at?: string | null
+          source?: string
+          created_by?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       plot_layouts: {
         Row: {
           id: string
@@ -3596,6 +3649,10 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      save_plot_map_shapes: {
+        Args: { p_org: string; p_version: string; p_actor: string; p_shapes: Json }
+        Returns: number
+      }
       next_plot_map_version_no: {
         Args: { p_layout: string }
         Returns: number

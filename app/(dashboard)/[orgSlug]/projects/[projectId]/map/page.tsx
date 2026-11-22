@@ -99,7 +99,7 @@ export default async function ProjectMapPage({ params, searchParams }: {
             {isManager && <Link href="?new=1" className={cn('inline-flex min-h-9 items-center rounded-full border border-dashed px-3 text-[13px]', adding ? 'border-brand text-brand' : 'border-strong text-muted hover:bg-surface-hover')}>+ Add a layout (phase)</Link>}
           </nav>
         )}
-        {files && <MapDocuments orgId={org.id} projectId={projectId} layouts={all.map((l) => ({ id: l.id, name: l.name }))} documents={files.documents} versions={files.versions} />}
+        {files && <MapDocuments orgId={org.id} orgSlug={orgSlug} projectId={projectId} layouts={all.map((l) => ({ id: l.id, name: l.name }))} documents={files.documents} versions={files.versions} />}
         {isManager && <LayoutManager key={current?.id ?? 'new'} orgId={org.id} projectId={projectId} layout={current} />}
         {live ? (
           <PlotMap mode="team" viewBox={live.viewBox} geometry={live.geometry} plots={live.plots} showPrices unitHref={() => back.href} />
