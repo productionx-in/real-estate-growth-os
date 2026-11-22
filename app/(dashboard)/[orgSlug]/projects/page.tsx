@@ -7,6 +7,7 @@ import { PageShell } from '@/components/layout/PageShell'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { formatDate } from '@/lib/utils/format'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
+import { ProjectCardMenu } from '@/components/projects/ProjectCardMenu'
 import { PROJECT_CATEGORY_LABELS, type ProjectCategory } from '@/types/inventory'
 
 export const metadata: Metadata = { title: 'Projects' }
@@ -34,7 +35,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default async function ProjectsPage({ params }: PageProps) {
   const { orgSlug } = await params
-  const { org, isManager } = await getVerifiedWorkspace(orgSlug)
+  const { org, isManager, isAdmin } = await getVerifiedWorkspace(orgSlug)
   const service = createServiceClient()
 
   const { data: projects } = await service
@@ -65,11 +66,12 @@ export default async function ProjectsPage({ params }: PageProps) {
             const category = (project.category as ProjectCategory) || 'apartments'
 
             return (
-              <Link
+              <div
                 key={project.id}
-                href={`/${orgSlug}/projects/${project.id}`}
-                className="block bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 hover:border-[var(--brand)] hover:shadow-xs transition-all group"
+                className="relative bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 hover:border-[var(--brand)] hover:shadow-xs transition-all group"
               >
+                {/* The whole card opens the project; the Manage menu sits above this link. */}
+                <Link href={`/${orgSlug}/projects/${project.id}`} className="absolute inset-0 rounded-xl" aria-label={`Open ${project.name}`} />
                 <div className="flex items-start justify-between mb-2">
                   <div className="min-w-0 pr-2">
                     <h3 className="text-[14px] font-semibold text-[var(--foreground)] group-hover:text-[var(--brand)] leading-tight truncate">
@@ -81,13 +83,16 @@ export default async function ProjectsPage({ params }: PageProps) {
                       </span>
                     )}
                   </div>
-                  <span
-                    className={`flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${
-                      STATUS_COLORS[project.status] ?? 'bg-surface-hover text-muted border-default'
-                    }`}
-                  >
-                    {STATUS_LABEL[project.status] ?? project.status}
-                  </span>
+                  <div className="relative z-10 flex flex-shrink-0 items-center gap-1">
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${
+                        STATUS_COLORS[project.status] ?? 'bg-surface-hover text-muted border-default'
+                      }`}
+                    >
+                      {STATUS_LABEL[project.status] ?? project.status}
+                    </span>
+                    {isManager && <ProjectCardMenu projectId={project.id} projectName={project.name} orgSlug={orgSlug} canEdit={isManager} canDelete={isAdmin} />}
+                  </div>
                 </div>
 
                 <div className="text-[12px] text-[var(--foreground-muted)] space-y-1 mt-3">
@@ -116,7 +121,7 @@ export default async function ProjectsPage({ params }: PageProps) {
                     View Tower Matrix →
                   </span>
                 </div>
-              </Link>
+              </div>
             )
           })}
         </div>

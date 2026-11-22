@@ -1,5 +1,6 @@
 'use client'
 // components/inventory/InventoryDetailDrawer.tsx
+import { useWorkspacePrefs } from '@/components/settings/WorkspacePrefs'
 import { useState, useEffect, useCallback } from 'react'
 import {
   X,
@@ -7,6 +8,7 @@ import {
   History,
   ArrowRight,
   Edit3,
+  Trash2,
   Pencil,
   ChevronLeft,
   ChevronRight,
@@ -57,8 +59,24 @@ export function InventoryDetailDrawer({
   const [loadingHistory, setLoadingHistory] = useState(true)
   const [showStatusModal, setShowStatusModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
+  const { canDeleteInventory } = useWorkspacePrefs()
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const item = detailsOverride && detailsOverride.id === initialItem.id ? { ...initialItem, ...detailsOverride } : initialItem
+
+  // Owners and admins: a unit on hold, booked or sold (or with a booking) is refused by the server with the reason.
+  async function deleteUnit() {
+    if (!window.confirm(`Delete unit ${item.unit_number}? Its status history goes with it. This can’t be undone.`)) return
+    setDeleting(true); setDeleteError(null)
+    try {
+      const res = await fetch(`/api/inventory/${item.id}`, { method: 'DELETE' })
+      const out = await res.json().catch(() => ({}))
+      if (!res.ok) { setDeleteError(out.error ?? 'Could not delete the unit.'); return }
+      onUpdateSuccess?.()
+      onClose()
+    } catch { setDeleteError('Network error. Please try again.') } finally { setDeleting(false) }
+  }
 
   const refetch = useCallback(() => {
     fetch(`/api/inventory/${initialItem.id}`)
@@ -261,7 +279,20 @@ export function InventoryDetailDrawer({
                 <Edit3 className="w-3.5 h-3.5" />
                 <span>Change Status</span>
               </button>
+              {canDeleteInventory && (
+                <button
+                  type="button"
+                  onClick={deleteUnit}
+                  disabled={deleting}
+                  aria-label={`Delete unit ${item.unit_number}`}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-danger bg-[var(--surface)] border border-danger/30 rounded-lg hover:bg-danger-bg transition-colors disabled:opacity-60"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{deleting ? 'Deleting…' : 'Delete'}</span>
+                </button>
+              )}
             </div>
+            {deleteError && <p role="alert" className="text-[12px] text-danger">{deleteError}</p>}
           </div>
 
           {/* SECTION B: Property Specifications (Category-Aware) */}
