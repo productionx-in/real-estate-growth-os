@@ -2,6 +2,7 @@
 // (lib/plots/addons.ts); every query here is scoped by organisation, and the database re-checks that a layout's
 // project and every linked unit belong to it. Statuses are read live from inventory_items: the map is never a copy.
 import crypto from 'node:crypto'
+import { parseEmbedDomains } from '@/lib/plots/embed'
 import { createServiceClient } from '@/lib/supabase/server'
 import { parseLayoutSvg, LayoutError, type LayoutLabel, type LayoutShape } from '@/lib/plots/svg'
 import { matchShapes, type MatchReport } from '@/lib/plots/match'
@@ -13,6 +14,8 @@ import type { Json } from '@/types/database'
 export interface LayoutGeometry { shapes: LayoutShape[]; labels: LayoutLabel[] }
 export interface LayoutSummary {
   id: string; projectId: string; name: string; status: 'draft' | 'published'; shareEnabled: boolean; showPrices: boolean
+  /** Websites (https origins) allowed to show the public map in a frame. */
+  embedDomains: string[]
   shareToken: string | null; plots: number; linked: number; publishedAt: string | null; updatedAt: string
 }
 
@@ -34,7 +37,7 @@ const toInfo = (u: UnitRow, withPrice: boolean): PlotInfo => ({
 
 export async function listLayouts(orgId: string, projectId?: string): Promise<LayoutSummary[]> {
   const db = createServiceClient()
-  let q = db.from('plot_layouts').select('id, project_id, name, status, share_enabled, show_prices, share_token, geometry, published_at, updated_at, published_version_id').eq('org_id', orgId)
+  let q = db.from('plot_layouts').select('id, project_id, name, status, share_enabled, show_prices, embed_domains, share_token, geometry, published_at, updated_at, published_version_id').eq('org_id', orgId)
   if (projectId) q = q.eq('project_id', projectId)
   const { data } = await q.order('created_at')
   const rows = data ?? []
@@ -55,7 +58,7 @@ export async function listLayouts(orgId: string, projectId?: string): Promise<La
   }
   return rows.map((r) => ({
     id: r.id, projectId: r.project_id, name: r.name, status: r.status as 'draft' | 'published', shareEnabled: r.share_enabled, showPrices: r.show_prices,
-    shareToken: r.share_token,
+    embedDomains: r.embed_domains ?? [], shareToken: r.share_token,
     plots: r.published_version_id ? vPlots.get(r.published_version_id) ?? 0 : ((r.geometry as unknown as LayoutGeometry)?.shapes ?? []).filter((s) => s.key).length,
     linked: r.published_version_id ? vLinked.get(r.published_version_id) ?? 0 : counts.get(r.id) ?? 0,
     publishedAt: r.published_at, updatedAt: r.updated_at,
@@ -97,12 +100,12 @@ export async function saveLayout(
 }
 
 export async function updateLayout(
-  orgId: string, layoutId: string, actorId: string, change: { publish?: boolean; share?: boolean; showPrices?: boolean; name?: string },
+  orgId: string, layoutId: string, actorId: string, change: { publish?: boolean; share?: boolean; showPrices?: boolean; name?: string; embedDomains?: string[] },
 ): Promise<DalResult<LayoutSummary>> {
   const db = createServiceClient()
   const { data: cur } = await db.from('plot_layouts').select('id, status, share_token').eq('org_id', orgId).eq('id', layoutId).maybeSingle()
   if (!cur) return { success: false, error: 'Layout not found.', status: 404 }
-  const patch: { updated_by: string; name?: string; status?: string; published_at?: string; share_enabled?: boolean; share_token?: string; show_prices?: boolean } = { updated_by: actorId }
+  const patch: { updated_by: string; name?: string; status?: string; published_at?: string; share_enabled?: boolean; share_token?: string; show_prices?: boolean; embed_domains?: string[] } = { updated_by: actorId }
   if (change.name !== undefined) patch.name = change.name.trim()
   if (change.publish !== undefined) {
     patch.status = change.publish ? 'published' : 'draft'
@@ -117,6 +120,11 @@ export async function updateLayout(
     if (change.share && !cur.share_token) patch.share_token = crypto.randomBytes(32).toString('base64url')
   }
   if (change.showPrices !== undefined) patch.show_prices = change.showPrices
+  if (change.embedDomains !== undefined) {
+    const parsed = parseEmbedDomains(change.embedDomains)
+    if (!parsed.ok) return { success: false, error: parsed.error, status: 400 }
+    patch.embed_domains = parsed.origins
+  }
   const { error } = await db.from('plot_layouts').update(patch).eq('org_id', orgId).eq('id', layoutId)
   if (error?.code === '23505') return { success: false, error: 'This project already has a layout with that name.', status: 409 }
   if (error) return { success: false, error: 'Could not update the layout.', status: 500 }

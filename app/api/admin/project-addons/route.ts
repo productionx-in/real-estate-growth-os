@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { authenticatePlatformAdmin, logPlatformAction } from '@/lib/auth/platform'
 import { createServiceClient } from '@/lib/supabase/server'
 import { addonState, endOfDayIst } from '@/lib/plots/addons'
+import { notifyAdmins } from '@/lib/dal/plot-map-setup'
 
 const Body = z.object({
   orgId: z.string().uuid(),
@@ -73,6 +74,10 @@ export async function POST(request: NextRequest) {
     if (error) return NextResponse.json({ error: 'Could not save the add-on.' }, { status: 500 })
   }
 
+  if (b.action === 'activate' || b.action === 'resume') {
+    await notifyAdmins(b.orgId, b.projectId, `plot_map:${b.action}:${b.projectId}:${Date.now()}`, 'Interactive Plot Map is active',
+      b.action === 'activate' ? 'Upload the approved layout on the project’s Plot map page to start the set-up.' : 'The plot map for this project is available again.')
+  }
   await logPlatformAction({
     actorUserId: a.auth.user.id, actorRole: a.auth.platformUser.role, action: `addon.project_${b.action}`,
     targetEntityType: 'project', targetEntityId: b.projectId,

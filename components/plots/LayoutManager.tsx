@@ -18,6 +18,7 @@ export function LayoutManager({ orgId, projectId, layout }: { orgId: string; pro
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<UploadResult | null>(null)
   const [copied, setCopied] = useState(false)
+  const [sites, setSites] = useState((layout?.embedDomains ?? []).map((o) => o.replace(/^https:\/\//, '')).join('\n'))
   const link = layout?.shareToken ? `${typeof window === 'undefined' ? '' : window.location.origin}/m/${layout.shareToken}` : ''
 
   async function upload() {
@@ -109,6 +110,19 @@ export function LayoutManager({ orgId, projectId, layout }: { orgId: string; pro
                     <RefreshCw aria-hidden /> New link
                   </Button>
                   <a href={link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12px] font-medium text-brand hover:underline"><Link2 aria-hidden className="size-3.5" /> Open</a>
+                </div>
+              )}
+              {layout.shareEnabled && link && (
+                <div className="space-y-1.5 border-t border-default pt-2">
+                  <label htmlFor="embed-sites" className="block text-[13px] font-medium text-foreground">Show it on your website</label>
+                  <p className="text-[12px] text-muted">Only the websites listed here can embed the map (one per line, e.g. www.yoursite.com; up to 10). Other sites cannot frame it.</p>
+                  <textarea id="embed-sites" rows={2} value={sites} onChange={(e) => setSites(e.target.value)} disabled={busy}
+                    className="w-full rounded-md border border-default bg-surface p-2 text-[13px] text-foreground" placeholder="www.yoursite.com" />
+                  <Button size="sm" variant="secondary" disabled={busy} onClick={() => patch({ embedDomains: sites.split(/[\n,]/).map((x) => x.trim()).filter(Boolean) })}>Save websites</Button>
+                  {layout.embedDomains.length > 0 && (
+                    <Input readOnly aria-label="Embed code" className="font-mono text-[12px]" onFocus={(e) => e.currentTarget.select()}
+                      value={`<iframe src="${link}?embed=1" width="100%" height="640" style="border:0" loading="lazy" title="Plot map"></iframe>`} />
+                  )}
                 </div>
               )}
             </div>
