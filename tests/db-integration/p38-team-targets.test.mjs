@@ -66,10 +66,17 @@ async function main() {
     assert.equal((await team.monthProgress(other, month)).size, 0)
   })
 
-  await test('last sign-in comes from the account itself', async () => {
-    const d = await team.authDetails([asha.auth])
-    assert.equal(d.get(asha.auth).email, `asha-${RUN}@regrow.test`)
-    assert.ok(d.get(asha.auth).lastSignInAt)
+  await test('e-mail and last sign-in come from the account itself (looked up per member)', async () => {
+    // A real account, created the way sign-up does (raw SQL rows lack fields the auth service needs).
+    const { createClient } = await import('@supabase/supabase-js')
+    const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } }).auth.admin
+    const { data, error } = await admin.createUser({ email: `signin-${RUN}@regrow.test`, password: `Si-Test-${RUN}x9!`, email_confirm: true })
+    if (error) throw error
+    await db.query(`UPDATE auth.users SET last_sign_in_at = now() - interval '2 days' WHERE id=$1`, [data.user.id])
+    const d = await team.authDetails([data.user.id, crypto.randomUUID()])
+    assert.equal(d.get(data.user.id).email, `signin-${RUN}@regrow.test`)
+    assert.ok(d.get(data.user.id).lastSignInAt)
+    assert.equal(d.size, 1, 'an unknown id is simply skipped')
   })
 
   await db.end()
