@@ -7,6 +7,7 @@ import { Home, SlidersHorizontal } from 'lucide-react'
 import { Alert, Badge, Button, Field, Input } from '@/components/ui'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogTrigger } from '@/components/ui/dialog'
 import { CATEGORIES, CONFIGURATIONS, FACINGS, shortInr, type Requirements } from '@/lib/matching/score'
+import { PROPERTY_TYPES } from '@/lib/listings/listing'
 import { cn } from '@/lib/utils/cn'
 
 export interface MatchRow {
@@ -40,8 +41,10 @@ function Chips<T extends string>({ options, labels, value, onChange, label }: {
 
 const num = (v: string) => (v.trim() === '' ? null : Math.max(0, Number(v.replace(/,/g, ''))) || null)
 
-export function LeadMatches({ leadId, requirements, matches, canWork, showMatches, locations = [] }: {
+export function LeadMatches({ leadId, requirements, matches, canWork, showMatches, locations = [], agency = false }: {
   leadId: string
+  /** An agency: also ask buy or rent, the most rent, and property types (resale and rental listings). */
+  agency?: boolean
   /** The workspace's locations (Settings → Locations), offered as one-tap choices. */
   locations?: string[]
   requirements: Requirements
@@ -58,6 +61,8 @@ export function LeadMatches({ leadId, requirements, matches, canWork, showMatche
     req_configurations: r.req_configurations, req_categories: r.req_categories, req_facing: r.req_facing,
     req_locations: r.req_locations.join(', '),
     req_min_area: r.req_min_area?.toString() ?? '', req_max_area: r.req_max_area?.toString() ?? '',
+    req_purpose: (r.req_purpose ?? '') as '' | 'buy' | 'rent', req_rent_max: r.req_rent_max?.toString() ?? '',
+    req_property_types: r.req_property_types ?? [],
   })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -72,6 +77,7 @@ export function LeadMatches({ leadId, requirements, matches, canWork, showMatche
           req_configurations: form.req_configurations, req_categories: form.req_categories, req_facing: form.req_facing,
           req_locations: form.req_locations.split(/[,\n]/).map((s) => s.trim()).filter((s) => s.length >= 2).slice(0, 10),
           req_min_area: num(form.req_min_area), req_max_area: num(form.req_max_area),
+          ...(agency ? { req_purpose: form.req_purpose || null, req_rent_max: num(form.req_rent_max), req_property_types: form.req_property_types } : {}),
         }),
       })
       const out = await res.json().catch(() => ({}))
@@ -82,6 +88,8 @@ export function LeadMatches({ leadId, requirements, matches, canWork, showMatche
   }
 
   const wants = [
+    agency && r.req_purpose ? (r.req_purpose === 'rent' ? `To rent${r.req_rent_max ? ` up to ₹${r.req_rent_max.toLocaleString('en-IN')}/month` : ''}` : 'To buy') : null,
+    agency && r.req_property_types?.length ? r.req_property_types.map((t) => PROPERTY_TYPES[t as keyof typeof PROPERTY_TYPES] ?? t).join(', ') : null,
     r.budget_min || r.budget_max ? `${r.budget_min ? shortInr(r.budget_min) : 'up'} – ${r.budget_max ? shortInr(r.budget_max) : 'any'}` : null,
     r.req_configurations.join(', ') || null,
     r.req_categories.map((c) => CATEGORIES[c as keyof typeof CATEGORIES] ?? c).join(', ') || null,
@@ -103,6 +111,17 @@ export function LeadMatches({ leadId, requirements, matches, canWork, showMatche
                   <Field label="Budget from (₹)"><Input inputMode="numeric" value={form.budget_min} onChange={(e) => setForm({ ...form, budget_min: e.target.value })} placeholder="8000000" /></Field>
                   <Field label="Budget up to (₹)"><Input inputMode="numeric" value={form.budget_max} onChange={(e) => setForm({ ...form, budget_max: e.target.value })} placeholder="12000000" /></Field>
                 </div>
+                {agency && (
+                  <>
+                    <Chips label="Buy or rent" options={['buy', 'rent'] as const} labels={{ buy: 'Buy', rent: 'Rent' }} value={form.req_purpose ? [form.req_purpose] : []}
+                      onChange={(v) => setForm({ ...form, req_purpose: (v.find((x) => x !== form.req_purpose) ?? '') as '' | 'buy' | 'rent' })} />
+                    {form.req_purpose === 'rent' && (
+                      <Field label="Rent up to (₹ a month)"><Input inputMode="numeric" value={form.req_rent_max} onChange={(e) => setForm({ ...form, req_rent_max: e.target.value })} placeholder="35000" /></Field>
+                    )}
+                    <Chips label="Property type (incl. commercial)" options={Object.keys(PROPERTY_TYPES) as (keyof typeof PROPERTY_TYPES)[]} labels={PROPERTY_TYPES}
+                      value={form.req_property_types} onChange={(v) => setForm({ ...form, req_property_types: v })} />
+                  </>
+                )}
                 <Chips label="Configuration" options={CONFIGURATIONS} value={form.req_configurations} onChange={(v) => setForm({ ...form, req_configurations: v })} />
                 <Chips label="Property type" options={Object.keys(CATEGORIES) as (keyof typeof CATEGORIES)[]} labels={CATEGORIES} value={form.req_categories} onChange={(v) => setForm({ ...form, req_categories: v })} />
                 <Field label="Areas or cities" hint="Separate with commas, e.g. Whitefield, Sarjapur Road">
