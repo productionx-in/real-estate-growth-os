@@ -14,6 +14,7 @@ import { LeadWorkPanel } from '@/components/leads/LeadWorkPanel'
 import { StickyContactBar } from '@/components/leads/QuickContact'
 import { LeadTags } from '@/components/leads/LeadTags'
 import { MergeIntoOriginalButton, MergeLeadDialog } from '@/components/leads/MergeLeadDialog'
+import { ArchiveLeadButton } from '@/components/leads/ArchiveLeadButton'
 import { RegisterBuyerDialog } from '@/components/partners/RegisterBuyerDialog'
 import { registrationTargets } from '@/lib/dal/partners'
 import { rankTags } from '@/lib/leads/tags'
@@ -197,6 +198,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
             <Pencil className="w-3.5 h-3.5" />
             Edit
           </Link>
+          {(viewerRole === 'owner' || viewerRole === 'admin') && <ArchiveLeadButton leadId={lead.id} leadName={lead.name} orgSlug={orgSlug} />}
           </>
         ) : undefined
       }

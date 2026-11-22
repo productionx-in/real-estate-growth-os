@@ -575,7 +575,7 @@ export async function getDeals(
     .from('deals')
     .select(`
       *,
-      lead:leads(id, name, phone),
+      lead:leads!inner(id, name, phone),
       project:projects(id, name)
     `)
     .eq('org_id', orgId)
