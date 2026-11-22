@@ -207,4 +207,15 @@ test('console home: every role has its own focus row and body', () => {
   }
 })
 
+test('the account that set up the platform is never deleted from staff: a clear reason, no Remove button, no raw database errors', () => {
+  const src = read('lib/platform/portal.ts')
+  const remove = src.slice(src.indexOf('export async function removeStaff'), src.indexOf('async function findUserByEmail'))
+  assert.match(remove, /s\.id === \(await foundingStaffRecord\(db\)\)[\s\S]*stays on the permanent record/)
+  assert.ok(remove.indexOf('foundingStaffRecord') < remove.indexOf(".delete()"), 'checked before deleting')
+  assert.doesNotMatch(remove, /fail\(error\.message/, 'database errors are not shown to staff')
+  assert.match(src, /from\('platform_bootstrap_state'\)\.select\('initial_super_admin_record_id'\)/)
+  assert.match(read('components/platform/PortalClient.tsx'), /\{!active && !founding && \(/)
+  assert.match(read('app/platform/staff/page.tsx'), /founding=\{s\.founding\}/)
+})
+
 console.log(`\nInternal portal: ${passed} checks passed.`)

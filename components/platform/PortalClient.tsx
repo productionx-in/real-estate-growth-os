@@ -182,7 +182,7 @@ export function AddStaffForm() {
   )
 }
 
-export function StaffControls({ id, role, active, self }: { id: string; role: string; active: boolean; self: boolean }) {
+export function StaffControls({ id, role, active, self, founding = false }: { id: string; role: string; active: boolean; self: boolean; founding?: boolean }) {
   const { busy, msg, run } = useAction()
   if (self) return <span className="text-[12px] text-subtle">You</span>
   return (
@@ -191,7 +191,8 @@ export function StaffControls({ id, role, active, self }: { id: string; role: st
         {ROLE_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
       </Select>
       <Button size="sm" variant="secondary" disabled={busy} onClick={() => run(() => send(`/api/platform/staff/${id}`, 'PATCH', { active: !active }), active ? 'Deactivated.' : 'Reactivated.')}>{active ? 'Deactivate' : 'Reactivate'}</Button>
-      {!active && (
+      {!active && founding && <span className="text-[12px] text-muted">Set up the platform — kept on record, no access</span>}
+      {!active && !founding && (
         <Button size="sm" variant="danger" disabled={busy}
           onClick={() => { if (window.confirm('Remove this person from the staff list? Their REGrow account is kept.')) run(() => send(`/api/platform/staff/${id}`, 'DELETE', {}), 'Removed.') }}>
           Remove
