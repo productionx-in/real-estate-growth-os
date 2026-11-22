@@ -35,7 +35,8 @@ export interface ExecutiveBiSummary {
   orgId: string
   period: string
   funnel: FunnelStageMetric[]
-  salesVelocityDays: number
+  /** Average days from enquiry to booking; null until there is a booking to measure. */
+  salesVelocityDays: number | null
   channels: ChannelPerformanceMetric[]
   inventoryAbsorption: InventoryAbsorptionMetric
 }
@@ -53,7 +54,7 @@ export async function getExecutiveBiAnalytics(
     const { data: leads } = await leadsQuery
 
     // 2. Fetch site visits count
-    let visitsQuery = service.from('site_visits').select('id, status, created_at').eq('org_id', orgId)
+    let visitsQuery = service.from('site_visits').select('id, status, created_at, lead_id').eq('org_id', orgId)
     if (projectId) visitsQuery = visitsQuery.eq('project_id', projectId)
     const { data: visits } = await visitsQuery
 
@@ -119,30 +120,20 @@ export async function getExecutiveBiAnalytics(
         matchedCount++
       }
     }
-    const salesVelocityDays = matchedCount > 0 ? Math.round(totalDays / matchedCount) : 18 // default baseline 18 days
+    const salesVelocityDays = matchedCount > 0 ? Math.round(totalDays / matchedCount) : null
 
-    // Channel Performance
-    const channelMap = new Map<string, { leads: number; bookings: number; value: number }>()
-    for (const l of leads || []) {
-      const src = l.source || 'direct'
-      const existing = channelMap.get(src) || { leads: 0, bookings: 0, value: 0 }
-      channelMap.set(src, { ...existing, leads: existing.leads + 1 })
-    }
-
-    for (const b of bookings || []) {
-      const src = 'direct'
-      const existing = channelMap.get(src) || { leads: 0, bookings: 0, value: 0 }
-      channelMap.set(src, {
-        ...existing,
-        bookings: existing.bookings + 1,
-        value: existing.value + Number(b.total_amount),
-      })
-    }
+    // Channel performance: each visit and booking counted under the source of its own lead (recorded facts only).
+    const sourceOf = new Map((leads || []).map((l) => [l.id, l.source || 'other']))
+    const channelMap = new Map<string, { leads: number; visits: number; bookings: number; value: number }>()
+    const bump = (src: string) => { if (!channelMap.has(src)) channelMap.set(src, { leads: 0, visits: 0, bookings: 0, value: 0 }); return channelMap.get(src)! }
+    for (const l of leads || []) bump(l.source || 'other').leads++
+    for (const v of visits || []) { const src = sourceOf.get(v.lead_id); if (src && v.status === 'completed') bump(src).visits++ }
+    for (const b of bookings || []) { const src = sourceOf.get(b.lead_id); if (src) { const c = bump(src); c.bookings++; c.value += Number(b.total_amount || 0) } }
 
     const channels: ChannelPerformanceMetric[] = Array.from(channelMap.entries()).map(([channel, data]) => ({
       channel,
       leadCount: data.leads,
-      siteVisitCount: Math.round(data.leads * 0.25),
+      siteVisitCount: data.visits,
       bookingCount: data.bookings,
       bookingValue: data.value,
       leadToBookingRate: data.leads > 0 ? Math.round((data.bookings / data.leads) * 1000) / 10 : 0,

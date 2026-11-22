@@ -25,6 +25,8 @@ import { listReviews } from '@/lib/dal/plot-map-publishing'
 import { cn } from '@/lib/utils/cn'
 import { getSetupView } from '@/lib/dal/plot-map-setup'
 import { SetupProgress } from '@/components/plots/SetupProgress'
+import { StaffDrawingAccess } from '@/components/plots/StaffDrawingAccess'
+import { getStaffAccess } from '@/lib/dal/plot-map-staff'
 
 export const metadata: Metadata = { title: 'Plot map' }
 export const dynamic = 'force-dynamic'
@@ -80,6 +82,7 @@ export default async function ProjectMapPage({ params, searchParams }: {
   const files = isManager ? await listMapFiles(org.id, projectId) : null
   const reviewList = isManager ? await listReviews(org.id, projectId) : []
   const setup = isManager ? await getSetupView(org.id, projectId) : null
+  const staffAccess = isAdmin ? await getStaffAccess(org.id, projectId) : null
   const reviews: Record<string, { action: string; comment: string | null; actorName: string | null; at: string }[]> = {}
   for (const r of reviewList) (reviews[r.versionId] ??= []).push(r)
 
@@ -87,6 +90,9 @@ export default async function ProjectMapPage({ params, searchParams }: {
     <PageShell title="Plot map" description={`${project.name} · statuses update live from inventory${addon.validUntil ? ` · active until ${day(addon.validUntil)}` : ''}`} back={back}>
       <div className="space-y-4">
         {setup && setup.completed < setup.stages.length && <SetupProgress view={setup} orgId={org.id} canAct={isManager} />}
+        {isAdmin && setup && !setup.stages.find((s) => s.key === 'mapped')?.completedAt && (
+          <StaffDrawingAccess orgId={org.id} projectId={projectId} access={staffAccess ? { expiresAt: staffAccess.expiresAt, grantedBy: staffAccess.grantedBy } : null} />
+        )}
         {isManager && all.length === 0 && !adding && (
           <section aria-label="Set up your map" className="rounded-xl border border-default bg-surface p-5 shadow-2xs">
             <h2 className="text-[15px] font-semibold text-foreground">Set up your plot map</h2>

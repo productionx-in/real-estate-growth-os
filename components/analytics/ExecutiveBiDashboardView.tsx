@@ -62,10 +62,10 @@ export function ExecutiveBiDashboardView({ analytics, orgName }: ExecutiveBiDash
             Sales Velocity
           </div>
           <div className="mt-2 text-2xl font-bold text-warning">
-            {salesVelocityDays} Days
+            {salesVelocityDays === null ? '—' : `${salesVelocityDays} Days`}
           </div>
           <div className="mt-1 text-xs text-subtle">
-            Avg lead enquiry to booking
+            {salesVelocityDays === null ? 'No bookings yet to measure' : 'Avg lead enquiry to booking'}
           </div>
         </div>
 
