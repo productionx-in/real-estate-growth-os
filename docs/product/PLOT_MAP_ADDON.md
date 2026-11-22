@@ -160,8 +160,9 @@ Platform staff may not read or change customer data without a support grant, and
 - **(c) REGrow draws, customer links.** Staff draw shapes and labels on a version (no inventory access); the customer
   confirms the links.
 
-Recommendation: **(c) by default, (b) when the customer asks for full service.** PR E will implement (c) unless told
-otherwise.
+**Decided (owner, 2026-11-22): (c).** REGrow staff draw boundaries and plot numbers on a draft version, with no access
+to inventory, prices or buyers. The customer confirms every inventory link, approves and publishes. (b) may be added
+later for customers who want a fully managed service.
 
 ## 7. OCR (optional, later)
 

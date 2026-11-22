@@ -18,6 +18,8 @@ import { getLiveLayout, listLayouts } from '@/lib/dal/plot-layouts'
 import { createServiceClient } from '@/lib/supabase/server'
 import { PlotMap } from '@/components/plots/PlotMap'
 import { LayoutManager } from '@/components/plots/LayoutManager'
+import { MapDocuments } from '@/components/plots/MapDocuments'
+import { listMapFiles } from '@/lib/dal/plot-map-documents'
 import { cn } from '@/lib/utils/cn'
 
 export const metadata: Metadata = { title: 'Plot map' }
@@ -71,6 +73,7 @@ export default async function ProjectMapPage({ params, searchParams }: {
   const visible = isManager ? all : all.filter((l) => l.status === 'published')
   const current = adding ? null : visible.find((l) => l.id === wanted) ?? visible[0] ?? null
   const live = current ? await getLiveLayout(org.id, current.id) : null
+  const files = isManager ? await listMapFiles(org.id, projectId) : null
 
   return (
     <PageShell title="Plot map" description={`${project.name} · statuses update live from inventory${addon.validUntil ? ` · active until ${day(addon.validUntil)}` : ''}`} back={back}>
@@ -79,9 +82,9 @@ export default async function ProjectMapPage({ params, searchParams }: {
           <section aria-label="Set up your map" className="rounded-xl border border-default bg-surface p-5 shadow-2xs">
             <h2 className="text-[15px] font-semibold text-foreground">Set up your plot map</h2>
             <ol className="mt-2 list-decimal space-y-1 pl-5 text-[13px] text-muted">
-              <li>Upload the approved layout of this project (or one phase).</li>
-              <li>Each plot on the drawing is matched to its unit in your inventory — check the ones that didn’t match.</li>
-              <li>Publish the map for your team, then share the buyer link when you’re ready.</li>
+              <li>Upload the approved layout of this project (or one phase) as a PDF, PNG or JPG, and choose the page.</li>
+              <li>Plot boundaries are drawn on it and each plot is linked to its unit in your inventory — you confirm every link.</li>
+              <li>Approve and publish the map for your team, then share the buyer link when you’re ready.</li>
             </ol>
           </section>
         )}
@@ -96,6 +99,7 @@ export default async function ProjectMapPage({ params, searchParams }: {
             {isManager && <Link href="?new=1" className={cn('inline-flex min-h-9 items-center rounded-full border border-dashed px-3 text-[13px]', adding ? 'border-brand text-brand' : 'border-strong text-muted hover:bg-surface-hover')}>+ Add a layout (phase)</Link>}
           </nav>
         )}
+        {files && <MapDocuments orgId={org.id} projectId={projectId} layouts={all.map((l) => ({ id: l.id, name: l.name }))} documents={files.documents} versions={files.versions} />}
         {isManager && <LayoutManager key={current?.id ?? 'new'} orgId={org.id} projectId={projectId} layout={current} />}
         {live ? (
           <PlotMap mode="team" viewBox={live.viewBox} geometry={live.geometry} plots={live.plots} showPrices unitHref={() => back.href} />

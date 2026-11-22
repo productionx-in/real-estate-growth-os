@@ -3279,6 +3279,130 @@ export interface Database {
         }
         Relationships: []
       }
+      plot_map_documents: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          layout_id: string
+          kind: string
+          file_name: string
+          byte_size: number
+          storage_path: string
+          sha256: string | null
+          status: string
+          error: string | null
+          page_count: number | null
+          pages: Json
+          uploaded_by: string | null
+          checked_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          layout_id: string
+          kind: string
+          file_name: string
+          byte_size: number
+          storage_path: string
+          sha256?: string | null
+          status?: string
+          error?: string | null
+          page_count?: number | null
+          pages?: Json
+          uploaded_by?: string | null
+          checked_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          org_id?: string
+          project_id?: string
+          layout_id?: string
+          kind?: string
+          file_name?: string
+          byte_size?: number
+          storage_path?: string
+          sha256?: string | null
+          status?: string
+          error?: string | null
+          page_count?: number | null
+          pages?: Json
+          uploaded_by?: string | null
+          checked_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      plot_map_versions: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          layout_id: string
+          document_id: string
+          version_no: number
+          page: number
+          rotation: number
+          status: string
+          render_status: string
+          render_error: string | null
+          image_path: string
+          thumb_path: string
+          image_width: number | null
+          image_height: number | null
+          render: Json
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          layout_id: string
+          document_id: string
+          version_no: number
+          page: number
+          rotation?: number
+          status?: string
+          render_status?: string
+          render_error?: string | null
+          image_path: string
+          thumb_path: string
+          image_width?: number | null
+          image_height?: number | null
+          render?: Json
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          org_id?: string
+          project_id?: string
+          layout_id?: string
+          document_id?: string
+          version_no?: number
+          page?: number
+          rotation?: number
+          status?: string
+          render_status?: string
+          render_error?: string | null
+          image_path?: string
+          thumb_path?: string
+          image_width?: number | null
+          image_height?: number | null
+          render?: Json
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       plot_layouts: {
         Row: {
           id: string
@@ -3302,8 +3426,8 @@ export interface Database {
           org_id: string
           project_id: string
           name: string
-          view_box: string
-          geometry: Json
+          view_box?: string
+          geometry?: Json
           status?: string
           share_token?: string | null
           share_enabled?: boolean
@@ -3472,6 +3596,10 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      next_plot_map_version_no: {
+        Args: { p_layout: string }
+        Returns: number
+      }
       project_addon_state: {
         Args: { p_project: string; p_addon: string }
         Returns: string

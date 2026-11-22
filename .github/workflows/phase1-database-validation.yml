@@ -191,6 +191,7 @@ jobs:
           node tests/db-integration/p29-daily-and-activation-emails.test.mjs 2>&1 | tee diagnostics/p29-daily-and-activation-emails.log
           node tests/db-integration/p30-email-outbox.test.mjs 2>&1 | tee diagnostics/p30-email-outbox.log
           node tests/db-integration/p31-plot-maps.test.mjs 2>&1 | tee diagnostics/p31-plot-maps.log
+          node tests/db-integration/p40-plot-map-documents.test.mjs 2>&1 | tee diagnostics/p40-plot-map-documents.log
           node tests/db-integration/p32-lead-archive.test.mjs 2>&1 | tee diagnostics/p32-lead-archive.log
           node tests/db-integration/p33-workspace-settings.test.mjs 2>&1 | tee diagnostics/p33-workspace-settings.log
           node tests/db-integration/p34-lead-fields.test.mjs 2>&1 | tee diagnostics/p34-lead-fields.log
