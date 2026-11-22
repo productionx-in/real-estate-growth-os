@@ -1,10 +1,11 @@
 // lib/dal/matching.ts
 // Property matching, both ways: available units for a lead, and buyers for a unit. Callers authorise first;
 // every query is scoped by organisation, and a sales executive only ever gets their own leads back.
+import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 import { createServiceClient } from '@/lib/supabase/server'
 import { CLOSED_STATUSES } from '@/lib/leads/view-filters'
 import {
-  OVER_BUDGET_TOLERANCE, hasRequirements, rank, scoreUnit,
+  hasRequirements, rank, scoreUnit,
   type Match, type Requirements, type UnitForMatch,
 } from '@/lib/matching/score'
 import type { DalResult } from '@/lib/dal/routing'
@@ -29,8 +30,10 @@ function unitLabel(u: UnitRow): string {
 }
 
 /** The best available units for a lead (empty if the buyer has told us nothing to match on). */
-export async function matchUnitsForLead(orgId: string, leadId: string, limit = 8): Promise<{ requirements: Requirements | null; matches: UnitMatch[] }> {
+export async function matchUnitsForLead(orgId: string, leadId: string, limit?: number): Promise<{ requirements: Requirements | null; matches: UnitMatch[] }> {
   const db = createServiceClient()
+  const rules = (await getWorkspaceSettings(orgId)).matching
+  const tolerance = rules.overBudgetPct / 100
   const { data: lead } = await db.from('leads').select(REQ_COLUMNS).eq('org_id', orgId).eq('id', leadId).maybeSingle()
   if (!lead) return { requirements: null, matches: [] }
   const req = lead as unknown as Requirements
@@ -38,14 +41,14 @@ export async function matchUnitsForLead(orgId: string, leadId: string, limit = 8
 
   // Narrow in the database (available, this organisation, not far over budget); score the rest here.
   let q = db.from('inventory_items').select(UNIT_COLUMNS).eq('org_id', orgId).eq('status', 'available')
-  if (req.budget_max) q = q.or(`total_price.is.null,total_price.lte.${Math.ceil(req.budget_max * (1 + OVER_BUDGET_TOLERANCE))}`)
+  if (req.budget_max) q = q.or(`total_price.is.null,total_price.lte.${Math.ceil(req.budget_max * (1 + tolerance))}`)
   if (req.req_categories.length) q = q.in('category', req.req_categories as ProjectCategory[])
   const { data } = await q.limit(1000)
   const scored = ((data ?? []) as unknown as UnitRow[]).flatMap((u) => {
-    const match = scoreUnit(req, u)
-    return match ? [{ unitId: u.id, label: unitLabel(u), projectName: u.project?.name ?? '', price: u.total_price, match }] : []
+    const match = scoreUnit(req, u, tolerance)
+    return match && match.score >= rules.minScore ? [{ unitId: u.id, label: unitLabel(u), projectName: u.project?.name ?? '', price: u.total_price, match }] : []
   })
-  return { requirements: req, matches: rank(scored, limit) }
+  return { requirements: req, matches: rank(scored, limit ?? rules.maxSuggestions) }
 }
 
 export interface BuyerMatch {
@@ -65,6 +68,8 @@ export async function matchLeadsForUnit(
   if (!unitData) return null
   const unit = unitData as unknown as UnitRow
   if (unit.status !== 'available') return []
+  const rules = (await getWorkspaceSettings(orgId)).matching
+  const tolerance = rules.overBudgetPct / 100
 
   let q = db.from('leads')
     .select(`id, name, status, ${REQ_COLUMNS}, assignee:profiles!leads_assigned_to_fkey(full_name)`)
@@ -75,15 +80,15 @@ export async function matchLeadsForUnit(
   else if (scope === 'team') q = q.in('assigned_to', [viewer.profileId, ...(viewer.teamProfileIds ?? [])])
   else if (scope === 'booked') return [] // booked customers are not looking for a unit
   if (unit.total_price != null) {
-    // A buyer whose budget is more than 10% below the price is not a match.
-    q = q.or(`budget_max.is.null,budget_max.gte.${Math.floor(unit.total_price / (1 + OVER_BUDGET_TOLERANCE))}`)
+    // A buyer whose budget is further below the price than the workspace allows is not a match.
+    q = q.or(`budget_max.is.null,budget_max.gte.${Math.floor(unit.total_price / (1 + tolerance))}`)
   }
   const { data } = await q.order('created_at', { ascending: false }).limit(2000)
   const scored = ((data ?? []) as unknown as (Requirements & { id: string; name: string; status: string; assignee: { full_name: string } | null })[])
     .filter((l) => hasRequirements(l))
     .flatMap((l) => {
-      const match = scoreUnit(l, unit)
-      return match ? [{ leadId: l.id, name: l.name, status: l.status, assigneeName: l.assignee?.full_name ?? null, match, price: null }] : []
+      const match = scoreUnit(l, unit, tolerance)
+      return match && match.score >= rules.minScore ? [{ leadId: l.id, name: l.name, status: l.status, assigneeName: l.assignee?.full_name ?? null, match, price: null }] : []
     })
   return rank(scored, limit).map((b) => ({ leadId: b.leadId, name: b.name, status: b.status, assigneeName: b.assigneeName, match: b.match }))
 }

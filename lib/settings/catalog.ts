@@ -55,6 +55,8 @@ export const SETTINGS: SettingsGroup[] = [
     pages: [
       { key: 'routing', label: 'Assignment rules', description: 'Who gets new leads, round robin and teams.', path: '/routing', audience: 'managers', keywords: ['routing', 'round robin', 'assignment', 'distribution'] },
       { key: 'lead-settings', label: 'Lead settings', description: 'Reasons offered when a lead is marked Lost or Junk.', path: '/settings/leads', audience: 'admins', keywords: ['lost reason', 'junk reason', 'close lead', 'disqualify', 'why lost'] },
+      { key: 'routing-log', label: 'Assignment log', description: 'Every routing decision: who got each lead, and where leads fell through.', path: '/routing/log', audience: 'managers', keywords: ['routing log', 'assignment history', 'round robin', 'nobody available', 'logs'] },
+      { key: 'visit-settings', label: 'Site visits', description: 'Buyer confirmations and reminders, check-in distance, visits per person per day.', path: '/settings/visits', audience: 'admins', keywords: ['site visit', 'reminder', 'confirmation', 'check-in', 'gps', 'limit', 'calendar'] },
       { key: 'speed', label: 'Response targets', description: 'How fast new leads should be called.', path: '/speed-to-lead', audience: 'managers', keywords: ['sla', 'speed to lead', 'first call'] },
     ],
   },
@@ -63,6 +65,7 @@ export const SETTINGS: SettingsGroup[] = [
     pages: [
       { key: 'projects', label: 'Projects', description: 'Your projects and their RERA details.', path: '/projects', audience: 'managers', keywords: ['rera', 'project'] },
       { key: 'inventory-settings', label: 'Inventory settings', description: 'Release units on hold automatically, and the area units new units start with.', path: '/settings/inventory', audience: 'admins', keywords: ['hold', 'on hold', 'block', 'release', 'expiry', 'units', 'area', 'sq ft', 'sq yd', 'acres', 'guntas', 'cents'] },
+      { key: 'matching', label: 'Matching rules', description: 'How strictly units are matched to buyers: budget margin, weak matches, suggestions.', path: '/settings/matching', audience: 'admins', keywords: ['matching', 'property matching', 'budget', 'suggestions', 'interested buyers'] },
       { key: 'documents', label: 'Document templates', description: 'Cost sheets, quotations and letters on your letterhead.', path: '/documents', audience: 'managers', keywords: ['cost sheet', 'quotation', 'allotment', 'demand letter', 'letterhead'] },
     ],
   },

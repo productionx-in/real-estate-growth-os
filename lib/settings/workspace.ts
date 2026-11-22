@@ -31,7 +31,28 @@ export interface ReportSettings {
   weekStartsOn: 0 | 1
 }
 
-export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings }
+export interface VisitSettings {
+  /** E-mail the buyer when a visit is booked or moved. */
+  buyerConfirmation: boolean
+  /** Remind the buyer the day before (24 h) and shortly before (2 h). */
+  buyerReminder24h: boolean
+  buyerReminder2h: boolean
+  /** A check-in further than this from the project is flagged on the calendar. */
+  checkinRadiusM: number
+  /** Most visits one salesperson can have on one day (India time); 0 = no limit. */
+  maxPerPersonPerDay: number
+}
+
+export interface MatchingSettings {
+  /** How far over a buyer's top budget a unit may be and still be suggested, in %. */
+  overBudgetPct: number
+  /** Matches scoring below this (out of 100) are not shown. */
+  minScore: number
+  /** How many matching units a lead shows. */
+  maxSuggestions: number
+}
+
+export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; visits: VisitSettings; matching: MatchingSettings }
 export type SettingsSection = keyof WorkspaceSettings
 
 // The reasons Indian sales teams record most often; a workspace edits, reorders or replaces them.
@@ -43,6 +64,8 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
   },
   inventory: { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd' },
   reports: { fyStartMonth: 4, weekStartsOn: 1 },
+  visits: { buyerConfirmation: true, buyerReminder24h: true, buyerReminder2h: true, checkinRadiusM: 500, maxPerPersonPerDay: 0 },
+  matching: { overBudgetPct: 10, minScore: 0, maxSuggestions: 8 },
 }
 
 export const LIMITS = { reasons: 20, reasonLength: 80, holdHours: 720 } as const
@@ -68,6 +91,30 @@ function reasons(input: unknown, label: string, errors: Errors, key: string): st
 export function normaliseSection<S extends SettingsSection>(section: S, input: unknown): { value: WorkspaceSettings[S]; errors: Errors } {
   const errors: Errors = {}
   const o = (input && typeof input === 'object' && !Array.isArray(input) ? input : {}) as Record<string, unknown>
+  if (section === 'visits' || section === 'matching') {
+    const int = (key: string, min: number, max: number, fallback: number, message: string) => {
+      const v = typeof o[key] === 'number' ? (o[key] as number) : NaN
+      if (Number.isInteger(v) && v >= min && v <= max) return v
+      errors[key] = message
+      return fallback
+    }
+    if (section === 'visits') {
+      const value: VisitSettings = {
+        buyerConfirmation: o.buyerConfirmation !== false,
+        buyerReminder24h: o.buyerReminder24h !== false,
+        buyerReminder2h: o.buyerReminder2h !== false,
+        checkinRadiusM: int('checkinRadiusM', 100, 5000, 500, 'Check-in distance: 100 to 5,000 metres.'),
+        maxPerPersonPerDay: int('maxPerPersonPerDay', 0, 20, 0, 'Visits per person per day: 0 (no limit) to 20.'),
+      }
+      return { value: value as WorkspaceSettings[S], errors }
+    }
+    const value: MatchingSettings = {
+      overBudgetPct: int('overBudgetPct', 0, 25, 10, 'Over budget: 0 to 25%.'),
+      minScore: int('minScore', 0, 80, 0, 'Minimum match: 0 to 80.'),
+      maxSuggestions: int('maxSuggestions', 3, 20, 8, 'Suggestions: 3 to 20.'),
+    }
+    return { value: value as WorkspaceSettings[S], errors }
+  }
   if (section === 'leads') {
     const value: LeadSettings = {
       lostReasons: reasons(o.lostReasons, 'Lost reasons', errors, 'lostReasons'),
@@ -106,13 +153,16 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
 }
 
 /** A stored row (possibly partial or from an older version) merged over the defaults; never throws. */
-export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown } | null | undefined): WorkspaceSettings {
+export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown; visits?: unknown; matching?: unknown } | null | undefined): WorkspaceSettings {
   const merge = <S extends SettingsSection>(s: S, stored: unknown): WorkspaceSettings[S] => {
     if (!stored || typeof stored !== 'object' || Array.isArray(stored) || !Object.keys(stored).length) return DEFAULT_SETTINGS[s]
     const { value } = normaliseSection(s, { ...DEFAULT_SETTINGS[s], ...(stored as object) })
     return value
   }
-  return { leads: merge('leads', row?.leads), inventory: merge('inventory', row?.inventory), reports: merge('reports', row?.reports) }
+  return {
+    leads: merge('leads', row?.leads), inventory: merge('inventory', row?.inventory), reports: merge('reports', row?.reports),
+    visits: merge('visits', row?.visits), matching: merge('matching', row?.matching),
+  }
 }
 
 /** The reason a person picked when closing a lead, checked against the workspace's list. "Other" needs a note. */
