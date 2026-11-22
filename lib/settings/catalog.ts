@@ -55,6 +55,8 @@ export const SETTINGS: SettingsGroup[] = [
     pages: [
       { key: 'routing', label: 'Assignment rules', description: 'Who gets new leads, round robin and teams.', path: '/routing', audience: 'managers', keywords: ['routing', 'round robin', 'assignment', 'distribution'] },
       { key: 'lead-settings', label: 'Lead settings', description: 'Reasons offered when a lead is marked Lost or Junk.', path: '/settings/leads', audience: 'admins', keywords: ['lost reason', 'junk reason', 'close lead', 'disqualify', 'why lost'] },
+      { key: 'fields', label: 'Fields on leads', description: 'Your own fields on every lead: dropdown lists, numbers, dates, yes/no.', path: '/settings/fields', audience: 'admins', keywords: ['custom fields', 'dropdown', 'drop-down lists', 'picklist', 'extra fields', 'purpose', 'home loan'] },
+      { key: 'locations', label: 'Locations', description: 'Localities and cities offered on a buyer’s requirements.', path: '/settings/locations', audience: 'admins', keywords: ['locality', 'area', 'city', 'micro-market', 'location list'] },
       { key: 'speed', label: 'Response targets', description: 'How fast new leads should be called.', path: '/speed-to-lead', audience: 'managers', keywords: ['sla', 'speed to lead', 'first call'] },
     ],
   },

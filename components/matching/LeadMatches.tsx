@@ -40,8 +40,10 @@ function Chips<T extends string>({ options, labels, value, onChange, label }: {
 
 const num = (v: string) => (v.trim() === '' ? null : Math.max(0, Number(v.replace(/,/g, ''))) || null)
 
-export function LeadMatches({ leadId, requirements, matches, canWork, showMatches }: {
+export function LeadMatches({ leadId, requirements, matches, canWork, showMatches, locations = [] }: {
   leadId: string
+  /** The workspace's locations (Settings → Locations), offered as one-tap choices. */
+  locations?: string[]
   requirements: Requirements
   matches: MatchRow[]
   canWork: boolean
@@ -106,6 +108,21 @@ export function LeadMatches({ leadId, requirements, matches, canWork, showMatche
                 <Field label="Areas or cities" hint="Separate with commas, e.g. Whitefield, Sarjapur Road">
                   <Input value={form.req_locations} onChange={(e) => setForm({ ...form, req_locations: e.target.value })} />
                 </Field>
+                {locations.length > 0 && (() => {
+                  const picked = form.req_locations.split(/[,\n]/).map((x) => x.trim()).filter(Boolean)
+                  const has = (l: string) => picked.some((x) => x.toLowerCase() === l.toLowerCase())
+                  const toggle = (l: string) => setForm({ ...form, req_locations: (has(l) ? picked.filter((x) => x.toLowerCase() !== l.toLowerCase()) : [...picked, l]).join(', ') })
+                  return (
+                    <div className="-mt-1 flex flex-wrap gap-1.5" role="group" aria-label="Your locations">
+                      {locations.slice(0, 40).map((l) => (
+                        <button key={l} type="button" aria-pressed={has(l)} onClick={() => toggle(l)}
+                          className={`min-h-8 rounded-full border px-2.5 text-[12px] ${has(l) ? 'border-brand bg-brand-light text-brand' : 'border-default text-foreground hover:bg-surface-hover'}`}>
+                          {l}
+                        </button>
+                      ))}
+                    </div>
+                  )
+                })()}
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Area from (sq ft)"><Input inputMode="numeric" value={form.req_min_area} onChange={(e) => setForm({ ...form, req_min_area: e.target.value })} /></Field>
                   <Field label="Area up to (sq ft)"><Input inputMode="numeric" value={form.req_max_area} onChange={(e) => setForm({ ...form, req_max_area: e.target.value })} /></Field>

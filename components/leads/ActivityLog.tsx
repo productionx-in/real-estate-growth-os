@@ -60,7 +60,7 @@ function activityDescription(activity: Activity): string {
   const meta = activity.metadata
   switch (activity.type) {
     case 'status_changed':
-      return `Status changed from ${meta.from ?? '?'} → ${meta.to ?? '?'}`
+      return `Status changed from ${meta.from ?? '?'} → ${meta.to ?? '?'}${typeof meta.reason === 'string' ? ` · ${meta.reason}` : ''}`
     case 'assigned':
       return meta.new_assignee ? 'Lead assigned to team member' : 'Lead unassigned'
     case 'created':
@@ -76,6 +76,8 @@ function activityDescription(activity: Activity): string {
         : 'Follow-up scheduled'
     case 'follow_up_completed':
       return 'Follow-up completed'
+    case 'details_updated':
+      return Array.isArray(meta.fields) && meta.fields.length ? `Updated ${meta.fields.slice(0, 4).join(', ')}${meta.fields.length > 4 ? '…' : ''}` : 'Updated details'
     default:
       return activity.type.replace(/_/g, ' ')
   }

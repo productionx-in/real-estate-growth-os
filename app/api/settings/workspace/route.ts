@@ -1,4 +1,4 @@
-// app/api/settings/workspace/route.ts — save one section of the workspace settings (Settings → Lead / Inventory / Report settings).
+// app/api/settings/workspace/route.ts — save one section of the workspace settings (Settings → Lead / Inventory / Report settings, Fields on leads, Locations).
 // Owners and admins only; validated by lib/settings/workspace.ts; audited with what changed.
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
@@ -9,7 +9,7 @@ import { normaliseSection } from '@/lib/settings/workspace'
 
 const Schema = z.object({
   orgId: z.string().uuid(),
-  section: z.enum(['leads', 'inventory', 'reports']),
+  section: z.enum(['leads', 'inventory', 'reports', 'lists', 'fields']),
   value: z.record(z.string(), z.unknown()),
 })
 
@@ -20,9 +20,10 @@ export async function POST(request: NextRequest) {
   const access = await authorizeOrgAccess(orgId, ['owner', 'admin'])
   if (!access.success) return access.response
 
-  const { value, errors } = normaliseSection(section, parsed.data.value)
+  const current = await getWorkspaceSettings(orgId)
+  const { value, errors } = normaliseSection(section, parsed.data.value, current)
   if (Object.keys(errors).length) return NextResponse.json({ error: Object.values(errors)[0], fields: errors }, { status: 400 })
-  const before = (await getWorkspaceSettings(orgId))[section]
+  const before = current[section]
   if (!(await saveWorkspaceSection(orgId, access.context.profile.id, section, value))) {
     return NextResponse.json({ error: 'Could not save the settings.' }, { status: 500 })
   }

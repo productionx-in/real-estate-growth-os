@@ -1,6 +1,7 @@
 // lib/settings/workspace.ts — workspace-wide settings (org_settings, 20260074): what each section holds, its defaults
 // and the rules a saved value must follow. Pure, so the forms, the API and the tests share one definition.
 // Nothing here is a secret; owners and admins change it (the API authorises), everyone in the workspace reads it.
+import { fieldsFromStored, normaliseFields, type FieldDef } from '@/lib/settings/fields'
 
 export interface LeadSettings {
   /** Choices offered when a lead is marked Lost (in this order). */
@@ -31,7 +32,17 @@ export interface ReportSettings {
   weekStartsOn: 0 | 1
 }
 
-export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings }
+export interface ListSettings {
+  /** Localities and cities the workspace sells in, offered when recording what a buyer wants. */
+  locations: string[]
+}
+
+export interface FieldSettings {
+  /** The workspace's own fields on leads (lib/settings/fields.ts). */
+  lead: FieldDef[]
+}
+
+export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings }
 export type SettingsSection = keyof WorkspaceSettings
 
 // The reasons Indian sales teams record most often; a workspace edits, reorders or replaces them.
@@ -43,9 +54,11 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
   },
   inventory: { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd' },
   reports: { fyStartMonth: 4, weekStartsOn: 1 },
+  lists: { locations: [] },
+  fields: { lead: [] },
 }
 
-export const LIMITS = { reasons: 20, reasonLength: 80, holdHours: 720 } as const
+export const LIMITS = { reasons: 20, reasonLength: 80, holdHours: 720, locations: 200, locationLength: 60 } as const
 
 type Errors = Record<string, string>
 
@@ -64,10 +77,29 @@ function reasons(input: unknown, label: string, errors: Errors, key: string): st
   return out.slice(0, LIMITS.reasons)
 }
 
-/** Checks and tidies one section before it is saved. Unknown keys are dropped. */
-export function normaliseSection<S extends SettingsSection>(section: S, input: unknown): { value: WorkspaceSettings[S]; errors: Errors } {
+/**
+ * Checks and tidies one section before it is saved. Unknown keys are dropped. `current` is what is saved now: field
+ * definitions keep their keys and types, and removed fields are archived rather than lost.
+ */
+export function normaliseSection<S extends SettingsSection>(section: S, input: unknown, current?: WorkspaceSettings): { value: WorkspaceSettings[S]; errors: Errors } {
   const errors: Errors = {}
   const o = (input && typeof input === 'object' && !Array.isArray(input) ? input : {}) as Record<string, unknown>
+  if (section === 'fields') {
+    const r = normaliseFields(o.lead, current?.fields.lead ?? [])
+    return { value: { lead: r.value } as WorkspaceSettings[S], errors: r.errors }
+  }
+  if (section === 'lists') {
+    const seen = new Set<string>()
+    const locations: string[] = []
+    for (const raw of Array.isArray(o.locations) ? o.locations : []) {
+      const v = typeof raw === 'string' ? raw.replace(/\s+/g, ' ').trim() : ''
+      if (v.length < 2 || seen.has(v.toLowerCase())) continue
+      if (v.length > LIMITS.locationLength) { errors.locations = `Keep each location under ${LIMITS.locationLength} characters.`; continue }
+      seen.add(v.toLowerCase()); locations.push(v)
+    }
+    if (locations.length > LIMITS.locations) errors.locations = `At most ${LIMITS.locations} locations.`
+    return { value: { locations: locations.slice(0, LIMITS.locations) } as WorkspaceSettings[S], errors }
+  }
   if (section === 'leads') {
     const value: LeadSettings = {
       lostReasons: reasons(o.lostReasons, 'Lost reasons', errors, 'lostReasons'),
@@ -106,13 +138,19 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
 }
 
 /** A stored row (possibly partial or from an older version) merged over the defaults; never throws. */
-export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown } | null | undefined): WorkspaceSettings {
+export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown } | null | undefined): WorkspaceSettings {
   const merge = <S extends SettingsSection>(s: S, stored: unknown): WorkspaceSettings[S] => {
     if (!stored || typeof stored !== 'object' || Array.isArray(stored) || !Object.keys(stored).length) return DEFAULT_SETTINGS[s]
     const { value } = normaliseSection(s, { ...DEFAULT_SETTINGS[s], ...(stored as object) })
     return value
   }
-  return { leads: merge('leads', row?.leads), inventory: merge('inventory', row?.inventory), reports: merge('reports', row?.reports) }
+  const stored = (row?.fields && typeof row.fields === 'object' ? row.fields : {}) as { lead?: unknown }
+  return {
+    leads: merge('leads', row?.leads), inventory: merge('inventory', row?.inventory), reports: merge('reports', row?.reports),
+    lists: merge('lists', row?.lists),
+    // Field definitions are read as stored (they were checked when saved); malformed entries are dropped.
+    fields: { lead: fieldsFromStored(stored.lead) },
+  }
 }
 
 /** The reason a person picked when closing a lead, checked against the workspace's list. "Other" needs a note. */
