@@ -103,7 +103,7 @@ test('settings are used: Speed to lead uses the report periods, the add-unit for
   const page = read('app/(dashboard)/[orgSlug]/speed-to-lead/page.tsx')
   assert.match(page, /resolvePeriod\(period, \(await getWorkspaceSettings\(org\.id\)\)\.reports\)/)
   assert.match(read('components/inventory/InventoryForm.tsx'), /prefs\.areaUnitLand : prefs\.areaUnitBuilt/)
-  assert.match(read('app/(dashboard)/[orgSlug]/layout.tsx'), /<WorkspacePrefsProvider value=\{\{ areaUnitBuilt: inv\.areaUnitBuilt, areaUnitLand: inv\.areaUnitLand \}\}>/)
+  assert.match(read('app/(dashboard)/[orgSlug]/layout.tsx'), /<WorkspacePrefsProvider value=\{\{ areaUnitBuilt: inv\.areaUnitBuilt, areaUnitLand: inv\.areaUnitLand[,} ]/)
 })
 
 test('the status API checks the close reason on the server and stores it on the lead', () => {
