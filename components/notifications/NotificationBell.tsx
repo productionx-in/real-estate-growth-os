@@ -13,6 +13,8 @@ interface Item {
   title: string
   body: string
   lead_id: string | null
+  /** Plot map notifications point at a project's map. */
+  project_id?: string | null
   created_at: string
   read_at: string | null
 }
@@ -106,7 +108,7 @@ export function NotificationBell({ orgId, orgSlug }: { orgId: string; orgSlug: s
               {items.map((n) => (
                 <li key={n.id} className={n.read_at ? '' : 'bg-brand-light/60'}>
                   <Link
-                    href={n.lead_id ? `/${orgSlug}/leads/${n.lead_id}` : `/${orgSlug}/leads`}
+                    href={n.lead_id ? `/${orgSlug}/leads/${n.lead_id}` : n.type === 'plot_map' && n.project_id ? `/${orgSlug}/projects/${n.project_id}/map` : `/${orgSlug}/leads`}
                     onClick={() => { if (!n.read_at) markRead({ ids: [n.id] }); setOpen(false) }}
                     className="block px-3 py-2 border-b border-[var(--border)] hover:bg-[var(--surface-hover)]"
                   >

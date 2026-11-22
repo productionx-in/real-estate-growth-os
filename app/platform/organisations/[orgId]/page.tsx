@@ -131,7 +131,7 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="plot-map-addon" className="scroll-mt-20">
         <CardHeader>
           <div>
             <CardTitle>{ADDONS.plot_maps.name}</CardTitle>

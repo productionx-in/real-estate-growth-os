@@ -21,13 +21,15 @@ export default async function PlatformAddonsPage() {
   if (access.state !== 'ok') return null
   if (!can(access.role as StaffRole, 'addons')) return <Alert tone="warning">Only the Platform Owner and platform admins see add-ons.</Alert>
   const rows = await listPlotMapUsage()
+  // Activating, suspending and changing terms is the Platform Owner's (with MFA, audited) on the workspace page.
+  const isOwner = access.role === 'super_admin'
   const active = rows.filter((r) => r.addon.state === 'active')
   return (
     <div className="space-y-5">
-      <PageHeader title="Add-ons" description={`${ADDONS.plot_maps.name}: activated per project. ${active.length} active · ${rows.filter((r) => r.addon.state === 'pending').length} waiting for activation. Open a workspace to activate, suspend or change terms.`} />
+      <PageHeader title="Add-ons" description={`${ADDONS.plot_maps.name}: activated per project. ${active.length} active · ${rows.filter((r) => r.addon.state === 'pending').length} waiting for activation. ${isOwner ? 'Use Review & activate on a row' : 'The Platform Owner activates'}; suspend or change terms on the workspace page.`} />
       {rows.length === 0 ? <p className="text-[13px] text-muted">No project has the add-on or has asked for it yet.</p> : (
         <TableCard minWidth={900}>
-          <thead><tr><Th>Workspace</Th><Th>Project</Th><Th>State</Th><Th>Until</Th><Th>Layouts</Th><Th>Published</Th><Th>Shared</Th><Th>Plots mapped</Th><Th>Monthly (₹)</Th></tr></thead>
+          <thead><tr><Th>Workspace</Th><Th>Project</Th><Th>State</Th><Th>Until</Th><Th>Layouts</Th><Th>Published</Th><Th>Shared</Th><Th>Plots mapped</Th><Th>Monthly (₹)</Th><Th /></tr></thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.projectId}>
@@ -37,6 +39,14 @@ export default async function PlatformAddonsPage() {
                 <Td>{day(r.addon.validUntil)}</Td>
                 <Td>{r.layouts}</Td><Td>{r.published}</Td><Td>{r.shared}</Td><Td>{r.mappedPlots}</Td>
                 <Td>{(r.addon.monthlyFeePaise / 100).toLocaleString('en-IN')}</Td>
+                <Td>
+                  <Link href={`/platform/organisations/${r.orgId}#plot-map-addon`}
+                    className={r.addon.state === 'pending'
+                      ? 'inline-flex min-h-9 items-center whitespace-nowrap rounded-md bg-brand px-3 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover'
+                      : 'whitespace-nowrap text-[13px] font-medium text-brand hover:underline'}>
+                    {r.addon.state === 'pending' ? (isOwner ? 'Review & activate' : 'Review') : 'Manage'}
+                  </Link>
+                </Td>
               </tr>
             ))}
           </tbody>
