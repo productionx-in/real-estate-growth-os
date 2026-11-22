@@ -30,6 +30,9 @@ import { LeadDocuments } from '@/components/documents/LeadDocuments'
 import { listLeadDocuments, listTemplates } from '@/lib/dal/documents'
 import { inr } from '@/lib/documents/merge'
 import { LeadMatches } from '@/components/matching/LeadMatches'
+import { LeadListingMatches } from '@/components/listings/LeadListingMatches'
+import { getShareTemplate, matchListingsForLead } from '@/lib/dal/listings'
+import { hasListingNeeds, type ListingNeeds } from '@/lib/listings/listing'
 import { LeadCustomFields } from '@/components/leads/LeadCustomFields'
 import { matchUnitsForLead } from '@/lib/dal/matching'
 import { ASSIGNABLE_ROLES, canAssignLeads, canAssignTo, canWorkLead, isManagement, leadScopeOf } from '@/lib/auth/permissions'
@@ -113,6 +116,16 @@ export default async function LeadDetailPage({ params }: PageProps) {
   const salesOn = modules.sales
   // Property matching: the buyer's requirements, and available units that fit (inventory module).
   const matching = await matchUnitsForLead(org.id, leadId)
+  // Agencies: resale and rental listings that fit this buyer or tenant (20260079).
+  const isAgency = org.type === 'channel_partner'
+  const needs = (matching.requirements ?? null) as unknown as ListingNeeds | null
+  const [listingMatches, shareTemplate, { data: meProfile }] = isAgency && needs
+    ? await Promise.all([
+        matchListingsForLead(org.id, { ...needs, req_purpose: needs.req_purpose ?? null, req_rent_max: needs.req_rent_max ?? null, req_property_types: needs.req_property_types ?? [] }),
+        getShareTemplate(org.id),
+        service.from('profiles').select('full_name, phone').eq('id', profile.id).maybeSingle(),
+      ])
+    : [[], '', { data: null }]
   // Documents (sales module): what was shared with this buyer, templates, and units to quote.
   const [leadDocs, docTemplates, docUnits] = salesOn
     ? await Promise.all([
@@ -478,6 +491,18 @@ export default async function LeadDetailPage({ params }: PageProps) {
               canWork={canWork}
               showMatches={modules.inventory}
               locations={workspaceSettings.lists.locations}
+              agency={isAgency}
+            />
+          )}
+          {isAgency && (
+            <LeadListingMatches
+              matches={listingMatches}
+              leadPhone={lead.phone}
+              template={shareTemplate}
+              me={{ name: meProfile?.full_name ?? 'Your agent', phone: meProfile?.phone ?? null }}
+              agency={org.name}
+              hasNeeds={!!needs && hasListingNeeds({ ...needs, req_purpose: needs.req_purpose ?? null, req_rent_max: needs.req_rent_max ?? null, req_property_types: needs.req_property_types ?? [] })}
+              listingsHref={`/${orgSlug}/listings`}
             />
           )}
           {salesOn && (

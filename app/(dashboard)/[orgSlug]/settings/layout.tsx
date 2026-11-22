@@ -7,11 +7,11 @@ import type { MemberRole } from '@/types/database'
 
 export default async function SettingsLayout({ children, params }: { children: React.ReactNode; params: Promise<{ orgSlug: string }> }) {
   const { orgSlug } = await params
-  const { role } = await getVerifiedWorkspace(orgSlug)
+  const { role, org } = await getVerifiedWorkspace(orgSlug)
   return (
     <div className="grid gap-6 p-4 md:p-6 lg:grid-cols-[15rem_minmax(0,1fr)]">
       <aside className="lg:sticky lg:top-4 lg:h-fit lg:border-r lg:border-default lg:pr-4">
-        <SettingsNav orgSlug={orgSlug} groups={settingsFor(role as MemberRole)} />
+        <SettingsNav orgSlug={orgSlug} groups={settingsFor(role as MemberRole, org.type as 'developer' | 'channel_partner')} />
       </aside>
       <div className="min-w-0">{children}</div>
     </div>
