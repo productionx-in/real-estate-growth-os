@@ -12,6 +12,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { invitationEmail, renderEmail } from '@/lib/email/layout'
 import { customerEmails, type CustomerEmailKind } from '@/lib/email/customer'
 import { managerDayEmail, memberDayEmail } from '@/lib/email/daily-report'
+import { weeklyDigestEmail } from '@/lib/email/weekly-digest'
 import { demoAlertEmail, demoConfirmationEmail, type DemoRequestDetails } from '@/lib/email/demo-request'
 import { decryptCredential } from '@/lib/integrations/crypto'
 import { appUrl, siteUrl } from '@/lib/site/urls'
@@ -66,6 +67,9 @@ const RENDERERS: Record<string, (p: Payload, ctx: RenderContext) => Promise<Rend
   },
   'daily.manager'(p) {
     return managerDayEmail(resolvePaths((p.args ?? {}) as Payload) as unknown as Parameters<typeof managerDayEmail>[0])
+  },
+  'weekly.manager'(p) {
+    return weeklyDigestEmail(resolvePaths((p.args ?? {}) as Payload) as unknown as Parameters<typeof weeklyDigestEmail>[0])
   },
 
   'demo.confirmation'(p) {

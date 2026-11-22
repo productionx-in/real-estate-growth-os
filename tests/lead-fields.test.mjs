@@ -80,7 +80,7 @@ test('wiring: values saved by whoever may work the lead, checked on the server; 
   assert.match(api, /authorizeLeadWork\(leadId\)/)
   assert.match(api, /checkValues\(defs, parsed\.data\.values\)/)
   assert.match(read('lib/dal/lead-fields.ts'), /\.eq\('org_id', orgId\)\.eq\('id', leadId\)/)
-  assert.match(read('app/api/settings/workspace/route.ts'), /section: z\.enum\(\['leads', 'inventory', 'reports', 'lists', 'fields'\]\)/)
+  assert.match(read('app/api/settings/workspace/route.ts'), /section: z\.enum\(\[[^\]]*'lists', 'fields'/)
   assert.match(read('app/api/settings/workspace/route.ts'), /normaliseSection\(section, parsed\.data\.value, current\)/)
   for (const p of ['fields', 'locations']) assert.match(read(`app/(dashboard)/[orgSlug]/settings/${p}/page.tsx`), /if \(!isAdmin\) redirect/)
   const lead = read('app/(dashboard)/[orgSlug]/leads/[leadId]/page.tsx')
