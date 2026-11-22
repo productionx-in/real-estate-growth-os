@@ -39,11 +39,17 @@ const newKey = () => `s${Date.now().toString(36)}${(seq++).toString(36)}`
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 const HISTORY = 100
 
-export function ShapeEditor({ orgId, versionId, width, height, imageUrl, initialShapes, units, title }: {
+export function ShapeEditor({ orgId, versionId, width, height, imageUrl, initialShapes, units, title, drawOnly = false, endpoint }: {
   orgId: string; versionId: string; width: number; height: number; imageUrl: string
   initialShapes: { id: string; label: string; kind: 'polygon' | 'rect'; points: Pt[]; unitId: string | null }[]
   units: Unit[]; title: string
+  /** REGrow staff drawing for a customer (option c): boundaries and plot numbers only. No units are shown or sent;
+   *  the server keeps the customer's confirmed links by plot id. */
+  drawOnly?: boolean
+  /** Where shapes are saved and re-read (default: the workspace route). */
+  endpoint?: string
 }) {
+  const url = endpoint ?? `/api/plot-maps/versions/${versionId}/shapes`
   const [shapes, setShapes] = useState<Shape[]>(() => initialShapes.map((s) => ({ ...s, key: newKey() })))
   const [past, setPast] = useState<Shape[][]>([])
   const [future, setFuture] = useState<Shape[][]>([])
@@ -248,21 +254,21 @@ export function ShapeEditor({ orgId, versionId, width, height, imageUrl, initial
     if (saving) return
     setSaving(true); if (!auto) setSaveError(null)
     try {
-      const res = await fetch(`/api/plot-maps/versions/${versionId}/shapes`, {
+      const res = await fetch(url, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orgId, shapes: shapes.map((s) => ({ ...(s.id ? { id: s.id } : {}), label: s.label, kind: s.kind, points: s.points, unitId: s.unitId })) }),
+        body: JSON.stringify({ orgId, shapes: shapes.map((s) => ({ ...(s.id ? { id: s.id } : {}), label: s.label, kind: s.kind, points: s.points, ...(drawOnly ? {} : { unitId: s.unitId }) })) }),
       })
       const out = await res.json().catch(() => ({}))
       if (!res.ok) { setSaveError(out.error ?? 'Could not save.'); return }
       // Refresh ids for new shapes so later saves update rather than re-create them.
-      const fresh = await fetch(`/api/plot-maps/versions/${versionId}/shapes?orgId=${orgId}`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null)
+      const fresh = await fetch(`${url}?orgId=${orgId}`, { cache: 'no-store' }).then((r) => r.json()).catch(() => null)
       if (fresh?.shapes) {
         const byLabel = new Map((fresh.shapes as { id: string; label: string }[]).map((s) => [labelKey(s.label), s.id]))
         setShapes((all) => all.map((s) => ({ ...s, id: byLabel.get(labelKey(s.label)) ?? s.id })))
       }
       setDirty(false); setSaveError(null); setSavedAt(new Date())
     } catch { setSaveError('Network error. Your changes are still here; try again.') } finally { setSaving(false) }
-  }, [saving, versionId, orgId, shapes])
+  }, [saving, url, orgId, shapes, drawOnly])
 
   useEffect(() => {
     if (!dirty) return
@@ -390,7 +396,9 @@ export function ShapeEditor({ orgId, versionId, width, height, imageUrl, initial
               <Field label="Plot number">
                 <Input ref={labelRef} value={sel.label} maxLength={40} onChange={(e) => update(sel.key, { label: e.target.value })} />
               </Field>
-              <div className="space-y-2">
+              {drawOnly ? (
+                <p className="text-[12px] text-muted">{sel.unitId ? 'The customer has linked this plot to a unit.' : 'Not linked yet — the customer links plots to their inventory.'}</p>
+              ) : <div className="space-y-2">
                 <p className="text-[13px] font-medium text-foreground">Inventory unit</p>
                 {sel.unitId ? (
                   <div className="flex items-center justify-between gap-2 rounded-md border border-default px-2 py-1.5 text-[13px]">
@@ -412,7 +420,7 @@ export function ShapeEditor({ orgId, versionId, width, height, imageUrl, initial
                     </ul>
                   </>
                 )}
-              </div>
+              </div>}
               <Button size="sm" variant="secondary" onClick={removeSelected}><Trash2 aria-hidden /> {vertex !== null && sel.kind === 'polygon' && sel.points.length > 3 ? 'Delete corner' : 'Delete plot'}</Button>
             </section>
           ) : (
@@ -430,9 +438,9 @@ export function ShapeEditor({ orgId, versionId, width, height, imageUrl, initial
               {validation.duplicateUnits.length > 0 && <li className="text-danger">Unit linked twice: {validation.duplicateUnits.slice(0, 8).join(', ')}</li>}
               {validation.overlaps.length > 0 && <li className="text-danger">Overlapping plots: {validation.overlaps.slice(0, 6).map(([a, b]) => `${a} & ${b}`).join(', ')}{validation.overlaps.length > 6 ? '…' : ''}</li>}
               <li className={validation.unlinked.length ? 'text-warning' : 'text-muted'}>{validation.unlinked.length} plot{validation.unlinked.length === 1 ? '' : 's'} not linked to a unit</li>
-              <li className={validation.unmappedUnits.length ? 'text-warning' : 'text-muted'} title={validation.unmappedUnits.slice(0, 40).join(', ')}>{validation.unmappedUnits.length} unit{validation.unmappedUnits.length === 1 ? '' : 's'} of this project not on the map</li>
+              {!drawOnly && <li className={validation.unmappedUnits.length ? 'text-warning' : 'text-muted'} title={validation.unmappedUnits.slice(0, 40).join(', ')}>{validation.unmappedUnits.length} unit{validation.unmappedUnits.length === 1 ? '' : 's'} of this project not on the map</li>}
             </ul>
-            {suggestions.length > 0 && (
+            {!drawOnly && suggestions.length > 0 && (
               <div className="space-y-1 border-t border-default pt-2">
                 <p className="text-[12px] text-muted">{suggestions.length} plot{suggestions.length === 1 ? '' : 's'} match a unit by number. Review and confirm:</p>
                 <Button size="sm" variant="secondary" className="w-full" onClick={() => commit(shapes.map((s) => { const u = suggestion(s); return u ? { ...s, unitId: u.id } : s }))}>
@@ -453,7 +461,7 @@ export function ShapeEditor({ orgId, versionId, width, height, imageUrl, initial
                 <li key={s.key}>
                   <button type="button" onClick={() => focus(s)} className={cn('flex w-full items-center justify-between px-2 py-1 text-left hover:bg-surface-hover', s.key === selected && 'bg-brand-light')}>
                     <span>{s.label || '(no number)'}</span>
-                    <span className={s.unitId ? 'text-success' : 'text-warning'}>{s.unitId ? unitById.get(s.unitId)?.unitNumber : 'not linked'}</span>
+                    <span className={s.unitId ? 'text-success' : 'text-warning'}>{s.unitId ? (drawOnly ? 'linked' : unitById.get(s.unitId)?.unitNumber) : 'not linked'}</span>
                   </button>
                 </li>
               ))}

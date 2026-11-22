@@ -188,6 +188,20 @@ Platform staff may not read or change customer data without a support grant, and
 to inventory, prices or buyers. The customer confirms every inventory link, approves and publishes. (b) may be added
 later for customers who want a fully managed service.
 
+**Built (PR E2, 20260085):**
+- The workspace's owner or admin allows it per project on the map page ("Let REGrow draw the plot boundaries"):
+  14 days by default, at most 31, one open permission at a time, withdrawable at any time. The add-on must be active.
+  Each permission is kept as history (`plot_map_staff_access`); it is only ever withdrawn, never edited. Audited.
+- Staff with `plotMapSetup` (MFA) open the project from `/platform/plot-maps` and draw on draft versions in the
+  editor's draw-only mode. They get the page image and outlines; a linked plot is only marked "linked", never which
+  unit. No inventory, prices or buyers.
+- Saves go through `save_plot_map_shapes_as_staff()`: it checks the permission and the add-on, ignores any unit sent,
+  keeps each confirmed link while the plot keeps its number (renumbering drops the link for the customer to confirm),
+  and then runs the normal save (draft only, ownership). Audited in the platform log; the workspace's owners and
+  admins get one in-app note per version per day.
+- Rollback: revert the code; `DROP FUNCTION save_plot_map_shapes_as_staff(uuid, uuid, uuid, jsonb),
+  plot_map_staff_access_active(uuid), guard_plot_map_staff_access(); DROP TABLE plot_map_staff_access`.
+
 ## 7. OCR (optional, later)
 
 - An interface `suggestLabels(image) → [{ text, box, confidence }]` behind a flag.
@@ -204,7 +218,7 @@ later for customers who want a fully managed service.
 | C | Editor and linking with validation; save draft. | 20260082 |
 | D | Review, approval, publish switch; public map on versions; public API, image route; enquiry and site-visit requests; embed; auto refresh. | 20260083 |
 | E1 | Setup tracker, estimate engine, operations console, notifications and e-mails, embed domains. | 20260084 |
-| E2 | Option (c): REGrow staff draw boundaries on a draft version with the customer's opt-in, no inventory access. | — |
+| E2 | Option (c): REGrow staff draw boundaries on a draft version with the customer's opt-in, no inventory access. | 20260085 |
 | (separate) | Sales: booking and blocking cancellation releasing the unit under the existing rules (closes gap 6). | — |
 | F | OCR suggestions (after the provider decision). | — |
 

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { getConsoleAccess } from '@/lib/auth/platform'
 import { CAN, can, type StaffRole } from '@/lib/platform/portal'
 import { setupQueue } from '@/lib/dal/plot-map-setup'
+import { getStaffAccess } from '@/lib/dal/plot-map-staff'
 import { staffNames } from '@/lib/platform/insights'
 import { createServiceClient } from '@/lib/supabase/server'
 import { Alert, Badge } from '@/components/ui'
@@ -27,6 +28,7 @@ export default async function PlotMapSetupQueuePage({ searchParams }: { searchPa
     setupQueue(),
     db.from('platform_users').select('user_id, role').eq('is_active', true).in('role', [...CAN.plotMapSetup]),
   ])
+  const drawing = new Map(await Promise.all(rows.map(async (r) => [r.projectId, await getStaffAccess(r.orgId, r.projectId)] as const)))
   const names = await staffNames(db as never, (team ?? []).map((t) => t.user_id))
   const staff = (team ?? []).map((t) => ({ userId: t.user_id as string, name: names.get(t.user_id as string) ?? 'Staff member' }))
   const open = rows.filter((r) => r.view.completed < r.view.stages.length)
@@ -53,6 +55,7 @@ export default async function PlotMapSetupQueuePage({ searchParams }: { searchPa
                     {r.view.current ? <>{r.view.current.label}<div className="text-[12px] text-muted">{r.view.current.owner === 'customer' ? 'With the customer' : r.view.current.owner === 'system' ? 'Automatic' : 'With REGrow'}</div></> : 'Published'}
                     {r.view.overdue && <Badge tone="danger" className="mt-1">Overdue</Badge>}
                     {r.view.waitingOnCustomer && <Badge tone="warning" className="mt-1">Paused · customer</Badge>}
+                    {drawing.get(r.projectId) && <div className="mt-1"><Link className="text-[12px] font-medium text-brand hover:underline" href={`/platform/plot-maps/${r.orgId}/${r.projectId}`}>Draw (allowed)</Link></div>}
                   </Td>
                   <Td className="tabular-nums">{r.view.completed}/{r.view.stages.length}</Td>
                   <Td>{when(r.view.currentDue)}</Td>
