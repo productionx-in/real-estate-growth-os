@@ -32,7 +32,8 @@ export interface PlotMapProps {
   plots: Record<string, PlotInfo>
   showPrices: boolean
   /** Team mode: where a plot's unit opens. */
-  unitHref?: (unitId: string) => string
+  /** Team mode: where "Open in project" goes. A plain string: server pages cannot pass functions to this client component. */
+  unitHref?: string
   /** Public mode: who to contact about a plot. */
   contact?: { phone: string | null; projectName: string; orgName: string }
   /** A map drawn on the developer's layout page: the page image behind the plots (same coordinate space as viewBox). */
@@ -208,7 +209,7 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
               {showPrices && sel.price != null && <div className="col-span-2"><dt className="text-[11px] text-muted">Price</dt><dd className="text-[15px] font-semibold">{inr(sel.price)}</dd></div>}
             </dl>
             {mode === 'team' && unitHref && (
-              <a href={unitHref(sel.unitId)} className="inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">Open in project</a>
+              <a href={unitHref} className="inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">Open in project</a>
             )}
             {mode === 'public' && sel.status === 'available' && enquiryToken && <PlotEnquiryForm key={sel.unitNumber} token={enquiryToken} plot={sel.unitNumber} />}
             {mode === 'public' && sel.status === 'available' && contact?.phone && (
