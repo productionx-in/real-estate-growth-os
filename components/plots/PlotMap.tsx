@@ -7,6 +7,7 @@ import { createElement, useMemo, useRef, useState } from 'react'
 import { Maximize2, MessageCircle, Minus, Phone, Plus, Search, X } from 'lucide-react'
 import type { LayoutGeometry, PlotInfo } from '@/lib/dal/plot-layouts'
 import { cn } from '@/lib/utils/cn'
+import { PlotEnquiryForm } from '@/components/plots/PlotEnquiryForm'
 
 type Mode = 'team' | 'public'
 
@@ -34,9 +35,13 @@ export interface PlotMapProps {
   unitHref?: (unitId: string) => string
   /** Public mode: who to contact about a plot. */
   contact?: { phone: string | null; projectName: string; orgName: string }
+  /** A map drawn on the developer's layout page: the page image behind the plots (same coordinate space as viewBox). */
+  image?: { href: string; width: number; height: number }
+  /** Public mode: the share link's token — shows the enquiry / site-visit form for an available plot. */
+  enquiryToken?: string
 }
 
-export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, contact }: PlotMapProps) {
+export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, contact, image, enquiryToken }: PlotMapProps) {
   const base = useMemo(() => viewBox.split(' ').map(Number) as [number, number, number, number], [viewBox])
   const [view, setView] = useState(base)
   const [selected, setSelected] = useState<string | null>(null)
@@ -139,6 +144,7 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
             style={{ aspectRatio: `${base[2]} / ${base[3]}` }}
             className="block max-h-[70dvh] w-full touch-none select-none"
             onClick={onMapClick} onWheel={onWheel} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={onPointerUp}>
+            {image?.href && <image href={image.href} x={0} y={0} width={image.width} height={image.height} preserveAspectRatio="none" aria-hidden />}
             {geometry.shapes.map((s, i) => {
               const plot = s.key ? plots[s.key] : undefined
               const common = { ...s.attrs, transform: s.transform, vectorEffect: 'non-scaling-stroke' as const }
@@ -148,7 +154,7 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
               const isSel = selected === s.key
               return createElement(s.kind, {
                 key: i, ...common, role: 'button', tabIndex: dim ? -1 : 0, 'aria-label': describe(s.key, plot), 'aria-pressed': isSel,
-                fill: st ? st.color : 'var(--surface)', fillOpacity: dim ? 0.08 : isSel ? 0.95 : 0.7,
+                fill: st ? st.color : 'var(--surface)', fillOpacity: dim ? 0.08 : isSel ? 0.95 : image ? 0.45 : 0.7,
                 stroke: isSel ? 'var(--foreground)' : plot ? 'var(--surface)' : 'var(--border-strong)', strokeWidth: isSel ? 3 : 1,
                 strokeDasharray: plot ? undefined : '4 3',
                 className: 'cursor-pointer outline-none transition-[fill-opacity] hover:[fill-opacity:0.95] focus-visible:[stroke:var(--brand)] focus-visible:[stroke-width:3]',
@@ -156,7 +162,8 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
               })
             })}
             {geometry.labels.map((l, i) => (
-              <text key={`t${i}`} x={l.x} y={l.y} transform={l.transform} fontSize={l.size ?? 12} aria-hidden className="pointer-events-none fill-[var(--foreground)] font-semibold">{l.text}</text>
+              <text key={`t${i}`} x={l.x} y={l.y} transform={l.transform} fontSize={l.size ?? 12} textAnchor={image ? 'middle' : undefined} aria-hidden
+                className="pointer-events-none fill-[var(--foreground)] font-semibold" stroke={image ? 'var(--surface)' : undefined} strokeWidth={image ? (l.size ?? 12) / 5 : undefined} paintOrder="stroke">{l.text}</text>
             ))}
           </svg>
           <div className="absolute bottom-3 right-3 flex flex-col overflow-hidden rounded-lg border border-default bg-surface shadow-sm">
@@ -178,7 +185,7 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
         ) : !sel ? (
           <div className="space-y-2">
             <p className="text-[15px] font-semibold text-foreground">Plot {selected}</p>
-            <p className="text-[13px] text-muted">This shape isn’t linked to a unit yet. Add a unit numbered “{selected}” to the project’s inventory, then upload the drawing again.</p>
+            <p className="text-[13px] text-muted">{mode === 'public' ? 'Details for this plot are not available yet.' : 'This plot isn’t linked to a unit in the published map yet.'}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -203,6 +210,7 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
             {mode === 'team' && unitHref && (
               <a href={unitHref(sel.unitId)} className="inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">Open in project</a>
             )}
+            {mode === 'public' && sel.status === 'available' && enquiryToken && <PlotEnquiryForm key={sel.unitNumber} token={enquiryToken} plot={sel.unitNumber} />}
             {mode === 'public' && sel.status === 'available' && contact?.phone && (
               <div className="grid gap-2">
                 {enquire && <a href={enquire} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-[14px] font-medium text-brand-foreground hover:bg-brand-hover"><MessageCircle aria-hidden className="size-4" /> Enquire on WhatsApp</a>}

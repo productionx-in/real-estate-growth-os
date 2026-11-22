@@ -3456,8 +3456,47 @@ export interface Database {
         }
         Relationships: []
       }
+      plot_map_reviews: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          version_id: string
+          action: string
+          from_status: string
+          to_status: string
+          comment: string | null
+          actor: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          version_id: string
+          action: string
+          from_status: string
+          to_status: string
+          comment?: string | null
+          actor?: string | null
+          created_at?: string
+        }
+        Update: {
+          org_id?: string
+          project_id?: string
+          version_id?: string
+          action?: string
+          from_status?: string
+          to_status?: string
+          comment?: string | null
+          actor?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       plot_layouts: {
         Row: {
+          published_version_id: string | null
           id: string
           org_id: string
           project_id: string
@@ -3475,6 +3514,7 @@ export interface Database {
           updated_at: string
         }
         Insert: {
+          published_version_id?: string | null
           id?: string
           org_id: string
           project_id: string
@@ -3492,6 +3532,7 @@ export interface Database {
           updated_at?: string
         }
         Update: {
+          published_version_id?: string | null
           name?: string
           view_box?: string
           geometry?: Json
@@ -3649,6 +3690,10 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      plot_map_version_action: {
+        Args: { p_org: string; p_version: string; p_actor: string; p_action: string; p_comment: string | null }
+        Returns: string
+      }
       save_plot_map_shapes: {
         Args: { p_org: string; p_version: string; p_actor: string; p_shapes: Json }
         Returns: number

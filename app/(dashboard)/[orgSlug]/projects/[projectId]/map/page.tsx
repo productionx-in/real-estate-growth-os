@@ -17,9 +17,11 @@ import { Badge } from '@/components/ui'
 import { getLiveLayout, listLayouts } from '@/lib/dal/plot-layouts'
 import { createServiceClient } from '@/lib/supabase/server'
 import { PlotMap } from '@/components/plots/PlotMap'
+import { AutoRefresh } from '@/components/plots/AutoRefresh'
 import { LayoutManager } from '@/components/plots/LayoutManager'
 import { MapDocuments } from '@/components/plots/MapDocuments'
 import { listMapFiles } from '@/lib/dal/plot-map-documents'
+import { listReviews } from '@/lib/dal/plot-map-publishing'
 import { cn } from '@/lib/utils/cn'
 
 export const metadata: Metadata = { title: 'Plot map' }
@@ -74,6 +76,9 @@ export default async function ProjectMapPage({ params, searchParams }: {
   const current = adding ? null : visible.find((l) => l.id === wanted) ?? visible[0] ?? null
   const live = current ? await getLiveLayout(org.id, current.id) : null
   const files = isManager ? await listMapFiles(org.id, projectId) : null
+  const reviewList = isManager ? await listReviews(org.id, projectId) : []
+  const reviews: Record<string, { action: string; comment: string | null; actorName: string | null; at: string }[]> = {}
+  for (const r of reviewList) (reviews[r.versionId] ??= []).push(r)
 
   return (
     <PageShell title="Plot map" description={`${project.name} · statuses update live from inventory${addon.validUntil ? ` · active until ${day(addon.validUntil)}` : ''}`} back={back}>
@@ -99,10 +104,10 @@ export default async function ProjectMapPage({ params, searchParams }: {
             {isManager && <Link href="?new=1" className={cn('inline-flex min-h-9 items-center rounded-full border border-dashed px-3 text-[13px]', adding ? 'border-brand text-brand' : 'border-strong text-muted hover:bg-surface-hover')}>+ Add a layout (phase)</Link>}
           </nav>
         )}
-        {files && <MapDocuments orgId={org.id} orgSlug={orgSlug} projectId={projectId} layouts={all.map((l) => ({ id: l.id, name: l.name }))} documents={files.documents} versions={files.versions} />}
+        {files && <MapDocuments orgId={org.id} orgSlug={orgSlug} projectId={projectId} layouts={all.map((l) => ({ id: l.id, name: l.name }))} documents={files.documents} versions={files.versions} canApprove={isAdmin} reviews={reviews} />}
         {isManager && <LayoutManager key={current?.id ?? 'new'} orgId={org.id} projectId={projectId} layout={current} />}
         {live ? (
-          <PlotMap mode="team" viewBox={live.viewBox} geometry={live.geometry} plots={live.plots} showPrices unitHref={() => back.href} />
+          <><AutoRefresh seconds={30} /><PlotMap mode="team" viewBox={live.viewBox} geometry={live.geometry} plots={live.plots} showPrices unitHref={() => back.href} image={live.image} /></>
         ) : !isManager && (
           <div className="rounded-xl border border-dashed border-default p-8 text-center text-[13px] text-muted">
             <Link href={back.href} className="inline-flex items-center gap-1 font-medium text-brand"><ArrowLeft aria-hidden className="size-3.5" /> Back to the project</Link>

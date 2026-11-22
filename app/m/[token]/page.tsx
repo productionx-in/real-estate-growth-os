@@ -4,12 +4,14 @@
 import type { Metadata } from 'next'
 import { PlotMap } from '@/components/plots/PlotMap'
 import { openSharedLayout } from '@/lib/dal/plot-layouts'
+import { AutoRefresh } from '@/components/plots/AutoRefresh'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Plot availability', robots: { index: false, follow: false }, referrer: 'no-referrer' }
 
-export default async function SharedPlotMapPage({ params }: { params: Promise<{ token: string }> }) {
+export default async function SharedPlotMapPage({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ embed?: string }> }) {
   const { token } = await params
+  const embed = (await searchParams).embed === '1'
   const map = await openSharedLayout(token)
   if (!map) {
     return (
@@ -21,15 +23,16 @@ export default async function SharedPlotMapPage({ params }: { params: Promise<{ 
   }
   const available = Object.values(map.plots).filter((p) => p.status === 'available').length
   return (
-    <main className="min-h-dvh bg-background px-4 py-6 sm:px-6">
+    <main className={embed ? 'bg-background p-2' : 'min-h-dvh bg-background px-4 py-6 sm:px-6'}>
+      <AutoRefresh seconds={30} />
       <div className="mx-auto max-w-6xl space-y-4">
-        <header>
+        <header className={embed ? 'sr-only' : undefined}>
           <p className="text-[12px] font-semibold uppercase tracking-wide text-subtle">{map.orgName}</p>
           <h1 className="text-[22px] font-semibold tracking-[-0.01em] text-foreground">{map.projectName}{map.name ? ` — ${map.name}` : ''}</h1>
           <p className="mt-1 text-[14px] text-muted">{available} plot{available === 1 ? '' : 's'} available now · updated live</p>
         </header>
         <PlotMap mode="public" viewBox={map.viewBox} geometry={map.geometry} plots={map.plots} showPrices={map.showPrices}
-          contact={{ phone: map.contactPhone, projectName: map.projectName, orgName: map.orgName }} />
+          contact={{ phone: map.contactPhone, projectName: map.projectName, orgName: map.orgName }} image={map.image} enquiryToken={token} />
         <p className="text-[11px] text-subtle">Availability is shown for information and can change at any time. A plot is yours only once the developer confirms your booking.</p>
       </div>
     </main>
