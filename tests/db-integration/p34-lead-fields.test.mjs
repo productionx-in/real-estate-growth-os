@@ -67,13 +67,13 @@ async function main() {
   await test('another organisation can neither read nor write a lead’s values', async () => {
     assert.deepEqual(await values.getLeadFieldValues(other, a), {})
     await values.saveLeadFieldValues(other, a, actor, { home_loan: 'Not needed' }, {})
-    assert.deepEqual((await one('SELECT custom_fields FROM public.leads_all WHERE id=$1', [a])).custom_fields, { home_loan: 'Needed' })
-    assert.deepEqual((await one('SELECT custom_fields FROM public.leads_all WHERE id=$1', [b])).custom_fields, {})
+    assert.deepEqual((await one('SELECT field_values FROM public.leads_all WHERE id=$1', [a])).field_values, { home_loan: 'Needed' })
+    assert.deepEqual((await one('SELECT field_values FROM public.leads_all WHERE id=$1', [b])).field_values, {})
   })
 
   await test('the database refuses values that are not an object or are too large', async () => {
-    await assert.rejects(sql.query(`UPDATE public.leads SET custom_fields = '[1]'::jsonb WHERE id=$1`, [a]), /check/i)
-    await assert.rejects(sql.query(`UPDATE public.leads SET custom_fields = jsonb_build_object('t', (SELECT string_agg(md5(i::text), '') FROM generate_series(1, 1000) i)) WHERE id=$1`, [a]), /check/i)
+    await assert.rejects(sql.query(`UPDATE public.leads SET field_values = '[1]'::jsonb WHERE id=$1`, [a]), /check/i)
+    await assert.rejects(sql.query(`UPDATE public.leads SET field_values = jsonb_build_object('t', (SELECT string_agg(md5(i::text), '') FROM generate_series(1, 1000) i)) WHERE id=$1`, [a]), /check/i)
   })
 
   await test('removing a field keeps what was recorded', async () => {

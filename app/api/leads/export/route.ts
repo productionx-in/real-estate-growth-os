@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
       .from('leads')
       .select(`
         id, name, phone, email, status, priority, source,
-        budget_min, budget_max, notes, created_at, closed_reason, custom_fields,
+        budget_min, budget_max, notes, created_at, closed_reason, field_values,
         project:projects(name),
         assignee:profiles!leads_assigned_to_fkey(full_name)
       `)
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
     const fieldDefs = (await getWorkspaceSettings(org.id)).fields.lead
     const BASE = ['Lead ID', 'Name', 'Phone', 'Email', 'Status', 'Priority', 'Source', 'Project', 'Assigned To', 'Min Budget', 'Max Budget', 'Notes', 'Closed Reason', 'Created At']
     const columnFor = (label: string) => (BASE.some((b) => b.toLowerCase() === label.toLowerCase()) ? `${label} (field)` : label)
-    const rows = ((leads ?? []) as unknown as (LeadExportRecord & { closed_reason?: string | null; custom_fields?: Record<string, unknown> | null })[]).map((lead) => ({
+    const rows = ((leads ?? []) as unknown as (LeadExportRecord & { closed_reason?: string | null; field_values?: Record<string, unknown> | null })[]).map((lead) => ({
       'Lead ID': lead.id,
       Name: lead.name,
       Phone: lead.phone,
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
       Notes: lead.notes ?? '',
       'Closed Reason': lead.closed_reason ?? '',
       'Created At': lead.created_at,
-      ...Object.fromEntries(fieldDefs.map((f) => [columnFor(f.label), displayValue(f, lead.custom_fields?.[f.key])])),
+      ...Object.fromEntries(fieldDefs.map((f) => [columnFor(f.label), displayValue(f, lead.field_values?.[f.key])])),
     }))
 
     // Exports take customer contact data out of REGrow, so every one is recorded.

@@ -466,7 +466,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
           <LeadCustomFields
             leadId={leadId}
             defs={workspaceSettings.fields.lead}
-            values={((lead as { custom_fields?: unknown }).custom_fields ?? {}) as Record<string, string | number | boolean>}
+            values={((lead as { field_values?: unknown }).field_values ?? {}) as Record<string, string | number | boolean>}
             canEdit={canWork}
             settingsHref={isAdmin ? `/${orgSlug}/settings/fields` : null}
           />

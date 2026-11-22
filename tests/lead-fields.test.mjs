@@ -71,7 +71,7 @@ test('CSV exports never run formulas, and phone numbers and amounts are left alo
   for (const v of ['+91 98450 12345', '-500', '9845012345', 'Asha', '(080) 2345-6789']) assert.ok(!CSV_FORMULA.test(v), v)
   const route = read('app/api/leads/export/route.ts')
   assert.match(route, /Papa\.unparse\(rows, \{ escapeFormulae: CSV_FORMULA \}\)/)
-  assert.match(route, /displayValue\(f, lead\.custom_fields\?\.\[f\.key\]\)/)
+  assert.match(route, /displayValue\(f, lead\.field_values\?\.\[f\.key\]\)/)
   assert.match(route, /'Closed Reason': lead\.closed_reason/)
 })
 
@@ -90,9 +90,13 @@ test('wiring: values saved by whoever may work the lead, checked on the server; 
 
 test('migration: values on the table behind the live-leads view, size-capped; new activity kind outside the transaction', () => {
   const m = read('supabase/migrations/20260075_lists_and_fields.sql')
-  assert.match(m, /ALTER TABLE public\.leads_all\s+ADD COLUMN IF NOT EXISTS custom_fields JSONB NOT NULL DEFAULT '\{\}'::jsonb\s+CHECK \(jsonb_typeof\(custom_fields\) = 'object' AND pg_column_size\(custom_fields\) < 16384\)/)
+  assert.match(m, /ALTER TABLE public\.leads_all\s+ADD COLUMN IF NOT EXISTS field_values JSONB NOT NULL DEFAULT '\{\}'::jsonb\s+CHECK \(jsonb_typeof\(field_values\) = 'object' AND pg_column_size\(field_values\) < 16384\)/)
   assert.match(m, /CREATE OR REPLACE VIEW public\.leads WITH \(security_invoker = true\) AS\s+SELECT \* FROM public\.leads_all WHERE deleted_at IS NULL/)
   assert.ok(m.indexOf("ADD VALUE IF NOT EXISTS 'details_updated'") < m.indexOf('BEGIN;'))
+  // ADD COLUMN IF NOT EXISTS silently skips the CHECK when the column already exists, so the name must be new
+  // (leads.custom_fields already holds raw import and integration data).
+  const earlier = fs.readdirSync(path.join(root, 'supabase/migrations')).filter((f) => f < '20260075')
+  for (const f of earlier) assert.doesNotMatch(read(`supabase/migrations/${f}`), /\bfield_values\b/, f)
 })
 
 console.log(`\nFields on leads: ${passed} checks passed.`)

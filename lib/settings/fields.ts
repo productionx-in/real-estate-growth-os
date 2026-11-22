@@ -1,6 +1,6 @@
 // lib/settings/fields.ts — the workspace's own fields on leads ("Fields on records"): what can be defined, and the
 // rules a value must follow. Pure, so the settings form, the APIs and the tests share one definition.
-// Definitions live in org_settings.fields (20260075); values in leads_all.custom_fields, keyed by the field's key.
+// Definitions live in org_settings.fields (20260075); values in leads_all.field_values, keyed by the field's key.
 // A key never changes once created, so renaming a field keeps its values; removing a field only archives it.
 
 export const FIELD_TYPES = {
