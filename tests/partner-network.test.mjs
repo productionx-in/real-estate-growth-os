@@ -65,13 +65,16 @@ await test('requests: consent must be literally true; unknown fields (prices, ph
 
 await test('guards: every partner route authorises on the server with the right roles and the module switch', () => {
   const routes = walk(path.join(root, 'app/api/partners')).map((f) => path.relative(root, f))
-  assert.equal(routes.length, 7, routes.join(', '))
+  assert.equal(routes.length, 10, routes.join(', '))
   const expect = {
     'app/api/partners/code/route.ts': /authorizeOrgAccess\([^)]*\['owner', 'admin'\]\)/,
     'app/api/partners/[partnershipId]/status/route.ts': /authorizeOrgAccess\([^)]*\['owner', 'admin'\]\)/,
     'app/api/partners/[partnershipId]/projects/route.ts': /authorizeOrgAccess\([^)]*\['owner', 'admin'\]\)/,
     'app/api/partners/registrations/route.ts': /authorizeLeadAccess\(input\.data\.agencyLeadId, \[\.\.\.MANAGEMENT_ROLES\]\)/,
     'app/api/partners/registrations/[registrationId]/review/route.ts': /authorizeOrgAccess\([^)]*\[\.\.\.MANAGEMENT_ROLES\]\)/,
+    'app/api/partners/unit-requests/route.ts': /authorizeOrgAccess\([^)]*\[\.\.\.MANAGEMENT_ROLES\]\)/,
+    'app/api/partners/unit-requests/[requestId]/review/route.ts': /authorizeOrgAccess\([^)]*\[\.\.\.MANAGEMENT_ROLES\]\)/,
+    'app/api/partners/unit-requests/[requestId]/withdraw/route.ts': /authorizeOrgAccess\([^)]*\[\.\.\.MANAGEMENT_ROLES\]\)/,
   }
   for (const [f, re] of Object.entries(expect)) assert.match(read(f), re, f)
   for (const f of routes) {

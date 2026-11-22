@@ -197,3 +197,62 @@ export async function registrationTargets(agencyOrgId: string): Promise<{ partne
     .filter((p) => p.side === 'agency' && p.status === 'active' && p.projects.length > 0)
     .map((p) => ({ partnershipId: p.id, developerName: p.partnerName, projects: p.projects.map((x) => ({ id: x.projectId, name: x.name })) }))
 }
+
+// ── Booking requests (20260086) ─────────────────────────────────────────────────────────────────
+export type UnitRequestStatus = 'submitted' | 'approved' | 'declined' | 'withdrawn'
+
+export const requestUnit = (input: { agencyOrgId: string; actorProfileId: string; registrationId: string; inventoryId: string; note: string | null; holdHours: number | null }) =>
+  call<string>('partner_request_unit', {
+    p_agency: input.agencyOrgId, p_actor: input.actorProfileId, p_registration: input.registrationId, p_inventory: input.inventoryId,
+    p_note: input.note, p_hold_hours: input.holdHours,
+  })
+export const withdrawUnitRequest = (agencyOrgId: string, actorProfileId: string, requestId: string) =>
+  call<string>('partner_withdraw_unit_request', { p_agency: agencyOrgId, p_actor: actorProfileId, p_request: requestId })
+export const reviewUnitRequest = (developerOrgId: string, actorProfileId: string, requestId: string, approve: boolean, reason: string | null) =>
+  call<{ status: 'approved' | 'declined'; held_until?: string }>('partner_review_unit_request', {
+    p_developer: developerOrgId, p_actor: actorProfileId, p_request: requestId, p_approve: approve, p_reason: reason,
+  })
+
+export interface UnitRequestView {
+  id: string; registrationId: string; status: UnitRequestStatus; partnerName: string; buyerName: string
+  projectName: string | null; unitNumber: string; note: string | null; holdHours: number
+  submittedAt: string; heldUntil: string | null; declineReason: string | null
+  /** Developer side only: the developer's own lead for this buyer. */
+  developerLeadId?: string | null
+}
+
+/** Requests on either side. The agency never receives the developer's lead or hold; the developer never the agency's lead. */
+export async function listUnitRequests(orgId: string, side: 'developer' | 'agency'): Promise<UnitRequestView[]> {
+  const db = raw(createServiceClient())
+  const { data } = await db.from('partner_unit_requests')
+    .select('id, registration_id, status, developer_org_id, agency_org_id, inventory_id, note, hold_hours, submitted_at, held_until, decline_reason, project:projects(name)')
+    .eq(side === 'developer' ? 'developer_org_id' : 'agency_org_id', orgId).order('submitted_at', { ascending: false }).limit(300)
+  type Row = { id: string; registration_id: string; status: UnitRequestStatus; developer_org_id: string; agency_org_id: string; inventory_id: string; note: string | null; hold_hours: number; submitted_at: string; held_until: string | null; decline_reason: string | null; project: { name: string } | null }
+  const rows = (data ?? []) as Row[]
+  if (!rows.length) return []
+  const service = createServiceClient()
+  const [{ data: regs }, { data: units }, { data: orgs }] = await Promise.all([
+    db.from('deal_registrations').select('id, buyer_name, developer_lead_id').in('id', [...new Set(rows.map((r) => r.registration_id))]),
+    service.from('inventory_items').select('id, unit_number').in('id', [...new Set(rows.map((r) => r.inventory_id))]),
+    service.from('organisations').select('id, name').in('id', [...new Set(rows.map((r) => (side === 'developer' ? r.agency_org_id : r.developer_org_id)))]),
+  ])
+  const reg = new Map(((regs ?? []) as { id: string; buyer_name: string; developer_lead_id: string | null }[]).map((r) => [r.id, r]))
+  const unit = new Map((units ?? []).map((u) => [u.id, u.unit_number]))
+  const org = new Map((orgs ?? []).map((o) => [o.id, o.name]))
+  return rows.map((r) => ({
+    id: r.id, registrationId: r.registration_id, status: r.status,
+    partnerName: org.get(side === 'developer' ? r.agency_org_id : r.developer_org_id) ?? (side === 'developer' ? 'Partner agency' : 'Developer'),
+    buyerName: reg.get(r.registration_id)?.buyer_name ?? 'Buyer', projectName: r.project?.name ?? null, unitNumber: unit.get(r.inventory_id) ?? '—',
+    note: r.note, holdHours: r.hold_hours, submittedAt: r.submitted_at, heldUntil: r.held_until, declineReason: r.decline_reason,
+    ...(side === 'developer' ? { developerLeadId: reg.get(r.registration_id)?.developer_lead_id ?? null } : {}),
+  }))
+}
+
+/** Units an agency may ask to hold for one of its accepted, protected registrations (available, shared, visible). */
+export async function requestableUnits(agencyOrgId: string, registrationId: string): Promise<PartnerUnit[] | null> {
+  const { data: r } = await raw(createServiceClient()).from('deal_registrations')
+    .select('partnership_id, project_id, status, protected_until').eq('id', registrationId).eq('agency_org_id', agencyOrgId).maybeSingle()
+  if (!r || r.status !== 'accepted' || !r.project_id || !r.protected_until || new Date(r.protected_until) <= new Date()) return null
+  const units = await partnerInventory(agencyOrgId, r.partnership_id, r.project_id)
+  return units ? units.filter((u) => u.available) : null
+}

@@ -21,3 +21,11 @@ export const SubmitRegistration = z.object({
 export const ReviewRegistration = z.object({
   orgId: id, accept: z.boolean(), reason: z.string().trim().max(500).nullable().optional(),
 }).strict().refine((b) => b.accept || !!b.reason, { message: 'Give a reason for rejecting.', path: ['reason'] })
+
+// Booking requests (20260086).
+export const RequestUnit = z.object({
+  orgId: id, registrationId: id, inventoryId: id,
+  note: z.string().trim().max(500).optional(),
+  holdHours: z.number().int().min(24).max(168).optional(),
+}).strict()
+export const ReviewUnitRequest = z.object({ orgId: id, approve: z.boolean(), reason: z.string().trim().max(500).optional() }).strict()
