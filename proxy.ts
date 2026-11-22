@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/types/database'
 import { isIndexablePath, LEGAL_PATHS, MARKETING_PATHS } from '@/lib/site/urls'
+import { frameAncestors } from '@/lib/plots/embed'
 
 // /reset-password is public so a person whose reset link expired sees why (and can ask for a new one) instead of
 // being bounced to sign-in; the form itself needs the short recovery session to change anything.
@@ -115,6 +116,17 @@ export async function proxy(request: NextRequest) {
       const url = request.nextUrl.clone()
       url.pathname = '/select-org'
       return NextResponse.redirect(url)
+    }
+    // A shared plot map may be framed only by REGrow and the websites its workspace listed (lib/plots/embed.ts).
+    // Unknown, unshared or lapsed maps get 'self' only. If the lookup fails, the strict default applies.
+    const mapToken = pathname.match(/^\/m\/([A-Za-z0-9_-]{43})$/)?.[1]
+    if (mapToken) {
+      let origins: string[] = []
+      try {
+        const { data } = await supabase.rpc('plot_map_embed_origins', { p_token: mapToken })
+        origins = Array.isArray(data) ? data : []
+      } catch { origins = [] }
+      supabaseResponse.headers.set('Content-Security-Policy', frameAncestors(origins))
     }
     return markIndexing(supabaseResponse, pathname)
   }

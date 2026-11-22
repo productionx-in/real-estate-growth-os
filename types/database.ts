@@ -3340,6 +3340,7 @@ export interface Database {
       }
       plot_map_versions: {
         Row: {
+          rendered_at: string | null
           id: string
           org_id: string
           project_id: string
@@ -3361,6 +3362,7 @@ export interface Database {
           updated_at: string
         }
         Insert: {
+          rendered_at?: string | null
           id?: string
           org_id: string
           project_id: string
@@ -3382,6 +3384,7 @@ export interface Database {
           updated_at?: string
         }
         Update: {
+          rendered_at?: string | null
           org_id?: string
           project_id?: string
           layout_id?: string
@@ -3494,8 +3497,74 @@ export interface Database {
         }
         Relationships: []
       }
+      plot_map_setup_blockers: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          stage: string
+          waiting_on: string
+          reason: string
+          raised_by: string | null
+          raised_at: string
+          resolved_by: string | null
+          resolved_at: string | null
+          resolution: string | null
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          stage: string
+          waiting_on: string
+          reason: string
+          raised_by?: string | null
+          raised_at?: string
+          resolved_by?: string | null
+          resolved_at?: string | null
+          resolution?: string | null
+        }
+        Update: {
+          org_id?: string
+          project_id?: string
+          stage?: string
+          waiting_on?: string
+          reason?: string
+          raised_by?: string | null
+          raised_at?: string
+          resolved_by?: string | null
+          resolved_at?: string | null
+          resolution?: string | null
+        }
+        Relationships: []
+      }
+      plot_map_setup_assignments: {
+        Row: {
+          project_id: string
+          org_id: string
+          assignee_user: string | null
+          assigned_by: string | null
+          assigned_at: string
+        }
+        Insert: {
+          project_id: string
+          org_id: string
+          assignee_user?: string | null
+          assigned_by?: string | null
+          assigned_at?: string
+        }
+        Update: {
+          project_id?: string
+          org_id?: string
+          assignee_user?: string | null
+          assigned_by?: string | null
+          assigned_at?: string
+        }
+        Relationships: []
+      }
       plot_layouts: {
         Row: {
+          embed_domains: string[]
           published_version_id: string | null
           id: string
           org_id: string
@@ -3514,6 +3583,7 @@ export interface Database {
           updated_at: string
         }
         Insert: {
+          embed_domains?: string[]
           published_version_id?: string | null
           id?: string
           org_id: string
@@ -3532,6 +3602,7 @@ export interface Database {
           updated_at?: string
         }
         Update: {
+          embed_domains?: string[]
           published_version_id?: string | null
           name?: string
           view_box?: string
@@ -3690,6 +3761,10 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      plot_map_embed_origins: {
+        Args: { p_token: string }
+        Returns: string[]
+      }
       plot_map_version_action: {
         Args: { p_org: string; p_version: string; p_actor: string; p_action: string; p_comment: string | null }
         Returns: string

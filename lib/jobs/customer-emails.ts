@@ -10,6 +10,8 @@
 //   payment_received a payment was captured (receipt)
 //   payment_failed   a payment attempt failed
 //   workspace_state  the workspace became read-only, deactivated, in grace, or active again
+//   plot_map_*       Interactive Plot Map set-up: activated, action needed (sent back, QA problems, a blocker waiting
+//                    on the customer), published, and delayed (the current REGrow step is past its service time)
 //
 // Each e-mail has a dedupe key in customer_email_log, written before sending, so a retry or an overlapping run can
 // never send it twice. Events are looked at for 2–3 days only, so turning e-mail on later doesn't send old news.
@@ -111,6 +113,53 @@ export async function collectPending(db: Db, now = Date.now()): Promise<PendingE
     if (s.to_state === 'active' && !['suspended', 'deactivated', 'grace'].includes(s.from_state)) continue // e.g. first activation: the welcome covers it
     out.push({ orgId: s.org_id, kind: 'workspace_state', key: `state:${s.id}`, includeSuspended: true,
       args: (name, slug) => ({ orgName: name, to: s.to_state, reason: s.reason, urlPath: s.to_state === 'deactivated' ? '/contact' : `/${slug}` }) })
+  }
+  out.push(...(await collectPlotMapEmails(db, now)))
+  return out
+}
+
+/** Interactive Plot Map set-up e-mails, from what was recorded in the last 2 days (and, for delays, today). */
+export async function collectPlotMapEmails(db: Db, now = Date.now()): Promise<PendingEmail[]> {
+  const since2 = new Date(now - 2 * DAY).toISOString()
+  const out: PendingEmail[] = []
+  const mapPath = (slug: string, projectId: string) => `/${slug}/projects/${projectId}/map`
+  const projectName = async (id: string) => ((await db.from('projects').select('name').eq('id', id).maybeSingle()).data?.name as string | undefined) ?? 'your project'
+
+  const { data: act } = await db.from('project_addons').select('org_id, project_id, activated_at').eq('addon', 'plot_maps').eq('status', 'active').gte('activated_at', since2)
+  for (const a of act ?? []) {
+    const pn = await projectName(a.project_id)
+    out.push({ orgId: a.org_id, kind: 'plot_map_activated', key: `plot_map_activated:${a.project_id}:${String(a.activated_at).slice(0, 10)}`,
+      args: (name, slug) => ({ orgName: name, projectName: pn, urlPath: mapPath(slug, a.project_id) }) })
+  }
+  const { data: revs } = await db.from('plot_map_reviews').select('id, org_id, project_id, action, comment').in('action', ['published', 'rejected', 'qa_failed']).gte('created_at', since2)
+  for (const r of revs ?? []) {
+    const pn = await projectName(r.project_id)
+    if (r.action === 'published') {
+      out.push({ orgId: r.org_id, kind: 'plot_map_published', key: `plot_map_published:${r.id}`, args: (name, slug) => ({ orgName: name, projectName: pn, urlPath: mapPath(slug, r.project_id) }) })
+    } else {
+      const what = r.comment || (r.action === 'qa_failed' ? 'The quality check found problems to fix.' : 'The map was sent back for changes.')
+      out.push({ orgId: r.org_id, kind: 'plot_map_action_needed', key: `plot_map_action:${r.id}`, args: (name, slug) => ({ orgName: name, projectName: pn, what, urlPath: mapPath(slug, r.project_id) }) })
+    }
+  }
+  const { data: blk } = await db.from('plot_map_setup_blockers').select('id, org_id, project_id, reason').eq('waiting_on', 'customer').is('resolved_at', null).gte('raised_at', since2)
+  for (const b of blk ?? []) {
+    const pn = await projectName(b.project_id)
+    out.push({ orgId: b.org_id, kind: 'plot_map_action_needed', key: `plot_map_blocker:${b.id}`, args: (name, slug) => ({ orgName: name, projectName: pn, what: b.reason, urlPath: mapPath(slug, b.project_id) }) })
+  }
+  // Delays: the current REGrow or system step is past its service time (at most one e-mail per project per day).
+  const { data: running } = await db.from('project_addons').select('org_id, project_id, status, valid_until').eq('addon', 'plot_maps').eq('status', 'active')
+  if ((running ?? []).length) {
+    const { setupFacts } = await import('@/lib/dal/plot-map-setup')
+    const { setupView } = await import('@/lib/plots/setup')
+    for (const r of running ?? []) {
+      if (r.valid_until && new Date(r.valid_until).getTime() <= now) continue
+      const v = setupView(await setupFacts(r.org_id, r.project_id), new Date(now))
+      if (!v.overdue || !v.current || !v.estimate) continue
+      const pn = await projectName(r.project_id)
+      const stage = v.current.label, newDate = v.estimate
+      out.push({ orgId: r.org_id, kind: 'plot_map_delayed', key: `plot_map_delayed:${r.project_id}:${v.current.key}:${new Date(now).toISOString().slice(0, 10)}`,
+        args: (name, slug) => ({ orgName: name, projectName: pn, stage, newDate, urlPath: mapPath(slug, r.project_id) }) })
+    }
   }
   return out
 }
