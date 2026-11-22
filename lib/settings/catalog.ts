@@ -14,6 +14,8 @@ export interface SettingsPage {
   audience: SettingsAudience
   /** Extra words people search for. */
   keywords: string[]
+  /** Only for these kinds of workspace (e.g. agency-only listings); omitted = every workspace. */
+  orgTypes?: ('developer' | 'channel_partner')[]
 }
 
 export interface SettingsGroup {
@@ -47,7 +49,8 @@ export const SETTINGS: SettingsGroup[] = [
   {
     key: 'team', title: 'Your team', description: 'Who is on the team and what each person can do.',
     pages: [
-      { key: 'team', label: 'Team members & roles', description: 'Invite people, change roles, deactivate members.', path: '/team', audience: 'managers', keywords: ['invite', 'users', 'roles', 'permissions', 'deactivate', 'seats'] },
+      { key: 'team', label: 'Team members & roles', description: 'Invite people, change roles, last sign-in, reset e-mails, monthly targets.', path: '/team', audience: 'managers', keywords: ['invite', 'users', 'roles', 'permissions', 'deactivate', 'seats'] },
+      { key: 'roles', label: 'Roles & permissions', description: 'What each role can do, straight from the rules REGrow enforces.', path: '/settings/roles', audience: 'managers', keywords: ['permissions', 'access', 'roles', 'who can', 'rights', 'privileges'] },
       { key: 'alert-defaults', label: 'Notification defaults', description: 'Which alerts reach the team’s devices unless they choose otherwise.', path: '/settings/alerts', audience: 'admins', keywords: ['push', 'alerts', 'notification rules', 'defaults', 'mute'] },
     ],
   },
@@ -69,6 +72,7 @@ export const SETTINGS: SettingsGroup[] = [
       { key: 'projects', label: 'Projects', description: 'Your projects and their RERA details.', path: '/projects', audience: 'managers', keywords: ['rera', 'project'] },
       { key: 'inventory-settings', label: 'Inventory settings', description: 'Release units on hold automatically, and the area units new units start with.', path: '/settings/inventory', audience: 'admins', keywords: ['hold', 'on hold', 'block', 'release', 'expiry', 'units', 'area', 'sq ft', 'sq yd', 'acres', 'guntas', 'cents'] },
       { key: 'matching', label: 'Matching rules', description: 'How strictly units are matched to buyers: budget margin, weak matches, suggestions.', path: '/settings/matching', audience: 'admins', keywords: ['matching', 'property matching', 'budget', 'suggestions', 'interested buyers'] },
+      { key: 'listing-share', label: 'Listing share message', description: 'The WhatsApp message agents send with a resale or rental listing.', path: '/settings/listings', audience: 'admins', keywords: ['listing', 'share', 'whatsapp', 'resale', 'rental', 'template', 'message'], orgTypes: ['channel_partner'] },
       { key: 'documents', label: 'Document templates', description: 'Cost sheets, quotations and letters on your letterhead.', path: '/documents', audience: 'managers', keywords: ['cost sheet', 'quotation', 'allotment', 'demand letter', 'letterhead'] },
     ],
   },
@@ -83,10 +87,10 @@ export const SETTINGS: SettingsGroup[] = [
 const RANK: Record<MemberRole, number> = { owner: 3, admin: 3, manager: 2, team_lead: 1, sales_exec: 1, post_sales: 1, readonly: 1 }
 const NEEDS: Record<SettingsAudience, number> = { everyone: 1, managers: 2, admins: 3 }
 
-/** The groups and pages this role may see; empty groups are dropped. */
-export function settingsFor(role: MemberRole): SettingsGroup[] {
+/** The groups and pages this role may see (in this kind of workspace); empty groups are dropped. */
+export function settingsFor(role: MemberRole, orgType?: 'developer' | 'channel_partner'): SettingsGroup[] {
   return SETTINGS
-    .map((g) => ({ ...g, pages: g.pages.filter((p) => RANK[role] >= NEEDS[p.audience]) }))
+    .map((g) => ({ ...g, pages: g.pages.filter((p) => RANK[role] >= NEEDS[p.audience] && (!p.orgTypes || !orgType || p.orgTypes.includes(orgType))) }))
     .filter((g) => g.pages.length > 0)
 }
 

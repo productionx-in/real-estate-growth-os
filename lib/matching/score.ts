@@ -23,6 +23,10 @@ export interface Requirements {
   req_facing: string[]
   req_min_area: number | null
   req_max_area: number | null
+  /** Agencies only (resale and rental listings, 20260079). */
+  req_purpose?: 'buy' | 'rent' | null
+  req_rent_max?: number | null
+  req_property_types?: string[]
 }
 
 export interface UnitForMatch {
