@@ -12,7 +12,7 @@ import { dashboardActivity, dashboardFigures, ROLE_LABEL, type Db, type StaffRol
 import { ageLabel, auditDigest, customerHealth, financeBoard, salesBoard, supportBoard } from '@/lib/platform/insights'
 import { KpiCard, Panel, Rings, TrendChart } from '@/components/platform/DashboardWidgets'
 import { FocusTile, FunnelBars, HealthBadge, QueueList, Td, Th } from '@/components/platform/ConsoleUI'
-import { STAGE_LABEL } from '@/components/platform/PortalClient'
+import { STAGE_LABEL } from '@/lib/platform/stages'
 
 export const metadata: Metadata = { title: 'Home' }
 export const dynamic = 'force-dynamic'

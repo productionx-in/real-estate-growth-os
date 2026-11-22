@@ -8,7 +8,8 @@ import { getConsoleAccess } from '@/lib/auth/platform'
 import { createServiceClient } from '@/lib/supabase/server'
 import { can, listProspects, type Db, type StaffRole } from '@/lib/platform/portal'
 import { staffNames } from '@/lib/platform/insights'
-import { ImportWebsiteButton, NewProspectForm, STAGE_LABEL } from '@/components/platform/PortalClient'
+import { ImportWebsiteButton, NewProspectForm } from '@/components/platform/PortalClient'
+import { STAGE_LABEL, STAGE_TONE, WORKSPACE_STAGES } from '@/lib/platform/stages'
 import { Badge, Card, CardContent, EmptyState } from '@/components/ui'
 import { FilterTabs, PageHeader, TableCard, Td, Th } from '@/components/platform/ConsoleUI'
 
@@ -72,7 +73,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Promis
 
       {rows.length === 0 ? <Card className="rounded-2xl"><EmptyState icon={Users} title="No prospects here" description={sp.due ? 'Nothing due. Nice.' : 'Change the filters, or add a prospect.'} /></Card> : (
         <TableCard minWidth={820}>
-          <thead><tr><Th>Company</Th><Th>Stage</Th><Th>Source</Th><Th>Next follow-up</Th><Th>Owner</Th><Th className="text-right">Added</Th></tr></thead>
+          <thead><tr><Th>Company</Th><Th>Stage</Th><Th>Workspace</Th><Th>Source</Th><Th>Next follow-up</Th><Th>Owner</Th><Th className="text-right">Added</Th></tr></thead>
           <tbody>
             {rows.map((p) => (
               <tr key={p.id} className="hover:bg-surface-hover">
@@ -80,7 +81,11 @@ export default async function SalesPage({ searchParams }: { searchParams: Promis
                   <Link href={`/platform/sales/${p.id}`} className="font-medium hover:underline">{p.company_name}</Link>
                   <span className="block text-[12px] text-muted">{p.org_type === 'channel_partner' ? 'Agency' : 'Developer'}{p.city ? ` · ${p.city}` : ''}{p.contact_name ? ` · ${p.contact_name}` : ''}</span>
                 </Td>
-                <Td><Badge tone={p.stage === 'won' ? 'success' : p.stage === 'lost' ? 'neutral' : 'brand'}>{STAGE_LABEL[p.stage]}</Badge></Td>
+                <Td><Badge tone={STAGE_TONE[p.stage] ?? 'neutral'}>{STAGE_LABEL[p.stage] ?? p.stage}</Badge></Td>
+                <Td>{p.linked_org_id
+                  ? <Link href={`/platform/organisations/${p.linked_org_id}`} className="text-[13px] font-medium text-brand hover:underline">Created · open</Link>
+                  : WORKSPACE_STAGES.includes(p.stage) ? <span className="text-[13px] font-medium text-danger">Missing</span>
+                  : <span className="text-[13px] text-muted">Not yet</span>}</Td>
                 <Td className="text-muted">{p.source === 'website' ? 'Website' : p.source}</Td>
                 <Td className={overdue(p) ? 'font-semibold text-danger' : dueToday(p) ? 'font-medium text-warning' : 'text-muted'}>
                   {p.next_follow_up_at ? `${overdue(p) ? 'Overdue · ' : dueToday(p) ? 'Today · ' : ''}${day(p.next_follow_up_at)}` : isOpen(p) ? 'Not set' : '—'}

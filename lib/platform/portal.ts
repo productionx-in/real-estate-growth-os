@@ -202,7 +202,7 @@ export async function createProspect(db: Db, actor: Actor, input: ProspectInput)
   return { success: true as const, data: { id: data.id as string } }
 }
 
-export async function updateProspect(db: Db, actor: Actor, id: string, change: { stage?: Stage; lostReason?: string | null; ownerUserId?: string | null; nextFollowUpAt?: string | null; notes?: string | null }) {
+export async function updateProspect(db: Db, actor: Actor, id: string, change: { stage?: Stage; lostReason?: string | null; ownerUserId?: string | null; nextFollowUpAt?: string | null; notes?: string | null; linkedOrgId?: string }) {
   if (!can(actor.role, 'salesWrite')) return fail('Not permitted.', 403)
   const p = await loadVisibleProspect(db, actor, id)
   if (!p) return fail('Prospect not found.', 404)
@@ -227,9 +227,20 @@ export async function updateProspect(db: Db, actor: Actor, id: string, change: {
   }
   if (change.nextFollowUpAt !== undefined) patch.next_follow_up_at = change.nextFollowUpAt
   if (change.notes !== undefined) patch.notes = change.notes
+  if (change.linkedOrgId !== undefined) {
+    // Re-linking a workspace (e.g. the first one was deleted and a new one created): sales managers and the owner.
+    if (!can(actor.role, 'salesAll') || actor.role === 'auditor') return fail('Only a sales manager or the Platform Owner can link a workspace.', 403)
+    if (p.linked_org_id) return fail('This request already has a workspace.', 409)
+    const { data: org } = await db.from('organisations').select('id, slug').eq('id', change.linkedOrgId).maybeSingle()
+    if (!org) return fail('Workspace not found.', 404)
+    const { data: taken } = await db.from('internal_prospects').select('id').eq('linked_org_id', change.linkedOrgId).neq('id', id).limit(1)
+    if ((taken ?? []).length) return fail('That workspace is already linked to another request.', 409)
+    patch.linked_org_id = change.linkedOrgId
+    log.push(`workspace linked (/${org.slug})`)
+  }
   const { error } = await db.from('internal_prospects').update(patch).eq('id', id)
   if (error) return fail(error.message, 400)
-  for (const l of log) await db.from('internal_prospect_activities').insert({ prospect_id: id, kind: l.startsWith('stage') ? 'stage_change' : 'assignment', body: l, actor: actor.userId })
+  for (const l of log) await db.from('internal_prospect_activities').insert({ prospect_id: id, kind: l.startsWith('stage') || l.startsWith('workspace') ? 'stage_change' : 'assignment', body: l, actor: actor.userId })
   await audit(db, actor, 'sales.prospect_updated', 'internal_prospects', id, { changes: log, followUp: change.nextFollowUpAt ?? undefined })
   return { success: true as const, data: { id } }
 }

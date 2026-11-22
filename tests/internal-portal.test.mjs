@@ -59,7 +59,9 @@ test('sales code reads no customer CRM table except REGrow’s own website-reque
   const src = read('lib/platform/portal.ts')
   const sales = src.slice(src.indexOf('// ── Internal Sales'), src.indexOf('// ── Internal Support'))
   const tables = [...sales.matchAll(/from\('([a-z_]+)'\)/g)].map((m) => m[1])
-  assert.deepEqual([...new Set(tables)].sort(), ['internal_prospect_activities', 'internal_prospects', 'leads', 'platform_users'])
+  assert.deepEqual([...new Set(tables)].sort(), ['internal_prospect_activities', 'internal_prospects', 'leads', 'organisations', 'platform_users'])
+  // Organisations: only whether a workspace exists and its address, to link a request to it — never its data.
+  for (const m of sales.matchAll(/from\('organisations'\)\.select\('([^']+)'\)/g)) assert.equal(m[1], 'id, slug')
   assert.match(sales, /from\('leads'\)\.select\([^)]*\)\.eq\('connection_id', connectionId\)/, 'only the website form connection')
 })
 
