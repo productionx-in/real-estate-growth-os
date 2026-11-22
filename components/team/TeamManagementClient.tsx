@@ -329,7 +329,7 @@ export function TeamManagementClient({
                     {isAdmin && (
                       <td className="px-5 py-3.5 text-right">
                         {isSelf && (
-                          <Link href="/account/security" className="text-[12px] font-medium text-[var(--brand)] hover:underline">Your account</Link>
+                          <Link href={`/${orgSlug}/settings/profile`} className="text-[12px] font-medium text-[var(--brand)] hover:underline">Your account</Link>
                         )}
                         {canManage && (
                           <DropdownMenu>
