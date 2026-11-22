@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { CalendarDays, ChevronLeft, ChevronRight, MapPin, Users, Video } from 'lucide-react'
 import { PageShell } from '@/components/layout/PageShell'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
-import { listVisits, CHECKIN_FLAG_METRES, OUTCOMES } from '@/lib/dal/site-visits'
+import { listVisits, OUTCOMES } from '@/lib/dal/site-visits'
+import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 import { getResponseMinutes } from '@/lib/dal/action-board'
 import { tzOffsetMinutes } from '@/lib/dal/follow-ups'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -52,6 +53,7 @@ export default async function VisitsPage({ params, searchParams }: {
   const shift = (days: number) => localDay(new Date(from.getTime() + days * 86_400_000 + 12 * 3600_000), timezone)
 
   const db = createServiceClient()
+  const checkinRadius = (await getWorkspaceSettings(org.id)).visits.checkinRadiusM
   const [visits, projects, members, leads] = await Promise.all([
     listVisits(org.id, { from, to, profileId: mine ? profile.id : null, profileIds: teamIds, projectId: sp.project || null }),
     db.from('projects').select('id, name').eq('org_id', org.id).order('name'),
@@ -134,7 +136,7 @@ export default async function VisitsPage({ params, searchParams }: {
                       <Link href={`/${orgSlug}/leads/${v.lead_id}`} className="font-medium text-foreground hover:underline">{v.lead?.name ?? 'Lead'}</Link>
                       <Badge tone={s.tone}>{s.label}</Badge>
                       {v.outcome && <Badge>{OUTCOMES[v.outcome as keyof typeof OUTCOMES] ?? v.outcome}</Badge>}
-                      {v.checkin_distance_m != null && v.checkin_distance_m > CHECKIN_FLAG_METRES && (
+                      {v.checkin_distance_m != null && v.checkin_distance_m > checkinRadius && (
                         <Badge tone="warning">Checked in {(v.checkin_distance_m / 1000).toFixed(1)} km away</Badge>
                       )}
                     </p>

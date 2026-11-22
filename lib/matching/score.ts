@@ -2,7 +2,8 @@
 // How well an available unit fits what a buyer wants — one definition, used for "Matching units" on a lead
 // and "Interested buyers" on a unit. A score out of 100 plus plain reasons ("Within budget", "3BHK",
 // "Whitefield") and gaps ("₹8 L over budget"). Units that clearly don't fit are not suggested at all:
-// wrong configuration or property type, more than 10% over budget, or not available.
+// wrong configuration or property type, over budget by more than the workspace allows (10% unless changed in
+// Settings → Matching rules), or not available.
 
 export const CONFIGURATIONS = ['1RK', '1BHK', '2BHK', '2.5BHK', '3BHK', '3.5BHK', '4BHK', '5BHK+'] as const
 export const FACINGS = ['East', 'West', 'North', 'South', 'North-East', 'North-West', 'South-East', 'South-West'] as const
@@ -73,7 +74,7 @@ export function hasRequirements(r: Requirements): boolean {
 }
 
 /** The match, or null when the unit should not be suggested. */
-export function scoreUnit(r: Requirements, u: UnitForMatch): Match | null {
+export function scoreUnit(r: Requirements, u: UnitForMatch, overBudget = OVER_BUDGET_TOLERANCE): Match | null {
   if (u.status !== 'available') return null
   const reasons: string[] = []
   const gaps: string[] = []
@@ -93,14 +94,14 @@ export function scoreUnit(r: Requirements, u: UnitForMatch): Match | null {
     score += 10
   }
 
-  // Budget: 35 (more than 10% over is not suggested)
+  // Budget: 35 (more than the allowed margin over is not suggested)
   const price = u.total_price
   const lo = r.budget_min && r.budget_min > 0 ? r.budget_min : null
   const hi = r.budget_max && r.budget_max > 0 ? r.budget_max : null
   if (price == null || !Number.isFinite(price)) {
     gaps.push('No price yet')
   } else if (hi != null && price > hi) {
-    if (price > hi * (1 + OVER_BUDGET_TOLERANCE)) return null
+    if (price > hi * (1 + overBudget)) return null
     score += 20
     gaps.push(`${shortInr(price - hi)} over budget`)
   } else if (lo != null && price < lo) {
