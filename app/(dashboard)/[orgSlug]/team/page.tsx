@@ -12,6 +12,9 @@ import {
   type PendingInvitationItem,
 } from '@/components/team/TeamManagementClient'
 import type { MemberRole } from '@/types/database'
+import { authDetails, listTargets, monthProgress } from '@/lib/dal/team'
+import { monthKey } from '@/lib/team/targets'
+import { TeamTargets } from '@/components/team/TeamTargets'
 
 export const metadata: Metadata = { title: 'Team & Access Management' }
 export const dynamic = 'force-dynamic'
@@ -70,21 +73,14 @@ export default async function TeamPage({ params }: PageProps) {
     }
   }
 
-  // 4. Resolve user emails via auth admin list
-  let userEmailMap = new Map<string, string>()
-  try {
-    const { data: authData } = await service.auth.admin.listUsers({ perPage: 1000 })
-    if (authData?.users) {
-      userEmailMap = new Map(authData.users.map((u) => [u.id, u.email ?? '']))
-    }
-  } catch (err) {
-    console.error('Could not list auth users for emails:', err)
-  }
+  // 4. E-mail and last sign-in for each member, looked up per member (never listing every account on the platform).
+  const userDetails = await authDetails([...profileMap.values()].map((p) => p.auth_user_id).filter(Boolean))
 
   // 5. Merge active and deactivated member records
   const teamMembers: TeamMemberItem[] = members.map((m) => {
     const profile = profileMap.get(m.profile_id)
-    const email = profile?.auth_user_id ? userEmailMap.get(profile.auth_user_id) : null
+    const details = profile?.auth_user_id ? userDetails.get(profile.auth_user_id) : undefined
+    const email = details?.email ?? null
     const role = (m.role ?? 'readonly') as MemberRole
     const status = (m.status === 'deactivated' ? 'deactivated' : 'active') as 'active' | 'deactivated'
 
@@ -98,6 +94,7 @@ export default async function TeamPage({ params }: PageProps) {
       phone: profile?.phone ?? null,
       avatar_url: profile?.avatar_url ?? null,
       status,
+      lastSignInAt: details?.lastSignInAt ?? null,
     }
   })
 
@@ -119,6 +116,11 @@ export default async function TeamPage({ params }: PageProps) {
     status: 'pending',
   }))
 
+  // 7. This month's targets and progress (owners, admins and managers set them).
+  const month = monthKey()
+  const [targets, progress] = await Promise.all([listTargets(workspace.org.id, month), monthProgress(workspace.org.id, month)])
+  const sellers = teamMembers.filter((m) => m.status === 'active' && ['manager', 'team_lead', 'sales_exec'].includes(m.role))
+
   return (
     <PageShell
       title="Team & Access Management"
@@ -134,7 +136,19 @@ export default async function TeamPage({ params }: PageProps) {
         seatUsage={seatUsage}
         teamMembers={teamMembers}
         pendingInvitations={pendingInvitations}
+        orgId={workspace.org.id}
       />
+      <div className="mt-6">
+        <TeamTargets
+          orgId={workspace.org.id}
+          month={month}
+          people={sellers.map((m) => ({
+            profileId: m.profileId, name: m.name,
+            targets: targets.get(m.profileId) ?? { siteVisits: null, bookings: null, bookingValue: null },
+            progress: progress.get(m.profileId) ?? { siteVisits: 0, bookings: 0, bookingValue: 0 },
+          }))}
+        />
+      </div>
     </PageShell>
   )
 }
