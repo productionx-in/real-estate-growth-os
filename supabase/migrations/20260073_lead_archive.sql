@@ -123,7 +123,8 @@ BEGIN
 
   FOREACH t IN ARRAY ARRAY['leads_all', 'projects', 'inventory_items', 'bookings', 'deals', 'site_visits', 'channel_partners', 'whatsapp_messages'] LOOP
     EXECUTE format('SELECT count(*) FROM public.%I WHERE org_id = $1', t) INTO n USING p_org;
-    IF n > 0 THEN data_found := data_found || jsonb_build_object(t, n); END IF;
+    -- Reported as "leads" (live and archived together), the name the console and audit log already use.
+    IF n > 0 THEN data_found := data_found || jsonb_build_object(CASE t WHEN 'leads_all' THEN 'leads' ELSE t END, n); END IF;
   END LOOP;
   -- Invoices never paid (issued, void or cancelled) are removable data; a paid invoice is a money record.
   SELECT count(*) INTO n FROM public.org_subscription_invoices WHERE org_id = p_org AND status <> 'paid';
