@@ -26,6 +26,7 @@ import { MetaConnectWizardModal } from '@/components/integrations/MetaConnectWiz
 import { ConnectionDetailsModal } from '@/components/integrations/ConnectionDetailsModal'
 import { WebsiteEnquiryWizardModal } from '@/components/integrations/WebsiteEnquiryWizardModal'
 import { WhatsAppWizardModal } from '@/components/integrations/WhatsAppWizardModal'
+import { WhatsAppEmbeddedSignup } from '@/components/integrations/WhatsAppEmbeddedSignup'
 import { PortalIntegrationModal } from '@/components/integrations/PortalIntegrationModal'
 import { DeveloperApiDocsModal } from '@/components/integrations/DeveloperApiDocsModal'
 
@@ -418,30 +419,28 @@ export function IntegrationCentreView({
               </p>
 
               <div className="space-y-1.5 pt-2 border-t border-default text-[11px] text-subtle">
-                <div className="flex justify-between">
-                  <span>Implementation:</span>
-                  <span className="font-semibold text-success">Code Verified (Stage 4F)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Provider Setup:</span>
-                  <span className="text-warning font-medium">Meta Cloud API &amp; Phone Verification Pending</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Connection Status:</span>
-                  <span className="text-muted font-medium">
-                    {whatsappConnection?.status === 'connected' ? 'Connected (Live Routing)' : 'Not Connected (Meta App Pending)'}
+                <div className="flex justify-between gap-2">
+                  <span>Number:</span>
+                  <span className="font-medium text-foreground">
+                    {whatsappConnection?.status === 'connected'
+                      ? String((whatsappConnection.metadata as Record<string, unknown> | null)?.displayPhoneNumber ?? 'Connected')
+                      : 'Not connected'}
                   </span>
                 </div>
+                {whatsappConnection?.last_error && (
+                  <p className="text-warning">{whatsappConnection.last_error}</p>
+                )}
               </div>
             </div>
 
-            <div className="pt-3">
+            <div className="space-y-2 pt-3">
+              <WhatsAppEmbeddedSignup orgId={org.id} connected={whatsappConnection?.status === 'connected'} canManage={canManage} />
               <button
                 onClick={() => setIsWhatsAppWizardOpen(true)}
                 disabled={!canManage}
                 className="w-full py-2 px-3 text-[12px] font-semibold text-success bg-success-bg hover:bg-success-bg border border-success/30 rounded-xl transition cursor-pointer text-center"
               >
-                Configure &amp; Test WhatsApp
+                Test WhatsApp webhook
               </button>
             </div>
           </div>

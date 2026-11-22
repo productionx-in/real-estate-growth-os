@@ -15,6 +15,7 @@ import type {
   ProcessingStatus,
 } from '@/lib/integrations/types'
 import type { Json, TablesUpdate } from '@/types/database'
+import { redactConnectionMetadata } from '@/lib/integrations/redact'
 
 // ── Connections ─────────────────────────────────────────────────────────────
 
@@ -59,6 +60,7 @@ export async function getIntegrationConnections(
   // Redact credential_ref: NEVER return secret tokens or misleading placeholder strings
   const sanitized = (data ?? []).map((conn) => ({
     ...conn,
+    metadata: redactConnectionMetadata(conn.metadata),
     credential_ref: null,
     has_credentials: Boolean(conn.credential_ref),
   }))
