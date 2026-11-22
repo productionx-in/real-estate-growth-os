@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { GitMerge, Pencil, AlertTriangle, ExternalLink, Layers, MessageCircle, Radio } from 'lucide-react'
 import { getLeadById, getLeadActivities } from '@/lib/dal/leads'
+import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { PageShell } from '@/components/layout/PageShell'
 import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge'
@@ -97,12 +98,13 @@ export default async function LeadDetailPage({ params }: PageProps) {
   }
 
   const service = createServiceClient()
-  const [activities, tasks, visitProjects, visitAgents, waConversation] = await Promise.all([
+  const [activities, tasks, visitProjects, visitAgents, waConversation, workspaceSettings] = await Promise.all([
     getLeadActivities(leadId), listLeadTasks(org.id, leadId),
     service.from('projects').select('id, name').eq('org_id', org.id).order('name'),
     service.from('org_members').select('profile_id, profile:profiles!org_members_profile_id_fkey(full_name)').eq('org_id', org.id).eq('status', 'active').in('role', [...ASSIGNABLE_ROLES]),
     service.from('whatsapp_conversations').select('id').eq('org_id', org.id).eq('lead_id', leadId)
       .order('last_message_at', { ascending: false, nullsFirst: false }).limit(1).maybeSingle(),
+    getWorkspaceSettings(org.id),
   ])
   const modules = await getModules(org.id)
   const { data: tagRows } = await service.from('leads').select('tags').eq('org_id', org.id).not('tags', 'eq', '{}').limit(2000)
@@ -455,7 +457,10 @@ export default async function LeadDetailPage({ params }: PageProps) {
           )}
           <StatusTransitionPanel
             leadId={leadId}
+            leadName={lead.name}
             currentStatus={lead.status as LeadStatus}
+            reasons={{ lost: workspaceSettings.leads.lostReasons, junk: workspaceSettings.leads.junkReasons, required: workspaceSettings.leads.requireReason }}
+            closedReason={(lead as { closed_reason?: string | null }).closed_reason ?? null}
           />
           {matching.requirements && (
             <LeadMatches

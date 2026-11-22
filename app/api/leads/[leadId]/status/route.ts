@@ -5,6 +5,8 @@ import { z } from 'zod'
 import { updateLeadStatus } from '@/lib/dal/leads'
 import type { LeadStatus } from '@/types/database'
 import { canTransition } from '@/lib/leads/transitions'
+import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
+import { checkCloseReason } from '@/lib/settings/workspace'
 
 const StatusSchema = z.object({
   status: z.enum([
@@ -12,6 +14,8 @@ const StatusSchema = z.object({
     'site_visited', 'negotiation', 'booked', 'lost', 'junk',
   ]),
   note: z.string().max(500).optional(),
+  /** Why the lead is closed (Lost or Junk), from the workspace's list (Settings → Lead settings). */
+  reason: z.string().max(80).optional(),
 })
 
 
@@ -71,11 +75,20 @@ export async function POST(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 
+    // Closing a lead: the reason must come from the workspace's own list (or "Other" with a note).
+    let closedReason: string | null = null
+    if (parsed.data.status === 'lost' || parsed.data.status === 'junk') {
+      const check = checkCloseReason((await getWorkspaceSettings(lead.org_id)).leads, parsed.data.status, parsed.data.reason, parsed.data.note)
+      if (!check.ok) return NextResponse.json({ error: check.error, needsReason: true }, { status: 400 })
+      closedReason = check.reason
+    }
+
     const { error } = await updateLeadStatus(
       leadId,
       parsed.data.status as LeadStatus,
       profile.id,
-      parsed.data.note
+      parsed.data.note,
+      closedReason
     )
 
     if (error) return NextResponse.json({ error }, { status: 500 })

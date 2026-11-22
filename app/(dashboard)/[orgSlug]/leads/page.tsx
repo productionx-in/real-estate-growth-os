@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { Button } from '@/components/ui'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { listViews } from '@/lib/dal/saved-views'
+import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 import { STATUS_ORDER } from '@/lib/leads/transitions'
 import { resolveLeadViewer } from '@/lib/dal/viewer'
 import { rankTags } from '@/lib/leads/tags'
@@ -48,6 +49,8 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
   const now = new Date()
 
   const board = layout === 'board'
+  const leadSettings = board ? (await getWorkspaceSettings(org.id)).leads : null
+  const closeReasons = { lost: leadSettings?.lostReasons ?? [], junk: leadSettings?.junkReasons ?? [], required: leadSettings?.requireReason ?? true }
   const columns = board
     ? filters.status
       ? STATUS_ORDER.filter((s) => filters.status!.includes(s))
@@ -166,6 +169,7 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
           orgSlug={orgSlug}
           canMove={role !== 'readonly'}
           truncated={total > BOARD_LIMIT}
+          reasons={closeReasons}
         />
       ) : (
         <LeadsTable

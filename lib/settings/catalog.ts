@@ -53,6 +53,7 @@ export const SETTINGS: SettingsGroup[] = [
     key: 'leads', title: 'Leads and forms', description: 'How leads come in and who gets them.',
     pages: [
       { key: 'routing', label: 'Assignment rules', description: 'Who gets new leads, round robin and teams.', path: '/routing', audience: 'managers', keywords: ['routing', 'round robin', 'assignment', 'distribution'] },
+      { key: 'lead-settings', label: 'Lead settings', description: 'Reasons offered when a lead is marked Lost or Junk.', path: '/settings/leads', audience: 'admins', keywords: ['lost reason', 'junk reason', 'close lead', 'disqualify', 'why lost'] },
       { key: 'speed', label: 'Response targets', description: 'How fast new leads should be called.', path: '/speed-to-lead', audience: 'managers', keywords: ['sla', 'speed to lead', 'first call'] },
     ],
   },
@@ -60,6 +61,7 @@ export const SETTINGS: SettingsGroup[] = [
     key: 'properties', title: 'Properties and deals', description: 'Projects, inventory and documents for buyers.',
     pages: [
       { key: 'projects', label: 'Projects', description: 'Your projects and their RERA details.', path: '/projects', audience: 'managers', keywords: ['rera', 'project'] },
+      { key: 'inventory-settings', label: 'Inventory settings', description: 'Release units on hold automatically after a set time.', path: '/settings/inventory', audience: 'admins', keywords: ['hold', 'on hold', 'block', 'release', 'expiry', 'units'] },
       { key: 'documents', label: 'Document templates', description: 'Cost sheets, quotations and letters on your letterhead.', path: '/documents', audience: 'managers', keywords: ['cost sheet', 'quotation', 'allotment', 'demand letter', 'letterhead'] },
     ],
   },

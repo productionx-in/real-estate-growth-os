@@ -89,7 +89,9 @@ export async function updateLeadStatus(
   leadId: string,
   newStatus: LeadStatus,
   actorProfileId: string,
-  note?: string
+  note?: string,
+  /** Why a Lost/Junk lead was closed (checked by the caller against the workspace's list); cleared otherwise. */
+  closedReason: string | null = null
 ) {
   const supabase = await createClient()
 
@@ -99,9 +101,11 @@ export async function updateLeadStatus(
     .eq('id', leadId)
     .single()
 
+  // closed_reason (20260074) is not in the generated types yet.
+  const patch = { status: newStatus, closed_reason: newStatus === 'lost' || newStatus === 'junk' ? closedReason : null }
   const { error } = await supabase
     .from('leads')
-    .update({ status: newStatus })
+    .update(patch as never)
     .eq('id', leadId)
 
   if (error) return { error: error.message }
@@ -114,6 +118,7 @@ export async function updateLeadStatus(
     metadata: {
       from: current?.status,
       to: newStatus,
+      ...(closedReason ? { reason: closedReason } : {}),
     },
   })
 
