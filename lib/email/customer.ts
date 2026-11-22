@@ -6,6 +6,7 @@ import { renderEmail } from '@/lib/email/layout'
 
 export type CustomerEmailKind = 'welcome' | 'trial_ending' | 'trial_ended' | 'invoice_issued' | 'payment_received' | 'payment_failed' | 'workspace_state'
   | 'plan_active' | 'member_joined' | 'daily_member' | 'daily_manager' | 'weekly_manager'
+  | 'plot_map_activated' | 'plot_map_action_needed' | 'plot_map_published' | 'plot_map_delayed'
 
 export interface Rendered { subject: string; html: string; text: string }
 
@@ -141,4 +142,46 @@ export const customerEmails = {
       cta: { label: o.to === 'deactivated' ? 'Contact REGrow' : 'Open your workspace', url: o.url },
     })
   },
+
+  // Interactive Plot Map setup (lib/jobs/customer-emails.ts collects these from what was recorded).
+  plot_map_activated: (o: { orgName: string; projectName: string; url: string }) =>
+    out(`Interactive Plot Map is active for ${o.projectName}`, {
+      preheader: 'Upload your approved layout to start.',
+      heading: `Your plot map for ${o.projectName} is ready to set up`,
+      paragraphs: [
+        `Interactive Plot Map is now **active** for **${o.projectName}** in ${o.orgName}.`,
+        '**Next step:** upload the approved layout (PDF, PNG or JPG). You can follow every step of the set-up, with an expected ready date, on the project’s Plot map page.',
+      ],
+      cta: { label: 'Upload the layout', url: o.url },
+    }),
+
+  plot_map_action_needed: (o: { orgName: string; projectName: string; what: string; url: string }) =>
+    out(`Action needed: plot map for ${o.projectName}`, {
+      preheader: o.what.slice(0, 120),
+      heading: 'Your plot map needs something from you',
+      paragraphs: [`The plot map set-up for **${o.projectName}** is waiting on your team:`, `“${o.what}”`, 'The service clock is paused until this is done.'],
+      cta: { label: 'Open the plot map', url: o.url },
+    }),
+
+  plot_map_published: (o: { orgName: string; projectName: string; url: string }) =>
+    out(`Your plot map for ${o.projectName} is live`, {
+      preheader: 'Your team can use it now; share the buyer link when you are ready.',
+      heading: 'Your plot map is published',
+      paragraphs: [
+        `The approved plot map for **${o.projectName}** is now live for your team, with every plot showing its current status from your inventory.`,
+        'Turn on the buyer link from the Plot map page whenever you are ready to share it.',
+      ],
+      cta: { label: 'Open the plot map', url: o.url },
+    }),
+
+  plot_map_delayed: (o: { orgName: string; projectName: string; stage: string; newDate: string; url: string }) =>
+    out(`Update on your plot map for ${o.projectName}`, {
+      preheader: `New expected date: ${day(o.newDate)}.`,
+      heading: 'Your plot map is taking longer than planned',
+      paragraphs: [
+        `The **${o.stage}** step for **${o.projectName}** is taking longer than our usual service time. Sorry about that.`,
+        `It is now expected by **${day(o.newDate)}**. You can follow progress on the Plot map page.`,
+      ],
+      cta: { label: 'See progress', url: o.url },
+    }),
 } as const

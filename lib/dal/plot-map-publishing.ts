@@ -7,6 +7,7 @@ import { centroid, isSubmittable, validateShapes, type Pt } from '@/lib/plots/ge
 import { PLOT_MAP_BUCKET } from '@/lib/plots/files'
 import type { DalResult } from '@/lib/dal/routing'
 import type { MemberRole } from '@/types/database'
+import { notifyAdmins } from '@/lib/dal/plot-map-setup'
 
 const db = () => createServiceClient()
 
@@ -52,6 +53,13 @@ export async function versionAction(
     if (m) return { success: false, error: m[1].charAt(0).toUpperCase() + m[1].slice(1) + '.', status: 409 }
     return { success: false, error: 'Could not update the version.', status: 500 }
   }
+  // Tell the workspace's owners and admins about the outcomes that need them (in the app; e-mails follow hourly).
+  const note = action === 'publish' ? ['Your plot map is published', 'The approved plot map is now live for your team.']
+    : action === 'reject' ? ['A plot map version was sent back', comment?.trim() ?? 'Changes are needed before it can be approved.']
+    : action === 'qa_fail' ? ['The plot map quality check found problems', comment?.trim() ?? 'Fix them and submit again.']
+    : action === 'qa_pass' ? ['A plot map is ready for your approval', 'The quality check passed. Review the map and approve it to publish.']
+    : null
+  if (note) await notifyAdmins(orgId, v.project_id, `plot_map:${action}:${versionId}:${Date.now()}`, note[0], note[1])
   return { success: true, data: { status: String(data) } }
 }
 

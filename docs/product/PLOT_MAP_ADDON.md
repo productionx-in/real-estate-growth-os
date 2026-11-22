@@ -128,22 +128,46 @@ path becomes an optional import format (an SVG becomes a version's shapes) and i
 - **Completion is event-driven only.** Each stage completes when its recorded operation exists, for example a
   document `ready`, an approval row, or `published_version_id` set. Staff cannot tick a stage done; they can only
   record a blocker or an assignment.
-- **Estimates** come from configurable service levels (`lib/plots/setup-estimate.ts`):
-  - A base time per stage, plus factors for file type and quality (vector PDF < raster < scan), pages, plot count and
-    complexity (vertices per plot), and remaining unlinked plots.
-  - Counted in business hours: Mon–Sat 10:00–19:00 IST, excluding listed holidays.
-  - **The clock pauses only while a stage waits on the customer.** The pause and its reason are shown.
-  - Recalculated whenever an input changes. It uses history once at least 10 completed setups exist.
-  - The UI shows "estimated by <date>" and the remaining business time. There are no countdown timers or fake
-    progress bars: progress = completed stages ÷ 8.
-- **Customer view** on the project's map page: current stage, completed and pending stages, estimate, last updated,
-  responsible party, blocker and the action required.
-- **Operations console** (`/platform/plot-maps`): queue, organisation and project names, stage, assignee, mapping
-  counts, blockers, expected completion, overdue items, QA actions. It shows **metadata only**.
+- **Estimates** come from configurable service levels (`SLA` in `lib/plots/setup.ts`):
+  - REGrow and system stages have a planned time: processing 1 h; mapping 6 h + 0.04 h per plot + 1 h per extra
+    page, ×1.3 for PNG/JPG and ×1.25 when outlines average more than 8 points; QA 3 h + 0.01 h per plot. Plots are the
+    drawn plots, or the project's unit count before anything is drawn.
+  - Customer stages have no service level. They carry a stated assumption of one working day each, shown as such.
+  - Counted in business hours: Mon–Sat 10:00–19:00 IST (`BUSINESS`). Public holidays are **not** excluded yet.
+  - **The clock pauses only while an open blocker waits on the customer.** The pause, since when, and the reason are
+    shown. Blockers waiting on REGrow do not pause it.
+  - Recomputed on every page load from the records. History-based estimates (after 10+ completed set-ups) are later work.
+  - The UI shows "expected ready around <date>", never a countdown. Progress = completed stages ÷ 8.
+- **Records** (20260084): `plot_map_versions.rendered_at`; `plot_map_setup_blockers` (stage, waiting on customer or
+  REGrow, reason; never edited, resolved once, same organisation as the project); `plot_map_setup_assignments`
+  (one REGrow team member per project). Server-only tables: RLS on, no client grants.
+- **Customer view** (`components/plots/SetupProgress.tsx`) on the project's map page, for owners, admins and managers
+  until the map is published: current stage and who it is with, the 8 stages, expected ready date, last updated, and
+  anything needed from the workspace with a **Mark as done** button (`POST /api/plot-maps/setup/blockers/[id]`;
+  only blockers waiting on the customer; audited in the workspace log).
+- **Operations console** (`/platform/plot-maps`, permission `plotMapSetup`: Platform Owner, platform admins, support):
+  in progress / overdue / blocked / unassigned / published, stage, due time, expected ready, plot count, assignee,
+  blockers. Actions through `POST /api/admin/plot-map-setup` (MFA, audited in the platform log): assign, raise and
+  resolve blockers. **Metadata only** — no inventory, buyers or map contents.
 - **Communications:**
-  - In-app notifications to the workspace owner and admins.
-  - E-mail through `enqueue_customer_email` (kinds `plot_map_stage`, `plot_map_action_needed`, `plot_map_delayed`,
-    `plot_map_published`).
+  - In-app notifications (type `plot_map`) to the workspace's active owners and admins: activation, a blocker waiting
+    on them, QA passed (ready for approval), QA failed, sent back, published.
+  - E-mail from the hourly customer e-mail job (`collectPlotMapEmails`): `plot_map_activated`,
+    `plot_map_action_needed` (blocker, QA failed, sent back), `plot_map_published`, and `plot_map_delayed` (at most one
+    per project per day while a REGrow or system stage is past its planned time).
+- **Embedding** (`lib/plots/embed.ts`): a shared map lists up to 10 of the workspace's websites (https only). The public
+  page `/m/<token>` is sent with `Content-Security-Policy: frame-ancestors 'self' <sites>` from `proxy.ts`, via
+  `plot_map_embed_origins(token)`, which returns sites only for a shared, published map whose add-on is active.
+
+### Rollback (PR E1)
+
+- **Code:** revert the PR. Without it, `/m/` pages are sent without a frame-ancestors header again (any site can frame
+  them, as before).
+- **Database** (additive): `DROP FUNCTION plot_map_embed_origins(text)`; `ALTER TABLE plot_layouts DROP COLUMN
+  embed_domains`; `DROP TABLE plot_map_setup_blockers, plot_map_setup_assignments`; `DROP FUNCTION
+  guard_plot_map_setup_row()`; `ALTER TABLE plot_map_versions DROP COLUMN rendered_at`. Restore the previous
+  `notifications_type_check` and `customer_email_log_kind_check` lists only after deleting rows of the new types.
+- The migration changes no customer data except backfilling `rendered_at` from `updated_at` for ready versions.
 
 ### Owner decision needed: staff-assisted mapping
 
@@ -179,7 +203,8 @@ later for customers who want a fully managed service.
 | B | Document intake: private bucket, documents/versions, validation, page selection, rotation, renders, thumbnails, retry. | 20260081 |
 | C | Editor and linking with validation; save draft. | 20260082 |
 | D | Review, approval, publish switch; public map on versions; public API, image route; enquiry and site-visit requests; embed; auto refresh. | 20260083 |
-| E | Setup tracker, estimate engine, operations console, notifications and e-mails. | 20260084 |
+| E1 | Setup tracker, estimate engine, operations console, notifications and e-mails, embed domains. | 20260084 |
+| E2 | Option (c): REGrow staff draw boundaries on a draft version with the customer's opt-in, no inventory access. | — |
 | (separate) | Sales: booking and blocking cancellation releasing the unit under the existing rules (closes gap 6). | — |
 | F | OCR suggestions (after the provider decision). | — |
 

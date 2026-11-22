@@ -21,6 +21,8 @@ export const CAN = {
   email: ['super_admin', 'platform_admin'],
   integrations: ['super_admin', 'platform_admin'],
   addons: ['super_admin', 'platform_admin'],
+  /** Interactive Plot Map set-up queue: stages, estimates, assignment, blockers (metadata only). */
+  plotMapSetup: ['super_admin', 'platform_admin', 'support_agent'],
   salesRead: ['super_admin', 'sales_manager', 'sales_rep', 'auditor'],
   salesWrite: ['super_admin', 'sales_manager', 'sales_rep'],
   salesAll: ['super_admin', 'sales_manager', 'auditor'],

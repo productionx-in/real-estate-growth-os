@@ -192,7 +192,7 @@ export async function completeVersion(orgId: string, versionId: string): Promise
   if (e1) return fail(e1)
   const e2 = checkRender(thumb, { width: 0, height: 0 }, 'thumb')
   if (e2) return fail(e2)
-  const { error } = await client.from('plot_map_versions').update({ render_status: 'ready', render_error: null }).eq('org_id', orgId).eq('id', versionId)
+  const { error } = await client.from('plot_map_versions').update({ render_status: 'ready', render_error: null, rendered_at: new Date().toISOString() }).eq('org_id', orgId).eq('id', versionId)
   if (error) return { success: false, error: 'Could not record the render.', status: 500 }
   return { success: true, data: { status: 'ready', error: null } }
 }

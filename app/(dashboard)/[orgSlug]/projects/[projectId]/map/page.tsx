@@ -1,7 +1,7 @@
 // app/(dashboard)/[orgSlug]/projects/[projectId]/map/page.tsx — the project's Interactive Plot Map (paid add-on,
 // activated per project: lib/plots/addons.ts). States:
 //   not activated → what it is, and "Request activation" for owners/admins;   pending → request recorded;
-//   active, no layout yet → set-up steps and upload;   active → the map;
+//   active, no layout yet → set-up steps and upload;   active → the map (managers+ see set-up progress until published);
 //   suspended / expired → the status and reason; nothing of the feature is served (layouts are kept).
 // Everyone on the team sees published layouts; owners, admins and managers also upload, publish and share.
 import type { Metadata } from 'next'
@@ -23,6 +23,8 @@ import { MapDocuments } from '@/components/plots/MapDocuments'
 import { listMapFiles } from '@/lib/dal/plot-map-documents'
 import { listReviews } from '@/lib/dal/plot-map-publishing'
 import { cn } from '@/lib/utils/cn'
+import { getSetupView } from '@/lib/dal/plot-map-setup'
+import { SetupProgress } from '@/components/plots/SetupProgress'
 
 export const metadata: Metadata = { title: 'Plot map' }
 export const dynamic = 'force-dynamic'
@@ -77,12 +79,14 @@ export default async function ProjectMapPage({ params, searchParams }: {
   const live = current ? await getLiveLayout(org.id, current.id) : null
   const files = isManager ? await listMapFiles(org.id, projectId) : null
   const reviewList = isManager ? await listReviews(org.id, projectId) : []
+  const setup = isManager ? await getSetupView(org.id, projectId) : null
   const reviews: Record<string, { action: string; comment: string | null; actorName: string | null; at: string }[]> = {}
   for (const r of reviewList) (reviews[r.versionId] ??= []).push(r)
 
   return (
     <PageShell title="Plot map" description={`${project.name} · statuses update live from inventory${addon.validUntil ? ` · active until ${day(addon.validUntil)}` : ''}`} back={back}>
       <div className="space-y-4">
+        {setup && setup.completed < setup.stages.length && <SetupProgress view={setup} orgId={org.id} canAct={isManager} />}
         {isManager && all.length === 0 && !adding && (
           <section aria-label="Set up your map" className="rounded-xl border border-default bg-surface p-5 shadow-2xs">
             <h2 className="text-[15px] font-semibold text-foreground">Set up your plot map</h2>
