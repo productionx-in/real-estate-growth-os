@@ -73,6 +73,7 @@ export type ActivityType =
   | 'whatsapp_logged'
   | 'follow_up_scheduled'
   | 'follow_up_completed'
+  | 'details_updated'
 
 export interface Database {
   public: {
