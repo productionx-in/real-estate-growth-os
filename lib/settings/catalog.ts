@@ -38,6 +38,7 @@ export const SETTINGS: SettingsGroup[] = [
       { key: 'business', label: 'Business details', description: 'Letterhead, GSTIN, RERA, signatory and bank account on documents.', path: '/settings/business', audience: 'admins', keywords: ['letterhead', 'gstin', 'pan', 'rera', 'bank', 'ifsc', 'logo', 'address', 'signatory'] },
       { key: 'organization', label: 'Organisation', description: 'Name, type of business and workspace address.', path: '/settings/organization', audience: 'admins', keywords: ['company', 'developer', 'channel partner', 'business type'] },
       { key: 'billing', label: 'Plan & billing', description: 'Your plan, seats, invoices and payments.', path: '/billing', audience: 'admins', keywords: ['invoice', 'subscription', 'seats', 'payment', 'gst'] },
+      { key: 'archive', label: 'Archive', description: 'Deleted leads, kept for 30 days — restore anything deleted by mistake.', path: '/settings/archive', audience: 'admins', keywords: ['deleted', 'restore', 'undo', 'recycle bin', 'trash'] },
       { key: 'audit', label: 'Audit log', description: 'Who changed what in the workspace.', path: '/audit-log', audience: 'admins', keywords: ['history', 'activity', 'log'] },
       { key: 'support', label: 'Support access', description: 'Let REGrow support look at your workspace for a limited time.', path: '/support-access', audience: 'admins', keywords: ['help', 'grant', 'support'] },
     ],

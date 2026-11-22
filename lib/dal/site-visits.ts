@@ -52,7 +52,7 @@ export interface VisitRow {
 
 const VISIT_COLUMNS = `id, lead_id, project_id, assigned_to, scheduled_at, status, outcome, notes, rating, visitor_count, accompanied_by,
   meeting_link, checkin_distance_m, checked_in_at,
-  lead:leads(id, name, phone), project:projects(id, name), agent:profiles!site_visits_assigned_to_fkey(id, full_name)`
+  lead:leads!inner(id, name, phone), project:projects(id, name), agent:profiles!site_visits_assigned_to_fkey(id, full_name)`
 
 export async function listVisits(orgId: string, opts: { from: Date; to: Date; profileId?: string | null; profileIds?: string[] | null; projectId?: string | null }): Promise<VisitRow[]> {
   const db = createServiceClient()

@@ -104,23 +104,23 @@ export async function DELETE(
       return authResult.response
     }
 
+    // Deleting moves the lead to the Archive for 30 days (20260073): restorable as it was, then erased by a daily job.
     const service = createServiceClient()
-    const { error: delError } = await service
-      .from('leads')
-      .delete()
-      .eq('id', leadId)
-      .eq('org_id', authResult.context.orgId)
+    const { data: archived, error: delError } = await service.rpc('archive_lead' as never, {
+      p_lead: leadId, p_org: authResult.context.orgId, p_actor: authResult.context.profile.id,
+    } as never)
 
     if (delError) {
-      return NextResponse.json({ error: delError.message }, { status: 500 })
+      return NextResponse.json({ error: 'Could not delete the lead.' }, { status: 500 })
     }
+    if (!archived) return NextResponse.json({ error: 'Lead not found.' }, { status: 404 })
 
-    await auditMember(request, authResult.context, authResult.context.orgId, 'lead.deleted', { type: 'lead', id: leadId }, {
+    await auditMember(request, authResult.context, authResult.context.orgId, 'lead.archived', { type: 'lead', id: leadId }, {
       status: authResult.context.lead.status,
       project_id: authResult.context.lead.project_id,
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, archived: true, restorableDays: 30 })
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

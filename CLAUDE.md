@@ -27,6 +27,8 @@ Invoke by name when the task is known (`/ui-ux-pro-max`, `/postgres-patterns`). 
 - Every query is scoped by organisation. New tables: RLS on, explicit grants, cross-tenant negative tests.
 - Internal (platform) staff never read customer business data or secrets; access to customer data only
   through an audited, time-limited support grant. No impersonation.
+- Leads live in `public.leads_all`; `public.leads` is a `security_invoker` view of non-archived rows
+  (20260073). New lead columns: alter `leads_all`, then recreate the view. Deleting a lead archives it (30 days).
 - Post-sign-in redirects go through `safeRedirectPath` (`lib/auth/safe-redirect.ts`).
 - Passwords follow `lib/auth/password-policy.ts`.
 - UI: build from `components/ui` and semantic tokens (`bg-surface`, `text-muted`, `text-danger`…) in
