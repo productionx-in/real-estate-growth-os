@@ -29,7 +29,7 @@ export const SETTINGS: SettingsGroup[] = [
     pages: [
       { key: 'profile', label: 'Profile & preferences', description: 'Name, phone and how REGrow looks for you.', path: '/settings/profile', audience: 'everyone', keywords: ['name', 'phone', 'theme', 'dark mode', 'appearance'] },
       { key: 'security', label: 'Sign-in & security', description: 'Password, two-step verification and signed-in devices.', path: '/settings/security', audience: 'everyone', keywords: ['password', 'mfa', '2fa', 'otp', 'sessions', 'sign out'] },
-      { key: 'notifications', label: 'My notifications', description: 'Daily report e-mail and alerts on this device.', path: '/settings/notifications', audience: 'everyone', keywords: ['email', 'push', 'alerts', 'daily report', 'digest'] },
+      { key: 'notifications', label: 'My notifications', description: 'Which alerts reach your devices, quiet hours, daily and weekly e-mails.', path: '/settings/notifications', audience: 'everyone', keywords: ['email', 'push', 'alerts', 'daily report', 'digest', 'weekly', 'quiet hours', 'do not disturb', 'mute'] },
     ],
   },
   {
@@ -48,6 +48,7 @@ export const SETTINGS: SettingsGroup[] = [
     key: 'team', title: 'Your team', description: 'Who is on the team and what each person can do.',
     pages: [
       { key: 'team', label: 'Team members & roles', description: 'Invite people, change roles, deactivate members.', path: '/team', audience: 'managers', keywords: ['invite', 'users', 'roles', 'permissions', 'deactivate', 'seats'] },
+      { key: 'alert-defaults', label: 'Notification defaults', description: 'Which alerts reach the team’s devices unless they choose otherwise.', path: '/settings/alerts', audience: 'admins', keywords: ['push', 'alerts', 'notification rules', 'defaults', 'mute'] },
     ],
   },
   {

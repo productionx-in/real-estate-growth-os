@@ -1,6 +1,7 @@
 // lib/settings/workspace.ts — workspace-wide settings (org_settings, 20260074): what each section holds, its defaults
 // and the rules a saved value must follow. Pure, so the forms, the API and the tests share one definition.
 // Nothing here is a secret; owners and admins change it (the API authorises), everyone in the workspace reads it.
+import { DEFAULT_TEAM, normaliseTeam, teamFromStored, type TeamDefaults } from '@/lib/notifications/prefs'
 import { fieldsFromStored, normaliseFields, type FieldDef } from '@/lib/settings/fields'
 
 export interface LeadSettings {
@@ -42,7 +43,7 @@ export interface FieldSettings {
   lead: FieldDef[]
 }
 
-export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings }
+export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings; notifications: TeamDefaults }
 export type SettingsSection = keyof WorkspaceSettings
 
 // The reasons Indian sales teams record most often; a workspace edits, reorders or replaces them.
@@ -56,6 +57,7 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
   reports: { fyStartMonth: 4, weekStartsOn: 1 },
   lists: { locations: [] },
   fields: { lead: [] },
+  notifications: DEFAULT_TEAM,
 }
 
 export const LIMITS = { reasons: 20, reasonLength: 80, holdHours: 720, locations: 200, locationLength: 60 } as const
@@ -84,6 +86,10 @@ function reasons(input: unknown, label: string, errors: Errors, key: string): st
 export function normaliseSection<S extends SettingsSection>(section: S, input: unknown, current?: WorkspaceSettings): { value: WorkspaceSettings[S]; errors: Errors } {
   const errors: Errors = {}
   const o = (input && typeof input === 'object' && !Array.isArray(input) ? input : {}) as Record<string, unknown>
+  if (section === 'notifications') {
+    const r = normaliseTeam(o)
+    return { value: r.value as WorkspaceSettings[S], errors: r.errors }
+  }
   if (section === 'fields') {
     const r = normaliseFields(o.lead, current?.fields.lead ?? [])
     return { value: { lead: r.value } as WorkspaceSettings[S], errors: r.errors }
@@ -138,7 +144,7 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
 }
 
 /** A stored row (possibly partial or from an older version) merged over the defaults; never throws. */
-export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown } | null | undefined): WorkspaceSettings {
+export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown; notifications?: unknown } | null | undefined): WorkspaceSettings {
   const merge = <S extends SettingsSection>(s: S, stored: unknown): WorkspaceSettings[S] => {
     if (!stored || typeof stored !== 'object' || Array.isArray(stored) || !Object.keys(stored).length) return DEFAULT_SETTINGS[s]
     const { value } = normaliseSection(s, { ...DEFAULT_SETTINGS[s], ...(stored as object) })
@@ -150,6 +156,7 @@ export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; rep
     lists: merge('lists', row?.lists),
     // Field definitions are read as stored (they were checked when saved); malformed entries are dropped.
     fields: { lead: fieldsFromStored(stored.lead) },
+    notifications: teamFromStored(row?.notifications),
   }
 }
 
