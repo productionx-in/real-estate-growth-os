@@ -29,7 +29,8 @@ async function main() {
   const other = (await one(`INSERT INTO public.organisations (name, slug, type) VALUES ($1,$2,'developer') RETURNING id`, [`Other ${RUN}`, `shapes2-${RUN}`])).id
   const project = (await one(`INSERT INTO public.projects (org_id, name, slug, category) VALUES ($1,'Green Enclave',$2,'plotted_developments') RETURNING id`, [org, `gs-${RUN}`])).id
   const otherProject = (await one(`INSERT INTO public.projects (org_id, name, slug, category) VALUES ($1,'Elsewhere',$2,'plotted_developments') RETURNING id`, [other, `gs2-${RUN}`])).id
-  const unit = async (p, o, n) => (await one(`INSERT INTO public.inventory_items (org_id, project_id, unit_number, category, status) VALUES ($1,$2,$3,'plotted_developments','available') RETURNING id`, [o, p, n])).id
+  const unit = async (p, o, n) => (await one(`INSERT INTO public.inventory_items (org_id, project_id, unit_number, category, area_value, area_unit, plot_area, status)
+    VALUES ($1,$2,$3,'plotted_developments',2400,'sqft',2400,'available') RETURNING id`, [o, p, n])).id
   const [u1, u2, u3] = [await unit(project, org, 'N1'), await unit(project, org, 'N2'), await unit(project, org, 'N3')]
   const foreign = await unit(otherProject, other, 'N1')
   const actor = (await one(`SELECT id FROM public.profiles LIMIT 1`))?.id ?? null
