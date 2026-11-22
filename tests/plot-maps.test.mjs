@@ -65,25 +65,33 @@ test('plot names match unit numbers whatever the spacing or dashes; ambiguous an
   assert.deepEqual(r.unitsWithoutShape, ['S1'])
 })
 
-test('the add-on is off unless switched on; every map route checks it after authorising; a read error counts as off', () => {
+test('the add-on is activated per project; every map route checks it after authorising; a read error counts as not purchased', () => {
   const addons = read('lib/plots/addons.ts')
-  assert.match(addons, /if \(error \|\| !data\) return NO_ADDON/)
-  assert.match(addons, /enabled: data\.enabled === true/)
-  for (const f of ['app/api/plot-layouts/route.ts', 'app/api/plot-layouts/[layoutId]/route.ts']) {
-    const src = read(f)
-    assert.match(src, /authorizeOrgAccess\(orgId, \['owner', 'admin', 'manager'\]\)/, f)
-    assert.match(src, /requireAddon\(orgId, 'plot_maps'\)/, f)
-    assert.ok(src.indexOf('authorizeOrgAccess(') < src.indexOf('requireAddon('), `${f}: authorise first`)
-  }
-  assert.match(read('app/(dashboard)/[orgSlug]/projects/[projectId]/map/page.tsx'), /if \(!addon\.enabled \|\| !modules\.inventory\)/)
-  assert.match(read('lib/dal/plot-layouts.ts'), /if \(!\(await getAddon\(layout\.org_id, 'plot_maps'\)\)\.enabled\) return null/, 'a public link dies when the add-on is switched off')
+  assert.match(addons, /if \(error \|\| !data\) return NO_PROJECT_ADDON/)
+  assert.match(addons, /if \(a\.state === 'active'\) return null/, 'only active grants use')
+  const upload = read('app/api/plot-layouts/route.ts')
+  assert.match(upload, /authorizeOrgAccess\(orgId, \['owner', 'admin', 'manager'\]\)/)
+  assert.match(upload, /requireProjectAddon\(orgId, projectId, 'plot_maps'\)/)
+  assert.ok(upload.indexOf('authorizeOrgAccess(') < upload.indexOf('requireProjectAddon('), 'authorise first')
+  const layout = read('app/api/plot-layouts/[layoutId]/route.ts')
+  assert.match(layout, /authorizeOrgAccess\(orgId, \['owner', 'admin', 'manager'\]\)[\s\S]*layoutProject\(orgId, layoutId\)[\s\S]*if \(!takesOffline\) \{ const a = await requireProjectAddon\(orgId, projectId, 'plot_maps'\)/)
+  assert.match(layout, /const takesOffline = !newLink && change\.name === undefined && change\.showPrices === undefined && change\.publish !== true && change\.share !== true/,
+    'only unpublishing / link-off skip the check')
+  assert.match(read('app/(dashboard)/[orgSlug]/projects/[projectId]/map/page.tsx'), /if \(addon\.state !== 'active' \|\| !modules\.inventory\)/)
+  assert.match(read('lib/dal/plot-layouts.ts'), /if \(\(await getProjectAddon\(layout\.org_id, layout\.project_id, 'plot_maps'\)\)\.state !== 'active'\) return null/,
+    'a public link dies unless the project’s add-on is active')
 })
 
-test('only a Platform Owner (MFA) switches add-ons, and it is audited without customer data', () => {
-  const r = read('app/api/admin/organisations/[orgId]/addons/route.ts')
+test('only a Platform Owner (MFA) activates or suspends, per project, audited without customer data', () => {
+  const r = read('app/api/admin/project-addons/route.ts')
   assert.match(r, /authenticatePlatformAdmin\(\['super_admin'\], true\)/)
+  assert.match(r, /\.from\('projects'\)\.select\('id'\)\.eq\('org_id', b\.orgId\)\.eq\('id', b\.projectId\)/, 'the project must belong to the workspace')
   assert.match(r, /logPlatformAction\(/)
   assert.doesNotMatch(r, /inventory_items|plot_layouts/, 'the console never reads the customer’s layouts or inventory')
+  const req = read('app/api/plot-maps/activation-request/route.ts')
+  assert.match(req, /authorizeOrgAccess\(orgId, \['owner', 'admin'\]\)/)
+  assert.match(req, /status: 'pending' as const/, 'a workspace can only ask')
+  assert.match(req, /if \(current\.state === 'active' \|\| current\.state === 'suspended'\)[\s\S]*status: 409/, 'and never touches an active or suspended entitlement')
 })
 
 test('buyers see available, reserved or sold — never blocked or on hold — and prices only when shown; links are 256-bit', async () => {

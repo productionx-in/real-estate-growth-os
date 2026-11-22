@@ -5,7 +5,7 @@ import crypto from 'node:crypto'
 import { createServiceClient } from '@/lib/supabase/server'
 import { parseLayoutSvg, LayoutError, type LayoutLabel, type LayoutShape } from '@/lib/plots/svg'
 import { matchShapes, type MatchReport } from '@/lib/plots/match'
-import { getAddon } from '@/lib/plots/addons'
+import { getProjectAddon } from '@/lib/plots/addons'
 import type { DalResult } from '@/lib/dal/routing'
 import type { Json } from '@/types/database'
 
@@ -118,6 +118,12 @@ export async function rotateShareLink(orgId: string, layoutId: string): Promise<
   return !!data
 }
 
+/** The project a layout belongs to (organisation-scoped), or null. */
+export async function layoutProject(orgId: string, layoutId: string): Promise<string | null> {
+  const { data } = await createServiceClient().from('plot_layouts').select('project_id').eq('org_id', orgId).eq('id', layoutId).maybeSingle()
+  return data?.project_id ?? null
+}
+
 export async function deleteLayout(orgId: string, layoutId: string): Promise<boolean> {
   const { data } = await createServiceClient().from('plot_layouts').delete().eq('org_id', orgId).eq('id', layoutId).select('id').maybeSingle()
   return !!data
@@ -153,14 +159,14 @@ export interface SharedLayout extends LiveLayout {
   projectName: string; orgName: string; contactPhone: string | null; showPrices: boolean
 }
 
-/** The public map behind a share link, or null (unknown, unshared, unpublished, or add-on off all look the same). */
+/** The public map behind a share link, or null (unknown, unshared, unpublished, or the project's add-on not active all look the same). */
 export async function openSharedLayout(token: string): Promise<SharedLayout | null> {
   if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return null
   const db = createServiceClient()
   const { data: layout } = await db.from('plot_layouts').select('id, org_id, name, project_id, view_box, geometry, show_prices')
     .eq('share_token', token).eq('share_enabled', true).eq('status', 'published').maybeSingle()
   if (!layout) return null
-  if (!(await getAddon(layout.org_id, 'plot_maps')).enabled) return null
+  if ((await getProjectAddon(layout.org_id, layout.project_id, 'plot_maps')).state !== 'active') return null
   const [live, { data: project }, { data: org }, { data: biz }] = await Promise.all([
     withUnits(layout.org_id, layout, layout.show_prices),
     db.from('projects').select('name').eq('org_id', layout.org_id).eq('id', layout.project_id).maybeSingle(),

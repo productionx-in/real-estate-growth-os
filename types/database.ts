@@ -3189,6 +3189,96 @@ export interface Database {
         }
         Relationships: []
       }
+      project_addons: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          addon: string
+          status: string
+          valid_until: string | null
+          setup_fee_paise: number
+          monthly_fee_paise: number
+          notes: string | null
+          status_reason: string | null
+          requested_by: string | null
+          requested_at: string | null
+          activated_at: string | null
+          updated_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          addon: string
+          status?: string
+          valid_until?: string | null
+          setup_fee_paise?: number
+          monthly_fee_paise?: number
+          notes?: string | null
+          status_reason?: string | null
+          requested_by?: string | null
+          requested_at?: string | null
+          activated_at?: string | null
+          updated_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          status?: string
+          valid_until?: string | null
+          setup_fee_paise?: number
+          monthly_fee_paise?: number
+          notes?: string | null
+          status_reason?: string | null
+          requested_by?: string | null
+          requested_at?: string | null
+          activated_at?: string | null
+          updated_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      project_addon_events: {
+        Row: {
+          id: string
+          org_id: string
+          project_id: string
+          addon: string
+          from_status: string | null
+          to_status: string
+          valid_until: string | null
+          reason: string | null
+          actor_user: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          org_id: string
+          project_id: string
+          addon: string
+          from_status?: string | null
+          to_status: string
+          valid_until?: string | null
+          reason?: string | null
+          actor_user?: string | null
+          created_at?: string
+        }
+        Update: {
+          org_id?: string
+          project_id?: string
+          addon?: string
+          from_status?: string | null
+          to_status?: string
+          valid_until?: string | null
+          reason?: string | null
+          actor_user?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       plot_layouts: {
         Row: {
           id: string
@@ -3382,6 +3472,10 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      project_addon_state: {
+        Args: { p_project: string; p_addon: string }
+        Returns: string
+      }
       lead_pipeline_timing: { Args: { p_org: string; p_from: string; p_to: string }; Returns: Json }
       merge_leads: { Args: { p_org: string; p_target: string; p_source: string; p_actor_profile: string }; Returns: Json }
       billing_start_trial: { Args: { p_org: string; p_plan_code: string; p_actor_profile: string | null }; Returns: string }

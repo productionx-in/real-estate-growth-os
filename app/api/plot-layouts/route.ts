@@ -1,11 +1,11 @@
 // app/api/plot-layouts/route.ts — upload a project's layout drawing (new, or a new drawing for an existing layout).
-// Owners, admins and managers; inventory module on; the plot-maps add-on switched on for the workspace. The SVG is
+// Owners, admins and managers; inventory module on; the Interactive Plot Map add-on active for the project. The SVG is
 // parsed into plain geometry on the server (lib/plots/svg.ts) and never stored as SVG.
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
 import { requireModule } from '@/lib/auth/entitlements'
-import { requireAddon } from '@/lib/plots/addons'
+import { requireProjectAddon } from '@/lib/plots/addons'
 import { auditMember } from '@/lib/dal/org-audit'
 import { saveLayout } from '@/lib/dal/plot-layouts'
 
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   const access = await authorizeOrgAccess(orgId, ['owner', 'admin', 'manager'])
   if (!access.success) return access.response
   { const gate = await requireModule(orgId, 'inventory'); if (gate) return gate }
-  { const gate = await requireAddon(orgId, 'plot_maps'); if (gate) return gate }
+  { const gate = await requireProjectAddon(orgId, projectId, 'plot_maps'); if (gate) return gate }
 
   const result = await saveLayout(orgId, projectId, access.context.profile.id, input)
   if (!result.success) return NextResponse.json({ error: result.error }, { status: result.status })

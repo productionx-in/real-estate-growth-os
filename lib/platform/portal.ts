@@ -20,6 +20,7 @@ export const CAN = {
   people: ['super_admin', 'platform_admin'],
   email: ['super_admin', 'platform_admin'],
   integrations: ['super_admin', 'platform_admin'],
+  addons: ['super_admin', 'platform_admin'],
   salesRead: ['super_admin', 'sales_manager', 'sales_rep', 'auditor'],
   salesWrite: ['super_admin', 'sales_manager', 'sales_rep'],
   salesAll: ['super_admin', 'sales_manager', 'auditor'],
@@ -97,6 +98,9 @@ export async function consoleNavCounts(db: Db, actor: Actor) {
         db.from('email_outbox').select('id', { count: 'exact', head: true }).eq('status', 'failed').gte('updated_at', new Date(Date.now() - 7 * 86_400_000).toISOString()),
       ])
     : [{ count: 0 }, { count: 0 }]
+  const addonRequests = can(actor.role, 'addons')
+    ? (await db.from('project_addons').select('project_id', { count: 'exact', head: true }).eq('status', 'pending')).count ?? 0
+    : 0
   const p = ((due as { data?: unknown[] }).data ?? []) as { stage: string; next_follow_up_at: string | null }[]
   return {
     support: (cases as { count?: number | null }).count ?? 0,
@@ -105,6 +109,8 @@ export async function consoleNavCounts(db: Db, actor: Actor) {
     newRequests: p.filter((x) => x.stage === 'new').length,
     // Application e-mails held (configuration invalid) or failed: they need someone to look.
     emailAttention: can(actor.role, 'email') ? (emailHeld.count ?? 0) + (emailFailed.count ?? 0) : 0,
+    // Add-on activation requests waiting for a Platform Owner.
+    addonRequests,
   }
 }
 
