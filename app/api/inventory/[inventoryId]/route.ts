@@ -1,5 +1,7 @@
 // app/api/inventory/[inventoryId]/route.ts
 // Secure Inventory item detail routes: Enforces authentication, tenant isolation, and RBAC.
+import { describeBlockers, unitDeleteBlockers } from '@/lib/dal/deletion'
+import { auditMember } from '@/lib/dal/org-audit'
 import { NextResponse, type NextRequest } from 'next/server'
 import { getInventoryById, getInventoryStatusHistory, escapePostgrestPattern } from '@/lib/dal/inventory'
 import { InventoryItemSchema } from '@/lib/validations/inventory'
@@ -160,7 +162,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ inventoryId: string }> }
 ) {
   try {
@@ -171,17 +173,29 @@ export async function DELETE(
     if (!authResult.success) {
       return authResult.response
     }
-    { const gate = await requireModule(authResult.context.orgId, 'inventory'); if (gate) return gate }
+    const orgId = authResult.context.orgId
+    { const gate = await requireModule(orgId, 'inventory'); if (gate) return gate }
 
     const service = createServiceClient()
+    const { data: unit } = await service.from('inventory_items').select('unit_number, status, project_id').eq('id', inventoryId).eq('org_id', orgId).maybeSingle()
+    if (!unit) return NextResponse.json({ error: 'Unit not found' }, { status: 404 })
+    // A unit on hold, booked or sold, or with a booking, is real business: never deleted (lib/dal/deletion.ts).
+    const blockers = await unitDeleteBlockers(orgId, inventoryId, unit.status)
+    if (blockers.length) {
+      return NextResponse.json({ error: `This unit can’t be deleted: ${describeBlockers(blockers)}. Release or cancel that first.`, blockers }, { status: 409 })
+    }
+
     const { error: delError } = await service
       .from('inventory_items')
       .delete()
       .eq('id', inventoryId)
-      .eq('org_id', authResult.context.orgId)
+      .eq('org_id', orgId)
 
-    if (delError) return NextResponse.json({ error: delError.message }, { status: 500 })
+    if (delError) return NextResponse.json({ error: 'Could not delete the unit.' }, { status: 500 })
 
+    await auditMember(request, authResult.context, orgId, 'inventory.deleted', { type: 'inventory_item', id: inventoryId }, {
+      unit_number: unit.unit_number, status: unit.status, project_id: unit.project_id,
+    })
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

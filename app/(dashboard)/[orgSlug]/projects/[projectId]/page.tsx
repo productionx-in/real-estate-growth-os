@@ -7,6 +7,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { ProjectDetailTabs } from '@/components/projects/ProjectDetailTabs'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
+import { DeleteProjectDialog } from '@/components/projects/DeleteProjectDialog'
 import { PROJECT_CATEGORY_LABELS, type ProjectCategory } from '@/types/inventory'
 
 export const metadata: Metadata = { title: 'Project Details' }
@@ -34,7 +35,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default async function ProjectDetailPage({ params }: PageProps) {
   const { orgSlug, projectId } = await params
-  const { org, role, isManager } = await getVerifiedWorkspace(orgSlug)
+  const { org, role, isManager, isAdmin } = await getVerifiedWorkspace(orgSlug)
   const service = createServiceClient()
 
   // Fetch project
@@ -125,6 +126,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             Edit Project
           </Link>
         ) : null}
+        {isAdmin && <DeleteProjectDialog projectId={projectId} projectName={project.name} orgSlug={orgSlug} />}
         </>
       }
     >
