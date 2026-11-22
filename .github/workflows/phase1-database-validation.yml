@@ -197,6 +197,7 @@ jobs:
           node tests/db-integration/p35-notification-rules.test.mjs 2>&1 | tee diagnostics/p35-notification-rules.log
           node tests/db-integration/p36-visit-matching-settings.test.mjs 2>&1 | tee diagnostics/p36-visit-matching-settings.log
           node tests/db-integration/p37-project-unit-delete.test.mjs 2>&1 | tee diagnostics/p37-project-unit-delete.log
+          node tests/db-integration/p38-team-targets.test.mjs 2>&1 | tee diagnostics/p38-team-targets.log
 
       # 11. Execute Application Regression Test Suite (Phase 6)
       - name: Execute Application Regression Test Suite (All 27 Tests)

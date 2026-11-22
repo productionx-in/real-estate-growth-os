@@ -47,7 +47,8 @@ export const SETTINGS: SettingsGroup[] = [
   {
     key: 'team', title: 'Your team', description: 'Who is on the team and what each person can do.',
     pages: [
-      { key: 'team', label: 'Team members & roles', description: 'Invite people, change roles, deactivate members.', path: '/team', audience: 'managers', keywords: ['invite', 'users', 'roles', 'permissions', 'deactivate', 'seats'] },
+      { key: 'team', label: 'Team members & roles', description: 'Invite people, change roles, last sign-in, reset e-mails, monthly targets.', path: '/team', audience: 'managers', keywords: ['invite', 'users', 'roles', 'permissions', 'deactivate', 'seats'] },
+      { key: 'roles', label: 'Roles & permissions', description: 'What each role can do, straight from the rules REGrow enforces.', path: '/settings/roles', audience: 'managers', keywords: ['permissions', 'access', 'roles', 'who can', 'rights', 'privileges'] },
       { key: 'alert-defaults', label: 'Notification defaults', description: 'Which alerts reach the team’s devices unless they choose otherwise.', path: '/settings/alerts', audience: 'admins', keywords: ['push', 'alerts', 'notification rules', 'defaults', 'mute'] },
     ],
   },
