@@ -33,7 +33,7 @@ function Tile({ href, label, hint, value, icon: Icon, tone }: { href: string; la
   )
 }
 
-export function ActionBoard({ board, orgSlug, showTeam, mine }: { board: Board; orgSlug: string; showTeam: boolean; mine: boolean }) {
+export function ActionBoard({ board, orgSlug, showTeam, mine, keep = '' }: { board: Board; orgSlug: string; showTeam: boolean; mine: boolean; /** Extra query kept on the period tabs, e.g. "&as=<id>". */ keep?: string }) {
   const leadsHref = (focus: Focus) => `/${orgSlug}/leads?focus=${focus}`
   const max = Math.max(1, board.funnel[0]?.reached ?? 0)
 
@@ -46,7 +46,7 @@ export function ActionBoard({ board, orgSlug, showTeam, mine }: { board: Board; 
         </p>
         <div className="inline-flex rounded-lg border border-default bg-background p-0.5 text-[12px]">
           {(Object.keys(PERIODS) as Period[]).map((p) => (
-            <Link key={p} href={`/${orgSlug}?period=${p}`} aria-current={p === board.period ? 'page' : undefined}
+            <Link key={p} href={`/${orgSlug}?period=${p}${keep}`} aria-current={p === board.period ? 'page' : undefined}
               className={cn('rounded-md px-3 py-1.5', p === board.period ? 'bg-surface font-semibold shadow-sm' : 'text-muted hover:text-foreground')}>
               {PERIODS[p]}
             </Link>
