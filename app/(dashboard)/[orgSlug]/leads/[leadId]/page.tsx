@@ -40,6 +40,9 @@ import { resolveLeadViewer } from '@/lib/dal/viewer'
 import { LeadStageStepper } from '@/components/leads/LeadStageStepper'
 import { NextBestAction } from '@/components/leads/NextBestAction'
 import { MoreActions } from '@/components/leads/MoreActions'
+import { AddToListMenu } from '@/components/leads/SegmentControls'
+import { listsForLead } from '@/lib/dal/segments'
+import { canManageSegments } from '@/lib/segments/segments'
 import { nextAction } from '@/lib/leads/next-action'
 import { nextStatuses } from '@/lib/leads/transitions'
 
@@ -118,6 +121,8 @@ export default async function LeadDetailPage({ params }: PageProps) {
   const modules = await getModules(org.id)
   const { data: tagRows } = await service.from('leads').select('tags').eq('org_id', org.id).not('tags', 'eq', '{}').limit(2000)
   const orgTags = rankTags(tagRows ?? [])
+  // Fixed lists (lead segments, 20260087): owners, admins and managers add the lead to them from "More".
+  const segmentLists = canManageSegments(role) && !lead.merged_into_id ? await listsForLead(org.id, lead.id) : null
   const salesOn = modules.sales
   // Property matching: the buyer's requirements, and available units that fit (inventory module).
   const matching = await matchUnitsForLead(org.id, leadId)
@@ -226,8 +231,9 @@ export default async function LeadDetailPage({ params }: PageProps) {
             <Pencil className="w-3.5 h-3.5" />
             Edit
           </Link>
-          {(partnerTargets.length > 0 || (isManagement(viewerRole) && !lead.merged_into_id) || (canWork && canClose) || viewerRole === 'owner' || viewerRole === 'admin') && (
+          {(partnerTargets.length > 0 || (isManagement(viewerRole) && !lead.merged_into_id) || (canWork && canClose) || viewerRole === 'owner' || viewerRole === 'admin' || !!segmentLists) && (
             <MoreActions>
+              {segmentLists && <AddToListMenu orgId={org.id} orgSlug={orgSlug} leadId={lead.id} lists={segmentLists} />}
               {canWork && canClose && (
                 <a href="#lead-stage" className="inline-flex min-h-9 items-center rounded-md px-2 text-[13px] text-foreground hover:bg-surface-hover">Mark lost or junk…</a>
               )}

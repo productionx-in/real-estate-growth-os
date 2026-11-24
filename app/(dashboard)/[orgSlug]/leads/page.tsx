@@ -3,7 +3,7 @@
 import type { Metadata } from 'next'
 import type { ComponentProps } from 'react'
 import Link from 'next/link'
-import { Plus, SearchX, Upload, Users } from 'lucide-react'
+import { ListFilter, Plus, SearchX, Upload, Users } from 'lucide-react'
 import { createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { LeadsTable } from '@/components/leads/LeadsTable'
@@ -23,6 +23,7 @@ import {
   FOCI, applyLeadFilters, canShareViews, isEmpty, parseLeadSearch, sameFilters, toLeadSearch,
 } from '@/lib/leads/view-filters'
 import { canCreateLeads, leadScopeOf, type LeadScope } from '@/lib/auth/permissions'
+import { canManageSegments, segmentFilters } from '@/lib/segments/segments'
 
 export const metadata: Metadata = { title: 'Leads' }
 export const dynamic = 'force-dynamic'
@@ -96,8 +97,15 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
     .flatMap((m) => (m.profile ? [{ id: m.profile.id, label: m.profile.full_name }] : []))
     .sort((a, b) => a.label.localeCompare(b.label))
 
+  // Lead segments (20260087): everyone can open them; managers can save the current filters as one.
+  const saveable = canManageSegments(role) ? segmentFilters(filters) : null
   const actions = (
     <>
+      <Button asChild variant="secondary" size="sm">
+        <Link href={saveable ? `/${orgSlug}/leads/segments${toLeadSearch(saveable)}&new=1#new` : `/${orgSlug}/leads/segments`}>
+          <ListFilter aria-hidden /> {saveable ? 'Save as segment' : 'Segments'}
+        </Link>
+      </Button>
       {role !== 'readonly' && hasLeads && <ExportLeadsButton orgSlug={orgSlug} filterQuery={toLeadSearch(filters)} />}
       {isManager && (
         <Button asChild variant="secondary" size="sm">
