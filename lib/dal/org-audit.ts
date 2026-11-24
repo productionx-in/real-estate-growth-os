@@ -162,6 +162,11 @@ export async function listOrgAudit(
 
 const ACTION_LABELS: Record<string, string> = {
   'member.role_changed': 'Changed a member’s role',
+  'segment.created': 'Created a lead segment',
+  'segment.updated': 'Changed a lead segment',
+  'segment.deleted': 'Deleted a lead segment',
+  'segment.leads_added': 'Added leads to a list',
+  'segment.leads_removed': 'Removed leads from a list',
   'member.deactivated': 'Deactivated a member',
   'invitation.created': 'Invited a team member',
   'invitation.revoked': 'Revoked an invitation',
