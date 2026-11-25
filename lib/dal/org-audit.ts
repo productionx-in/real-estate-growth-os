@@ -162,6 +162,11 @@ export async function listOrgAudit(
 
 const ACTION_LABELS: Record<string, string> = {
   'member.role_changed': 'Changed a member’s role',
+  'campaign.created': 'Created a campaign',
+  'campaign.updated': 'Changed a campaign draft',
+  'campaign.deleted': 'Deleted a campaign draft',
+  'campaign.sent': 'Sent a campaign',
+  'campaign.cancelled': 'Cancelled a campaign',
   'segment.created': 'Created a lead segment',
   'segment.updated': 'Changed a lead segment',
   'segment.deleted': 'Deleted a lead segment',

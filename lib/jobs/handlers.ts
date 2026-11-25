@@ -9,6 +9,7 @@ import { customerLifecycleEmails } from '@/lib/jobs/customer-emails'
 import { dailyReports } from '@/lib/jobs/daily-reports'
 import { weeklyDigest } from '@/lib/jobs/weekly-digest'
 import { deliverDue } from '@/lib/email/service'
+import { runCampaignBatch } from '@/lib/dal/campaigns'
 import { paymentsHealthCheck, paymentsMandateCycle, paymentsPollPending, paymentsReconcile } from '@/lib/jobs/payments'
 
 export interface JobRow {
@@ -71,7 +72,23 @@ async function dispatchNotification(job: JobRow, db: Db): Promise<void> {
   if (failures.length > 0) throw new Error(`notification.dispatch: ${failures.join('; ')}`)
 }
 
+/**
+ * campaign.send: one batch of a marketing campaign (lib/dal/campaigns.ts). While recipients remain, it queues the next
+ * round for the following worker tick (WhatsApp is paced at one batch a minute); while e-mails are only waiting in the
+ * outbox, it looks again in five minutes, and marks the campaign sent once all are delivered or failed.
+ */
+async function sendCampaignBatch(job: JobRow, db: Db): Promise<void> {
+  const id = job.payload.campaign_id
+  if (typeof id !== 'string') throw new Error('campaign.send: missing campaign_id')
+  const round = Number(job.payload.round ?? 0)
+  const state = await runCampaignBatch(id)
+  if (state === 'done') return
+  const runAt = new Date(Date.now() + (state === 'waiting' ? 5 * 60_000 : 0)).toISOString()
+  await db.rpc('enqueue_job', { p_kind: 'campaign.send', p_payload: { campaign_id: id, round: round + 1 }, p_org_id: job.org_id, p_run_at: runAt, p_dedupe_key: `campaign.send:${id}:${round + 1}` })
+}
+
 export const JOB_HANDLERS: Record<string, JobHandler> = {
+  'campaign.send': sendCampaignBatch,
   'notification.dispatch': dispatchNotification,
   'site_visit.notify': siteVisitNotify,
   'email.customer_lifecycle': customerLifecycleEmails,

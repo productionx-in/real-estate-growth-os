@@ -19,7 +19,7 @@ import { encryptCredential } from '@/lib/integrations/crypto'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = SupabaseClient<any, 'public', any>
-export type EmailCategory = 'auth' | 'account' | 'report' | 'buyer' | 'sales' | 'staff'
+export type EmailCategory = 'auth' | 'account' | 'report' | 'buyer' | 'sales' | 'staff' | 'marketing'
 
 export interface QueueEmailInput {
   orgId: string | null

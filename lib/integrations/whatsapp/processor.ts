@@ -7,6 +7,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { processInboundLead } from '@/lib/integrations/inbound'
 import { normalizeWhatsAppInboundMessage } from './normalizer'
 import { evaluateConsentKeyword } from './consent'
+import { recordWhatsAppConsent } from '@/lib/dal/campaigns'
 import type {
   WhatsAppWebhookPayload,
 } from './types'
@@ -134,6 +135,12 @@ export async function processWhatsAppWebhookPayload(params: {
               .maybeSingle()
 
             const convId = conv?.id || null
+
+            // STOP / START also update the workspace's marketing opt-out list, so campaigns respect them (20260088).
+            if (consentResult.isOptOutKeyword || consentResult.isOptInKeyword) {
+              await recordWhatsAppConsent(connection.org_id, waId, consentResult.isOptOutKeyword).catch((e) =>
+                console.error('[whatsapp] could not record the marketing opt-out:', e instanceof Error ? e.message : e))
+            }
 
             // Insert message record
             await service.from('whatsapp_messages').insert({

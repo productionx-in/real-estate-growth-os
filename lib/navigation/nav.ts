@@ -7,7 +7,7 @@ import { canCreateLeads } from '@/lib/auth/permissions'
 
 export type NavKey =
   | 'home' | 'today' | 'leads' | 'visits' | 'inbox' | 'sales' | 'routing' | 'speed' | 'projects' | 'inventory'
-  | 'documents' | 'analytics' | 'integrations' | 'team' | 'settings' | 'billing' | 'audit' | 'support' | 'partners' | 'help' | 'listings'
+  | 'documents' | 'analytics' | 'integrations' | 'team' | 'settings' | 'billing' | 'audit' | 'support' | 'partners' | 'help' | 'listings' | 'campaigns'
 
 export interface NavLink {
   key: NavKey
@@ -51,6 +51,8 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
   const partners = L('partners', 'Partner network', '/partners')
   // Agencies: resale and rental listings from owners (everyone in the agency; owner details are filtered by role).
   const listings = L('listings', 'Listings', '/listings')
+  // Marketing campaigns to lead segments: owners, admins and managers (the pages and API check again).
+  const campaigns = L('campaigns', 'Campaigns', '/campaigns')
   const agency = orgType === 'channel_partner'
   const adminLinks = [L('settings', 'Settings', '/settings'), L('billing', 'Plan & billing', '/billing'), L('audit', 'Audit log', '/audit-log'), L('support', 'Support access', '/support-access')]
 
@@ -74,20 +76,20 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
     ]
   } else if (orgType === 'channel_partner') {
     groups = [
-      { items: [home, today, L('leads', 'Referred leads', '/leads'), visits, inbox, listings, L('sales', 'Deals & commissions', '/sales'), partners] },
+      { items: [home, today, L('leads', 'Referred leads', '/leads'), visits, inbox, listings, L('sales', 'Deals & commissions', '/sales'), partners, campaigns] },
       { title: 'Agency', items: [team, ...(isAdmin(role) ? adminLinks : [])] },
     ]
   } else if (role === 'manager') {
     groups = [
       { items: [home, today, L('leads', 'Leads', '/leads'), visits, inbox] },
-      { title: 'Sales', items: [L('sales', 'Sales', '/sales'), partners, L('routing', 'Lead routing', '/routing'), L('speed', 'Speed to lead', '/speed-to-lead')] },
+      { title: 'Sales', items: [L('sales', 'Sales', '/sales'), partners, campaigns, L('routing', 'Lead routing', '/routing'), L('speed', 'Speed to lead', '/speed-to-lead')] },
       { title: 'Portfolio', items: [projects, inventory, documents] },
       { title: 'Insights', items: [analytics, team] },
     ]
   } else {
     groups = [
       { items: [home, today, L('leads', 'Leads', '/leads'), visits, inbox] },
-      { title: 'Sales', items: [L('sales', 'Sales & partners', '/sales'), partners, L('routing', 'Lead routing', '/routing'), L('speed', 'Speed to lead', '/speed-to-lead')] },
+      { title: 'Sales', items: [L('sales', 'Sales & partners', '/sales'), partners, campaigns, L('routing', 'Lead routing', '/routing'), L('speed', 'Speed to lead', '/speed-to-lead')] },
       { title: 'Portfolio', items: [projects, inventory, documents] },
       { title: 'Insights', items: [analytics] },
       { title: 'Workspace', items: [L('integrations', 'Integrations', '/integrations'), team, ...adminLinks] },

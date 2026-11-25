@@ -16,6 +16,7 @@ import { weeklyDigestEmail } from '@/lib/email/weekly-digest'
 import { demoAlertEmail, demoConfirmationEmail, type DemoRequestDetails } from '@/lib/email/demo-request'
 import { decryptCredential } from '@/lib/integrations/crypto'
 import { appUrl, siteUrl } from '@/lib/site/urls'
+import { personalise } from '@/lib/campaigns/rules'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = SupabaseClient<any, 'public', any>
@@ -117,6 +118,40 @@ const RENDERERS: Record<string, (p: Payload, ctx: RenderContext) => Promise<Rend
           `Your REGrow subscription for ${str(p.orgName) || 'your workspace'} renews soon. ${amount} (including GST) will be debited through your UPI AutoPay mandate on or after ${when}.`,
           'You can cancel the mandate at any time from Plan & billing in REGrow, or from your UPI app. If you cancel, you can still pay the renewal invoice manually.',
         ],
+      }),
+    }
+  },
+
+  // A marketing campaign (lib/dal/campaigns.ts): rendered from the campaign and recipient of THIS organisation at
+  // delivery time, so a cancelled campaign or a late unsubscribe still stops it. Plain text written by the sender,
+  // personalised with {{first_name}} only; every value is escaped by the layout.
+  async 'campaign.email'(p, { db, orgId }) {
+    const { data: r } = await db.from('campaign_recipients').select('id, org_id, campaign_id, address, first_name, unsubscribe_token, status').eq('id', str(p.recipientId)).maybeSingle()
+    if (!r || r.org_id !== orgId) throw new TemplateError('permanent', 'Campaign recipient not found in this organisation.')
+    const [{ data: c }, { data: sup }, { data: org }, { data: biz }] = await Promise.all([
+      db.from('campaigns').select('id, org_id, status, subject, body').eq('id', r.campaign_id).maybeSingle(),
+      db.from('marketing_suppressions').select('address').eq('org_id', orgId).eq('channel', 'email').eq('address', r.address).maybeSingle(),
+      db.from('organisations').select('name').eq('id', orgId).maybeSingle(),
+      db.from('org_business_profiles').select('email').eq('org_id', orgId).maybeSingle(),
+    ])
+    if (!c || c.org_id !== orgId) throw new TemplateError('permanent', 'Campaign not found in this organisation.')
+    if (c.status === 'cancelled') return { skip: 'The campaign was cancelled.' }
+    if (sup) return { skip: 'The recipient unsubscribed.' }
+    if (!c.subject || !c.body) throw new TemplateError('permanent', 'The campaign has no message.')
+    const app = appUrl()
+    if (!app) throw new TemplateError('config', 'The app address is not configured (NEXT_PUBLIC_APP_URL), so the unsubscribe link cannot be built.')
+    const first = typeof r.first_name === 'string' ? r.first_name : null
+    const orgName = str(org?.name) || 'the sender'
+    const subject = personalise(c.subject, first).slice(0, 200)
+    return {
+      subject,
+      replyTo: typeof biz?.email === 'string' ? biz.email : undefined,
+      ...renderEmail({
+        preheader: subject,
+        heading: subject,
+        paragraphs: personalise(c.body, first).split(/\n\s*\n/).map((x: string) => x.trim()).filter(Boolean),
+        reason: `You received this from ${orgName} because you enquired about their properties.`,
+        unsubscribeUrl: `${app}/u/${r.unsubscribe_token}`,
       }),
     }
   },
