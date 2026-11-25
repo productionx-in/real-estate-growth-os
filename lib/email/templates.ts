@@ -17,6 +17,8 @@ import { demoAlertEmail, demoConfirmationEmail, type DemoRequestDetails } from '
 import { decryptCredential } from '@/lib/integrations/crypto'
 import { appUrl, siteUrl } from '@/lib/site/urls'
 import { personalise } from '@/lib/campaigns/rules'
+import { listingFromRow } from '@/lib/listings/listing'
+import { ownerEmailContent, type OwnerEmailKind } from '@/lib/listings/owner-email'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = SupabaseClient<any, 'public', any>
@@ -153,6 +155,29 @@ const RENDERERS: Record<string, (p: Payload, ctx: RenderContext) => Promise<Rend
         reason: `You received this from ${orgName} because you enquired about their properties.`,
         unsubscribeUrl: `${app}/u/${r.unsubscribe_token}`,
       }),
+    }
+  },
+
+  // An agency to a property's owner about their listing (lib/listings/owner-email.ts). Rendered from the listing as it is
+  // now; skipped if the listing is gone or no longer has the owner's e-mail. Replies go to the agency's business e-mail.
+  async 'listing.owner'(p, { db, orgId }) {
+    const kind = str(p.kind) as OwnerEmailKind
+    if (kind !== 'listed' && kind !== 'update') throw new TemplateError('permanent', 'Unknown owner e-mail.')
+    const { data: row } = await db.from('listings').select('*').eq('id', str(p.listingId)).maybeSingle()
+    if (!row) return { skip: 'The listing was deleted.' }
+    if (row.org_id !== orgId) throw new TemplateError('permanent', 'Listing not found in this organisation.')
+    if (!row.owner_email) return { skip: 'The listing no longer has the owner’s e-mail.' }
+    const [{ data: org }, { data: agent }, { data: biz }] = await Promise.all([
+      db.from('organisations').select('name').eq('id', orgId).maybeSingle(),
+      db.from('profiles').select('full_name, phone').eq('id', str(p.agentId)).maybeSingle(),
+      db.from('org_business_profiles').select('email').eq('org_id', orgId).maybeSingle(),
+    ])
+    const agency = str(org?.name) || 'our agency'
+    const c = ownerEmailContent(kind, listingFromRow(row, true), { agent: str(agent?.full_name) || agency, agentPhone: typeof agent?.phone === 'string' ? agent.phone : null, agency })
+    return {
+      subject: c.subject,
+      replyTo: typeof biz?.email === 'string' ? biz.email : undefined,
+      ...renderEmail({ preheader: c.subject, heading: c.heading, paragraphs: c.paragraphs, reason: `You received this from ${agency} about the property you listed with them.` }),
     }
   },
 

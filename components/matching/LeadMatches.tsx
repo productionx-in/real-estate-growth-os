@@ -7,7 +7,7 @@ import { Home, SlidersHorizontal } from 'lucide-react'
 import { Alert, Badge, Button, Field, Input } from '@/components/ui'
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogTrigger } from '@/components/ui/dialog'
 import { CATEGORIES, CONFIGURATIONS, FACINGS, shortInr, type Requirements } from '@/lib/matching/score'
-import { PROPERTY_TYPES } from '@/lib/listings/listing'
+import { COMMERCIAL_TYPES, FIT_OUT, PROPERTY_TYPES, type PropertyType } from '@/lib/listings/listing'
 import { cn } from '@/lib/utils/cn'
 
 export interface MatchRow {
@@ -63,7 +63,10 @@ export function LeadMatches({ leadId, requirements, matches, canWork, showMatche
     req_min_area: r.req_min_area?.toString() ?? '', req_max_area: r.req_max_area?.toString() ?? '',
     req_purpose: (r.req_purpose ?? '') as '' | 'buy' | 'rent', req_rent_max: r.req_rent_max?.toString() ?? '',
     req_property_types: r.req_property_types ?? [],
+    req_fit_out: r.req_fit_out ?? [], req_min_seats: r.req_min_seats?.toString() ?? '',
   })
+  // Commercial details only matter when the buyer or tenant wants an office, shop or similar.
+  const wantsCommercial = form.req_property_types.some((t) => COMMERCIAL_TYPES.includes(t as PropertyType))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -77,7 +80,8 @@ export function LeadMatches({ leadId, requirements, matches, canWork, showMatche
           req_configurations: form.req_configurations, req_categories: form.req_categories, req_facing: form.req_facing,
           req_locations: form.req_locations.split(/[,\n]/).map((s) => s.trim()).filter((s) => s.length >= 2).slice(0, 10),
           req_min_area: num(form.req_min_area), req_max_area: num(form.req_max_area),
-          ...(agency ? { req_purpose: form.req_purpose || null, req_rent_max: num(form.req_rent_max), req_property_types: form.req_property_types } : {}),
+          ...(agency ? { req_purpose: form.req_purpose || null, req_rent_max: num(form.req_rent_max), req_property_types: form.req_property_types,
+            ...(wantsCommercial ? { req_fit_out: form.req_fit_out, req_min_seats: num(form.req_min_seats) } : { req_fit_out: [], req_min_seats: null }) } : {}),
         }),
       })
       const out = await res.json().catch(() => ({}))
@@ -90,6 +94,8 @@ export function LeadMatches({ leadId, requirements, matches, canWork, showMatche
   const wants = [
     agency && r.req_purpose ? (r.req_purpose === 'rent' ? `To rent${r.req_rent_max ? ` up to ₹${r.req_rent_max.toLocaleString('en-IN')}/month` : ''}` : 'To buy') : null,
     agency && r.req_property_types?.length ? r.req_property_types.map((t) => PROPERTY_TYPES[t as keyof typeof PROPERTY_TYPES] ?? t).join(', ') : null,
+    agency && r.req_fit_out?.length ? r.req_fit_out.map((f) => FIT_OUT[f as keyof typeof FIT_OUT] ?? f).join(' or ') : null,
+    agency && r.req_min_seats ? `${r.req_min_seats}+ seats` : null,
     r.budget_min || r.budget_max ? `${r.budget_min ? shortInr(r.budget_min) : 'up'} – ${r.budget_max ? shortInr(r.budget_max) : 'any'}` : null,
     r.req_configurations.join(', ') || null,
     r.req_categories.map((c) => CATEGORIES[c as keyof typeof CATEGORIES] ?? c).join(', ') || null,
@@ -120,6 +126,15 @@ export function LeadMatches({ leadId, requirements, matches, canWork, showMatche
                     )}
                     <Chips label="Property type (incl. commercial)" options={Object.keys(PROPERTY_TYPES) as (keyof typeof PROPERTY_TYPES)[]} labels={PROPERTY_TYPES}
                       value={form.req_property_types} onChange={(v) => setForm({ ...form, req_property_types: v })} />
+                    {wantsCommercial && (
+                      <div className="space-y-3 rounded-lg border border-default p-3">
+                        <Chips label="Fit-out they accept" options={Object.keys(FIT_OUT) as (keyof typeof FIT_OUT)[]} labels={FIT_OUT}
+                          value={form.req_fit_out as (keyof typeof FIT_OUT)[]} onChange={(v) => setForm({ ...form, req_fit_out: v })} />
+                        <Field label="Seats or workstations, at least" hint="Offices and co-working. Spaces with far fewer seats are not suggested.">
+                          <Input inputMode="numeric" value={form.req_min_seats} onChange={(e) => setForm({ ...form, req_min_seats: e.target.value })} placeholder="40" />
+                        </Field>
+                      </div>
+                    )}
                   </>
                 )}
                 <Chips label="Configuration" options={CONFIGURATIONS} value={form.req_configurations} onChange={(v) => setForm({ ...form, req_configurations: v })} />

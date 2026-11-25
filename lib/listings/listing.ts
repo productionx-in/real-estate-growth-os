@@ -16,6 +16,10 @@ export const COMMERCIAL_TYPES: PropertyType[] = ['office', 'shop', 'showroom', '
 export const LISTING_STATUSES = { available: 'Available', on_hold: 'On hold', closed: 'Closed (sold / let)', withdrawn: 'Withdrawn by owner' } as const
 export type ListingStatus = keyof typeof LISTING_STATUSES
 export const FURNISHING = { unfurnished: 'Unfurnished', semi: 'Semi-furnished', full: 'Fully furnished' } as const
+/** How far a commercial space is fitted out (offices, shops, showrooms, co-working). */
+export const FIT_OUT = { bare_shell: 'Bare shell', warm_shell: 'Warm shell', plug_and_play: 'Plug and play' } as const
+export type FitOut = keyof typeof FIT_OUT
+export const isCommercial = (t: PropertyType) => COMMERCIAL_TYPES.includes(t)
 const AREA_UNITS = ['sqft', 'sqyd', 'acres', 'guntas', 'cents'] as const
 
 export interface Listing {
@@ -39,6 +43,11 @@ export interface Listing {
   availableFrom: string | null
   description: string | null
   status: ListingStatus
+  /** Commercial spaces (20260095). */
+  fitOut: FitOut | null
+  seats: number | null
+  frontageFt: number | null
+  parking: number | null
   assignedTo: string | null
   /** Present only for people allowed to see the owner (managers, the agent, whoever added it). */
   owner: { name: string | null; phone: string | null; email: string | null } | null
@@ -77,12 +86,25 @@ export function normaliseListing(input: Record<string, unknown>): { row: Record<
   const unit = typeof input.areaUnit === 'string' && (AREA_UNITS as readonly string[]).includes(input.areaUnit) ? input.areaUnit : 'sqft'
   const furnishing = typeof input.furnishing === 'string' && input.furnishing in FURNISHING ? input.furnishing : null
   const status = typeof input.status === 'string' && input.status in LISTING_STATUSES ? input.status : 'available'
+  // Commercial details: kept only for commercial property types, so a flat never carries a stale "seats" value.
+  const commercial = !!type && isCommercial(type as PropertyType)
+  const count = (k: string, min: number, label: string) => {
+    const v = input[k]; if (v === null || v === undefined || v === '') return null
+    const n = typeof v === 'number' ? v : typeof v === 'string' && /^\d+$/.test(v.trim()) ? Number(v) : NaN
+    if (!Number.isInteger(n) || n < min || n > 100000) { errors[k] = `${label}: a whole number.`; return null }
+    return n
+  }
+  const fitOut = typeof input.fitOut === 'string' && input.fitOut in FIT_OUT ? input.fitOut : null
+  const seats = commercial ? count('seats', 1, 'Seats') : null
+  const parking = commercial ? count('parking', 0, 'Parking') : null
+  const frontage = commercial ? num('frontageFt', 10000, 'Frontage') : null
   return {
     row: {
       kind, property_type: type, title, locality, city, address: opt('address', 300), bhk: opt('bhk', 10), area, area_unit: unit,
       floor: opt('floor', 20), furnishing, facing: opt('facing', 20), price, monthly_rent: rent, deposit, maintenance,
       available_from: date, description: opt('description', 2000), owner_name: opt('ownerName', 120), owner_phone: phone,
       owner_email: email?.toLowerCase() ?? null, status,
+      fit_out: commercial ? fitOut : null, seats, frontage_ft: frontage === 0 ? null : frontage, parking,
     },
     errors,
   }
@@ -96,12 +118,12 @@ export function listingPrice(l: Pick<Listing, 'kind' | 'price' | 'monthlyRent'>)
 
 export const DEFAULT_SHARE_TEMPLATE = `*{title}*
 {type} {kind} in {locality}, {city}
-{bhk}{area}
+{bhk}{area}{commercial}
 Price: {price}{deposit}
 {furnishing}{available}
 Call {agent} on {agent_phone} to see it.`
 
-export const SHARE_FIELDS = ['title', 'type', 'kind', 'locality', 'city', 'bhk', 'area', 'price', 'deposit', 'furnishing', 'available', 'agent', 'agent_phone', 'agency'] as const
+export const SHARE_FIELDS = ['title', 'type', 'kind', 'locality', 'city', 'bhk', 'area', 'price', 'deposit', 'furnishing', 'available', 'agent', 'agent_phone', 'agency', 'commercial'] as const
 
 /** The message an agent shares with a buyer or tenant (WhatsApp). Never contains the owner or the full address. */
 export function shareText(template: string, l: Listing, who: { agent: string; agentPhone: string | null; agency: string }): string {
@@ -120,10 +142,18 @@ export function shareText(template: string, l: Listing, who: { agent: string; ag
     agent: who.agent,
     agent_phone: who.agentPhone ?? '',
     agency: who.agency,
+    commercial: commercialLine(l) ? ` · ${commercialLine(l)}` : '',
   }
   return template
     .replace(/\{(\w+)\}/g, (m, k: string) => (k in values ? values[k as keyof typeof values] : m))
     .split('\n').map((line) => line.replace(/\s+$/, '').replace(/^ · |^· /, '')).filter((line, i, all) => line !== '' || (i > 0 && all[i - 1] !== '')).join('\n').trim()
+}
+
+/** "Warm shell · 40 seats · 25 ft frontage · 4 parking" for commercial spaces; '' otherwise. */
+export function commercialLine(l: Pick<Listing, 'propertyType' | 'fitOut' | 'seats' | 'frontageFt' | 'parking'>): string {
+  if (!isCommercial(l.propertyType)) return ''
+  return [l.fitOut ? FIT_OUT[l.fitOut] : null, l.seats ? `${l.seats} seats` : null, l.frontageFt ? `${l.frontageFt} ft frontage` : null,
+    l.parking ? `${l.parking} parking` : null].filter(Boolean).join(' · ')
 }
 
 /** Template checks: known fields only, and a sensible length. */
@@ -148,6 +178,9 @@ export interface ListingNeeds {
   req_locations: string[]
   req_min_area: number | null
   req_max_area: number | null
+  /** Commercial needs (20260095): fit-out levels the buyer or tenant accepts, and the fewest seats. */
+  req_fit_out?: string[]
+  req_min_seats?: number | null
 }
 
 const CATEGORY_TYPES: Record<string, PropertyType[]> = {
@@ -157,7 +190,8 @@ const CATEGORY_TYPES: Record<string, PropertyType[]> = {
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
 
 export function hasListingNeeds(r: ListingNeeds): boolean {
-  return !!(r.req_purpose || r.budget_max || r.req_rent_max || r.req_property_types.length || r.req_configurations.length || r.req_locations.length || r.req_categories.length)
+  return !!(r.req_purpose || r.budget_max || r.req_rent_max || r.req_property_types.length || r.req_configurations.length || r.req_locations.length || r.req_categories.length
+    || r.req_fit_out?.length || r.req_min_seats)
 }
 
 /** Score out of 100 with reasons, or null when the listing clearly does not fit (wrong purpose, type, BHK, or >10% over budget). */
@@ -191,6 +225,16 @@ export function scoreListing(r: ListingNeeds, l: Listing): { score: number; reas
   if (l.area && l.areaUnit === 'sqft' && (minA || maxA)) {
     if ((!minA || l.area >= minA) && (!maxA || l.area <= maxA)) { score += 5; reasons.push(`${Math.round(l.area).toLocaleString('en-IN')} sq ft`) } else gaps.push('Different size')
   }
+  // Commercial: seats are a hard need (fewer than 80% of what is asked is no fit); fit-out is a preference.
+  if (isCommercial(l.propertyType)) {
+    const need = r.req_min_seats ?? null
+    if (need && l.seats) {
+      if (l.seats < need * 0.8) return null
+      if (l.seats >= need) { score += 5; reasons.push(`${l.seats} seats`) } else gaps.push(`${need - l.seats} seats short`)
+    }
+    const fits = r.req_fit_out ?? []
+    if (fits.length && l.fitOut) { if (fits.includes(l.fitOut)) { score += 5; reasons.push(FIT_OUT[l.fitOut]) } else gaps.push(`${FIT_OUT[l.fitOut]}, not ${fits.map((f) => FIT_OUT[f as FitOut] ?? f).join(' or ').toLowerCase()}`) }
+  }
   return { score: Math.min(100, score), reasons, gaps }
 }
 
@@ -204,6 +248,7 @@ export function listingFromRow(r: Record<string, unknown>, withOwner: boolean): 
     areaUnit: (r.area_unit as Listing['areaUnit']) ?? 'sqft', floor: s(r.floor), furnishing: (s(r.furnishing) as Listing['furnishing']) ?? null,
     facing: s(r.facing), price: n(r.price), monthlyRent: n(r.monthly_rent), deposit: n(r.deposit), maintenance: n(r.maintenance),
     availableFrom: s(r.available_from), description: s(r.description), status: r.status as ListingStatus, assignedTo: s(r.assigned_to),
+    fitOut: (s(r.fit_out) as FitOut | null) ?? null, seats: n(r.seats), frontageFt: n(r.frontage_ft), parking: n(r.parking),
     owner: withOwner ? { name: s(r.owner_name), phone: s(r.owner_phone), email: s(r.owner_email) } : null,
   }
 }

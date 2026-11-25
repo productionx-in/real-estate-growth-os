@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { authorizeLeadWork } from '@/lib/follow-ups/auth'
 import { saveRequirements } from '@/lib/dal/matching'
 import { CATEGORIES, CONFIGURATIONS, FACINGS } from '@/lib/matching/score'
-import { PROPERTY_TYPES } from '@/lib/listings/listing'
+import { FIT_OUT, PROPERTY_TYPES } from '@/lib/listings/listing'
 
 const money = z.number().min(0).max(1e11).nullable()
 const area = z.number().min(0).max(1e7).nullable()
@@ -22,6 +22,9 @@ const Schema = z.object({
   req_purpose: z.enum(['buy', 'rent']).nullable().optional(),
   req_rent_max: z.number().positive().max(1e9).nullable().optional(),
   req_property_types: z.array(z.enum(Object.keys(PROPERTY_TYPES) as [keyof typeof PROPERTY_TYPES, ...(keyof typeof PROPERTY_TYPES)[]])).max(10).optional(),
+  // Commercial needs (20260095): fit-out levels accepted and the fewest seats.
+  req_fit_out: z.array(z.enum(Object.keys(FIT_OUT) as [keyof typeof FIT_OUT, ...(keyof typeof FIT_OUT)[]])).max(3).optional(),
+  req_min_seats: z.number().int().min(1).max(100000).nullable().optional(),
 })
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ leadId: string }> }) {
