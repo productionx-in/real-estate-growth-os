@@ -633,7 +633,7 @@ export function IntegrationCentreView({
                         >
                           <FacebookIcon className="w-3 h-3 text-brand" />
                           {p.name}
-                          <span className="text-[10px] text-brand font-mono">
+                          <span className="text-[11px] text-brand font-mono">
                             ({p.forms?.length || 0} forms)
                           </span>
                         </span>

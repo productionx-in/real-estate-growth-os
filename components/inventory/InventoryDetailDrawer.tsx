@@ -148,7 +148,7 @@ export function InventoryDetailDrawer({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-overlay backdrop-blur-[1px] z-40 transition-opacity"
+        className="modal-backdrop fixed inset-0 bg-overlay backdrop-blur-[1px] z-40 transition-opacity"
         onClick={onClose}
       />
 
@@ -185,12 +185,12 @@ export function InventoryDetailDrawer({
               {PROJECT_CATEGORY_LABELS[category] || category}
             </span>
             {isMixedUse && (
-              <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-accent-bg text-accent">
+              <span className="text-[11px] font-semibold uppercase px-2 py-0.5 rounded bg-accent-bg text-accent">
                 Mixed-Use Component
               </span>
             )}
             {item.is_corner_plot && (
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-warning-bg text-warning">
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-warning-bg text-warning">
                 Corner Plot
               </span>
             )}
@@ -583,7 +583,7 @@ export function InventoryDetailDrawer({
             {item.internal_notes ? (
               <div className="p-4 rounded-xl border border-warning/30 bg-warning-bg/40 space-y-1.5">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-warning-bg/80 text-warning">
+                  <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-warning-bg/80 text-warning">
                     Restricted • Team Only
                   </span>
                 </div>

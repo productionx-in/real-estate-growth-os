@@ -130,7 +130,7 @@ export function LeadsTable({ leads, orgSlug, orgId, viewerRole, assignableIds = 
                   {lead.assignee ? (
                     <div className="flex items-center gap-1.5">
                       <div className="w-5 h-5 rounded-full bg-[var(--brand-light)] flex items-center justify-center flex-shrink-0">
-                        <span className="text-[9px] font-bold text-[var(--brand)]">
+                        <span className="text-[11px] font-bold text-[var(--brand)]">
                           {lead.assignee.full_name.charAt(0).toUpperCase()}
                         </span>
                       </div>

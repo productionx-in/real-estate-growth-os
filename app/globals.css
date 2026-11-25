@@ -121,9 +121,18 @@
   --chat-action-foreground: #ffffff;
   --chat-mine: #dcfce7;
 
-  --shadow-sm: 0 1px 2px rgb(17 24 39 / 0.06);
-  --shadow-md: 0 4px 12px rgb(17 24 39 / 0.08), 0 1px 3px rgb(17 24 39 / 0.06);
-  --shadow-lg: 0 16px 40px rgb(17 24 39 / 0.16);
+  /* Depth: one elevation family (design system v2). Each step is a tight contact shadow plus a soft ambient one, so
+     surfaces read as layers stacked toward the viewer rather than as boxes with outlines. 2xs–sm: resting surfaces
+     (cards, fields); md: raised on hover; lg: menus and popovers; xl–2xl: dialogs and sheets. */
+  --shadow-2xs: 0 1px 1px rgb(17 24 39 / 0.04);
+  --shadow-xs: 0 1px 2px rgb(17 24 39 / 0.05), 0 1px 1px rgb(17 24 39 / 0.03);
+  --shadow-sm: 0 1px 2px rgb(17 24 39 / 0.06), 0 2px 6px -1px rgb(17 24 39 / 0.05);
+  --shadow-md: 0 2px 4px -1px rgb(17 24 39 / 0.07), 0 8px 20px -4px rgb(17 24 39 / 0.10);
+  --shadow-lg: 0 4px 8px -2px rgb(17 24 39 / 0.08), 0 16px 36px -8px rgb(17 24 39 / 0.16);
+  --shadow-xl: 0 8px 16px -4px rgb(17 24 39 / 0.10), 0 28px 56px -12px rgb(17 24 39 / 0.22);
+  --shadow-2xl: 0 12px 24px -6px rgb(17 24 39 / 0.12), 0 40px 80px -16px rgb(17 24 39 / 0.28);
+  /* The lit top edge of a raised surface (dark mode makes it visible; light mode keeps it subtle). */
+  --edge-highlight: inset 0 1px 0 rgb(255 255 255 / 0.7);
 
   /* Layout and shape */
   --sidebar-width: 240px;
@@ -137,8 +146,13 @@
 
   /* Motion: one rhythm everywhere (150–250ms, ease-out in). Reduced motion is honoured below. */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  /* A gentle overshoot for things that arrive (dialogs, menus, banners, pages); never for things that leave. */
+  --ease-spring: cubic-bezier(0.2, 0.9, 0.3, 1.15);
   --duration-fast: 150ms;
   --duration-base: 220ms;
+  --duration-slow: 320ms;
+  --radius-2xl: 20px;
 
   color-scheme: light;
 }
@@ -213,9 +227,14 @@
   --chat-action-foreground: #ffffff;
   --chat-mine: rgb(34 197 94 / 0.2);
 
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
-  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.45);
-  --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.55);
+  --shadow-2xs: 0 1px 1px rgb(0 0 0 / 0.30);
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.40), 0 2px 6px -1px rgb(0 0 0 / 0.30);
+  --shadow-md: 0 2px 4px -1px rgb(0 0 0 / 0.45), 0 10px 24px -6px rgb(0 0 0 / 0.50);
+  --shadow-lg: 0 4px 8px -2px rgb(0 0 0 / 0.50), 0 18px 40px -8px rgb(0 0 0 / 0.60);
+  --shadow-xl: 0 8px 16px -4px rgb(0 0 0 / 0.55), 0 30px 60px -12px rgb(0 0 0 / 0.65);
+  --shadow-2xl: 0 12px 24px -6px rgb(0 0 0 / 0.60), 0 44px 88px -16px rgb(0 0 0 / 0.70);
+  --edge-highlight: inset 0 1px 0 rgb(255 255 255 / 0.06);
 
   color-scheme: dark;
 }
@@ -271,9 +290,17 @@
   --radius-md: var(--radius);
   --radius-lg: var(--radius-lg);
   --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+  --ease-out: var(--ease-out);
+  --ease-in: var(--ease-in);
+  --ease-spring: var(--ease-spring);
   --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
@@ -358,3 +385,119 @@ svg[data-animated] .rio-wing { transform-box: fill-box; transform-origin: 10% 20
 @keyframes alert-out { to { transform: translateY(-40%) scale(0.97); opacity: 0 } }
 .alert-banner { animation: alert-in 380ms cubic-bezier(0.2, 0.9, 0.3, 1) both; }
 .alert-banner[data-leaving] { animation: alert-out 200ms ease-in both; }
+
+
+/* ═══ Design system v2: depth, motion and interaction, product-wide ═══════════════════════════════════════════════
+   One language for every screen. Defaults use :where() (zero specificity), so any component's own utilities still win;
+   they exist so that every control in the product, including older hand-built ones, behaves the same way:
+     • everything clickable answers a hover and a press within 150 ms, and shows the same focus ring;
+     • raised surfaces carry the lit top edge; interactive ones lift toward the pointer (.lift) or tilt (.tilt3d);
+     • things that arrive use the spring curve, things that leave are faster and plain;
+     • reduced motion turns all of it into instant changes (rule above). */
+@layer base {
+  :where(button, [role="button"], a, summary, select, input, textarea, [role="menuitem"], [role="tab"], [role="switch"], [role="option"]) {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-duration: var(--duration-fast);
+    transition-timing-function: var(--ease-out);
+  }
+  :where(button, [role="button"], [role="tab"], [role="switch"]):where(:not(:disabled)):active { scale: 0.98; }
+  :where(button, [role="button"], a, summary, select, input, textarea, [role="menuitem"], [role="tab"], [role="switch"], [tabindex]):focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+  :where(input, select, textarea):where(:not([type="checkbox"]):not([type="radio"]):not([type="range"])):focus-visible { outline-offset: 0; }
+  :where(button:disabled, [aria-disabled="true"]) { cursor: not-allowed; }
+  :where(table) :where(tbody) :where(tr) { transition: background-color var(--duration-fast) var(--ease-out); }
+}
+
+/* Raised surface: the lit top edge over its shadow. Cards, panels and menus share it. */
+.surface-raised { box-shadow: var(--edge-highlight), var(--shadow-sm); }
+
+/* Lifts toward the pointer: clickable cards, rows that open something. Touch screens get the press instead. */
+.lift { transition: transform var(--duration-base) var(--ease-spring), box-shadow var(--duration-base) var(--ease-out), border-color var(--duration-fast) var(--ease-out); }
+@media (hover: hover) and (pointer: fine) {
+  .lift:hover { transform: translateY(-2px); box-shadow: var(--edge-highlight), var(--shadow-md); }
+}
+.lift:active { transform: translateY(0) scale(0.99); box-shadow: var(--edge-highlight), var(--shadow-xs); }
+
+/* 3D tilt (components/ui/tilt.tsx sets --rx/--ry/--mx/--my from the pointer): a few degrees of perspective and a soft
+   light that follows the pointer. Mouse only; never on touch; off with reduced motion. */
+.tilt3d {
+  --rx: 0deg;
+  --ry: 0deg;
+  --mx: 50%;
+  --my: 0%;
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+  transform-style: preserve-3d;
+  transition: transform var(--duration-slow) var(--ease-spring), box-shadow var(--duration-base) var(--ease-out);
+  will-change: transform;
+}
+.tilt3d[data-active] { transition-duration: 80ms, var(--duration-base); box-shadow: var(--edge-highlight), var(--shadow-lg); }
+.tilt3d::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), rgb(255 255 255 / 0.10), transparent 45%);
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+.tilt3d[data-active]::after { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .tilt3d { transform: none !important; } }
+
+/* Page entrance: every workspace page rises into place with a touch of depth (app/(dashboard)/[orgSlug]/template.tsx). */
+@keyframes page-enter { from { opacity: 0; transform: perspective(1200px) translateY(10px) rotateX(1.5deg); } to { opacity: 1; transform: none; } }
+.page-enter { animation: page-enter var(--duration-slow) var(--ease-out) both; transform-origin: 50% 0; }
+
+/* Overlays: dialogs scale up from slightly behind the page; menus open from where they were triggered. */
+@keyframes overlay-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes overlay-out { from { opacity: 1 } to { opacity: 0 } }
+@keyframes dialog-in { from { opacity: 0; transform: perspective(1000px) translateY(10px) rotateX(6deg) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes dialog-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(4px) scale(0.97); } }
+/* Phones: dialogs are bottom sheets that slide up from the thumb's side of the screen. */
+@keyframes sheet-in { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sheet-out { to { transform: translateY(100%); } }
+@keyframes menu-in { from { opacity: 0; transform: perspective(800px) rotateX(-8deg) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes menu-out { to { opacity: 0; transform: scale(0.97); } }
+.anim-overlay[data-state="open"] { animation: overlay-in var(--duration-base) var(--ease-out); }
+.anim-overlay[data-state="closed"] { animation: overlay-out var(--duration-fast) var(--ease-in); }
+.anim-dialog[data-state="open"] { animation: dialog-in var(--duration-slow) var(--ease-spring); }
+.anim-dialog[data-state="closed"] { animation: dialog-out var(--duration-fast) var(--ease-in); }
+@media (max-width: 639px) {
+  .anim-dialog[data-state="open"] { animation: sheet-in var(--duration-slow) var(--ease-out); }
+  .anim-dialog[data-state="closed"] { animation: sheet-out var(--duration-base) var(--ease-in); }
+}
+.anim-menu { transform-origin: top; }
+.anim-menu[data-side="top"] { transform-origin: bottom; }
+.anim-menu[data-side="left"] { transform-origin: right; }
+.anim-menu[data-side="right"] { transform-origin: left; }
+.anim-menu[data-state="open"] { animation: menu-in var(--duration-base) var(--ease-spring); }
+.anim-menu[data-state="closed"] { animation: menu-out var(--duration-fast) var(--ease-in); }
+
+/* Loading: a light sweeping across placeholders reads as "coming" rather than "broken". */
+@keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+.shimmer {
+  background: linear-gradient(90deg, var(--surface-hover) 25%, color-mix(in srgb, var(--surface-hover) 55%, var(--surface)) 50%, var(--surface-hover) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* Lists that arrive: items settle one after another (30 ms apart, the first eight only). */
+@keyframes item-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.stagger > * { animation: item-in var(--duration-base) var(--ease-out) both; }
+.stagger > :nth-child(2) { animation-delay: 30ms } .stagger > :nth-child(3) { animation-delay: 60ms }
+.stagger > :nth-child(4) { animation-delay: 90ms } .stagger > :nth-child(5) { animation-delay: 120ms }
+.stagger > :nth-child(6) { animation-delay: 150ms } .stagger > :nth-child(7) { animation-delay: 180ms }
+.stagger > :nth-child(n+8) { animation-delay: 210ms }
+
+/* Empty states float a little, as if waiting (components/ui/empty-state.tsx). */
+@keyframes float-soft { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-4px) } }
+.empty-stack { animation: float-soft 4s ease-in-out infinite; }
+
+/* Navigation: the current page's marker grows into place; the phone tab bar's active tab pops. */
+@keyframes nav-indicator { from { transform: scaleY(0.3); opacity: 0 } to { transform: none; opacity: 1 } }
+.nav-indicator { animation: nav-indicator var(--duration-base) var(--ease-spring) both; transform-origin: center; }
+@keyframes nav-pop { 0% { transform: scale(0.85) } 60% { transform: scale(1.06) } 100% { transform: none } }
+.nav-pop { animation: nav-pop var(--duration-slow) var(--ease-spring) both; }
+
+/* Hand-built dialogs (.modal-host: the full-screen layer that centres the panel; .modal-backdrop: a separate dimmer) enter
+   exactly like components/ui/dialog: the dimmer fades, the panel rises from slightly behind the page. */
+.modal-backdrop, .modal-host { animation: overlay-in var(--duration-base) var(--ease-out); }
+.modal-host > * { animation: dialog-in var(--duration-slow) var(--ease-spring); }
+@media (max-width: 639px) { .modal-host.items-end > * { animation: sheet-in var(--duration-slow) var(--ease-out); } }

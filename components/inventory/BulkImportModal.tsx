@@ -266,7 +266,7 @@ export function BulkImportModal({
 
   return (
     <>
-      <div className="fixed inset-0 bg-overlay backdrop-blur-[1px] z-50 transition-opacity" onClick={onClose} />
+      <div className="modal-backdrop fixed inset-0 bg-overlay backdrop-blur-[1px] z-50 transition-opacity" onClick={onClose} />
 
       <div className="fixed inset-4 sm:inset-10 lg:inset-y-12 lg:inset-x-32 z-50 bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in-50 duration-200">
         {/* Header */}
@@ -714,7 +714,7 @@ export function BulkImportModal({
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-brand" />
                           <span className="font-bold text-[var(--foreground)]">{h.file_name}</span>
-                          <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-surface-hover text-muted">
+                          <span className="text-[11px] uppercase font-mono px-1.5 py-0.2 rounded bg-surface-hover text-muted">
                             {h.file_type}
                           </span>
                           <span className="text-xs text-[var(--foreground-muted)] font-mono">({h.reference_id})</span>

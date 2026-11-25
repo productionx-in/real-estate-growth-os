@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div aria-hidden className={cn('animate-pulse rounded bg-surface-hover', className)} {...props} />
+  return <div aria-hidden className={cn('shimmer rounded-md', className)} {...props} />
 }
 
 export function Spinner({ className, label = 'Loading' }: { className?: string; label?: string }) {

@@ -73,7 +73,7 @@ export function QuickAddUnitsModal({ projectId, projectCategory, onClose, onSucc
   const ready = check ? check.validRowsCount : generated.units.length
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4" onClick={onClose}>
+    <div className="modal-host fixed inset-0 z-50 flex items-end justify-center bg-overlay p-0 sm:items-center sm:p-4" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-labelledby="quick-add-title" onClick={(e) => e.stopPropagation()}
         className="max-h-[92dvh] w-full max-w-2xl overflow-y-auto rounded-t-2xl bg-surface shadow-xl sm:rounded-2xl">
         <div className="sticky top-0 flex items-start justify-between gap-3 border-b border-default bg-surface px-5 py-4">

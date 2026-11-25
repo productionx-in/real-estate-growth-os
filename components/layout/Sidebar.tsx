@@ -99,7 +99,7 @@ export function Sidebar({
   }
 
   const brandMark = (
-    <span className="flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand text-brand-foreground shadow-xs">
+    <span className="flex size-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand bg-gradient-to-b from-white/20 to-transparent text-brand-foreground [box-shadow:inset_0_1px_0_rgb(255_255_255/0.35),var(--shadow-sm)]">
       <Building2 aria-hidden className="size-4" />
     </span>
   )
@@ -186,13 +186,14 @@ export function Sidebar({
                       aria-current={active ? 'page' : undefined}
                       aria-label={rail ? item.label : undefined}
                       className={cn(
-                        'group relative flex items-center gap-2.5 rounded-lg text-[13px] font-medium transition-colors',
+                        'group relative flex items-center gap-2.5 rounded-lg text-[13px] font-medium',
                         rail ? 'size-10 justify-center' : 'px-2.5 py-2 pointer-coarse:py-2.5',
-                        active ? 'bg-[var(--sidebar-active-bg)] text-[var(--sidebar-active-text)]' : 'text-muted hover:bg-surface-hover hover:text-foreground'
+                        // The current page sits on a raised pill; the others lift their icon toward the pointer.
+                        active ? 'bg-[var(--sidebar-active-bg)] text-[var(--sidebar-active-text)] [box-shadow:var(--edge-highlight),var(--shadow-xs)]' : 'text-muted hover:bg-surface-hover hover:text-foreground'
                       )}
                     >
-                      {active && !rail && <span aria-hidden className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-brand" />}
-                      <Icon className={cn('size-4 flex-shrink-0', active ? 'text-brand' : 'text-subtle group-hover:text-foreground')} />
+                      {active && !rail && <span aria-hidden className="nav-indicator absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-brand" />}
+                      <Icon className={cn('size-4 flex-shrink-0 transition-transform duration-200 ease-[var(--ease-spring)]', active ? 'text-brand' : 'text-subtle group-hover:translate-x-0.5 group-hover:text-foreground')} />
                       {!rail && <span className="truncate">{item.label}</span>}
                     </Link>
                   )

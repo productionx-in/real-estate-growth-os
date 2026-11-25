@@ -225,7 +225,7 @@ export function InventoryTable({
                     <div className="flex items-center gap-1.5">
                       <span>{item.unit_number}</span>
                       {item.is_corner_plot && (
-                        <span className="text-[10px] bg-warning-bg text-warning px-1.5 py-0.5 rounded font-medium">
+                        <span className="text-[11px] bg-warning-bg text-warning px-1.5 py-0.5 rounded font-medium">
                           Corner
                         </span>
                       )}

@@ -280,7 +280,7 @@ export function TeamManagementClient({
                         <div>
                           <p className="font-semibold text-[var(--foreground)] leading-tight">
                             {m.name}
-                            {isSelf && <span className="ml-1.5 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-surface-hover text-muted align-middle">You</span>}
+                            {isSelf && <span className="ml-1.5 rounded px-1.5 py-0.5 text-[11px] font-semibold bg-surface-hover text-muted align-middle">You</span>}
                           </p>
                           <p className="text-[11px] text-[var(--foreground-muted)] flex items-center gap-1 mt-0.5">
                             <Mail className="w-3 h-3 text-[var(--foreground-subtle)]" />
@@ -321,7 +321,7 @@ export function TeamManagementClient({
                     </td>
                     <td className="px-5 py-3.5 text-[12px]">
                       {m.lastSignInAt ? (
-                        <span className={now - new Date(m.lastSignInAt).getTime() > 14 * 86_400_000 ? 'text-warning' : 'text-[var(--foreground-muted)]'} title={new Date(m.lastSignInAt).toLocaleString('en-IN')}>
+                        <span className={now - new Date(m.lastSignInAt).getTime() > 14 * 86_400_000 ? 'text-warning' : 'text-[var(--foreground-muted)]'} title={new Date(m.lastSignInAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}>
                           {formatRelative(m.lastSignInAt)}
                         </span>
                       ) : <span className="text-subtle">Never</span>}
