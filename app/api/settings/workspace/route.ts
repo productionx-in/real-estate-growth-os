@@ -9,7 +9,7 @@ import { normaliseSection } from '@/lib/settings/workspace'
 
 const Schema = z.object({
   orgId: z.string().uuid(),
-  section: z.enum(['leads', 'inventory', 'reports', 'lists', 'fields', 'notifications', 'visits', 'matching']),
+  section: z.enum(['leads', 'inventory', 'reports', 'lists', 'fields', 'notifications', 'visits', 'matching', 'whatsapp']),
   value: z.record(z.string(), z.unknown()),
 })
 

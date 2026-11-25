@@ -64,7 +64,20 @@ export interface FieldSettings {
   lead: FieldDef[]
 }
 
-export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings; notifications: TeamDefaults; visits: VisitSettings; matching: MatchingSettings }
+export interface WhatsAppSettings {
+  /** Reply once, automatically, the first time a buyer writes to the workspace's WhatsApp number. */
+  welcomeEnabled: boolean
+  welcomeMessage: string
+  /** Outside business hours, tell the buyer when they will hear back (at most once every 12 hours per buyer). */
+  awayEnabled: boolean
+  awayMessage: string
+  /** Business hours, India time: from hoursStart:00 to hoursEnd:00 on workDays (0 = Sunday … 6 = Saturday). */
+  hoursStart: number
+  hoursEnd: number
+  workDays: number[]
+}
+
+export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings; notifications: TeamDefaults; visits: VisitSettings; matching: MatchingSettings; whatsapp: WhatsAppSettings }
 export type SettingsSection = keyof WorkspaceSettings
 
 // The reasons Indian sales teams record most often; a workspace edits, reorders or replaces them.
@@ -80,6 +93,14 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
   fields: { lead: [] },
   notifications: DEFAULT_TEAM,
   visits: { buyerConfirmation: true, buyerReminder24h: true, buyerReminder2h: true, checkinRadiusM: 500, maxPerPersonPerDay: 0 },
+  // Off until a workspace writes its own words: nothing is ever sent to buyers on REGrow's say-so.
+  whatsapp: {
+    welcomeEnabled: false,
+    welcomeMessage: 'Hi {{first_name}}, thank you for contacting us! One of our property advisors will reply shortly.',
+    awayEnabled: false,
+    awayMessage: 'Hi {{first_name}}, thanks for your message. Our team is available Monday to Saturday, 10 am to 7 pm, and will reply as soon as we are back.',
+    hoursStart: 10, hoursEnd: 19, workDays: [1, 2, 3, 4, 5, 6],
+  },
   matching: { overBudgetPct: 10, minScore: 0, maxSuggestions: 8 },
 }
 
@@ -153,6 +174,36 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
     }
     return { value: value as WorkspaceSettings[S], errors }
   }
+  if (section === 'whatsapp') {
+    const text = (key: string, label: string, enabled: boolean, fallback: string) => {
+      const v = typeof o[key] === 'string' ? (o[key] as string).replace(/\r\n/g, '\n').trim() : ''
+      if (v.length > 1000) errors[key] = `${label}: keep it under 1,000 characters.`
+      else if (enabled && !v) errors[key] = `${label}: write the message, or turn it off.`
+      const bad = [...v.matchAll(/\{\{\s*([^}]*?)\s*\}\}/g)].map((m) => m[1]).filter((x) => x.toLowerCase() !== 'first_name')
+      if (bad.length) errors[key] = `${label}: only {{first_name}} can be filled in; remove {{${bad[0]}}}.`
+      return v.slice(0, 1000) || fallback
+    }
+    const hour = (key: string, fallback: number) => {
+      const v = o[key]
+      if (typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 24) return v
+      errors[key] = 'Pick an hour.'
+      return fallback
+    }
+    const welcomeEnabled = o.welcomeEnabled === true, awayEnabled = o.awayEnabled === true
+    const days = [...new Set((Array.isArray(o.workDays) ? o.workDays : []).filter((d): d is number => typeof d === 'number' && Number.isInteger(d) && d >= 0 && d <= 6))].sort()
+    const value: WhatsAppSettings = {
+      welcomeEnabled,
+      welcomeMessage: text('welcomeMessage', 'Welcome message', welcomeEnabled, DEFAULT_SETTINGS.whatsapp.welcomeMessage),
+      awayEnabled,
+      awayMessage: text('awayMessage', 'Away message', awayEnabled, DEFAULT_SETTINGS.whatsapp.awayMessage),
+      hoursStart: hour('hoursStart', 10),
+      hoursEnd: hour('hoursEnd', 19),
+      workDays: days,
+    }
+    if (value.hoursEnd <= value.hoursStart) errors.hoursEnd = 'Business hours must end after they start.'
+    if (awayEnabled && !days.length) errors.workDays = 'Pick at least one working day.'
+    return { value: value as WorkspaceSettings[S], errors }
+  }
   if (section === 'leads') {
     const value: LeadSettings = {
       lostReasons: reasons(o.lostReasons, 'Lost reasons', errors, 'lostReasons'),
@@ -191,7 +242,7 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
 }
 
 /** A stored row (possibly partial or from an older version) merged over the defaults; never throws. */
-export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown; notifications?: unknown; visits?: unknown; matching?: unknown } | null | undefined): WorkspaceSettings {
+export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown; notifications?: unknown; visits?: unknown; matching?: unknown; whatsapp?: unknown } | null | undefined): WorkspaceSettings {
   const merge = <S extends SettingsSection>(s: S, stored: unknown): WorkspaceSettings[S] => {
     if (!stored || typeof stored !== 'object' || Array.isArray(stored) || !Object.keys(stored).length) return DEFAULT_SETTINGS[s]
     const { value } = normaliseSection(s, { ...DEFAULT_SETTINGS[s], ...(stored as object) })
@@ -205,6 +256,7 @@ export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; rep
     fields: { lead: fieldsFromStored(stored.lead) },
     notifications: teamFromStored(row?.notifications),
     visits: merge('visits', row?.visits), matching: merge('matching', row?.matching),
+    whatsapp: merge('whatsapp', row?.whatsapp),
   }
 }
 
