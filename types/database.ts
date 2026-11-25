@@ -1646,6 +1646,7 @@ export interface Database {
           phone_number_id: string
           status: 'open' | 'closed' | 'paused'
           is_opted_out: boolean
+          last_auto_reply_at: string | null
           opted_out_at: string | null
           last_inbound_at: string | null
           contact_name: string | null
@@ -1667,6 +1668,7 @@ export interface Database {
           phone_number_id: string
           status?: 'open' | 'closed' | 'paused'
           is_opted_out?: boolean
+          last_auto_reply_at?: string | null
           opted_out_at?: string | null
           last_inbound_at?: string | null
           contact_name?: string | null
@@ -1688,6 +1690,7 @@ export interface Database {
           phone_number_id?: string
           status?: 'open' | 'closed' | 'paused'
           is_opted_out?: boolean
+          last_auto_reply_at?: string | null
           opted_out_at?: string | null
           last_inbound_at?: string | null
           contact_name?: string | null

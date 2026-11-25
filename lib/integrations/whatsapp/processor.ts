@@ -8,6 +8,9 @@ import { processInboundLead } from '@/lib/integrations/inbound'
 import { normalizeWhatsAppInboundMessage } from './normalizer'
 import { evaluateConsentKeyword } from './consent'
 import { recordWhatsAppConsent } from '@/lib/dal/campaigns'
+import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
+import { sendWhatsAppMessage } from './client'
+import { AWAY_GAP_MS, decideAutoReply, fillAutoReply } from './auto-reply'
 import type {
   WhatsAppWebhookPayload,
 } from './types'
@@ -131,7 +134,7 @@ export async function processWhatsAppWebhookPayload(params: {
                 },
                 { onConflict: 'org_id,connection_id,wa_id' as never }
               )
-              .select('id')
+              .select('id, is_opted_out, last_auto_reply_at')
               .maybeSingle()
 
             const convId = conv?.id || null
@@ -142,8 +145,8 @@ export async function processWhatsAppWebhookPayload(params: {
                 console.error('[whatsapp] could not record the marketing opt-out:', e instanceof Error ? e.message : e))
             }
 
-            // Insert message record
-            await service.from('whatsapp_messages').insert({
+            // Insert message record (a webhook retry of the same message is refused by the unique wamid)
+            const { data: recorded } = await service.from('whatsapp_messages').insert({
               org_id: connection.org_id,
               conversation_id: convId,
               lead_id: leadId,
@@ -154,7 +157,17 @@ export async function processWhatsAppWebhookPayload(params: {
               referral_metadata: (msg.referral as unknown as Record<string, unknown>) || null,
               delivery_status: 'delivered',
               received_at: new Date(Number(msg.timestamp) * 1000).toISOString(),
-            })
+            }).select('id').maybeSingle()
+
+            // Settings → WhatsApp: welcome / away message (lib/integrations/whatsapp/auto-reply.ts). Never blocks intake.
+            if (convId) {
+              await sendAutoReply({
+                orgId: connection.org_id, connectionId: connection.id, conversationId: convId, leadId, to: waId,
+                profileName: contactName, firstMessage: !existingConv, consentKeyword: consentResult.isOptOutKeyword || consentResult.isOptInKeyword,
+                optedOut: !!conv?.is_opted_out, newMessage: !!recorded,
+                lastAutoReplyAt: conv?.last_auto_reply_at ? new Date(conv.last_auto_reply_at as string) : null,
+              }).catch((e) => console.error('[whatsapp] auto-reply failed:', e instanceof Error ? e.message : e))
+            }
           } catch {
             // Non-blocking: conversation table storage is optional/staged
           }
@@ -219,4 +232,38 @@ export async function processWhatsAppWebhookPayload(params: {
   }
 
   return summary
+}
+
+/**
+ * Sends the welcome or away message when Settings → WhatsApp asks for one. The conversation is claimed first
+ * (last_auto_reply_at), so simultaneous messages or webhook retries produce at most one automatic reply.
+ */
+export async function sendAutoReply(a: {
+  orgId: string; connectionId: string; conversationId: string; leadId: string | null; to: string; profileName: string | null
+  firstMessage: boolean; consentKeyword: boolean; optedOut: boolean; newMessage: boolean; lastAutoReplyAt: Date | null; now?: Date
+}): Promise<'welcome' | 'away' | null> {
+  const now = a.now ?? new Date()
+  if (!a.newMessage || a.consentKeyword || a.optedOut) return null
+  const { whatsapp: settings } = await getWorkspaceSettings(a.orgId)
+  const decision = decideAutoReply({ settings, firstMessage: a.firstMessage, consentKeyword: a.consentKeyword, optedOut: a.optedOut, newMessage: a.newMessage, lastAutoReplyAt: a.lastAutoReplyAt, now })
+  if (!decision) return null
+  const service = createServiceClient()
+  let claim = service.from('whatsapp_conversations').update({ last_auto_reply_at: now.toISOString() } as never)
+    .eq('org_id', a.orgId).eq('id', a.conversationId).eq('is_opted_out', false)
+  claim = decision.kind === 'welcome'
+    ? claim.is('last_auto_reply_at' as never, null)
+    : claim.or(`last_auto_reply_at.is.null,last_auto_reply_at.lt.${new Date(now.getTime() - AWAY_GAP_MS).toISOString()}`)
+  const { data: claimed } = await claim.select('id').maybeSingle()
+  if (!claimed) return null
+  const sent = await sendWhatsAppMessage({
+    orgId: a.orgId, connectionId: a.connectionId, to: a.to, conversationId: a.conversationId, leadId: a.leadId,
+    message: { type: 'text', text: { body: fillAutoReply(decision.template, a.profileName) } },
+  })
+  if (!sent.success) {
+    // Give the next message a chance: release the claim.
+    await service.from('whatsapp_conversations').update({ last_auto_reply_at: a.lastAutoReplyAt?.toISOString() ?? null } as never).eq('id', a.conversationId)
+    console.error('[whatsapp] auto-reply not sent:', sent.errorCode ?? sent.error)
+    return null
+  }
+  return decision.kind
 }
