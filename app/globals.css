@@ -501,3 +501,11 @@ svg[data-animated] .rio-wing { transform-box: fill-box; transform-origin: 10% 20
 .modal-backdrop, .modal-host { animation: overlay-in var(--duration-base) var(--ease-out); }
 .modal-host > * { animation: dialog-in var(--duration-slow) var(--ease-spring); }
 @media (max-width: 639px) { .modal-host.items-end > * { animation: sheet-in var(--duration-slow) var(--ease-out); } }
+
+/* Sales performance (components/performance/*): lit medals glow softly; bars rise in turn; the podium steps settle. */
+@keyframes medal-glow { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--warning) 35%, transparent), var(--shadow-md); } 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--warning) 0%, transparent), var(--shadow-md); } }
+.medal-lit { animation: medal-glow 2.8s ease-in-out infinite; }
+@keyframes bar-rise { from { transform: scaleY(0); } to { transform: none; } }
+.stagger-bar { animation: bar-rise var(--duration-slow) var(--ease-out) both; }
+@keyframes podium-rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.podium-step { animation: podium-rise 520ms var(--ease-spring) both; }
