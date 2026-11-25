@@ -53,6 +53,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const { project, error } = await updateProject(projectId, parsed.data)
+    if (error?.startsWith('project category: ')) {
+      // The project still has units of another category (migration 20260091): say so plainly.
+      return NextResponse.json({ error: error.slice('project category: '.length) }, { status: 409 })
+    }
     if (error || !project) {
       return NextResponse.json({ error: error ?? 'Update failed' }, { status: 500 })
     }
