@@ -15,7 +15,7 @@ export type OverviewPeriod = keyof typeof OVERVIEW_PERIODS
 export interface OverviewRow {
   profileId: string; name: string; role: MemberRole; teams: string[]
   level: string; xp: number
-  assigned: number; contacted: number; followUps: number; visits: number; closed: number; revenue: number; periodXp: number
+  assigned: number; contacted: number; followUps: number; visits: number; closed: number; deals: number; revenue: number; periodXp: number
   conversionPct: number | null
   openLeads: number; waitingFirstCall: number; overdueFollowUps: number
   targetPct: number | null; achievements: number
@@ -46,7 +46,7 @@ export async function getTeamOverview(orgId: string, period: OverviewPeriod, onl
   if (only) mq = mq.in('profile_id', only)
   const [{ data: members }, inWindow, allTime, open, waiting, overdue, targets, teamRows, unlocks, unassigned] = await Promise.all([
     mq,
-    db().from('performance_events').select('profile_id, kind, units, value, xp, occurred_at, detail').eq('org_id', orgId).gte('occurred_at', w.from.toISOString()).lt('occurred_at', w.to.toISOString()).limit(20000),
+    db().from('performance_events').select('profile_id, kind, units, value, xp, occurred_at, detail, credit').eq('org_id', orgId).gte('occurred_at', w.from.toISOString()).lt('occurred_at', w.to.toISOString()).limit(20000),
     db().from('performance_events').select('profile_id, xp').eq('org_id', orgId).limit(50000),
     svc.from('leads').select('assigned_to').eq('org_id', orgId).not('assigned_to', 'is', null).not('status', 'in', '(booked,lost,junk)').limit(20000),
     svc.from('leads').select('assigned_to').eq('org_id', orgId).eq('status', 'new').is('first_action_at', null).not('assigned_to', 'is', null).limit(20000),
@@ -78,8 +78,8 @@ export async function getTeamOverview(orgId: string, period: OverviewPeriod, onl
     rows.push({
       profileId: m.profile_id, name: m.profiles?.full_name?.trim() || 'Team member', role: m.role, teams: (teamsOf.get(m.profile_id) ?? []).map((x) => x.name),
       level: levelFor(xp, settings.levels).level.name, xp,
-      assigned: t?.assigned ?? 0, contacted: t?.contacted ?? 0, followUps: t?.follow_ups ?? 0, visits: t?.meetings ?? 0, closed: t?.closed ?? 0, revenue: t?.revenue ?? 0, periodXp: t?.xp ?? 0,
-      conversionPct: t && t.assigned > 0 ? Math.round((t.closed / t.assigned) * 100) : null,
+      assigned: t?.assigned ?? 0, contacted: t?.contacted ?? 0, followUps: t?.follow_ups ?? 0, visits: t?.meetings ?? 0, closed: t?.closed ?? 0, deals: t?.deals ?? 0, revenue: t?.revenue ?? 0, periodXp: t?.xp ?? 0,
+      conversionPct: t && t.assigned > 0 ? Math.round((t.deals / t.assigned) * 100) : null,
       openLeads: openBy.get(m.profile_id) ?? 0, waitingFirstCall: waitingBy.get(m.profile_id) ?? 0, overdueFollowUps: overdueBy.get(m.profile_id) ?? 0,
       targetPct: pcts.length ? Math.round(pcts.reduce((s, p) => s + p, 0) / pcts.length) : null,
       achievements: unlockBy.get(m.profile_id) ?? 0,
@@ -87,12 +87,12 @@ export async function getTeamOverview(orgId: string, period: OverviewPeriod, onl
   }
   rows.sort((a, b) => b.closed - a.closed || b.revenue - a.revenue || b.periodXp - a.periodXp || a.name.localeCompare(b.name))
   const sum = (k: keyof OverviewRow) => rows.reduce((s, r) => s + (r[k] as number), 0)
-  const assigned = sum('assigned'), closed = sum('closed')
+  const assigned = sum('assigned'), closed = Math.round(sum('closed') * 10000) / 10000, deals = sum('deals')
   return {
     period, from: w.from, to: w.to, rows, unassigned: unassigned.count ?? 0,
     totals: {
-      people: rows.length, assigned, contacted: sum('contacted'), followUps: sum('followUps'), visits: sum('visits'), closed, revenue: sum('revenue'), periodXp: sum('periodXp'),
-      conversionPct: assigned > 0 ? Math.round((closed / assigned) * 100) : null,
+      people: rows.length, assigned, contacted: sum('contacted'), followUps: sum('followUps'), visits: sum('visits'), closed, deals, revenue: sum('revenue'), periodXp: sum('periodXp'),
+      conversionPct: assigned > 0 ? Math.round((deals / assigned) * 100) : null,
       openLeads: sum('openLeads'), waitingFirstCall: sum('waitingFirstCall'), overdueFollowUps: sum('overdueFollowUps'),
     },
   }

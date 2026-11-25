@@ -24,7 +24,7 @@ test('counting: contacts, deals net of reversals, revenue net of cancellations, 
     ev('a', 'deal_closed', 1, 100), ev('a', 'revenue', 0, 0, 5000000), ev('a', 'revenue', 0, 0, -5000000), ev('a', 'revenue', 0, 0, 9000000),
     ev('a', 'mission', 1, 20), ev('b', 'follow_up_done', 1, 5),
   ])
-  assert.deepEqual(t.get('a'), { assigned: 1, contacted: 1, follow_ups: 0, meetings: 0, closed: 1, revenue: 9000000, xp: 130, missions: 1, targets: 0 })
+  assert.deepEqual(t.get('a'), { assigned: 1, contacted: 1, follow_ups: 0, meetings: 0, closed: 1, revenue: 9000000, xp: 130, missions: 1, targets: 0, deals: 1 })
   assert.equal(t.get('b').follow_ups, 1)
 })
 

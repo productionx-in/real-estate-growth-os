@@ -9,18 +9,20 @@ export const LEADER_ROLES: readonly MemberRole[] = ['owner', 'admin', 'manager',
 export const MAX_TEAMS = 50
 export const MAX_PROJECTS_PER_TEAM = 50
 
-export interface MemberTotals { assigned: number; contacted: number; follow_ups: number; meetings: number; closed: number; revenue: number; xp: number }
+/** `closed` is deal credit (fractional when a deal is shared, 20260098); `deals` counts actual deals closed. */
+export interface MemberTotals { assigned: number; contacted: number; follow_ups: number; meetings: number; closed: number; revenue: number; xp: number; deals: number }
 export interface TeamTotals extends MemberTotals { members: number; conversionPct: number | null }
 
 export function teamTotals(memberIds: string[], per: Map<string, Partial<MemberTotals>>): TeamTotals {
   const people = new Set(memberIds)
-  const t: TeamTotals = { members: people.size, assigned: 0, contacted: 0, follow_ups: 0, meetings: 0, closed: 0, revenue: 0, xp: 0, conversionPct: null }
+  const t: TeamTotals = { members: people.size, assigned: 0, contacted: 0, follow_ups: 0, meetings: 0, closed: 0, revenue: 0, xp: 0, deals: 0, conversionPct: null }
   for (const id of people) {
     const m = per.get(id); if (!m) continue
     t.assigned += m.assigned ?? 0; t.contacted += m.contacted ?? 0; t.follow_ups += m.follow_ups ?? 0
-    t.meetings += m.meetings ?? 0; t.closed += m.closed ?? 0; t.revenue += m.revenue ?? 0; t.xp += m.xp ?? 0
+    t.meetings += m.meetings ?? 0; t.closed += m.closed ?? 0; t.revenue += m.revenue ?? 0; t.xp += m.xp ?? 0; t.deals += m.deals ?? 0
   }
-  t.conversionPct = t.assigned > 0 ? Math.round((t.closed / t.assigned) * 100) : null
+  t.closed = Math.round(t.closed * 10000) / 10000
+  t.conversionPct = t.assigned > 0 ? Math.round((t.deals / t.assigned) * 100) : null
   return t
 }
 

@@ -4,6 +4,7 @@
 import { getSalesStructure } from '@/lib/dal/sales-structure'
 import { canTakeLeads } from '@/lib/sales/structure'
 import type { MemberRole } from '@/types/database'
+import { fmtDeals } from '@/lib/sales/deal-credit'
 import { createServiceClient } from '@/lib/supabase/server'
 import {
   BUILTIN_ACHIEVEMENTS, METRICS, gamificationFromStored, gamificationToStored, levelFor, periodWindow,
@@ -14,16 +15,17 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = () => createServiceClient() as unknown as { from: (t: string) => any; rpc: (f: string, a: Record<string, unknown>) => any }
 
-interface EventRow { profile_id: string; kind: string; units: number; value: number | string; xp: number; occurred_at: string; detail: Record<string, unknown> | null }
-export type Totals = Record<Metric | 'xp' | 'missions' | 'targets', number>
+interface EventRow { profile_id: string; kind: string; units: number; value: number | string; xp: number; occurred_at: string; detail: Record<string, unknown> | null; credit?: number | string | null }
+/** `closed` is deal credit (fractional when a deal is shared, 20260098); `deals` is actual deals closed, each counted once. */
+export type Totals = Record<Metric | 'xp' | 'missions' | 'targets' | 'deals', number>
 
 const KIND_OF: Record<string, keyof Totals | null> = {
   lead_assigned: 'assigned', first_contact: 'contacted', follow_up_done: 'follow_ups', visit_done: 'meetings',
-  deal_closed: 'closed', deal_reversed: 'closed', mission: 'missions', target_hit: 'targets', revenue: null,
+  mission: 'missions', target_hit: 'targets', deal_closed: null, deal_reversed: null, deal_credit: null, revenue: null,
 }
-const empty = (): Totals => ({ assigned: 0, contacted: 0, follow_ups: 0, meetings: 0, closed: 0, revenue: 0, xp: 0, missions: 0, targets: 0 })
+const empty = (): Totals => ({ assigned: 0, contacted: 0, follow_ups: 0, meetings: 0, closed: 0, revenue: 0, xp: 0, missions: 0, targets: 0, deals: 0 })
 
-/** Adds events into per-person totals. */
+/** Adds events into per-person totals (the same sums as gam_metric in the database). */
 export function tally(rows: EventRow[]): Map<string, Totals> {
   const out = new Map<string, Totals>()
   for (const r of rows) {
@@ -31,7 +33,14 @@ export function tally(rows: EventRow[]): Map<string, Totals> {
     t.xp += r.xp
     const k = KIND_OF[r.kind]
     if (k) t[k] += r.units
-    if (r.kind === 'revenue') t.revenue += Number(r.value)
+    if (r.kind === 'deal_closed' || r.kind === 'deal_reversed') {
+      t.deals += r.units
+      // Before 20260098 rows had no credit; a booking was worth its units.
+      t.closed += r.credit === undefined || r.credit === null ? r.units : Number(r.credit)
+    }
+    if (r.kind === 'deal_credit') t.closed += Number(r.credit ?? 0)
+    if (r.kind === 'revenue' || r.kind === 'deal_credit') t.revenue += Number(r.value)
+    t.closed = Math.round(t.closed * 10000) / 10000
     out.set(r.profile_id, t)
   }
   return out
@@ -40,7 +49,7 @@ export function tally(rows: EventRow[]): Map<string, Totals> {
 async function events(orgId: string, from: Date | null, to: Date | null, profileId?: string): Promise<EventRow[]> {
   const rows: EventRow[] = []
   for (let page = 0; page < 50; page++) {
-    let q = db().from('performance_events').select('profile_id, kind, units, value, xp, occurred_at, detail').eq('org_id', orgId)
+    let q = db().from('performance_events').select('profile_id, kind, units, value, xp, occurred_at, detail, credit').eq('org_id', orgId)
     if (from) q = q.gte('occurred_at', from.toISOString())
     if (to) q = q.lt('occurred_at', to.toISOString())
     if (profileId) q = q.eq('profile_id', profileId)
@@ -177,7 +186,7 @@ export async function getMyPerformance(orgId: string, profileId: string, now = n
     : 'You are on top of everything. Follow up a qualified lead to move it towards a booking.'
   return {
     settings, xp, level: levelFor(xp, settings.levels), today: todayT, week: weekT, month: monthT,
-    conversionPct: monthT.assigned > 0 ? Math.round((monthT.closed / monthT.assigned) * 100) : null,
+    conversionPct: monthT.assigned > 0 ? Math.round((monthT.deals / monthT.assigned) * 100) : null,
     pendingContacts: pendingCount, upcomingFollowUps: upcoming.count ?? 0,
     targets: progress, overallTargetPct: progress.length ? Math.round(progress.reduce((s, p) => s + p.pct, 0) / progress.length) : null,
     missions, recentUnlocks: unlocks.data ?? [], history, next,
@@ -185,6 +194,7 @@ export async function getMyPerformance(orgId: string, profileId: string, now = n
 }
 
 export function fmtAmount(metric: Metric, n: number): string {
+  if (metric === 'closed') return `${fmtDeals(n)} ${METRICS[metric].unit}`
   if (metric !== 'revenue') return `${Math.max(0, Math.round(n))} ${METRICS[metric].unit}`
   const v = Math.max(0, n)
   return v >= 1e7 ? `₹${+(v / 1e7).toFixed(2)} Cr` : v >= 1e5 ? `₹${+(v / 1e5).toFixed(1)} L` : `₹${Math.round(v).toLocaleString('en-IN')}`
@@ -193,7 +203,8 @@ export function fmtAmount(metric: Metric, n: number): string {
 // ── Leaderboard ─────────────────────────────────────────────────────────────────────────────────────────────────
 export interface LeaderRow {
   profileId: string; name: string; avatarUrl: string | null; rank: number
-  xp: number; contacted: number; closed: number; revenue: number; targetPct: number | null
+  /** closed = deal credit (fractional when shared); deals = actual deals; conversionPct = deals ÷ leads assigned in the period. */
+  xp: number; contacted: number; closed: number; deals: number; conversionPct: number | null; revenue: number; targetPct: number | null
   previousXp: number; gapToNext: number | null
 }
 
@@ -225,7 +236,7 @@ export async function getLeaderboard(orgId: string, window: { from: Date; to: Da
     const pcts = mine.map((tg) => Math.min(100, (t[tg.metric] / tg.amount) * 100))
     rows.push({
       profileId: m.profile_id, name: m.profiles?.full_name?.trim() || 'Team member', avatarUrl: m.profiles?.avatar_url ?? null, rank: 0,
-      xp: t.xp, contacted: t.contacted, closed: t.closed, revenue: t.revenue,
+      xp: t.xp, contacted: t.contacted, closed: t.closed, deals: t.deals, conversionPct: t.assigned > 0 ? Math.round((t.deals / t.assigned) * 100) : null, revenue: t.revenue,
       targetPct: pcts.length ? Math.round(pcts.reduce((s, p) => s + p, 0) / pcts.length) : null,
       previousXp: (was.get(m.profile_id) ?? empty()).xp, gapToNext: null,
     })

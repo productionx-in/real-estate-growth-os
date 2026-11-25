@@ -1,4 +1,5 @@
 // app/(dashboard)/[orgSlug]/leads/[leadId]/page.tsx
+import { DealCredit } from '@/components/leads/DealCredit'
 import { assignableRolesFor } from '@/lib/dal/sales-structure'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -512,6 +513,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
             reasons={{ lost: workspaceSettings.leads.lostReasons, junk: workspaceSettings.leads.junkReasons, required: workspaceSettings.leads.requireReason }}
             closedReason={(lead as { closed_reason?: string | null }).closed_reason ?? null}
           /></div>
+          {lead.status === 'booked' && <DealCredit leadId={leadId} />}
           <LeadCustomFields
             leadId={leadId}
             defs={workspaceSettings.fields.lead}

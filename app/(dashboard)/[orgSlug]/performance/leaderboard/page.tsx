@@ -17,6 +17,7 @@ import { canManagePerformance, periodWindow } from '@/lib/performance/rules'
 import { PageShell } from '@/components/layout/PageShell'
 import { Card, CardContent, EmptyState, Tilt, Input } from '@/components/ui'
 import { PerformanceTabs } from '@/components/performance/PerformanceTabs'
+import { fmtDeals } from '@/lib/sales/deal-credit'
 import { cn } from '@/lib/utils/cn'
 
 export const metadata: Metadata = { title: 'Leaderboard' }
@@ -95,7 +96,7 @@ export default async function LeaderboardPage({ params, searchParams }: { params
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-hover" aria-hidden><div className="stagger-bar h-full origin-left rounded-full bg-brand" style={{ width: `${Math.round((t.totals.closed / top) * 100)}%` }} /></div>
                 </div>
                 <dl className="grid grid-cols-3 gap-4 text-right text-[12px] text-muted">
-                  <div><dt>Closed</dt><dd className="text-[18px] font-bold tabular-nums text-foreground">{t.totals.closed}</dd></div>
+                  <div><dt>Closed</dt><dd className="text-[18px] font-bold tabular-nums text-foreground">{fmtDeals(t.totals.closed)}</dd></div>
                   <div><dt>Revenue</dt><dd className="text-[18px] font-bold tabular-nums text-foreground">{fmtAmount('revenue', t.totals.revenue)}</dd></div>
                   <div><dt>Contacted</dt><dd className="text-[18px] font-bold tabular-nums text-foreground">{t.totals.contacted}</dd></div>
                 </dl>
@@ -183,13 +184,15 @@ export default async function LeaderboardPage({ params, searchParams }: { params
 
           <Card>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[560px] text-left text-[13px]">
+              <table className="w-full min-w-[680px] text-left text-[13px]">
                 <thead className="text-[12px] text-muted">
                   <tr className="border-b border-default">
                     <th className="px-4 py-2.5 font-medium">Rank</th><th className="px-2 py-2.5 font-medium">Salesperson</th>
                     {show.xp && <th className="px-2 py-2.5 text-right font-medium">XP</th>}
                     {show.contacted && <th className="px-2 py-2.5 text-right font-medium">Contacted</th>}
-                    {show.closed && <th className="px-2 py-2.5 text-right font-medium">Closed</th>}
+                    {show.closed && <th className="px-2 py-2.5 text-right font-medium"><abbr title="Deal credit: a shared deal counts as each person’s share" className="no-underline">Credit</abbr></th>}
+                    {show.closed && <th className="px-2 py-2.5 text-right font-medium"><abbr title="Actual deals closed, each counted once, for the person who closed it" className="no-underline">Deals</abbr></th>}
+                    {show.closed && <th className="px-2 py-2.5 text-right font-medium"><abbr title="Deals closed ÷ leads assigned in the period" className="no-underline">Conversion</abbr></th>}
                     {show.revenue && <th className="px-2 py-2.5 text-right font-medium">Revenue</th>}
                     {show.target && <th className="px-2 py-2.5 text-right font-medium">Targets</th>}
                     <th className="px-4 py-2.5 text-right font-medium">vs previous</th>
@@ -207,7 +210,9 @@ export default async function LeaderboardPage({ params, searchParams }: { params
                         </td>
                         {show.xp && <td className="px-2 py-3 text-right font-semibold tabular-nums">{r.xp.toLocaleString('en-IN')}</td>}
                         {show.contacted && <td className="px-2 py-3 text-right tabular-nums">{r.contacted}</td>}
-                        {show.closed && <td className="px-2 py-3 text-right tabular-nums">{r.closed}</td>}
+                        {show.closed && <td className="px-2 py-3 text-right tabular-nums">{fmtDeals(r.closed)}</td>}
+                        {show.closed && <td className="px-2 py-3 text-right tabular-nums">{r.deals}</td>}
+                        {show.closed && <td className="px-2 py-3 text-right tabular-nums">{r.conversionPct === null ? '—' : `${r.conversionPct}%`}</td>}
                         {show.revenue && <td className="px-2 py-3 text-right tabular-nums">{fmtAmount('revenue', r.revenue)}</td>}
                         {show.target && <td className="px-2 py-3 text-right tabular-nums">{r.targetPct === null ? '—' : `${r.targetPct}%`}</td>}
                         <td className="px-4 py-3 text-right">

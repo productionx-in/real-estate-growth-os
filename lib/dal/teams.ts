@@ -89,7 +89,7 @@ export async function teamPerformance(orgId: string, teams: TeamView[], window: 
   const read = async (from: Date | null, to: Date | null) => {
     const rows: Parameters<typeof tally>[0] = []
     for (let page = 0; page < 50; page++) {
-      let q = pdb().from('performance_events').select('profile_id, kind, units, value, xp, occurred_at, detail').eq('org_id', orgId).in('profile_id', ids)
+      let q = pdb().from('performance_events').select('profile_id, kind, units, value, xp, occurred_at, detail, credit').eq('org_id', orgId).in('profile_id', ids)
       if (from) q = q.gte('occurred_at', from.toISOString())
       if (to) q = q.lt('occurred_at', to.toISOString())
       const { data } = await q.order('occurred_at').range(page * 1000, page * 1000 + 999)
