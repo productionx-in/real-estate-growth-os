@@ -1,6 +1,7 @@
 'use client'
 // components/inventory/InventoryStatusDialog.tsx
 import { useStatusLabels } from '@/components/settings/WorkspacePrefs'
+import { Input, Textarea } from '@/components/ui'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Loader2, AlertCircle, ArrowRight } from 'lucide-react'
@@ -154,14 +155,14 @@ export function InventoryStatusDialog({
                   <label htmlFor="auditReason" className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
                     Reason for Change <span className="text-[var(--danger)]">*</span>
                   </label>
-                  <input
+                  <Input
                     id="auditReason"
                     type="text"
                     required
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     placeholder="e.g. Token advance received from buyer"
-                    className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light"
+                    className="focus:ring-brand-light"
                   />
                   <p className="text-[11px] text-[var(--foreground-subtle)] mt-1">
                     This reason is recorded in the permanent immutable audit history.
@@ -172,13 +173,13 @@ export function InventoryStatusDialog({
                   <label htmlFor="statusNotes" className="block text-[12px] font-medium text-[var(--foreground-muted)] mb-1">
                     Additional Notes (Optional)
                   </label>
-                  <textarea
+                  <Textarea
                     id="statusNotes"
                     rows={2}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="Buyer details, banker info, cheque reference..."
-                    className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light resize-none"
+                    className="focus:ring-brand-light resize-none"
                   />
                 </div>
               </>
@@ -190,7 +191,7 @@ export function InventoryStatusDialog({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] transition-colors"
+              className="btn-secondary px-4 py-2 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] transition-colors"
             >
               Cancel
             </button>
@@ -199,7 +200,7 @@ export function InventoryStatusDialog({
                 type="button"
                 onClick={handleConfirm}
                 disabled={isPending || !selectedStatus || !reason.trim()}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="btn-primary inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 {isPending ? 'Updating...' : 'Confirm Status Change'}

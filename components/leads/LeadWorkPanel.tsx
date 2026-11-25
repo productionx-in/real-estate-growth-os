@@ -3,6 +3,7 @@
 // The salesperson's cockpit on a lead: response-time countdown, one-tap Call / WhatsApp (logged as the first
 // action), two-tap call outcome with a mandatory next follow-up, and the lead's open follow-ups.
 import { useEffect, useMemo, useState } from 'react'
+import { Input, Textarea } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import { CalendarClock, Check, Clock, MessageCircle, Phone, Plus, TimerReset } from 'lucide-react'
 import { CONTACT_BUTTONS_ID, useLeadContact } from '@/components/leads/QuickContact'
@@ -189,15 +190,13 @@ export function LeadWorkPanel({ leadId, phone, slaState, slaDueAt, assignedAt, f
                   </button>
                 ))}
               </div>
-              <input type="datetime-local" value={followUp} onChange={(e) => setFollowUp(e.target.value)} aria-label="Next follow-up time"
-                className="w-full px-2.5 py-1.5 text-[12px] rounded-lg border border-[var(--border)] bg-[var(--surface)]" />
+              <Input type="datetime-local" value={followUp} onChange={(e) => setFollowUp(e.target.value)} aria-label="Next follow-up time" />
             </div>
           )}
-          <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={1000} placeholder="Note (optional)" aria-label="Note"
-            className="w-full px-2.5 py-1.5 text-[12px] rounded-lg border border-[var(--border)] bg-[var(--surface)]" />
+          <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={1000} placeholder="Note (optional)" aria-label="Note" />
           <div className="flex gap-2">
             <button type="button" onClick={saveOutcome} disabled={busy || (OUTCOME_RULES[outcome].requiresFollowUp && !followUp)}
-              className="flex-1 py-2 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] hover:bg-[var(--brand-hover)] rounded-lg disabled:opacity-50">
+              className="btn-primary flex-1 py-2 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] hover:bg-[var(--brand-hover)] rounded-lg disabled:opacity-50">
               Save
             </button>
             <button type="button" onClick={() => setOutcome(null)} className="px-3 py-2 text-[13px] rounded-lg border border-[var(--border)]">Cancel</button>
@@ -215,8 +214,8 @@ export function LeadWorkPanel({ leadId, phone, slaState, slaDueAt, assignedAt, f
         </div>
         {adding && (
           <div className="flex gap-1.5 mb-2">
-            <input type="datetime-local" value={followUp} onChange={(e) => setFollowUp(e.target.value)} aria-label="Follow-up time"
-              className="flex-1 min-w-0 px-2 py-1.5 text-[12px] rounded-lg border border-[var(--border)]" />
+            <Input type="datetime-local" value={followUp} onChange={(e) => setFollowUp(e.target.value)} aria-label="Follow-up time"
+              className="flex-1 min-w-0" />
             <button type="button" disabled={busy || !followUp}
               onClick={async () => { if (await send(`/api/leads/${leadId}/tasks`, 'POST', { kind: 'call', dueAt: new Date(followUp).toISOString() })) setAdding(false) }}
               className="px-3 text-[12px] font-semibold text-brand-foreground bg-[var(--brand)] rounded-lg disabled:opacity-50">Save</button>

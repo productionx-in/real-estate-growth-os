@@ -4,6 +4,7 @@
 // and a details card. Used in the workspace (mode "team") and on the public share page (mode "public").
 // Accessible: every plot is a focusable button with a spoken label; colour is never the only signal (legend, card).
 import { useStatusLabels } from '@/components/settings/WorkspacePrefs'
+import { Input } from '@/components/ui'
 import { createElement, useMemo, useRef, useState } from 'react'
 import { Maximize2, MessageCircle, Minus, Phone, Plus, Search, X } from 'lucide-react'
 import type { LayoutGeometry, PlotInfo } from '@/lib/dal/plot-layouts'
@@ -117,8 +118,8 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
           <label className="relative min-w-48 flex-1 sm:max-w-xs">
             <span className="sr-only">Find a plot</span>
             <Search aria-hidden className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-subtle" />
-            <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Find a plot, e.g. N46"
-              className="h-10 w-full rounded-md border border-default bg-surface pl-8 pr-2 text-[13px] text-foreground placeholder:text-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]" />
+            <Input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Find a plot, e.g. N46"
+              className="pl-8 pr-2 focus-visible:ring-[var(--brand)]" />
             {matches.length > 0 && (
               <ul className="absolute z-10 mt-1 w-full rounded-md border border-default bg-surface py-1 shadow-md">
                 {matches.map((k) => (
@@ -212,12 +213,12 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
               {showPrices && sel.price != null && <div className="col-span-2"><dt className="text-[11px] text-muted">Price</dt><dd className="text-[15px] font-semibold">{inr(sel.price)}</dd></div>}
             </dl>
             {mode === 'team' && unitHref && (
-              <a href={unitHref} className="inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">Open in project</a>
+              <a href={unitHref} className="btn-primary inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">Open in project</a>
             )}
             {mode === 'public' && sel.status === 'available' && enquiryToken && <PlotEnquiryForm key={sel.unitNumber} token={enquiryToken} plot={sel.unitNumber} />}
             {mode === 'public' && sel.status === 'available' && contact?.phone && (
               <div className="grid gap-2">
-                {enquire && <a href={enquire} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-[14px] font-medium text-brand-foreground hover:bg-brand-hover"><MessageCircle aria-hidden className="size-4" /> Enquire on WhatsApp</a>}
+                {enquire && <a href={enquire} target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-[14px] font-medium text-brand-foreground hover:bg-brand-hover"><MessageCircle aria-hidden className="size-4" /> Enquire on WhatsApp</a>}
                 <a href={`tel:${contact.phone.replace(/[^\d+]/g, '')}`} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-default px-4 text-[14px] font-medium text-foreground hover:bg-surface-hover"><Phone aria-hidden className="size-4" /> Call {contact.orgName}</a>
               </div>
             )}

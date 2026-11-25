@@ -3,6 +3,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Input, Select } from '@/components/ui'
 import {
   X,
   ShieldCheck,
@@ -351,41 +352,37 @@ export function ConnectionDetailsModal({
                       <label className="block text-[11px] font-medium text-muted mb-1">
                         Meta Form ID or Campaign ID
                       </label>
-                      <input
+                      <Input
                         type="text"
                         value={newFormId}
                         onChange={(e) => setNewFormId(e.target.value)}
                         placeholder="e.g. 10928374652"
-                        className="w-full px-3 py-1.5 text-[12px] rounded-lg border border-strong bg-surface"
                       />
                     </div>
                     <div>
                       <label className="block text-[11px] font-medium text-muted mb-1">
                         Form Label / Description
                       </label>
-                      <input
+                      <Input
                         type="text"
                         value={newFormDescription}
                         onChange={(e) => setNewFormDescription(e.target.value)}
                         placeholder="e.g. VIP Phase 2 Form"
-                        className="w-full px-3 py-1.5 text-[12px] rounded-lg border border-strong bg-surface"
                       />
                     </div>
                     <div>
                       <label className="block text-[11px] font-medium text-muted mb-1">
                         Destination Project
                       </label>
-                      <select
+                      <Select
                         value={newFormProjectId}
-                        onChange={(e) => setNewFormProjectId(e.target.value)}
-                        className="w-full px-3 py-1.5 text-[12px] rounded-lg border border-strong bg-surface"
-                      >
+                        onChange={(e) => setNewFormProjectId(e.target.value)}>
                         {projects.map((p) => (
                           <option key={p.id} value={p.id}>
                             {p.name}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </div>
                   </div>
                   <div className="flex justify-end gap-2 pt-1">
@@ -398,7 +395,7 @@ export function ConnectionDetailsModal({
                     <button
                       onClick={handleCreateNewMapping}
                       disabled={isUpdating}
-                      className="px-4 py-1 text-[12px] font-medium text-brand-foreground bg-brand rounded-lg hover:bg-brand"
+                      className="btn-primary px-4 py-1 text-[12px] font-medium text-brand-foreground bg-brand rounded-lg hover:bg-brand"
                     >
                       Save Rule
                     </button>
@@ -440,22 +437,20 @@ export function ConnectionDetailsModal({
                             </td>
                             <td className="py-3 px-4">
                               <div className="flex items-center gap-2">
-                                <select
+                                <Select
                                   value={currentVal}
                                   onChange={(e) =>
                                     setEditingMappings((prev) => ({
                                       ...prev,
                                       [mapping.id]: e.target.value,
                                     }))
-                                  }
-                                  className="px-2.5 py-1 text-[12px] rounded-lg border border-strong bg-surface text-foreground focus:ring-1 focus:ring-ring"
-                                >
+                                  }>
                                   {projects.map((proj) => (
                                     <option key={proj.id} value={proj.id}>
                                       {proj.name} ({proj.category})
                                     </option>
                                   ))}
-                                </select>
+                                </Select>
                                 {hasChanged && (
                                   <button
                                     onClick={() => handleUpdateMappingProject(mapping.id, currentVal)}
@@ -641,7 +636,7 @@ export function ConnectionDetailsModal({
                       <button
                         onClick={handleDisconnect}
                         disabled={isUpdating}
-                        className="px-3 py-1 text-[11px] font-medium text-danger-foreground bg-danger rounded-lg hover:bg-danger shadow-2xs"
+                        className="btn-danger px-3 py-1 text-[11px] font-medium text-danger-foreground bg-danger rounded-lg hover:bg-danger"
                       >
                         Yes, Disconnect
                       </button>

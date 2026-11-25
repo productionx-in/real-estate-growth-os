@@ -353,7 +353,7 @@ export function LeadForm({ orgSlug, orgId, projects, defaultValues, leadId }: Le
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-2.5 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
+              className="btn-primary flex-1 py-2.5 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
             >
               {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {loading ? 'Saving…' : isEditing ? 'Save changes' : 'Create lead'}

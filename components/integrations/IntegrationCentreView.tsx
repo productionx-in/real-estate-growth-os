@@ -191,7 +191,7 @@ export function IntegrationCentreView({
           <button
             onClick={refreshData}
             disabled={isRefreshing}
-            className="px-3 py-1.5 text-[12px] font-medium text-muted hover:text-foreground bg-surface border border-default rounded-lg hover:bg-surface-muted transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            className="btn-secondary px-3 py-1.5 text-[12px] font-medium text-muted hover:text-foreground bg-surface border border-default rounded-lg hover:bg-surface-muted transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh Status

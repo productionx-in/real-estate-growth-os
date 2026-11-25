@@ -2,6 +2,7 @@
 // outcome and by person, with last-30-day counts that show where leads fall through (nobody available, no rule).
 // Same access as the routing settings (canManageRouting).
 import type { Metadata } from 'next'
+import { Select } from '@/components/ui'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { PageShell } from '@/components/layout/PageShell'
@@ -65,10 +66,10 @@ export default async function AssignmentLogPage({ params, searchParams }: { para
         <form className="flex flex-wrap items-end gap-2" action={`/${orgSlug}/routing/log`}>
           {outcome && <input type="hidden" name="outcome" value={outcome} />}
           <label className="text-[12px] text-muted">Person
-            <select name="person" defaultValue={person ?? ''} className="ml-2 h-9 rounded-md border border-default bg-surface px-2 text-[13px] text-foreground">
+            <Select name="person" defaultValue={person ?? ''} className="ml-2">
               <option value="">Everyone</option>
               {(members ?? []).map((m) => <option key={m.profile_id} value={m.profile_id}>{(m.profile as { full_name?: string } | null)?.full_name ?? 'Team member'}</option>)}
-            </select>
+            </Select>
           </label>
           <button type="submit" className="h-9 rounded-md border border-default px-3 text-[13px] font-medium text-foreground hover:bg-surface-hover">Filter</button>
           {(outcome || person) && <Link href={href({ outcome: null, person: null })} className="h-9 px-2 text-[13px] leading-9 text-brand">Clear</Link>}

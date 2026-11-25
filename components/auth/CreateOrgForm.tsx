@@ -1,6 +1,7 @@
 'use client'
 // components/auth/CreateOrgForm.tsx
 import { useState } from 'react'
+import { Input } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import type { LucideIcon } from 'lucide-react'
 import { Building2, Users2, Check, Loader2, Sparkles } from 'lucide-react'
@@ -86,12 +87,12 @@ export function CreateOrgForm() {
         <label className="block text-xs font-semibold text-[var(--foreground)] mb-1.5">
           Organisation or Brand Name <span className="text-danger">*</span>
         </label>
-        <input
+        <Input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Apex Developers, Skyline Realty"
-          className="w-full px-3.5 py-2.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-all placeholder:text-[var(--foreground-subtle)]"
+          className="focus:ring-brand-light"
           required
         />
         <div className="mt-1.5 text-[11px] text-[var(--foreground-muted)] flex items-center gap-1 font-mono">
@@ -149,12 +150,11 @@ export function CreateOrgForm() {
         <label className="block text-xs font-semibold text-[var(--foreground)] mb-1.5">
           Primary Operating City
         </label>
-        <input
+        <Input
           type="text"
           value={city}
           onChange={(e) => setCity(e.target.value)}
           placeholder="e.g. Hyderabad"
-          className="w-full px-3.5 py-2.5 text-sm bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] transition-all"
         />
       </div>
 
@@ -182,7 +182,7 @@ export function CreateOrgForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-brand-foreground text-xs font-semibold rounded-lg transition-colors shadow-xs disabled:opacity-50"
+        className="btn-primary w-full flex items-center justify-center gap-2 py-3 px-4 bg-[var(--brand)] hover:bg-[var(--brand-hover)] text-brand-foreground text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
       >
         {loading ? (
           <>

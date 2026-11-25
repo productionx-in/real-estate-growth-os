@@ -3,6 +3,7 @@
 // Last step of password recovery. The reset email's link goes through /auth/callback, which exchanges the
 // one-time code for a short recovery session and lands here; without that session there is nothing to reset.
 import { useEffect, useState } from 'react'
+import { Input } from '@/components/ui'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react'
@@ -92,9 +93,9 @@ export function ResetPasswordForm() {
       <div className="space-y-1">
         <label htmlFor="new-password" className="block text-sm font-medium">New password</label>
         <div className="relative">
-          <input id="new-password" type={show ? 'text' : 'password'} autoComplete="new-password" required minLength={PASSWORD_MIN_LENGTH}
+          <Input id="new-password" type={show ? 'text' : 'password'} autoComplete="new-password" required minLength={PASSWORD_MIN_LENGTH}
             value={password} onChange={(e) => setPassword(e.target.value)} aria-describedby="password-help"
-            className="w-full px-3 py-2.5 pr-10 text-base sm:text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light" />
+            className="pr-10 focus:ring-brand-light" />
           <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? 'Hide password' : 'Show password'}
             className="absolute inset-y-0 right-0 px-3 text-[var(--foreground-muted)] hover:text-[var(--foreground)]">
             {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -104,22 +105,22 @@ export function ResetPasswordForm() {
       </div>
       <div className="space-y-1">
         <label htmlFor="confirm-password" className="block text-sm font-medium">Confirm new password</label>
-        <input id="confirm-password" type={show ? 'text' : 'password'} autoComplete="new-password" required
+        <Input id="confirm-password" type={show ? 'text' : 'password'} autoComplete="new-password" required
           value={confirm} onChange={(e) => setConfirm(e.target.value)}
-          className="w-full px-3 py-2.5 text-base sm:text-sm bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light" />
+          className="focus:ring-brand-light" />
       </div>
       {mfaFactor && (
         <div className="space-y-1">
           <label htmlFor="mfa-code" className="block text-sm font-medium">Authenticator code</label>
-          <input id="mfa-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength={6} required
+          <Input id="mfa-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength={6} required
             value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-            className="w-full px-3 py-2.5 text-base sm:text-sm tracking-[0.3em] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light" />
+            className="tracking-[0.3em] focus:ring-brand-light" />
           <p className="text-xs text-[var(--foreground-muted)]">Your account uses two-step verification: enter the 6-digit code from your authenticator app.</p>
         </div>
       )}
       {error && <p role="alert" className="p-3 rounded-md bg-[var(--danger-bg)] border border-danger/30 text-sm text-[var(--danger)]">{error}</p>}
       <button type="submit" disabled={busy}
-        className="w-full py-2.5 px-4 text-sm font-semibold text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 flex items-center justify-center gap-2">
+        className="btn-primary w-full py-2.5 px-4 text-sm font-semibold text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 flex items-center justify-center gap-2">
         {busy && <Loader2 className="w-4 h-4 animate-spin" />}Save new password
       </button>
     </form>

@@ -2,6 +2,7 @@
 // components/projects/HierarchyManager.tsx
 // Comprehensive Project Hierarchy Tree & Management Interface (Stage 3B)
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { Input, Select, Textarea } from '@/components/ui'
 import {
   FolderTree,
   ChevronRight,
@@ -548,21 +549,21 @@ export function HierarchyManager({
           <button
             type="button"
             onClick={expandAll}
-            className="px-2.5 py-1 text-xs rounded border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-muted)] transition-colors"
+            className="btn-secondary px-2.5 py-1 text-xs rounded border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-muted)] transition-colors"
           >
             Expand All
           </button>
           <button
             type="button"
             onClick={collapseAll}
-            className="px-2.5 py-1 text-xs rounded border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-muted)] transition-colors"
+            className="btn-secondary px-2.5 py-1 text-xs rounded border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-muted)] transition-colors"
           >
             Collapse All
           </button>
           <button
             type="button"
             onClick={refreshHierarchy}
-            className="p-1.5 rounded border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+            className="btn-secondary p-1.5 rounded border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
             title="Refresh Hierarchy"
           >
             <RefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin')} />
@@ -572,7 +573,7 @@ export function HierarchyManager({
             <button
               type="button"
               onClick={openCreateRoot}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--brand)] text-brand-foreground hover:bg-[var(--brand-dark)] transition-colors shadow-2xs"
+              className="btn-primary inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--brand)] text-brand-foreground hover:bg-[var(--brand-dark)] transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               Add Root Node
@@ -629,7 +630,7 @@ export function HierarchyManager({
           <p>{error}</p>
           <button
             onClick={refreshHierarchy}
-            className="px-3 py-1 rounded bg-danger text-danger-foreground font-medium hover:bg-danger transition-colors"
+            className="btn-danger px-3 py-1 rounded bg-danger text-danger-foreground font-medium hover:bg-danger transition-colors"
           >
             Retry
           </button>
@@ -653,7 +654,7 @@ export function HierarchyManager({
             <button
               type="button"
               onClick={openCreateRoot}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-[var(--brand)] text-brand-foreground hover:bg-[var(--brand-dark)] transition-colors shadow-2xs"
+              className="btn-primary inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-[var(--brand)] text-brand-foreground hover:bg-[var(--brand-dark)] transition-colors"
             >
               <Plus className="w-4 h-4" />
               Create First Node
@@ -705,12 +706,11 @@ export function HierarchyManager({
                 <label className="font-medium text-[var(--foreground)]">
                   Node Name <span className="text-danger">*</span>
                 </label>
-                <input
+                <Input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
-                  className="w-full px-3 py-2 text-xs rounded-md border border-[var(--border)] bg-[var(--surface)] outline-none focus:border-[var(--brand)]"
                   placeholder="e.g. Tower A, Block 3, Phase 1, 4th Floor"
                 />
               </div>
@@ -721,11 +721,10 @@ export function HierarchyManager({
                   Node Type <span className="text-danger">*</span>
                 </label>
                 <div className="flex gap-2">
-                  <select
+                  <Select
                     value={formData.node_type}
                     onChange={(e) => setFormData((p) => ({ ...p, node_type: e.target.value }))}
-                    className="flex-1 px-3 py-2 text-xs rounded-md border border-[var(--border)] bg-[var(--surface)] outline-none focus:border-[var(--brand)] capitalize"
-                  >
+                    className="flex-1 capitalize">
                     {suggestedTypes.map((t) => (
                       <option key={t} value={t}>
                         {HIERARCHY_NODE_TYPE_LABELS[t] || t}
@@ -736,7 +735,7 @@ export function HierarchyManager({
                     <option value="cluster">Cluster</option>
                     <option value="street">Street</option>
                     <option value="component">Component (Mixed-use)</option>
-                  </select>
+                  </Select>
                 </div>
               </div>
 
@@ -744,17 +743,15 @@ export function HierarchyManager({
               {formData.node_type.toLowerCase() === 'component' && (
                 <div className="space-y-1 p-2.5 rounded-lg bg-brand-light/50 border border-brand/30">
                   <label className="font-medium text-[var(--brand)]">Component Classification</label>
-                  <select
+                  <Select
                     value={formData.component_type}
-                    onChange={(e) => setFormData((p) => ({ ...p, component_type: e.target.value }))}
-                    className="w-full px-3 py-1.5 text-xs rounded-md border border-[var(--border)] bg-[var(--surface)] outline-none focus:border-[var(--brand)]"
-                  >
+                    onChange={(e) => setFormData((p) => ({ ...p, component_type: e.target.value }))}>
                     {MIXED_USE_COMPONENT_TYPES.map((c) => (
                       <option key={c} value={c}>
                         {c} Component
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               )}
 
@@ -762,24 +759,23 @@ export function HierarchyManager({
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-medium text-[var(--foreground)]">Code / Identifier</label>
-                  <input
+                  <Input
                     type="text"
                     value={formData.code}
                     onChange={(e) => setFormData((p) => ({ ...p, code: e.target.value }))}
-                    className="w-full px-3 py-2 text-xs rounded-md border border-[var(--border)] bg-[var(--surface)] outline-none focus:border-[var(--brand)] font-mono"
+                    className="font-mono"
                     placeholder="e.g. TWR-A"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="font-medium text-[var(--foreground)]">Display Order</label>
-                  <input
+                  <Input
                     type="number"
                     value={formData.sequence_order}
                     onChange={(e) =>
                       setFormData((p) => ({ ...p, sequence_order: Number(e.target.value) }))
                     }
-                    className="w-full px-3 py-2 text-xs rounded-md border border-[var(--border)] bg-[var(--surface)] outline-none focus:border-[var(--brand)]"
                     placeholder="0"
                   />
                 </div>
@@ -788,11 +784,10 @@ export function HierarchyManager({
               {/* Description */}
               <div className="space-y-1">
                 <label className="font-medium text-[var(--foreground)]">Description (Optional)</label>
-                <textarea
+                <Textarea
                   rows={2}
                   value={formData.description}
                   onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
-                  className="w-full px-3 py-2 text-xs rounded-md border border-[var(--border)] bg-[var(--surface)] outline-none focus:border-[var(--brand)]"
                   placeholder="Notes, floor specifications, or phase release dates..."
                 />
               </div>
@@ -809,7 +804,7 @@ export function HierarchyManager({
                 <button
                   type="submit"
                   disabled={formSubmitting}
-                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[var(--brand)] text-brand-foreground font-medium hover:bg-[var(--brand-dark)] transition-colors disabled:opacity-50"
+                  className="btn-primary inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[var(--brand)] text-brand-foreground font-medium hover:bg-[var(--brand-dark)] transition-colors disabled:opacity-50"
                 >
                   {formSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   {modalMode === 'edit' ? 'Update Node' : 'Create Node'}
@@ -856,7 +851,7 @@ export function HierarchyManager({
                 type="button"
                 onClick={handleDeleteNode}
                 disabled={deleting}
-                className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-danger text-danger-foreground font-medium hover:bg-danger transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="btn-danger flex-1 px-3 py-1.5 text-xs rounded-lg bg-danger text-danger-foreground font-medium hover:bg-danger transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
               >
                 {deleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 Delete Node

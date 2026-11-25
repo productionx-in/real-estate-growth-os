@@ -15,7 +15,7 @@ import {
 import type { IntegrationConnectionRecord } from '@/lib/integrations/types'
 import { generateFormEmbedSnippets } from '@/lib/integrations/forms/generator'
 import { WebsiteCapturePanel } from '@/components/integrations/WebsiteCapturePanel'
-import { Alert } from '@/components/ui'
+import { Alert, Input, Select } from '@/components/ui'
 
 interface ProjectOption {
   id: string
@@ -219,29 +219,26 @@ export function WebsiteEnquiryWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Route to Project
                   </label>
-                  <select
+                  <Select
                     value={selectedProjectId}
-                    onChange={(e) => setSelectedProjectId(e.target.value)}
-                    className="w-full text-xs px-2.5 py-1.5 border border-strong rounded-lg bg-surface text-foreground"
-                  >
+                    onChange={(e) => setSelectedProjectId(e.target.value)}>
                     <option value="">Default (Unassigned)</option>
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Form Title
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
-                    className="w-full text-xs px-2.5 py-1.5 border border-strong rounded-lg bg-surface text-foreground"
                   />
                 </div>
 
@@ -249,11 +246,10 @@ export function WebsiteEnquiryWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Button Label
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={buttonText}
                     onChange={(e) => setButtonText(e.target.value)}
-                    className="w-full text-xs px-2.5 py-1.5 border border-strong rounded-lg bg-surface text-foreground"
                   />
                 </div>
               </div>
@@ -348,12 +344,11 @@ export function WebsiteEnquiryWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Customer Name *
                   </label>
-                  <input
+                  <Input
                     type="text"
                     required
                     value={testName}
                     onChange={(e) => setTestName(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg"
                   />
                 </div>
 
@@ -361,12 +356,11 @@ export function WebsiteEnquiryWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Phone Number *
                   </label>
-                  <input
+                  <Input
                     type="tel"
                     required
                     value={testPhone}
                     onChange={(e) => setTestPhone(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg"
                   />
                 </div>
 
@@ -374,11 +368,10 @@ export function WebsiteEnquiryWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Email Address
                   </label>
-                  <input
+                  <Input
                     type="email"
                     value={testEmail}
                     onChange={(e) => setTestEmail(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg"
                   />
                 </div>
 
@@ -386,11 +379,10 @@ export function WebsiteEnquiryWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Unit Preference
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={testUnit}
                     onChange={(e) => setTestUnit(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg"
                   />
                 </div>
 

@@ -41,7 +41,7 @@ export default async function RioInsights() {
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- a file download from an API route, not a page */}
           <a href="/api/platform/assistant/export?rated=good" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-default bg-surface px-4 text-[13px] font-medium hover:bg-surface-hover"><Download className="size-4" aria-hidden="true" />Export rated 👍</a>
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- a file download from an API route, not a page */}
-          <a href="/api/platform/assistant/export" className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover"><Download className="size-4" aria-hidden="true" />Export all (JSONL)</a>
+          <a href="/api/platform/assistant/export" className="btn-primary inline-flex min-h-10 items-center gap-2 rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover"><Download className="size-4" aria-hidden="true" />Export all (JSONL)</a>
         </>} />
       <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <FocusTile label="Conversations" value={c.length} icon={MessageSquare} href="/platform/assistant" hint={`${c.filter((x) => x.context === 'website').length} website · ${c.filter((x) => x.context === 'workspace').length} workspace`} />

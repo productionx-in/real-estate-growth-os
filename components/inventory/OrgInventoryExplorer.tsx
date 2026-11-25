@@ -1,6 +1,7 @@
 'use client'
 // components/inventory/OrgInventoryExplorer.tsx
 import { useStatusLabels } from '@/components/settings/WorkspacePrefs'
+import { Input, Select } from '@/components/ui'
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
@@ -105,70 +106,62 @@ export function OrgInventoryExplorer({
         {/* Search */}
         <div className="relative flex-1 min-w-[220px]">
           <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]" />
-          <input
+          <Input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by unit number, tower, project..."
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-[var(--surface-muted)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] transition-colors"
+            className="pl-8 pr-3"
           />
         </div>
 
         {/* Project Selector */}
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-[var(--foreground-muted)] font-medium">Project:</span>
-          <select
+          <Select
             value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-            className="text-xs py-1.5 px-2 bg-[var(--surface-muted)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] text-[var(--foreground)]"
-          >
+            onChange={(e) => setSelectedProject(e.target.value)}>
             <option value="all">All Projects ({projects.length})</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name} {p.code ? `(${p.code})` : ''}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {/* Category Selector */}
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-[var(--foreground-muted)] font-medium">Category:</span>
-          <select
+          <Select
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="text-xs py-1.5 px-2 bg-[var(--surface-muted)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] text-[var(--foreground)]"
-          >
+            onChange={(e) => setSelectedCategory(e.target.value)}>
             <option value="all">All Categories</option>
             <option value="apartments">Apartments</option>
             <option value="plotted_developments">Plotted Developments</option>
             <option value="commercial_sale">Commercial Sale</option>
             <option value="villas_gated_communities">Villas & Communities</option>
             <option value="mixed_use">Mixed-Use</option>
-          </select>
+          </Select>
         </div>
 
         {/* Status Selector */}
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-[var(--foreground-muted)] font-medium">Status:</span>
-          <select
+          <Select
             value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="text-xs py-1.5 px-2 bg-[var(--surface-muted)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] text-[var(--foreground)]"
-          >
+            onChange={(e) => setSelectedStatus(e.target.value)}>
             <option value="all">All Statuses</option>
             {(Object.keys(statusLabels) as (keyof typeof statusLabels)[]).map((k) => <option key={k} value={k}>{statusLabels[k]}</option>)}
-          </select>
+          </Select>
         </div>
 
         {/* BHK Selector */}
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-[var(--foreground-muted)] font-medium">BHK:</span>
-          <select
+          <Select
             value={selectedBhk}
-            onChange={(e) => setSelectedBhk(e.target.value)}
-            className="text-xs py-1.5 px-2 bg-[var(--surface-muted)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] text-[var(--foreground)]"
-          >
+            onChange={(e) => setSelectedBhk(e.target.value)}>
             <option value="all">All BHK</option>
             <option value="1 BHK">1 BHK</option>
             <option value="2 BHK">2 BHK</option>
@@ -177,7 +170,7 @@ export function OrgInventoryExplorer({
             <option value="3.5 BHK">3.5 BHK</option>
             <option value="4 BHK">4 BHK</option>
             <option value="5+ BHK">5+ BHK</option>
-          </select>
+          </Select>
         </div>
       </div>
 

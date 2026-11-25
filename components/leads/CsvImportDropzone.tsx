@@ -1,6 +1,7 @@
 'use client'
 // components/leads/CsvImportDropzone.tsx
 import { useState, useRef, useTransition } from 'react'
+import { Select } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import {
   UploadCloud,
@@ -182,7 +183,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
         <div className="pt-2 flex justify-center gap-3">
           <button
             onClick={handleReset}
-            className="px-4 py-2 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] transition-colors"
+            className="btn-secondary px-4 py-2 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] transition-colors"
           >
             Import Another File
           </button>
@@ -302,19 +303,18 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
               <label htmlFor="importProject" className="text-[13px] font-medium text-[var(--foreground)] w-36">
                 Assign to Project:
               </label>
-              <select
+              <Select
                 id="importProject"
                 value={selectedProjectId}
                 onChange={(e) => setSelectedProjectId(e.target.value)}
-                className="flex-1 max-w-sm px-3 py-1.5 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)]"
-              >
+                className="flex-1 max-w-sm">
                 <option value="">— No project assigned —</option>
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           </div>
 
@@ -392,7 +392,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
             <button
               type="button"
               onClick={handleReset}
-              className="px-4 py-2 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] transition-colors"
+              className="btn-secondary px-4 py-2 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] transition-colors"
             >
               Cancel
             </button>
@@ -400,7 +400,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
               type="button"
               onClick={handleImport}
               disabled={isPending || validCount === 0}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="btn-primary inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {isPending ? (progress ? `Importing ${progress.done} of ${progress.total}…` : 'Importing leads…') : `Import ${validCount} Valid Leads`}

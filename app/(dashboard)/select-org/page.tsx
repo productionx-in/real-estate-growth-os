@@ -70,7 +70,7 @@ export default async function SelectOrgPage({ searchParams }: { searchParams: Pr
                 If you were invited, open the link in the invitation email.
               </p>
               <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-                <Link href="/demo" className="inline-flex h-10 items-center justify-center rounded-lg bg-brand px-4 text-[14px] font-semibold text-brand-foreground hover:bg-brand-hover">Talk to us about a workspace</Link>
+                <Link href="/demo" className="btn-primary inline-flex h-10 items-center justify-center rounded-lg bg-brand px-4 text-[14px] font-semibold text-brand-foreground hover:bg-brand-hover">Talk to us about a workspace</Link>
                 <SignOutButton label="Sign in with another account"
                   className="inline-flex h-10 items-center justify-center rounded-lg border border-strong px-4 text-[14px] font-medium text-foreground hover:bg-surface-hover" />
               </div>

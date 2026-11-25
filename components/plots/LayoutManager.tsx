@@ -4,7 +4,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, Copy, Link2, RefreshCw, Trash2, Upload } from 'lucide-react'
-import { Alert, Badge, Button, Field, Input } from '@/components/ui'
+import { Alert, Badge, Button, Field, Input, Textarea } from '@/components/ui'
 import type { LayoutSummary } from '@/lib/dal/plot-layouts'
 import type { MatchReport } from '@/lib/plots/match'
 
@@ -116,8 +116,7 @@ export function LayoutManager({ orgId, projectId, layout }: { orgId: string; pro
                 <div className="space-y-1.5 border-t border-default pt-2">
                   <label htmlFor="embed-sites" className="block text-[13px] font-medium text-foreground">Show it on your website</label>
                   <p className="text-[12px] text-muted">Only the websites listed here can embed the map (one per line, e.g. www.yoursite.com; up to 10). Other sites cannot frame it.</p>
-                  <textarea id="embed-sites" rows={2} value={sites} onChange={(e) => setSites(e.target.value)} disabled={busy}
-                    className="w-full rounded-md border border-default bg-surface p-2 text-[13px] text-foreground" placeholder="www.yoursite.com" />
+                  <Textarea id="embed-sites" rows={2} value={sites} onChange={(e) => setSites(e.target.value)} disabled={busy} placeholder="www.yoursite.com" />
                   <Button size="sm" variant="secondary" disabled={busy} onClick={() => patch({ embedDomains: sites.split(/[\n,]/).map((x) => x.trim()).filter(Boolean) })}>Save websites</Button>
                   {layout.embedDomains.length > 0 && (
                     <Input readOnly aria-label="Embed code" className="font-mono text-[12px]" onFocus={(e) => e.currentTarget.select()}

@@ -2,6 +2,7 @@
 // components/inventory/BulkImportModal.tsx
 // Multi-step bulk inventory import modal (CSV & XLSX) with mapping, preview, and history
 import { useState, useRef, useCallback } from 'react'
+import { Select } from '@/components/ui'
 import {
   X,
   UploadCloud,
@@ -360,7 +361,7 @@ export function BulkImportModal({
                       <a
                         href={`/api/inventory/import/template?category=${projectCategory}&format=xlsx`}
                         download
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-foreground bg-brand rounded-lg hover:bg-brand-hover transition-colors shadow-2xs"
+                        className="btn-primary inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-foreground bg-brand rounded-lg hover:bg-brand-hover transition-colors"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Excel (.xlsx) Template</span>
@@ -456,21 +457,20 @@ export function BulkImportModal({
                                 {sample}
                               </td>
                               <td className="px-4 py-2.5">
-                                <select
+                                <Select
                                   value={selectedCanonical}
                                   onChange={(e) => {
                                     const val = e.target.value
                                     setColumnMapping((prev) => ({ ...prev, [header]: val }))
                                   }}
-                                  className="w-full max-w-xs px-2.5 py-1 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none text-[var(--foreground)]"
-                                >
+                                  className="max-w-xs">
                                   <option value="ignore">Don&apos;t map (save to Custom Attributes)</option>
                                   {targetColumns.map((c) => (
                                     <option key={c.key} value={c.key}>
                                       {c.label} {c.required ? '(Required)' : ''}
                                     </option>
                                   ))}
-                                </select>
+                                </Select>
                               </td>
                             </tr>
                           )
@@ -493,7 +493,7 @@ export function BulkImportModal({
                     <button
                       type="button"
                       onClick={handleProceedToValidation}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-brand-foreground bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] shadow-xs"
+                      className="btn-primary inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-brand-foreground bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)]"
                     >
                       <span>Validate & Preview</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -612,7 +612,7 @@ export function BulkImportModal({
                       type="button"
                       onClick={handleExecuteImport}
                       disabled={validationResult.validRowsCount === 0 || isImporting}
-                      className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-brand-foreground bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] disabled:opacity-40 disabled:pointer-events-none transition-colors shadow-xs"
+                      className="btn-primary inline-flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-brand-foreground bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] disabled:opacity-40 disabled:pointer-events-none transition-colors"
                     >
                       <span>Import {validationResult.validRowsCount} Valid Units</span>
                       <ArrowRight className="w-3.5 h-3.5" />

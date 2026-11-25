@@ -2,6 +2,7 @@
 // components/settings/SettingsNav.tsx — the settings sidebar: search, then the groups this role can see
 // (lib/settings/catalog.ts). On phones it sits above the page as a compact list.
 import { useState } from 'react'
+import { Input } from '@/components/ui'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChevronRight, Search } from 'lucide-react'
@@ -26,8 +27,8 @@ export function SettingsNav({ orgSlug, groups }: { orgSlug: string; groups: Sett
       <label className="relative block">
         <span className="sr-only">Search settings</span>
         <Search aria-hidden className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-subtle" />
-        <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search settings…"
-          className="h-10 w-full rounded-md border border-default bg-surface pl-8 pr-2 text-[13px] text-foreground placeholder:text-subtle focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)]" />
+        <Input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search settings…"
+          className="pl-8 pr-2 focus-visible:ring-[var(--brand)]" />
       </label>
       {query ? (
         <ul aria-live="polite" className="space-y-0.5">

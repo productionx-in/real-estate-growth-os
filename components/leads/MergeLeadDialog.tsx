@@ -5,7 +5,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { GitMerge, Search } from 'lucide-react'
-import { Alert, Button } from '@/components/ui'
+import { Alert, Button, Input } from '@/components/ui'
 import { Dialog, DialogContent, DialogFooter, DialogTrigger } from '@/components/ui/dialog'
 
 interface Candidate { id: string; name: string; phone: string | null; status: string }
@@ -58,8 +58,8 @@ export function MergeLeadDialog({ orgId, leadId, leadName, suggested }: { orgId:
           <label className="relative block">
             <span className="sr-only">Find the duplicate</span>
             <Search aria-hidden className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Name, phone or email…"
-              className="h-10 w-full rounded-md border border-strong bg-surface pl-9 pr-3 text-[13px] outline-none focus:border-ring" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Name, phone or email…"
+              className="pl-9 pr-3" />
           </label>
           <ul className="max-h-56 space-y-1 overflow-y-auto" aria-label="Leads">
             {[...(suggested && !results.some((r) => r.id === suggested.id) ? [suggested] : []), ...results].map((c) => (

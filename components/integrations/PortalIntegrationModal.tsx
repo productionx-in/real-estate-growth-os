@@ -3,6 +3,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Input, Select, Textarea } from '@/components/ui'
 import {
   X,
   Globe,
@@ -170,10 +171,10 @@ export function PortalIntegrationModal({
               Webhook Delivery Endpoint
             </h4>
             <div className="flex items-center space-x-2">
-              <input
+              <Input
                 readOnly
                 value={currentConfig.endpoint}
-                className="flex-1 bg-surface-muted border border-default rounded-xl px-3 py-2 text-xs font-mono text-muted"
+                className="flex-1 font-mono text-muted"
               />
               <button
                 onClick={handleCopyEndpoint}
@@ -201,17 +202,15 @@ export function PortalIntegrationModal({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted">Routes to REGrow Project:</span>
-                <select
+                <Select
                   value={selectedProjectId}
-                  onChange={(e) => setSelectedProjectId(e.target.value)}
-                  className="bg-surface border border-strong rounded-lg px-2.5 py-1 text-xs text-foreground"
-                >
+                  onChange={(e) => setSelectedProjectId(e.target.value)}>
                   {projects.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
             </div>
           </div>
@@ -224,46 +223,42 @@ export function PortalIntegrationModal({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-[11px] font-medium text-subtle">Buyer Name</label>
-                <input
+                <Input
                   type="text"
                   value={testBuyerName}
                   onChange={(e) => setTestBuyerName(e.target.value)}
-                  className="w-full bg-surface border border-default rounded-lg px-2.5 py-1.5 text-xs text-foreground"
                 />
               </div>
               <div>
                 <label className="text-[11px] font-medium text-subtle">Buyer Phone</label>
-                <input
+                <Input
                   type="text"
                   value={testPhone}
                   onChange={(e) => setTestPhone(e.target.value)}
-                  className="w-full bg-surface border border-default rounded-lg px-2.5 py-1.5 text-xs text-foreground"
                 />
               </div>
             </div>
             <div>
               <label className="text-[11px] font-medium text-subtle">Buyer Email</label>
-              <input
+              <Input
                 type="email"
                 value={testEmail}
                 onChange={(e) => setTestEmail(e.target.value)}
-                className="w-full bg-surface border border-default rounded-lg px-2.5 py-1.5 text-xs text-foreground"
               />
             </div>
             <div>
               <label className="text-[11px] font-medium text-subtle">Enquiry Query / Message</label>
-              <textarea
+              <Textarea
                 rows={2}
                 value={testQuery}
                 onChange={(e) => setTestQuery(e.target.value)}
-                className="w-full bg-surface border border-default rounded-lg px-2.5 py-1.5 text-xs text-foreground"
               />
             </div>
 
             <button
               onClick={handleRunTest}
               disabled={isTesting}
-              className="w-full py-2 bg-brand hover:bg-brand text-brand-foreground rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 transition cursor-pointer"
+              className="btn-primary w-full py-2 bg-brand hover:bg-brand text-brand-foreground rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 transition cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
               <span>{isTesting ? 'Validating Payload...' : `Test ${currentConfig.title} Ingestion`}</span>

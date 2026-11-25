@@ -48,7 +48,7 @@ export default async function CreateOrgPage() {
               <p>New organisation workspaces are set up by the {PRODUCT_NAME} team, so each one starts with the right plan and owner.</p>
               <p>A new workspace is a separate organisation with its own data, team and subscription.</p>
               <div className="flex flex-wrap gap-2 pt-1">
-                <Link href="/demo" className="inline-flex h-10 items-center rounded-lg bg-brand px-4 text-[14px] font-semibold text-brand-foreground hover:bg-brand-hover">Contact us</Link>
+                <Link href="/demo" className="btn-primary inline-flex h-10 items-center rounded-lg bg-brand px-4 text-[14px] font-semibold text-brand-foreground hover:bg-brand-hover">Contact us</Link>
                 <Link href="/select-org" className="inline-flex h-10 items-center rounded-lg border border-strong px-4 text-[14px] font-medium text-foreground hover:bg-surface-hover">Back to your workspaces</Link>
               </div>
             </div>

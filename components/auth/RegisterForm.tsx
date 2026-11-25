@@ -3,6 +3,7 @@
 // Two-step registration: account details → organisation details
 // Slug is auto-generated from org name. Only Developer and Channel Partner types.
 import { useState } from 'react'
+import { Input } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -166,14 +167,14 @@ async function handleSubmit(e: React.FormEvent) {
             <label htmlFor="fullName" className="block text-[13px] font-medium text-[var(--foreground)]">
               Full name
             </label>
-            <input
+            <Input
               id="fullName"
               type="text"
               required
               autoFocus
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-3 py-2.5 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
+              className="focus:ring-brand-light"
               placeholder="Rahul Sharma"
             />
           </div>
@@ -182,13 +183,13 @@ async function handleSubmit(e: React.FormEvent) {
             <label htmlFor="regEmail" className="block text-[13px] font-medium text-[var(--foreground)]">
               Work email
             </label>
-            <input
+            <Input
               id="regEmail"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2.5 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
+              className="focus:ring-brand-light"
               placeholder="rahul@company.com"
             />
           </div>
@@ -211,7 +212,7 @@ async function handleSubmit(e: React.FormEvent) {
 
           <button
             type="submit"
-            className="w-full py-2.5 px-4 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors mt-2"
+            className="btn-primary w-full py-2.5 px-4 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors mt-2"
           >
             Continue →
           </button>
@@ -232,14 +233,14 @@ async function handleSubmit(e: React.FormEvent) {
             <label htmlFor="orgName" className="block text-[13px] font-medium text-[var(--foreground)]">
               Organisation name
             </label>
-            <input
+            <Input
               id="orgName"
               type="text"
               required
               autoFocus
               value={orgName}
               onChange={(e) => setOrgName(e.target.value)}
-              className="w-full px-3 py-2.5 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
+              className="focus:ring-brand-light"
               placeholder="Prestige Group"
             />
             {orgName && (
@@ -298,7 +299,7 @@ async function handleSubmit(e: React.FormEvent) {
             <button
               type="submit"
               disabled={loading || !orgName.trim()}
-              className="flex-1 py-2.5 px-4 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+              className="btn-primary flex-1 py-2.5 px-4 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? 'Creating workspace…' : 'Create workspace'}
             </button>

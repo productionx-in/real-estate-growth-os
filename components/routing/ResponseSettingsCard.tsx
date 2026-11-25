@@ -69,7 +69,7 @@ export function ResponseSettingsCard({ orgId, initial }: { orgId: string; initia
         </label>
         <div className="flex items-center gap-3 lg:justify-end">
           {state === 'saved' && <span className="text-[12px] text-success">Saved</span>}
-          <button type="submit" disabled={state === 'saving'} className="px-4 py-1.5 text-[12px] font-semibold text-brand-foreground bg-brand hover:bg-brand rounded-lg disabled:opacity-50">Save rules</button>
+          <button type="submit" disabled={state === 'saving'} className="btn-primary px-4 py-1.5 text-[12px] font-semibold text-brand-foreground bg-brand hover:bg-brand rounded-lg disabled:opacity-50">Save rules</button>
         </div>
       </form>
       {error && <p role="alert" className="mt-3 text-[12px] text-danger">{error}</p>}

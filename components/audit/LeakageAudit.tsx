@@ -2,6 +2,7 @@
 // components/audit/LeakageAudit.tsx
 // Self-serve lead-leakage audit. The file is parsed and analysed entirely in the browser — nothing is uploaded.
 import { useMemo, useState } from 'react'
+import { Input, Select } from '@/components/ui'
 import Link from 'next/link'
 import { AlertTriangle, FileSpreadsheet, Lock, Printer, RotateCcw } from 'lucide-react'
 import { FIELD_LABELS, analyse, guessMapping, toAuditRows, wastedSpend, type FieldKey } from '@/lib/audit/leakage'
@@ -85,17 +86,16 @@ export function LeakageAudit() {
           {(Object.keys(FIELD_LABELS) as FieldKey[]).map((k) => (
             <label key={k} className="text-[14px] font-medium flex flex-col gap-1.5">
               {FIELD_LABELS[k]}{k === 'createdAt' && <span className="text-red-600"> *</span>}
-              <select value={mapping[k] ?? ''} onChange={(e) => setMapping({ ...mapping, [k]: e.target.value || undefined })}
-                className="px-3 py-2 rounded-xl border border-[var(--border-strong)] bg-white text-[14px]">
+              <Select value={mapping[k] ?? ''} onChange={(e) => setMapping({ ...mapping, [k]: e.target.value || undefined })}>
                 <option value="">— not in my file —</option>
                 {headers.map((h) => <option key={h} value={h}>{h}</option>)}
-              </select>
+              </Select>
             </label>
           ))}
           <label className="text-[14px] font-medium flex flex-col gap-1.5">
             Monthly ad + portal spend (optional, ₹)
-            <input type="number" min={0} step={10000} value={spend || ''} onChange={(e) => setSpend(Math.max(0, Number(e.target.value) || 0))}
-              placeholder="e.g. 500000" className="px-3 py-2 rounded-xl border border-[var(--border-strong)] text-[14px]" />
+            <Input type="number" min={0} step={10000} value={spend || ''} onChange={(e) => setSpend(Math.max(0, Number(e.target.value) || 0))}
+              placeholder="e.g. 500000" />
           </label>
         </div>
         <div className="mt-6 flex flex-wrap gap-3">

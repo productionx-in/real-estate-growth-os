@@ -52,7 +52,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Promis
         description={<>REGrow&apos;s own prospects: website requests, referrals and outbound. {can(role, 'salesAll') ? 'You see every prospect.' : 'You see your own prospects and unassigned ones.'}</>}
         actions={<>
           {can(role, 'salesAll') && role !== 'auditor' && <ImportWebsiteButton />}
-          {canWrite && <Link href={sp.add ? href({ add: undefined }) : `${href({})}${href({}).includes('?') ? '&' : '?'}add=1#add`} className="inline-flex min-h-10 items-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">{sp.add ? 'Close' : 'Add prospect'}</Link>}
+          {canWrite && <Link href={sp.add ? href({ add: undefined }) : `${href({})}${href({}).includes('?') ? '&' : '?'}add=1#add`} className="btn-primary inline-flex min-h-10 items-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">{sp.add ? 'Close' : 'Add prospect'}</Link>}
         </>} />
 
       {canWrite && sp.add && <Card id="add" className="rounded-2xl"><CardContent className="p-5"><NewProspectForm /></CardContent></Card>}
