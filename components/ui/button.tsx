@@ -7,15 +7,16 @@ import { cn } from '@/lib/utils/cn'
 
 export const buttonVariants = cva(
   'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium cursor-pointer select-none ' +
-    'transition-[color,background-color,border-color,box-shadow,transform] duration-150 ease-out active:scale-[0.98] ' +
+    'transition-[color,background-color,border-color,box-shadow,transform,filter] duration-150 ease-out active:scale-[0.98] ' +
     'touch-manipulation disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
-        primary: 'bg-brand text-brand-foreground hover:bg-brand-hover shadow-sm',
-        secondary: 'bg-surface text-foreground border border-default hover:bg-surface-hover shadow-sm',
+        // Design language v3 (app/globals.css): the primary key is a glowing brand gradient, the secondary a clay key.
+        primary: 'btn-primary bg-brand text-brand-foreground',
+        secondary: 'btn-secondary bg-surface text-foreground border border-default hover:bg-surface-muted',
         ghost: 'text-muted hover:bg-surface-hover hover:text-foreground',
-        danger: 'bg-danger text-danger-foreground hover:bg-danger-hover shadow-sm',
+        danger: 'btn-danger bg-danger text-danger-foreground hover:bg-danger-hover',
         link: 'text-brand underline-offset-4 hover:underline px-0 h-auto',
       },
       size: {

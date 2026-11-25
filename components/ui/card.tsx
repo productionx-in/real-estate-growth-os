@@ -8,7 +8,7 @@ import { Tilt } from './tilt'
  * pointer and presses on tap; use it only when the card really is clickable.
  */
 export function Card({ className, interactive = false, ...props }: React.HTMLAttributes<HTMLDivElement> & { interactive?: boolean }) {
-  return <div className={cn('surface-raised rounded-xl border border-default bg-surface', interactive && 'lift cursor-pointer', className)} {...props} />
+  return <div className={cn('surface-raised rounded-2xl border border-default bg-surface', interactive && 'lift cursor-pointer', className)} {...props} />
 }
 export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={cn('flex items-start justify-between gap-3 px-4 pt-4', className)} {...props} />

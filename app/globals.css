@@ -53,16 +53,17 @@
   --red-700: #b91c1c;
 
   /* 2. Semantic — light */
-  --background: var(--gray-50);
+  /* Design language v3: a soft, cool canvas the white clay surfaces float above. */
+  --background: #eef2f8;
   --surface: var(--gray-0);
-  --surface-muted: var(--gray-25);
-  --surface-hover: var(--gray-100);
-  --surface-sunken: var(--gray-100);
-  --overlay: rgb(17 24 39 / 0.45);
+  --surface-muted: #f6f8fc;
+  --surface-hover: #edf1f7;
+  --surface-sunken: #e8edf5;
+  --overlay: rgb(15 23 42 / 0.38);
 
   --foreground: var(--gray-900);
   --foreground-muted: var(--gray-600);
-  --foreground-subtle: var(--gray-500);
+  --foreground-subtle: #576072;
   --foreground-inverse: var(--gray-0);
 
   --brand: var(--blue-700);
@@ -71,8 +72,8 @@
   --brand-light: var(--blue-50);
   --brand-foreground: var(--gray-0);
 
-  --border: var(--gray-200);
-  --border-strong: var(--gray-300);
+  --border: #e1e7f0;
+  --border-strong: #cdd5e1;
   --focus-ring: var(--blue-600);
 
   --success: var(--green-700);
@@ -124,25 +125,36 @@
   /* Depth: one elevation family (design system v2). Each step is a tight contact shadow plus a soft ambient one, so
      surfaces read as layers stacked toward the viewer rather than as boxes with outlines. 2xs–sm: resting surfaces
      (cards, fields); md: raised on hover; lg: menus and popovers; xl–2xl: dialogs and sheets. */
-  --shadow-2xs: 0 1px 1px rgb(17 24 39 / 0.04);
-  --shadow-xs: 0 1px 2px rgb(17 24 39 / 0.05), 0 1px 1px rgb(17 24 39 / 0.03);
-  --shadow-sm: 0 1px 2px rgb(17 24 39 / 0.06), 0 2px 6px -1px rgb(17 24 39 / 0.05);
-  --shadow-md: 0 2px 4px -1px rgb(17 24 39 / 0.07), 0 8px 20px -4px rgb(17 24 39 / 0.10);
-  --shadow-lg: 0 4px 8px -2px rgb(17 24 39 / 0.08), 0 16px 36px -8px rgb(17 24 39 / 0.16);
-  --shadow-xl: 0 8px 16px -4px rgb(17 24 39 / 0.10), 0 28px 56px -12px rgb(17 24 39 / 0.22);
-  --shadow-2xl: 0 12px 24px -6px rgb(17 24 39 / 0.12), 0 40px 80px -16px rgb(17 24 39 / 0.28);
-  /* The lit top edge of a raised surface (dark mode makes it visible; light mode keeps it subtle). */
-  --edge-highlight: inset 0 1px 0 rgb(255 255 255 / 0.7);
+  --shadow-2xs: 0 1px 2px rgb(30 41 82 / 0.05);
+  --shadow-xs: 0 1px 2px rgb(30 41 82 / 0.06), 0 2px 6px -2px rgb(30 58 138 / 0.06);
+  --shadow-sm: 0 1px 2px rgb(30 41 82 / 0.06), 0 6px 16px -6px rgb(30 58 138 / 0.12);
+  --shadow-md: 0 2px 4px -1px rgb(30 41 82 / 0.07), 0 12px 28px -8px rgb(30 58 138 / 0.18);
+  --shadow-lg: 0 4px 8px -2px rgb(30 41 82 / 0.08), 0 20px 44px -12px rgb(30 58 138 / 0.24);
+  --shadow-xl: 0 8px 16px -4px rgb(30 41 82 / 0.10), 0 32px 64px -16px rgb(30 58 138 / 0.30);
+  --shadow-2xl: 0 12px 24px -6px rgb(30 41 82 / 0.12), 0 44px 88px -20px rgb(30 58 138 / 0.36);
+  /* The lit top edge of a raised surface, and the faint shade under its bottom edge (clay). */
+  --edge-highlight: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -1px 0 rgb(30 41 82 / 0.04);
+  /* Fields and wells sit into the surface. */
+  --shadow-inset: inset 0 1px 2px rgb(30 41 82 / 0.08), inset 0 0 0 1px rgb(30 41 82 / 0.02);
+  /* The primary action: a lit gradient that glows in the brand colour. */
+  --brand-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 55%, #4338ca 100%);
+  --brand-glow: 0 1px 2px rgb(29 78 216 / 0.30), 0 8px 20px -6px rgb(37 99 235 / 0.55);
+  --focus-glow: 0 0 0 4px rgb(37 99 235 / 0.16);
+  /* The canvas: two soft coloured lights behind everything (fixed, painted once). */
+  --canvas-glow-1: rgb(59 130 246 / 0.10);
+  --canvas-glow-2: rgb(139 92 246 / 0.08);
+  /* Frosted navigation over the canvas. */
+  --glass: rgb(255 255 255 / 0.72);
 
   /* Layout and shape */
   --sidebar-width: 240px;
   --header-height: 56px;
   --sidebar-width-collapsed: 64px;
   --bottom-nav-height: 64px;
-  --radius-sm: 4px;
-  --radius: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
 
   /* Motion: one rhythm everywhere (150–250ms, ease-out in). Reduced motion is honoured below. */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -152,19 +164,19 @@
   --duration-fast: 150ms;
   --duration-base: 220ms;
   --duration-slow: 320ms;
-  --radius-2xl: 20px;
+  --radius-2xl: 24px;
 
   color-scheme: light;
 }
 
 /* 2. Semantic — dark */
 :root[data-theme="dark"] {
-  --background: var(--gray-950);
-  --surface: var(--gray-900);
-  --surface-muted: var(--gray-850);
-  --surface-hover: var(--gray-800);
-  --surface-sunken: var(--gray-950);
-  --overlay: rgb(0 0 0 / 0.6);
+  --background: #0a0f1c;
+  --surface: #121a2b;
+  --surface-muted: #0f1626;
+  --surface-hover: #1a2438;
+  --surface-sunken: #0b1120;
+  --overlay: rgb(2 6 18 / 0.62);
 
   --foreground: var(--gray-100);
   --foreground-muted: var(--gray-300);
@@ -178,8 +190,8 @@
   --brand-light: rgb(59 130 246 / 0.14);
   --brand-foreground: var(--gray-950);
 
-  --border: var(--gray-800);
-  --border-strong: var(--gray-700);
+  --border: #1f2a40;
+  --border-strong: #2d3a54;
   --focus-ring: var(--blue-400);
 
   --success: var(--green-400);
@@ -228,13 +240,20 @@
   --chat-mine: rgb(34 197 94 / 0.2);
 
   --shadow-2xs: 0 1px 1px rgb(0 0 0 / 0.30);
-  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.35);
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.40), 0 2px 6px -1px rgb(0 0 0 / 0.30);
-  --shadow-md: 0 2px 4px -1px rgb(0 0 0 / 0.45), 0 10px 24px -6px rgb(0 0 0 / 0.50);
-  --shadow-lg: 0 4px 8px -2px rgb(0 0 0 / 0.50), 0 18px 40px -8px rgb(0 0 0 / 0.60);
-  --shadow-xl: 0 8px 16px -4px rgb(0 0 0 / 0.55), 0 30px 60px -12px rgb(0 0 0 / 0.65);
-  --shadow-2xl: 0 12px 24px -6px rgb(0 0 0 / 0.60), 0 44px 88px -16px rgb(0 0 0 / 0.70);
-  --edge-highlight: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.35), 0 2px 6px -2px rgb(0 0 0 / 0.30);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.40), 0 6px 16px -6px rgb(0 0 0 / 0.45);
+  --shadow-md: 0 2px 4px -1px rgb(0 0 0 / 0.45), 0 12px 28px -8px rgb(0 0 0 / 0.55);
+  --shadow-lg: 0 4px 8px -2px rgb(0 0 0 / 0.50), 0 20px 44px -12px rgb(0 0 0 / 0.62);
+  --shadow-xl: 0 8px 16px -4px rgb(0 0 0 / 0.55), 0 32px 64px -16px rgb(0 0 0 / 0.68);
+  --shadow-2xl: 0 12px 24px -6px rgb(0 0 0 / 0.60), 0 44px 88px -20px rgb(0 0 0 / 0.72);
+  --edge-highlight: inset 0 1px 0 rgb(255 255 255 / 0.07), inset 0 -1px 0 rgb(0 0 0 / 0.25);
+  --shadow-inset: inset 0 1px 2px rgb(0 0 0 / 0.45), inset 0 0 0 1px rgb(255 255 255 / 0.03);
+  --brand-gradient: linear-gradient(135deg, #93c5fd 0%, #60a5fa 50%, #818cf8 100%);
+  --brand-glow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 22px -6px rgb(96 165 250 / 0.45);
+  --focus-glow: 0 0 0 4px rgb(96 165 250 / 0.22);
+  --canvas-glow-1: rgb(59 130 246 / 0.14);
+  --canvas-glow-2: rgb(139 92 246 / 0.10);
+  --glass: rgb(18 26 43 / 0.72);
 
   color-scheme: dark;
 }
@@ -329,6 +348,10 @@
 
 body {
   background-color: var(--background);
+  /* Two soft lights behind every screen (design language v3). Fixed, so they paint once and never scroll. */
+  background-image: radial-gradient(1100px 700px at 100% -10%, var(--canvas-glow-1), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, var(--canvas-glow-2), transparent 60%);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans);
   /* Inter's clearer 1/l/I and single-storey a, the modern-UI defaults. */
@@ -410,8 +433,6 @@ svg[data-animated] .rio-wing { transform-box: fill-box; transform-origin: 10% 20
   :where(table) :where(tbody) :where(tr) { transition: background-color var(--duration-fast) var(--ease-out); }
 }
 
-/* Raised surface: the lit top edge over its shadow. Cards, panels and menus share it. */
-.surface-raised { box-shadow: var(--edge-highlight), var(--shadow-sm); }
 
 /* Lifts toward the pointer: clickable cards, rows that open something. Touch screens get the press instead. */
 .lift { transition: transform var(--duration-base) var(--ease-spring), box-shadow var(--duration-base) var(--ease-out), border-color var(--duration-fast) var(--ease-out); }
@@ -509,3 +530,65 @@ svg[data-animated] .rio-wing { transform-box: fill-box; transform-origin: 10% 20
 .stagger-bar { animation: bar-rise var(--duration-slow) var(--ease-out) both; }
 @keyframes podium-rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 .podium-step { animation: podium-rise 520ms var(--ease-spring) both; }
+
+
+/* ═══ Design language v3: soft clay depth ═════════════════════════════════════════════════════════════════════════
+   The look the references set: white clay surfaces floating over a cool, softly lit canvas; tactile controls that rise
+   on hover and sink when pressed; fields set into the surface; frosted navigation. All token-driven, light and dark.
+   Components opt in through these classes (components/ui), so every screen built from them changes together. */
+
+/* Raised clay surface: lit top edge, shaded bottom edge, soft tinted shadow. */
+.surface-raised { box-shadow: var(--edge-highlight), var(--shadow-sm); }
+.surface-float { box-shadow: var(--edge-highlight), var(--shadow-md); }
+
+/* Frosted bars and rails over the canvas (sidebar, header, phone tab bar). */
+.glass { background-color: var(--glass); backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .glass { background-color: var(--surface); } }
+
+/* Buttons. Primary: a lit brand gradient that glows; rises a pixel on hover, sinks when pressed. Secondary: a clay key. */
+.btn-primary {
+  background-image: var(--brand-gradient);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.28), var(--brand-glow);
+}
+.btn-secondary { box-shadow: var(--edge-highlight), var(--shadow-xs); }
+.btn-danger { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 6px 16px -6px color-mix(in srgb, var(--danger) 60%, transparent); }
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover:not(:disabled), .btn-secondary:hover:not(:disabled), .btn-danger:hover:not(:disabled) { transform: translateY(-1px); }
+  .btn-primary:hover:not(:disabled) { filter: brightness(1.06) saturate(1.05); }
+  .btn-secondary:hover:not(:disabled) { box-shadow: var(--edge-highlight), var(--shadow-sm); }
+}
+.btn-primary:active:not(:disabled), .btn-danger:active:not(:disabled) { transform: translateY(0) scale(0.98); box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.22); filter: none; }
+.btn-secondary:active:not(:disabled) { transform: translateY(0) scale(0.98); box-shadow: var(--shadow-inset); }
+
+/* Fields sit into the surface; on focus they come forward with a soft brand glow. */
+.field {
+  background-color: var(--surface-muted);
+  box-shadow: var(--shadow-inset);
+}
+.field:hover:not(:disabled):not(:focus) { border-color: var(--border-strong); }
+.field:focus, .field:focus-visible { background-color: var(--surface); box-shadow: var(--focus-glow); }
+
+/* Native checkboxes, radios, ranges and progress bars take the brand colour everywhere. */
+:where(input[type="checkbox"], input[type="radio"], input[type="range"], progress) { accent-color: var(--brand); }
+
+/* Wells: grouped content set into the page (filters, empty areas). */
+.well { background-color: var(--surface-sunken); box-shadow: var(--shadow-inset); }
+
+/* Toasts (components/ui/toast.tsx): arrive with a spring from the edge, leave faster. */
+@keyframes toast-in { from { opacity: 0; transform: translateY(16px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(8px) scale(0.97); } }
+.toast { animation: toast-in var(--duration-slow) var(--ease-spring) both; }
+.toast[data-leaving] { animation: toast-out var(--duration-fast) var(--ease-in) both; }
+@keyframes toast-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.toast-timer { transform-origin: left; animation: toast-timer linear forwards; }
+.toast:hover .toast-timer { animation-play-state: paused; }
+
+/* Side sheets (components/ui/sheet.tsx): slide in from the side on larger screens, up from the bottom on phones. */
+@keyframes side-in { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes side-out { to { transform: translateX(100%); } }
+.anim-side[data-state="open"] { animation: side-in var(--duration-slow) var(--ease-out); }
+.anim-side[data-state="closed"] { animation: side-out var(--duration-base) var(--ease-in); }
+@media (max-width: 639px) {
+  .anim-side[data-state="open"] { animation: sheet-in var(--duration-slow) var(--ease-out); }
+  .anim-side[data-state="closed"] { animation: sheet-out var(--duration-base) var(--ease-in); }
+}
