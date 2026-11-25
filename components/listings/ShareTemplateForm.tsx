@@ -9,7 +9,7 @@ const SAMPLE: Listing = {
   id: 'sample', kind: 'rent', propertyType: 'apartment', title: '3BHK with park view', locality: 'Kondapur', city: 'Hyderabad',
   address: null, bhk: '3BHK', area: 1650, areaUnit: 'sqft', floor: '7', furnishing: 'semi', facing: 'East', price: null,
   monthlyRent: 42000, deposit: 200000, maintenance: 4000, availableFrom: '2026-12-15', description: null, status: 'available',
-  assignedTo: null, owner: null,
+  assignedTo: null, owner: null, fitOut: null, seats: null, frontageFt: null, parking: null,
 }
 
 export function ShareTemplateForm({ orgId, agency, initial }: { orgId: string; agency: string; initial: string }) {

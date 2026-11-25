@@ -21,12 +21,20 @@ export function canEditListing(v: ListingViewer, row: { assigned_to?: unknown; c
   return canSeeOwner(v, row)
 }
 
-export interface ListingRow extends Listing { assigneeName: string | null; canEdit: boolean }
+export interface ListingRow extends Listing {
+  assigneeName: string | null; canEdit: boolean
+  /** When the owner was last e-mailed, and which message (only for people who may see the owner). */
+  ownerEmailed: { at: string; kind: string } | null
+}
 
 const COLUMNS = '*, assignee:profiles!listings_assigned_to_fkey(full_name)'
 
 function toRow(r: Record<string, unknown>, v: ListingViewer): ListingRow {
-  return { ...listingFromRow(r, canSeeOwner(v, r)), assigneeName: (r.assignee as { full_name?: string } | null)?.full_name ?? null, canEdit: canEditListing(v, r) }
+  const owner = canSeeOwner(v, r)
+  return {
+    ...listingFromRow(r, owner), assigneeName: (r.assignee as { full_name?: string } | null)?.full_name ?? null, canEdit: canEditListing(v, r),
+    ownerEmailed: owner && typeof r.owner_emailed_at === 'string' ? { at: r.owner_emailed_at, kind: String(r.owner_email_kind ?? '') } : null,
+  }
 }
 
 export async function listListings(orgId: string, v: ListingViewer, f: { kind?: string | null; status?: string | null; q?: string | null } = {}): Promise<ListingRow[]> {
