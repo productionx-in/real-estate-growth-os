@@ -18,13 +18,18 @@ console.log('NAVIGATION')
 
 test('each role keeps exactly the pages it had before the redesign', () => {
   const sort = (a) => [...a].sort()
-  assert.deepEqual(keys('owner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'integrations', 'team', 'settings', 'billing', 'audit', 'support', 'help']))
+  assert.deepEqual(keys('owner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'campaigns', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'integrations', 'team', 'settings', 'billing', 'audit', 'support', 'help']))
   assert.deepEqual(keys('admin'), keys('owner'))
-  assert.deepEqual(keys('manager'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'team', 'help']))
+  assert.deepEqual(keys('manager'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'campaigns', 'routing', 'speed', 'projects', 'inventory', 'documents', 'analytics', 'team', 'help']))
   assert.deepEqual(keys('sales_exec'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'inventory', 'help']))
   assert.deepEqual(keys('readonly'), sort(['home', 'projects', 'inventory', 'documents', 'analytics', 'help']))
-  assert.deepEqual(keys('manager', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'listings', 'sales', 'partners', 'team', 'help']))
-  assert.deepEqual(keys('owner', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'listings', 'sales', 'partners', 'team', 'settings', 'billing', 'audit', 'support', 'help']))
+  assert.deepEqual(keys('manager', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'listings', 'sales', 'partners', 'campaigns', 'team', 'help']))
+  assert.deepEqual(keys('owner', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'listings', 'sales', 'partners', 'campaigns', 'team', 'settings', 'billing', 'audit', 'support', 'help']))
+})
+
+test('campaigns (marketing to segments) appear for owners, admins and managers only', () => {
+  for (const r of ['owner', 'admin', 'manager']) for (const t of ['developer', 'channel_partner']) assert.ok(keys(r, t).includes('campaigns'), `${r} ${t}`)
+  for (const r of ['sales_exec', 'team_lead', 'post_sales', 'readonly']) assert.ok(!keys(r).includes('campaigns'), r)
 })
 
 test('new roles: a team lead gets the selling pages; post-sales gets customers, bookings and documents, no pipeline tools', () => {

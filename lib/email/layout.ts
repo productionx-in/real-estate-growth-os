@@ -26,6 +26,8 @@ export interface EmailContent {
   footnote?: string
   /** Why the person got this e-mail, in the footer. Defaults to an action in a workspace. */
   reason?: string
+  /** Marketing e-mail: a link in the footer that stops further marketing (lib/dal/campaigns.ts). */
+  unsubscribeUrl?: string
 }
 
 const BRAND = '#1d4ed8'
@@ -38,6 +40,7 @@ const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
 const inline = (text: string) => escapeHtml(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
 
 export function renderEmail(content: EmailContent): { html: string; text: string } {
+  const unsubscribe = content.unsubscribeUrl ? safeUrl(content.unsubscribeUrl) : null
   const cta = content.cta ? { label: content.cta.label, url: safeUrl(content.cta.url) } : null
   const paragraphs = content.paragraphs
     .map((p) => `<p style="margin:0 0 16px;font-size:15px;line-height:24px;color:${TEXT};">${inline(p)}</p>`)
@@ -70,7 +73,7 @@ export function renderEmail(content: EmailContent): { html: string; text: string
     </td></tr>
     <tr><td style="padding:16px 4px;font-size:12px;line-height:18px;color:${SUBTLE};">
       ${escapeHtml(PRODUCT_FULL_NAME)} · Lead management for real-estate developers and channel partners.<br>
-      ${escapeHtml(content.reason ?? `You received this because of an action in a ${PRODUCT_NAME} workspace.`)} © ${new Date().getFullYear()} ${escapeHtml(COMPANY_NAME)}.
+      ${escapeHtml(content.reason ?? `You received this because of an action in a ${PRODUCT_NAME} workspace.`)} © ${new Date().getFullYear()} ${escapeHtml(COMPANY_NAME)}.${unsubscribe ? `<br><a href="${escapeHtml(unsubscribe)}" style="color:${SUBTLE};text-decoration:underline;">Unsubscribe from these e-mails</a>` : ''}
     </td></tr>
   </table>
 </td></tr></table>
@@ -85,6 +88,7 @@ export function renderEmail(content: EmailContent): { html: string; text: string
     '',
     '—',
     PRODUCT_FULL_NAME,
+    ...(unsubscribe ? ['', `Unsubscribe from these e-mails: ${unsubscribe}`] : []),
   ].join('\n')
 
   return { html, text }

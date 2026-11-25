@@ -258,3 +258,11 @@ export async function listsForLead(orgId: string, leadId: string): Promise<{ id:
   const inList = new Set(((mine ?? []) as { segment_id: string }[]).map((r) => r.segment_id))
   return ((lists ?? []) as { id: string; name: string }[]).map((l) => ({ id: l.id, name: l.name, member: inList.has(l.id) }))
 }
+
+/** The leads a campaign would reach (newest first, up to `limit`), as this sender may see them. */
+export async function segmentCandidates(orgId: string, segment: Segment, viewer: Viewer, limit: number): Promise<{ id: string; name: string | null; email: string | null; phone: string | null; status: string }[]> {
+  const { data } = await leadsQuery(orgId, segment, viewer, 'id, name, email, phone, status')
+    .order('created_at', { ascending: false }).limit(limit)
+  return ((data ?? []) as { id: string; name: string | null; email: string | null; phone: string | null; status: string; lead_segment_members?: unknown }[])
+    .map(({ lead_segment_members: _m, ...l }) => l)
+}
