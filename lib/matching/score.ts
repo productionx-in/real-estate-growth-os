@@ -27,6 +27,9 @@ export interface Requirements {
   req_purpose?: 'buy' | 'rent' | null
   req_rent_max?: number | null
   req_property_types?: string[]
+  /** Commercial needs (20260095). */
+  req_fit_out?: string[]
+  req_min_seats?: number | null
 }
 
 export interface UnitForMatch {

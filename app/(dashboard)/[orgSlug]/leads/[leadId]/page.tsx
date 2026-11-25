@@ -131,7 +131,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
   const needs = (matching.requirements ?? null) as unknown as ListingNeeds | null
   const [listingMatches, shareTemplate, { data: meProfile }] = isAgency && needs
     ? await Promise.all([
-        matchListingsForLead(org.id, { ...needs, req_purpose: needs.req_purpose ?? null, req_rent_max: needs.req_rent_max ?? null, req_property_types: needs.req_property_types ?? [] }),
+        matchListingsForLead(org.id, { ...needs, req_purpose: needs.req_purpose ?? null, req_rent_max: needs.req_rent_max ?? null, req_property_types: needs.req_property_types ?? [], req_fit_out: needs.req_fit_out ?? [], req_min_seats: needs.req_min_seats ?? null }),
         getShareTemplate(org.id),
         service.from('profiles').select('full_name, phone').eq('id', profile.id).maybeSingle(),
       ])
@@ -536,7 +536,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
               template={shareTemplate}
               me={{ name: meProfile?.full_name ?? 'Your agent', phone: meProfile?.phone ?? null }}
               agency={org.name}
-              hasNeeds={!!needs && hasListingNeeds({ ...needs, req_purpose: needs.req_purpose ?? null, req_rent_max: needs.req_rent_max ?? null, req_property_types: needs.req_property_types ?? [] })}
+              hasNeeds={!!needs && hasListingNeeds({ ...needs, req_purpose: needs.req_purpose ?? null, req_rent_max: needs.req_rent_max ?? null, req_property_types: needs.req_property_types ?? [], req_fit_out: needs.req_fit_out ?? [], req_min_seats: needs.req_min_seats ?? null })}
               listingsHref={`/${orgSlug}/listings`}
             />
           )}

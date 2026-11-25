@@ -12,7 +12,7 @@ import type { DalResult } from '@/lib/dal/routing'
 import type { ProjectCategory } from '@/types/database'
 import { leadScopeOf, type LeadViewer } from '@/lib/auth/permissions'
 
-const REQ_COLUMNS = 'budget_min, budget_max, project_id, req_configurations, req_categories, req_locations, req_facing, req_min_area, req_max_area, req_purpose, req_rent_max, req_property_types'
+const REQ_COLUMNS = 'budget_min, budget_max, project_id, req_configurations, req_categories, req_locations, req_facing, req_min_area, req_max_area, req_purpose, req_rent_max, req_property_types, req_fit_out, req_min_seats'
 const UNIT_COLUMNS = 'id, project_id, unit_number, tower_name, floor_number, status, category, bhk_config, facing, total_price, carpet_area, super_built_up_area, area_value, project:projects(name, city, location)'
 
 type UnitRow = UnitForMatch & { unit_number: string; tower_name: string | null; floor_number: number | null }
@@ -105,6 +105,8 @@ export interface RequirementsInput {
   req_purpose?: 'buy' | 'rent' | null
   req_rent_max?: number | null
   req_property_types?: string[]
+  req_fit_out?: string[]
+  req_min_seats?: number | null
 }
 
 export async function saveRequirements(orgId: string, leadId: string, input: RequirementsInput): Promise<DalResult<null>> {

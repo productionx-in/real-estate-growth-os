@@ -88,6 +88,33 @@ async function main() {
     await assert.rejects(db.query(`UPDATE public.leads SET req_purpose='lease' WHERE id=$1`, [lead]), /check/i)
   })
 
+  await test('commercial details (20260095): stored, checked, and matched to a tenant who needs seats and a fit-out', async () => {
+    const officeRow = normaliseListing({ kind: 'rent', propertyType: 'office', title: 'Office floor', locality: 'HITEC City', city: 'Hyderabad', monthlyRent: 350000, fitOut: 'warm_shell', seats: 60, parking: 6, ownerEmail: 'owner@example.com' }).row
+    const made = await dal.createListing(org, asha, officeRow, null); assert.ok(made.id)
+    const r = await one('SELECT fit_out, seats, parking, frontage_ft FROM public.listings WHERE id=$1', [made.id])
+    assert.deepEqual([r.fit_out, r.seats, r.parking, r.frontage_ft], ['warm_shell', 60, 6, null])
+    await assert.rejects(db.query(`UPDATE public.listings SET fit_out='luxury' WHERE id=$1`, [made.id]), /check/i)
+    await assert.rejects(db.query(`UPDATE public.listings SET seats=0 WHERE id=$1`, [made.id]), /check/i)
+    const base = { req_purpose: 'rent', budget_min: null, budget_max: null, req_rent_max: null, req_configurations: [], req_categories: [], req_property_types: ['office'], req_locations: [], req_min_area: null, req_max_area: null }
+    const fits = await dal.matchListingsForLead(org, { ...base, req_min_seats: 50, req_fit_out: ['warm_shell'] })
+    assert.equal(fits[0]?.listing.id, made.id); assert.ok(fits[0].match.reasons.includes('60 seats'))
+    assert.deepEqual(await dal.matchListingsForLead(org, { ...base, req_min_seats: 100 }), [], 'far too few seats')
+    // The owner-email record is kept on the listing (the API writes it after queueing the e-mail).
+    await db.query(`UPDATE public.listings SET owner_emailed_at=now(), owner_email_kind='listed' WHERE id=$1`, [made.id])
+    await assert.rejects(db.query(`UPDATE public.listings SET owner_email_kind='spam' WHERE id=$1`, [made.id]), /check/i)
+    const seen = await dal.getListing(org, made.id, { role: 'sales_exec', profileId: ravi })
+    assert.equal(seen.ownerEmailed, null, 'another agent does not see owner e-mail activity')
+    assert.equal((await dal.getListing(org, made.id, { role: 'manager', profileId: boss })).ownerEmailed.kind, 'listed')
+  })
+
+  await test('commercial needs sit on the table behind the live-leads view, and are checked', async () => {
+    const lead = (await one(`INSERT INTO public.leads (org_id, name, phone, source, req_fit_out, req_min_seats) VALUES ($1,'C','9876500010','website',ARRAY['warm_shell','plug_and_play'],40) RETURNING id`, [org])).id
+    const r = await one('SELECT req_fit_out, req_min_seats FROM public.leads WHERE id=$1', [lead])
+    assert.deepEqual([r.req_fit_out, r.req_min_seats], [['warm_shell', 'plug_and_play'], 40])
+    await assert.rejects(db.query(`UPDATE public.leads SET req_fit_out=ARRAY['marble'] WHERE id=$1`, [lead]), /check/i)
+    await assert.rejects(db.query(`UPDATE public.leads SET req_min_seats=0 WHERE id=$1`, [lead]), /check/i)
+  })
+
   await test('the share template is stored per agency', async () => {
     assert.equal(await dal.saveShareTemplate(org, boss, '*{title}* in {locality} — {price}'), true)
     assert.equal(await dal.getShareTemplate(org), '*{title}* in {locality} — {price}')
