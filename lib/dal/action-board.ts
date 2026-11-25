@@ -6,6 +6,7 @@
 //   no_next_step — leads past "new" with nothing scheduled (next_follow_up_at is empty)
 //   visited      — visited the site, not booked yet
 // Scope: a sales executive sees only their own leads; everyone else sees the organisation.
+import { assignableRolesFor } from '@/lib/dal/sales-structure'
 import { createServiceClient } from '@/lib/supabase/server'
 import type { LeadStatus } from '@/types/database'
 import { DEFAULT_RESPONSE_SETTINGS, LEAD_COLUMNS, tzOffsetMinutes, type MyDayLead } from './follow-ups'
@@ -112,7 +113,7 @@ async function getTeamRows(orgId: string, now: Date, from: Date, dayStart: Date,
   const db = createServiceClient()
   const [members, open, booked, visits] = await Promise.all([
     db.from('org_members').select('profile_id, role, profile:profiles!org_members_profile_id_fkey(full_name)')
-      .eq('org_id', orgId).eq('status', 'active').in('role', [...ASSIGNABLE_ROLES]),
+      .eq('org_id', orgId).eq('status', 'active').in('role', await assignableRolesFor(orgId)),
     db.from('leads').select('assigned_to, status, first_action_at, next_follow_up_at, created_at')
       .eq('org_id', orgId).not('assigned_to', 'is', null).not('status', 'in', `(${CLOSED_STATUSES.join(',')})`).limit(20000),
     db.from('leads').select('assigned_to').eq('org_id', orgId).eq('status', 'booked').gte('updated_at', from.toISOString()).limit(10000),

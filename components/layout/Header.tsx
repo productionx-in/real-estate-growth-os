@@ -28,12 +28,14 @@ export interface HeaderProps {
   user?: { id: string; email?: string }
   profile?: { id: string; full_name: string; avatar_url: string | null; phone: string | null }
   availableOrgs?: AvailableOrgSummary[]
+  /** Receives leads in this workspace (an owner only while they also sell); shows the on-duty switch. */
+  takesLeads?: boolean
 }
 
 /** Pages below a section ("…/leads/new") get a second crumb. */
 const SUBPAGE_LABELS: Record<string, string> = { new: 'New', import: 'Import', edit: 'Edit' }
 
-export function Header({ orgId, orgName, orgSlug = '', orgType = 'developer', role = 'sales_exec', user, profile, availableOrgs = [] }: HeaderProps) {
+export function Header({ orgId, orgName, orgSlug = '', orgType = 'developer', role = 'sales_exec', user, profile, availableOrgs = [], takesLeads }: HeaderProps) {
   const router = useRouter()
   const pathname = usePathname() || ''
 
@@ -105,7 +107,7 @@ export function Header({ orgId, orgName, orgSlug = '', orgType = 'developer', ro
           <Search aria-hidden className="size-5" />
         </button>
 
-        {orgId && ASSIGNABLE_ROLES.includes(role) && <DutyToggle orgId={orgId} />}
+        {orgId && (takesLeads ?? ASSIGNABLE_ROLES.includes(role)) && <DutyToggle orgId={orgId} />}
 
         {orgId && orgSlug ? (
           <NotificationBell orgId={orgId} orgSlug={orgSlug} />

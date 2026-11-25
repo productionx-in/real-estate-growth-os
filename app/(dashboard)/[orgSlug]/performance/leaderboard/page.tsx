@@ -2,6 +2,8 @@
 // custom dates (the workspace's time zone), a top-three podium, everyone's rank, how far each person is from the next
 // place and how they moved against the previous period. Friendly by design: what colleagues can see of each other is the
 // workspace's choice (Targets & settings → Leaderboard); owners, admins and managers always see everything.
+import { sellsPersonally, watchesTeam } from '@/lib/sales/structure'
+import { getSalesStructure } from '@/lib/dal/sales-structure'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -34,6 +36,7 @@ export default async function LeaderboardPage({ params, searchParams }: { params
   const { orgSlug } = await params
   const sp = await searchParams
   const { org, role, profile } = await getVerifiedWorkspace(orgSlug)
+  const sales = await getSalesStructure(org.id)
   if (role === 'readonly' || role === 'post_sales') notFound()
   const [settings, tz] = await Promise.all([getGamification(org.id), orgTimezone(org.id)])
   const period: P = sp.p && sp.p in PERIOD_TABS ? (sp.p as P) : 'week'
@@ -60,7 +63,7 @@ export default async function LeaderboardPage({ params, searchParams }: { params
 
   return (
     <PageShell title="Leaderboard" description={`Friendly competition: points for real work, ranked ${label.toLowerCase()} (${tzLabel}).`}>
-      <PerformanceTabs orgSlug={orgSlug} current="leaderboard" canManage={canManagePerformance(role)} />
+      <PerformanceTabs orgSlug={orgSlug} current="leaderboard" canManage={canManagePerformance(role)} watchesTeam={watchesTeam(role)} sellsPersonally={sellsPersonally(role, sales)} />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="inline-flex rounded-lg border border-default bg-background p-0.5 text-[13px]">
           {(Object.keys(PERIOD_TABS) as P[]).map((k) => (

@@ -1,10 +1,16 @@
-// components/performance/PerformanceTabs.tsx — the four views of Performance, one tab bar for all of them.
+// components/performance/PerformanceTabs.tsx — the views of Performance, one tab bar for all of them. Managers start
+// on the team; "My performance" is there for people who sell themselves (an owner only while owners sell).
 import Link from 'next/link'
 import { cn } from '@/lib/utils/cn'
 
-export function PerformanceTabs({ orgSlug, current, canManage }: { orgSlug: string; current: 'me' | 'leaderboard' | 'achievements' | 'manage'; canManage: boolean }) {
+export type PerformanceTab = 'team' | 'me' | 'leaderboard' | 'achievements' | 'manage'
+
+export function PerformanceTabs({ orgSlug, current, canManage, watchesTeam = false, sellsPersonally = true }: {
+  orgSlug: string; current: PerformanceTab; canManage: boolean; watchesTeam?: boolean; sellsPersonally?: boolean
+}) {
   const tabs = [
-    { key: 'me', label: 'My performance', href: `/${orgSlug}/performance` },
+    ...(watchesTeam ? [{ key: 'team', label: 'Team overview', href: `/${orgSlug}/performance/team` }] : []),
+    ...(sellsPersonally ? [{ key: 'me', label: 'My performance', href: `/${orgSlug}/performance${watchesTeam ? '?me=1' : ''}` }] : []),
     { key: 'leaderboard', label: 'Leaderboard', href: `/${orgSlug}/performance/leaderboard` },
     { key: 'achievements', label: 'Achievements', href: `/${orgSlug}/performance/achievements` },
     ...(canManage ? [{ key: 'manage', label: 'Targets & settings', href: `/${orgSlug}/performance/manage` }] : []),

@@ -1,5 +1,6 @@
 // app/api/leads/import/route.ts
 // Handles batch CSV lead imports (up to 500 leads) with tenant isolation and validation.
+import { assignableRolesFor } from '@/lib/dal/sales-structure'
 import { NextResponse, type NextRequest } from 'next/server'
 import { authenticateCaller } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -186,7 +187,7 @@ export async function POST(request: NextRequest) {
     if (leads.some((l) => l.owner)) {
       const { data: members } = await service.from('org_members')
         .select('profile_id, role, profile:profiles!org_members_profile_id_fkey(full_name, auth_user_id)')
-        .eq('org_id', targetOrgId).eq('status', 'active').in('role', [...ASSIGNABLE_ROLES])
+        .eq('org_id', targetOrgId).eq('status', 'active').in('role', await assignableRolesFor(targetOrgId))
       const authIds = new Map<string, string>()
       for (const m of members ?? []) {
         if (m.profile?.full_name) ownerKeys.set(normaliseName(m.profile.full_name), m.profile_id)

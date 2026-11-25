@@ -1,5 +1,6 @@
 // app/api/orgs/route.ts
 // Creates a new organisation, assigns the creator as owner, and seeds optional starter data.
+import { initSalesStructure } from '@/lib/dal/sales-structure'
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -136,6 +137,9 @@ export async function POST(request: NextRequest) {
     if (seedDemoData !== false) {
       await seedWorkspaceDemoData(org.id, profile?.id)
     }
+    // The owner manages; selling is switched on in Settings → Sales structure (after the demo data, which may give
+    // the owner sample leads — leads already held stay).
+    await initSalesStructure(org.id)
 
     return NextResponse.json({ org }, { status: 201 })
   } catch (err) {

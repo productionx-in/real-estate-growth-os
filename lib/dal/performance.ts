@@ -1,6 +1,9 @@
 // lib/dal/performance.ts — reads and writes for sales performance (20260094; rules in lib/performance/rules.ts).
 // Everything reads the event ledger (public.performance_events), which only the database writes from real CRM events.
 // Callers have already authorised the workspace; owner/admin-only writes are checked again in the API routes.
+import { getSalesStructure } from '@/lib/dal/sales-structure'
+import { canTakeLeads } from '@/lib/sales/structure'
+import type { MemberRole } from '@/types/database'
 import { createServiceClient } from '@/lib/supabase/server'
 import {
   BUILTIN_ACHIEVEMENTS, METRICS, gamificationFromStored, gamificationToStored, levelFor, periodWindow,
@@ -194,17 +197,19 @@ export interface LeaderRow {
   previousXp: number; gapToNext: number | null
 }
 
-/** Who ranks: everyone who sells (owners, admins, managers, team leads and sales executives with activity or targets). */
+/** Who ranks: everyone who sells — admins, managers, team leads and sales executives with activity or targets, and the
+ * owner only while owners sell. */
 export async function getLeaderboard(orgId: string, window: { from: Date; to: Date }, now = new Date()): Promise<LeaderRow[]> {
   const tz = await orgTimezone(orgId)
   const span = window.to.getTime() - window.from.getTime()
   const prev = { from: new Date(window.from.getTime() - span), to: window.from }
-  const [cur, before, { data: members }, targets, { data: teamRows }] = await Promise.all([
+  const [cur, before, { data: members }, targets, { data: teamRows }, sales] = await Promise.all([
     events(orgId, window.from, window.to), events(orgId, prev.from, prev.to),
     db().from('org_members').select('profile_id, role, profiles!org_members_profile_id_fkey(full_name, avatar_url)').eq('org_id', orgId).eq('status', 'active')
       .in('role', ['owner', 'admin', 'manager', 'team_lead', 'sales_exec']),
     listTargets(orgId),
     db().from('team_members').select('team_id, profile_id').eq('org_id', orgId),
+    getSalesStructure(orgId),
   ])
   const now_ = tally(cur), was = tally(before)
   const todayKey = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(now)
@@ -215,6 +220,8 @@ export async function getLeaderboard(orgId: string, window: { from: Date; to: Da
     const mine = targetsFor(targets, m.profile_id, teams, todayKey)
     // Activity in the period, a target, or a seller's role: managers with nothing to show stay off the board.
     if (!now_.has(m.profile_id) && !mine.length && !['sales_exec', 'team_lead'].includes(m.role)) continue
+    // An owner who only manages is not on the sales board (Settings → Sales structure); their history stays.
+    if (!canTakeLeads(m.role as MemberRole, sales)) continue
     const pcts = mine.map((tg) => Math.min(100, (t[tg.metric] / tg.amount) * 100))
     rows.push({
       profileId: m.profile_id, name: m.profiles?.full_name?.trim() || 'Team member', avatarUrl: m.profiles?.avatar_url ?? null, rank: 0,

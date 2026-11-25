@@ -1,9 +1,11 @@
 // app/(dashboard)/[orgSlug]/performance/page.tsx — My performance: level and points, what to do next, today's missions,
 // targets, the numbers that matter and recent achievements. Everyone who sells sees their own; owners, admins and
 // managers can look at anyone's (?person=). Read from the event ledger (20260094), never typed in.
+import { sellsPersonally, watchesTeam } from '@/lib/sales/structure'
+import { getSalesStructure } from '@/lib/dal/sales-structure'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { ArrowRight, Lightbulb, Sparkles } from 'lucide-react'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { fmtAmount, getMyPerformance } from '@/lib/dal/performance'
@@ -18,11 +20,14 @@ import { Bar, CountUp, LevelRing, Medal, XpHistory } from '@/components/performa
 export const metadata: Metadata = { title: 'My performance' }
 export const dynamic = 'force-dynamic'
 
-export default async function MyPerformancePage({ params, searchParams }: { params: Promise<{ orgSlug: string }>; searchParams: Promise<{ person?: string }> }) {
+export default async function MyPerformancePage({ params, searchParams }: { params: Promise<{ orgSlug: string }>; searchParams: Promise<{ person?: string; me?: string }> }) {
   const { orgSlug } = await params
   const sp = await searchParams
   const { org, role, profile } = await getVerifiedWorkspace(orgSlug)
   if (role === 'readonly' || role === 'post_sales') notFound()
+  const sales = await getSalesStructure(org.id)
+  // Managers start on the team. Their own page is one tab away (?me=1) — for an owner only while owners sell.
+  if (!sp.person && watchesTeam(role) && (!sp.me || !sellsPersonally(role, sales))) redirect(`/${orgSlug}/performance/team`)
   let personId = profile.id, personName: string | null = null
   if (sp.person && sp.person !== profile.id && /^[0-9a-f-]{36}$/.test(sp.person)) {
     if (!isManagement(role)) notFound()
@@ -44,8 +49,8 @@ export default async function MyPerformancePage({ params, searchParams }: { para
 
   return (
     <PageShell title={own ? 'My performance' : `Performance · ${personName}`} description={own ? 'Every call, follow-up, visit and booking moves you forward. Points come only from real work in REGrow.' : 'Their progress, read from what they did in REGrow.'}
-      back={own ? undefined : { href: `/${orgSlug}/performance/leaderboard`, label: 'Leaderboard' }}>
-      <PerformanceTabs orgSlug={orgSlug} current="me" canManage={canManagePerformance(role)} />
+      back={own ? undefined : { href: `/${orgSlug}/performance/team`, label: 'Team performance' }}>
+      <PerformanceTabs orgSlug={orgSlug} current={own ? 'me' : 'team'} canManage={canManagePerformance(role)} watchesTeam={watchesTeam(role)} sellsPersonally={sellsPersonally(role, sales)} />
       {!p.settings.enabled && (
         <p className="mb-4 rounded-lg border border-default bg-surface-hover px-3 py-2 text-[13px] text-muted">Points and missions are switched off for this workspace. Your numbers and targets still update.</p>
       )}

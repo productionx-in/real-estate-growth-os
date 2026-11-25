@@ -1,6 +1,7 @@
 // app/(dashboard)/[orgSlug]/routing/page.tsx
 // Lead routing settings: teams, members (weight / daily cap / duty), routing rules and recent decisions.
 // Owner, admin and manager only — the same roles the /api/routing write endpoints accept.
+import { assignableRolesFor } from '@/lib/dal/sales-structure'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { PageShell } from '@/components/layout/PageShell'
@@ -32,7 +33,7 @@ export default async function RoutingPage({ params }: PageProps) {
     listRules(orgId),
     listRecentRoutingDecisions(orgId, 25),
     service.from('org_members').select('profile_id, role, profile:profiles!org_members_profile_id_fkey(id, full_name)')
-      .eq('org_id', orgId).eq('status', 'active').in('role', [...ASSIGNABLE_ROLES]),
+      .eq('org_id', orgId).eq('status', 'active').in('role', await assignableRolesFor(orgId)),
     service.from('projects').select('id, name').eq('org_id', orgId).order('name'),
     getResponseSettings(orgId),
   ])
