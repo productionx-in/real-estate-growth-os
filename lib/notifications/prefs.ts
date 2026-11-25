@@ -14,6 +14,7 @@ export const ALERTS = {
   sla_breach: { label: 'A lead missed its response target', hint: 'Sent to managers and the lead’s owner.', urgent: true },
   follow_up_due: { label: 'A follow-up is due', hint: 'At the time you set.', urgent: false },
   follow_up_overdue: { label: 'A follow-up is overdue', hint: 'Once, when it slips past due.', urgent: false },
+  achievement: { label: 'I unlock an achievement, finish a mission or reach a target', hint: 'Including level ups.', urgent: false },
   plot_map: { label: 'Plot map setup news', hint: 'When your plot map needs something or is ready to review.', urgent: false },
   document_viewed: { label: 'A buyer opened a document I shared', hint: 'The first time they open it.', urgent: false },
 } as const

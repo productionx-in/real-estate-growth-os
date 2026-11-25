@@ -19,7 +19,8 @@ export type SoundId = keyof typeof SOUNDS
 export const SOUND_IDS = Object.keys(SOUNDS) as SoundId[]
 
 /** The three kinds of alert that make a sound. */
-export type AlertSoundKind = 'newLead' | 'reminder' | 'followUp'
+/** `win`: an achievement, a completed mission, a target reached or a level up (20260094). */
+export type AlertSoundKind = 'newLead' | 'reminder' | 'followUp' | 'win'
 
 export interface LeadAlertSettings {
   /** Master switch: off silences everything below (the inbox keeps everything else it had before). */
@@ -105,6 +106,7 @@ export function bannerKind(type: string, event?: string | null): AlertSoundKind 
   if (type === 'lead_new' || ((type === 'lead_assigned' || type === 'lead_unassigned') && event === 'new_lead')) return 'newLead'
   if (type === 'lead_uncontacted' || type === 'sla_nudge') return 'reminder'
   if (type === 'follow_up_due') return 'followUp'
+  if (type === 'achievement') return 'win'
   return null
 }
 
@@ -112,11 +114,12 @@ export function soundFor(kind: AlertSoundKind, s: LeadAlertSettings): SoundId | 
   if (!s.enabled || !s.sounds) return null
   if (kind === 'newLead') return s.newLead ? s.newLeadSound : null
   if (kind === 'reminder') return s.uncontacted ? s.reminderSound : null
+  if (kind === 'win') return 'marimba'
   return s.followUp ? s.followUpSound : null
 }
 
 /** Several alerts at once make one sound: the most important kind wins. */
 export function loudest(kinds: AlertSoundKind[]): AlertSoundKind | null {
-  for (const k of ['newLead', 'reminder', 'followUp'] as const) if (kinds.includes(k)) return k
+  for (const k of ['newLead', 'reminder', 'followUp', 'win'] as const) if (kinds.includes(k)) return k
   return null
 }

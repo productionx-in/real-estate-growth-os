@@ -67,7 +67,7 @@ export async function getLiveAlerts(orgId: string, viewer: { profileId: string; 
   const { data, error } = await service.from('notifications')
     .select('id, type, title, body, lead_id, data, created_at')
     .eq('org_id', orgId).eq('recipient_profile_id', viewer.profileId).is('read_at', null)
-    .in('type', ['lead_new', 'lead_assigned', 'lead_unassigned', 'lead_uncontacted', 'sla_nudge', 'follow_up_due'])
+    .in('type', ['lead_new', 'lead_assigned', 'lead_unassigned', 'lead_uncontacted', 'sla_nudge', 'follow_up_due', 'achievement'])
     .gt('created_at', floor.toISOString())
     .order('created_at', { ascending: false }).limit(10)
   if (error) return null

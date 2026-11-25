@@ -14,7 +14,7 @@ import { LeadAlertSettingsForm } from '@/components/notifications/LeadAlertSetti
 export const metadata: Metadata = { title: 'Notification defaults · Settings' }
 export const dynamic = 'force-dynamic'
 
-const KIND = { newLead: 'New lead', reminder: 'Not contacted', followUp: 'Follow-up' } as const
+const KIND = { newLead: 'New lead', reminder: 'Not contacted', followUp: 'Follow-up', win: 'Achievement' } as const
 const PUSH = { sent: 'Sent', skipped: 'Not sent', failed: 'Failed', none: 'In app only' } as const
 
 export default async function AlertDefaultsPage({ params }: { params: Promise<{ orgSlug: string }> }) {
