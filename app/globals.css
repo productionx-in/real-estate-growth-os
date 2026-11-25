@@ -596,3 +596,15 @@ svg[data-animated] .rio-wing { transform-box: fill-box; transform-origin: 10% 20
   .anim-side[data-state="open"] { animation: sheet-in var(--duration-slow) var(--ease-out); }
   .anim-side[data-state="closed"] { animation: sheet-out var(--duration-base) var(--ease-in); }
 }
+
+/* Hand-built fields that have not moved to components/ui yet get the same set-in look and focus glow. Zero
+   specificity (:where), so a field's own classes still win; borderless or transparent fields (search boxes inside a
+   styled wrapper, the ⌘K palette) are left alone. */
+@layer base {
+  :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="hidden"]), select, textarea):where(:not(.field):not([data-palette-input]):not([class*="border-0"]):not([class*="border-none"]):not([class*="bg-transparent"])) {
+    box-shadow: var(--shadow-inset);
+  }
+  :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="hidden"]), select, textarea):where(:not(.field):not([data-palette-input]):not([class*="border-0"]):not([class*="border-none"]):not([class*="bg-transparent"])):focus-visible {
+    box-shadow: var(--focus-glow);
+  }
+}
