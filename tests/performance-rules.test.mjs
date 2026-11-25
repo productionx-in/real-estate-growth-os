@@ -25,6 +25,11 @@ test('the database uses the same default points, cap, levels and missions', () =
 })
 
 test('the built-in achievements match the database list exactly', () => {
+  // The list as last defined: builtin_achievements() is redefined by later migrations (20260099 adds challenges).
+  const dir = path.join(root, 'supabase/migrations')
+  const latest = fs.readdirSync(dir).filter((f) => f.endsWith('.sql')).sort().map((f) => fs.readFileSync(path.join(dir, f), 'utf8'))
+    .filter((t) => t.includes('FUNCTION public.builtin_achievements()')).pop()
+  const sql = latest.slice(latest.indexOf('FUNCTION public.builtin_achievements()'), latest.indexOf('$$;', latest.indexOf('FUNCTION public.builtin_achievements()')))
   for (const a of R.BUILTIN_ACHIEVEMENTS) {
     assert.ok(sql.includes(`('${a.key}',`), a.key)
     const line = sql.split('\n').find((l) => l.includes(`('${a.key}',`))

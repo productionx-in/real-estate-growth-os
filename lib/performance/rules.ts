@@ -149,7 +149,7 @@ export function levelFor(xp: number, levels: Level[] = DEFAULT_LEVELS): { index:
   return { index, level, next, progress, toNext: next ? Math.max(0, next.xp - xp) : 0 }
 }
 
-/** Mirrors public.builtin_achievements() (20260094). */
+/** Mirrors public.builtin_achievements() (20260094; weekly challenges and more monthly achievements in 20260099). */
 export const BUILTIN_ACHIEVEMENTS = [
   { key: 'first_contact', title: 'First contact', description: 'Called or messaged your first lead.', metric: 'contacted', threshold: 1, window: 'all', xp: 10, icon: 'phone' },
   { key: 'contacts_10', title: '10 leads contacted', description: 'Reached ten different leads.', metric: 'contacted', threshold: 10, window: 'all', xp: 30, icon: 'phone' },
@@ -164,6 +164,12 @@ export const BUILTIN_ACHIEVEMENTS = [
   { key: 'targets_10', title: 'Target machine', description: 'Reached ten targets.', metric: 'targets', threshold: 10, window: 'all', xp: 250, icon: 'target' },
   { key: 'month_closer', title: 'Closer of the month', description: 'Closed three deals in one month.', metric: 'closed', threshold: 3, window: 'month', xp: 120, icon: 'crown' },
   { key: 'revenue_1cr', title: 'Crore club', description: 'Closed bookings worth ₹1 crore or more.', metric: 'revenue', threshold: 10_000_000, window: 'all', xp: 500, icon: 'gem' },
+  { key: 'week_contacts_25', title: 'Weekly challenge: 25 conversations', description: 'Contacted 25 leads in one week.', metric: 'contacted', threshold: 25, window: 'week', xp: 40, icon: 'phone' },
+  { key: 'week_visits_3', title: 'Weekly challenge: 3 site visits', description: 'Completed three site visits in one week.', metric: 'meetings', threshold: 3, window: 'week', xp: 50, icon: 'map' },
+  { key: 'week_close', title: 'Weekly challenge: a booking', description: 'Closed a deal in one week.', metric: 'closed', threshold: 1, window: 'week', xp: 60, icon: 'rocket' },
+  { key: 'week_missions_5', title: 'Weekly challenge: 5 missions', description: 'Completed five daily missions in one week.', metric: 'missions', threshold: 5, window: 'week', xp: 40, icon: 'flame' },
+  { key: 'month_contacts_100', title: 'Hundred in a month', description: 'Contacted a hundred leads in one month.', metric: 'contacted', threshold: 100, window: 'month', xp: 100, icon: 'star' },
+  { key: 'month_targets_3', title: 'Target hat-trick', description: 'Reached three targets in one month.', metric: 'targets', threshold: 3, window: 'month', xp: 120, icon: 'target' },
 ] as const
 
 export const BADGE_ICONS = ['trophy', 'phone', 'map', 'calendar', 'flame', 'target', 'crown', 'gem', 'star', 'rocket'] as const
