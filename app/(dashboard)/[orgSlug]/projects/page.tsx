@@ -61,14 +61,14 @@ export default async function ProjectsPage({ params }: PageProps) {
       actions={actions}
     >
       {projects && projects.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="stagger grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((project) => {
             const category = (project.category as ProjectCategory) || 'apartments'
 
             return (
               <div
                 key={project.id}
-                className="relative bg-[var(--surface)] border border-[var(--border)] rounded-xl p-5 hover:border-[var(--brand)] hover:shadow-xs transition-all group"
+                className="lift surface-raised relative bg-surface border border-default rounded-xl p-5 hover:border-brand/60 group"
               >
                 {/* The whole card opens the project; the Manage menu sits above this link. */}
                 <Link href={`/${orgSlug}/projects/${project.id}`} className="absolute inset-0 rounded-xl" aria-label={`Open ${project.name}`} />
@@ -78,7 +78,7 @@ export default async function ProjectsPage({ params }: PageProps) {
                       {project.name}
                     </h3>
                     {project.code && (
-                      <span className="font-mono text-[10px] text-brand bg-brand-light px-1.5 py-0.2 rounded mt-1 inline-block">
+                      <span className="font-mono text-[11px] text-brand bg-brand-light px-1.5 py-0.2 rounded mt-1 inline-block">
                         {project.code}
                       </span>
                     )}

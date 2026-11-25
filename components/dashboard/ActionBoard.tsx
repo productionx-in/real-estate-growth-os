@@ -7,6 +7,7 @@ import { PERIODS } from '@/lib/dal/action-board'
 import { TodayList } from '@/components/today/TodayList'
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState } from '@/components/ui'
 import { cn } from '@/lib/utils/cn'
+import { Tilt } from '@/components/ui/tilt'
 
 const TILES: { focus: Focus; label: string; hint: string; icon: typeof Clock; tone: 'danger' | 'warning' | 'neutral' }[] = [
   { focus: 'waiting', label: 'Waiting for a first call', hint: 'never called or messaged yet', icon: Clock, tone: 'danger' },
@@ -19,17 +20,20 @@ const TILES: { focus: Focus; label: string; hint: string; icon: typeof Clock; to
 function Tile({ href, label, hint, value, icon: Icon, tone }: { href: string; label: string; hint: string; value: number; icon: typeof Clock; tone: 'danger' | 'warning' | 'neutral' }) {
   const hot = value > 0 && tone !== 'neutral'
   return (
+    // A tile opens its list: it tilts toward the pointer with the number standing forward (components/ui/tilt.tsx).
+    <Tilt className="rounded-xl">
     <Link href={href} className={cn(
-      'group rounded-xl border bg-surface p-4 shadow-sm transition-colors hover:bg-surface-hover focus-visible:outline-2',
+      'group surface-raised flex h-full flex-col rounded-xl border bg-surface p-4 hover:bg-surface-hover focus-visible:outline-2',
       hot ? (tone === 'danger' ? 'border-danger/40' : 'border-warning/40') : 'border-default'
     )}>
       <div className="flex items-start justify-between gap-2">
         <p className="text-[12px] font-medium text-muted">{label}</p>
-        <Icon aria-hidden className={cn('size-4', hot ? (tone === 'danger' ? 'text-danger' : 'text-warning') : 'text-subtle')} />
+        <Icon aria-hidden className={cn('size-4 transition-transform duration-300 group-hover:scale-110', hot ? (tone === 'danger' ? 'text-danger' : 'text-warning') : 'text-subtle')} />
       </div>
-      <p className={cn('mt-1 text-[26px] font-bold tabular-nums', hot ? (tone === 'danger' ? 'text-danger' : 'text-warning') : 'text-foreground')}>{value}</p>
+      <p className={cn('mt-1 text-[26px] font-bold tabular-nums [transform:translateZ(24px)]', hot ? (tone === 'danger' ? 'text-danger' : 'text-warning') : 'text-foreground')}>{value}</p>
       <p className="text-[11px] text-subtle">{hint} <span className="text-brand opacity-0 transition-opacity group-hover:opacity-100">Open →</span></p>
     </Link>
+    </Tilt>
   )
 }
 

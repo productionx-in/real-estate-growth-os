@@ -125,7 +125,7 @@ export function WebsiteEnquiryWizardModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/60 backdrop-blur-xs">
+    <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
       <div className="bg-surface rounded-2xl shadow-2xl border border-default w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="px-6 py-5 border-b border-default flex items-center justify-between bg-surface-muted/50">

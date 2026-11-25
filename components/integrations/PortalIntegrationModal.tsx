@@ -108,7 +108,7 @@ export function PortalIntegrationModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+    <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
       <div className="bg-surface rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-default">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-default bg-surface-muted/50">

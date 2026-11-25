@@ -18,11 +18,14 @@ export function DialogContent({
 }: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { title: string; description?: string }) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-overlay" />
+      <DialogPrimitive.Overlay className="anim-overlay fixed inset-0 z-50 bg-overlay backdrop-blur-[2px]" />
       <DialogPrimitive.Content
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2',
-          'max-h-[calc(100vh-2rem)] overflow-y-auto rounded-xl border border-default bg-surface p-5 shadow-lg',
+          // Desktop: centred, rising from slightly behind the page. Phone: a bottom sheet with a grab handle.
+          'anim-dialog fixed z-50 overflow-y-auto border border-default bg-surface p-5 [box-shadow:var(--edge-highlight),var(--shadow-2xl)]',
+          'sm:left-1/2 sm:top-1/2 sm:w-[calc(100vw-2rem)] sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl',
+          'max-sm:inset-x-0 max-sm:bottom-0 max-sm:max-h-[90dvh] max-sm:rounded-t-2xl max-sm:pb-[calc(1.25rem+env(safe-area-inset-bottom))] max-sm:pt-6',
+          'max-sm:before:absolute max-sm:before:left-1/2 max-sm:before:top-2 max-sm:before:h-1 max-sm:before:w-10 max-sm:before:-translate-x-1/2 max-sm:before:rounded-full max-sm:before:bg-strong',
           className
         )}
         {...props}

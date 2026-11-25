@@ -12,7 +12,7 @@ export function Tooltip({ content, children, side = 'top' }: { content: string; 
           <TooltipPrimitive.Content
             side={side}
             sideOffset={6}
-            className="z-50 rounded-md bg-foreground px-2 py-1 text-[12px] text-inverse shadow-md"
+            className="anim-menu z-50 rounded-md bg-foreground px-2 py-1 text-[12px] text-inverse shadow-md"
           >
             {content}
           </TooltipPrimitive.Content>

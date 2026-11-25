@@ -23,7 +23,7 @@ export function BottomNav({ orgSlug, role, orgType, disabledModules }: { orgSlug
           return (
             <li key={t.key} className="flex flex-1">
               <Link href={t.href} aria-label={t.label} aria-current={active ? 'page' : undefined} className={cn(item, active ? 'text-brand' : 'text-muted')}>
-                <span className={cn('flex h-7 w-12 items-center justify-center rounded-full transition-colors', active && 'bg-brand-light')}>
+                <span className={cn('flex h-7 w-12 items-center justify-center rounded-full transition-colors', active && 'nav-pop bg-brand-light')}>
                   <Icon aria-hidden className="size-5" />
                 </span>
                 <span className="max-w-full truncate px-1">{TAB_LABELS[t.key] ?? t.label}</span>

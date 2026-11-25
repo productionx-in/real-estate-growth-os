@@ -310,26 +310,26 @@ export function InventoryVisualView({
                     </div>
 
                     {/* Status 5-count bar: All 5 statuses explicitly shown */}
-                    <div className="mt-2.5 pt-2 border-t border-[var(--border)] grid grid-cols-5 gap-1 text-[10px] text-center">
+                    <div className="mt-2.5 pt-2 border-t border-[var(--border)] grid grid-cols-5 gap-1 text-[11px] text-center">
                       <div className="flex flex-col">
                         <span className="text-success font-bold">{g.available}</span>
-                        <span className="text-[9px] text-[var(--foreground-muted)]">Avail</span>
+                        <span className="text-[11px] text-[var(--foreground-muted)]">Avail</span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-warning font-bold">{g.on_hold}</span>
-                        <span className="text-[9px] text-[var(--foreground-muted)]">Hold</span>
+                        <span className="text-[11px] text-[var(--foreground-muted)]">Hold</span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-brand font-bold">{g.booked}</span>
-                        <span className="text-[9px] text-[var(--foreground-muted)]">Bkd</span>
+                        <span className="text-[11px] text-[var(--foreground-muted)]">Bkd</span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-accent font-bold">{g.sold}</span>
-                        <span className="text-[9px] text-[var(--foreground-muted)]">Sold</span>
+                        <span className="text-[11px] text-[var(--foreground-muted)]">Sold</span>
                       </div>
                       <div className="flex flex-col">
                         <span className="text-muted font-bold">{g.blocked}</span>
-                        <span className="text-[9px] text-[var(--foreground-muted)]">Blkd</span>
+                        <span className="text-[11px] text-[var(--foreground-muted)]">Blkd</span>
                       </div>
                     </div>
                   </button>
@@ -372,7 +372,7 @@ export function InventoryVisualView({
                         <span className="font-bold text-[var(--foreground)]">
                           {floor === 0 ? 'Ground Floor' : `Floor ${floor}`}
                         </span>
-                        <span className="text-[10px] text-success font-medium">
+                        <span className="text-[11px] text-success font-medium">
                           {floorAvail} of {units.length} avail
                         </span>
                       </div>
@@ -397,15 +397,15 @@ export function InventoryVisualView({
                                 <span className={`w-2 h-2 rounded-full ${style.dot}`} />
                               </div>
 
-                              <div className="mt-1 flex items-center justify-between text-[10px] text-[var(--foreground-muted)]">
+                              <div className="mt-1 flex items-center justify-between text-[11px] text-[var(--foreground-muted)]">
                                 <span className="truncate font-medium">
                                   {unit.bhk_config || unit.commercial_asset_type || `${unit.area_value} ${unit.area_unit}`}
                                 </span>
-                                {unit.facing && <span className="text-[9px] shrink-0">{unit.facing}</span>}
+                                {unit.facing && <span className="text-[11px] shrink-0">{unit.facing}</span>}
                               </div>
 
                               {unit.total_price && (
-                                <div className="text-[10px] font-bold text-[var(--foreground)] mt-0.5 truncate">
+                                <div className="text-[11px] font-bold text-[var(--foreground)] mt-0.5 truncate">
                                   {formatCurrency(Number(unit.total_price))}
                                 </div>
                               )}
@@ -462,7 +462,7 @@ export function InventoryVisualView({
                           <span className="font-bold text-xs text-[var(--foreground)] block">
                             {plot.unit_number}
                           </span>
-                          <span className="text-[10px] text-[var(--foreground-muted)] font-medium">
+                          <span className="text-[11px] text-[var(--foreground-muted)] font-medium">
                             {plot.plot_area || plot.area_value} {plot.area_unit}
                           </span>
                         </div>
@@ -470,22 +470,22 @@ export function InventoryVisualView({
                       </div>
 
                       {/* Dimensions & Road Width */}
-                      <div className="mt-1.5 text-[10px] text-[var(--foreground-muted)] space-y-0.5">
+                      <div className="mt-1.5 text-[11px] text-[var(--foreground-muted)] space-y-0.5">
                         {plot.plot_dimensions && (
-                          <div className="font-mono text-[9px]">Dim: {plot.plot_dimensions}</div>
+                          <div className="font-mono text-[11px]">Dim: {plot.plot_dimensions}</div>
                         )}
                         {plot.road_width_ft && (
                           <div>Road: {plot.road_width_ft} ft</div>
                         )}
                       </div>
 
-                      <div className="mt-2 pt-1.5 border-t border-default flex items-center justify-between text-[10px]">
+                      <div className="mt-2 pt-1.5 border-t border-default flex items-center justify-between text-[11px]">
                         <span className="text-[var(--foreground-muted)] flex items-center gap-0.5">
                           <Compass className="w-2.5 h-2.5" />
                           {plot.facing || 'East'}
                         </span>
                         {plot.is_corner_plot && (
-                          <span className="text-[9px] font-bold text-warning bg-warning-bg/80 px-1 py-0.2 rounded">
+                          <span className="text-[11px] font-bold text-warning bg-warning-bg/80 px-1 py-0.2 rounded">
                             Corner
                           </span>
                         )}
@@ -551,20 +551,20 @@ export function InventoryVisualView({
                         <span className={`w-2.5 h-2.5 rounded-full ${style.dot}`} />
                       </div>
 
-                      <div className="mt-2 grid grid-cols-2 gap-1.5 text-[10px] text-[var(--foreground-muted)]">
+                      <div className="mt-2 grid grid-cols-2 gap-1.5 text-[11px] text-[var(--foreground-muted)]">
                         <div>
-                          <span className="block text-[9px] uppercase tracking-wider text-[var(--foreground-subtle)]">Built-up</span>
+                          <span className="block text-[11px] uppercase tracking-wider text-[var(--foreground-subtle)]">Built-up</span>
                           <span className="font-semibold text-[var(--foreground)]">{villa.area_value} {villa.area_unit}</span>
                         </div>
                         {villa.plot_area && (
                           <div>
-                            <span className="block text-[9px] uppercase tracking-wider text-[var(--foreground-subtle)]">Plot Extent</span>
+                            <span className="block text-[11px] uppercase tracking-wider text-[var(--foreground-subtle)]">Plot Extent</span>
                             <span className="font-semibold text-[var(--foreground)]">{villa.plot_area} sqyd</span>
                           </div>
                         )}
                       </div>
 
-                      <div className="mt-2 pt-1.5 border-t border-default flex items-center justify-between text-[10px]">
+                      <div className="mt-2 pt-1.5 border-t border-default flex items-center justify-between text-[11px]">
                         <span className="text-[var(--foreground-muted)] flex items-center gap-1">
                           <Compass className="w-3 h-3" />
                           <span>{villa.facing || 'East'} Facing</span>
@@ -630,7 +630,7 @@ export function InventoryVisualView({
                       <span className={`w-2.5 h-2.5 rounded-full ${style.dot}`} />
                     </div>
 
-                    <div className="mt-1 text-[10px] text-[var(--foreground-muted)]">
+                    <div className="mt-1 text-[11px] text-[var(--foreground-muted)]">
                       {unit.bhk_config || unit.commercial_asset_type || `${unit.area_value} ${unit.area_unit}`}
                     </div>
 

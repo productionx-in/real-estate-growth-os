@@ -332,7 +332,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
                 assignee ? (
                   <div className="flex items-center gap-1.5">
                     <div className="w-5 h-5 rounded-full bg-[var(--brand-light)] flex items-center justify-center">
-                      <span className="text-[9px] font-bold text-[var(--brand)]">
+                      <span className="text-[11px] font-bold text-[var(--brand)]">
                         {assignee.full_name.charAt(0).toUpperCase()}
                       </span>
                     </div>

@@ -142,7 +142,7 @@ export function WhatsAppWizardModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/60 backdrop-blur-xs">
+    <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
       <div className="bg-surface rounded-2xl shadow-2xl border border-default w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="px-6 py-5 border-b border-default flex items-center justify-between bg-surface-muted/50">
@@ -322,10 +322,10 @@ export function WhatsAppWizardModal({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-foreground font-mono">{tpl.name}</span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-success-bg text-success">
+                        <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-success-bg text-success">
                           {tpl.status}
                         </span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-surface-hover text-muted">
+                        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-surface-hover text-muted">
                           {tpl.category}
                         </span>
                       </div>

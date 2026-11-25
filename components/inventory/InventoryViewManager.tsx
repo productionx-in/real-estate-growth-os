@@ -69,7 +69,8 @@ export function InventoryViewManager({
     if (!isManager || new URLSearchParams(window.location.search).get('addUnits') !== '1') return
     // Drop the flag from the address so a reload does not reopen it.
     window.history.replaceState(null, '', window.location.pathname)
-    if (initialItems.length === 0) setShowQuickAdd(true)
+    // Opened from a timer callback, after the first paint (the server rendered it closed).
+    if (initialItems.length === 0) { const t = setTimeout(() => setShowQuickAdd(true), 0); return () => clearTimeout(t) }
   }, [isManager, initialItems.length])
 
   // Filters State

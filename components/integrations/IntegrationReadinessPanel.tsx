@@ -200,7 +200,7 @@ export function IntegrationReadinessPanel() {
                 <div className="mt-2 flex items-center justify-between text-[11px]">
                   <span className="text-[var(--foreground-muted)]">{provider.category}</span>
                   <span
-                    className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${provider.badgeColor}`}
+                    className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium border ${provider.badgeColor}`}
                   >
                     {provider.status.split(' ')[0]}
                   </span>

@@ -99,14 +99,14 @@ export function AssignLeadDialog({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-overlay backdrop-blur-[1px] z-40"
+        className="modal-backdrop fixed inset-0 bg-overlay backdrop-blur-[1px] z-40"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Dialog */}
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        className="modal-host fixed inset-0 z-50 flex items-center justify-center p-4"
         role="dialog"
         aria-modal="true"
         aria-labelledby="assign-dialog-title"

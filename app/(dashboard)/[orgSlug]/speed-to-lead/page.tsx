@@ -132,7 +132,7 @@ export default async function SpeedToLeadPage({ params, searchParams }: { params
                 )
               })}
             </div>
-            <div className="flex justify-between text-[10px] text-[var(--foreground-subtle)] mt-1"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>11 PM</span></div>
+            <div className="flex justify-between text-[11px] text-[var(--foreground-subtle)] mt-1"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>11 PM</span></div>
             <p className="mt-2 text-[11px] text-[var(--foreground-muted)]"><span className="inline-block w-2 h-2 rounded-sm bg-brand mr-1" />answered on target <span className="inline-block w-2 h-2 rounded-sm bg-warning ml-3 mr-1" />median slower than target · {report.timezone}</p>
           </section>
         )}

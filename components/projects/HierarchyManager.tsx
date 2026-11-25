@@ -395,11 +395,11 @@ export function HierarchyManager({
                   {node.name}
                 </span>
                 {node.code && (
-                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-surface-hover text-muted border border-default">
+                  <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-surface-hover text-muted border border-default">
                     {node.code}
                   </span>
                 )}
-                <span className="text-[10px] uppercase font-semibold tracking-wider text-[var(--foreground-subtle)] bg-[var(--surface-muted)] px-1.5 py-0.5 rounded">
+                <span className="text-[11px] uppercase font-semibold tracking-wider text-[var(--foreground-subtle)] bg-[var(--surface-muted)] px-1.5 py-0.5 rounded">
                   {node.node_type}
                 </span>
               </div>
@@ -664,7 +664,7 @@ export function HierarchyManager({
 
       {/* MODAL: Add / Edit Hierarchy Node */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+        <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
           <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)] bg-[var(--surface-muted)]">
@@ -822,7 +822,7 @@ export function HierarchyManager({
 
       {/* CONFIRMATION DIALOG: Safe Delete Node */}
       {deleteConfirmNode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+        <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
           <div className="w-full max-w-sm bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden p-5 space-y-4">
             <div className="w-10 h-10 rounded-full bg-danger-bg text-danger flex items-center justify-center mx-auto">
               <Trash2 className="w-5 h-5" />
