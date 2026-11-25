@@ -1,5 +1,6 @@
 // Site visits: the week's visits by day, with booking and on-the-day actions.
 // Sales executives see their own visits; managers and above see the team, or just theirs.
+import { assignableRolesFor } from '@/lib/dal/sales-structure'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CalendarDays, ChevronLeft, ChevronRight, MapPin, Users, Video } from 'lucide-react'
@@ -57,7 +58,7 @@ export default async function VisitsPage({ params, searchParams }: {
   const [visits, projects, members, leads] = await Promise.all([
     listVisits(org.id, { from, to, profileId: mine ? profile.id : null, profileIds: teamIds, projectId: sp.project || null }),
     db.from('projects').select('id, name').eq('org_id', org.id).order('name'),
-    db.from('org_members').select('profile_id, profile:profiles!org_members_profile_id_fkey(full_name)').eq('org_id', org.id).eq('status', 'active').in('role', [...ASSIGNABLE_ROLES]),
+    db.from('org_members').select('profile_id, profile:profiles!org_members_profile_id_fkey(full_name)').eq('org_id', org.id).eq('status', 'active').in('role', await assignableRolesFor(org.id)),
     (() => {
       let q = db.from('leads').select('id, name, phone').eq('org_id', org.id).not('status', 'in', '(booked,lost,junk)').order('updated_at', { ascending: false }).limit(300)
       if (scope === 'own') q = q.eq('assigned_to', profile.id)

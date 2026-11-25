@@ -2,6 +2,7 @@
 // components/leads/AssignLeadDialog.tsx
 // Modal dialog for a manager to assign a lead to a sales exec.
 // Fetches org members client-side. Calls /api/leads/assign.
+import { useWorkspacePrefs } from '@/components/settings/WorkspacePrefs'
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, UserCircle, Loader2 } from 'lucide-react'
@@ -33,6 +34,8 @@ export function AssignLeadDialog({
   onClose,
 }: AssignLeadDialogProps) {
   const router = useRouter()
+  // The server and the database refuse owners while they do not sell (Settings → Sales structure); don't offer them.
+  const { ownerSells } = useWorkspacePrefs()
   const [members, setMembers] = useState<TeamMember[]>([])
   const [loadingMembers, setLoadingMembers] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(currentAssigneeId)
@@ -44,14 +47,14 @@ export function AssignLeadDialog({
     const supabase = createClient()
     supabase
       .from('org_members')
-      .select('profile_id, role, profile:profiles(id, full_name)')
+      .select('profile_id, role, profile:profiles!org_members_profile_id_fkey(id, full_name)')
       .eq('org_id', orgId)
       .eq('status', 'active')
       .in('role', [...ASSIGNABLE_ROLES])
       .order('role')
       .then(({ data }) => {
         setMembers(
-          (data ?? []).filter((m) => !onlyProfileIds || onlyProfileIds.includes(m.profile_id)).map((m) => {
+          (data ?? []).filter((m) => (!onlyProfileIds || onlyProfileIds.includes(m.profile_id)) && (ownerSells || m.role !== 'owner')).map((m) => {
             const p = m.profile as { id: string; full_name: string } | null
             return {
               profileId: m.profile_id,
@@ -62,7 +65,7 @@ export function AssignLeadDialog({
         )
         setLoadingMembers(false)
       })
-  }, [orgId, onlyProfileIds])
+  }, [orgId, onlyProfileIds, ownerSells])
 
   async function handleAssign() {
     setError(null)

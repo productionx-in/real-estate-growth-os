@@ -1,6 +1,10 @@
 // app/(dashboard)/[orgSlug]/performance/achievements/page.tsx — the Achievement Centre: every badge the workspace offers,
 // unlocked ones lit with their date, locked ones dimmed with how close the person is. Unlocking is the database's job,
 // from real events (20260094); nothing here can award anything.
+import { teamProfileIdsOf } from '@/lib/dal/viewer'
+import { getTeamUnlocks } from '@/lib/dal/team-overview'
+import { sellsPersonally, watchesTeam } from '@/lib/sales/structure'
+import { getSalesStructure } from '@/lib/dal/sales-structure'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Gift } from 'lucide-react'
@@ -21,8 +25,12 @@ const ONE: Record<string, string> = { assigned: 'lead assigned', contacted: 'lea
 export default async function AchievementsPage({ params }: { params: Promise<{ orgSlug: string }> }) {
   const { orgSlug } = await params
   const { org, role, profile } = await getVerifiedWorkspace(orgSlug)
+  const sales = await getSalesStructure(org.id)
   if (role === 'readonly' || role === 'post_sales') notFound()
-  const all = (await getAchievements(org.id, profile.id)).filter((a) => a.active)
+  const mine = sellsPersonally(role, sales)
+  const team = watchesTeam(role) ? await getTeamUnlocks(org.id, role === 'team_lead' ? await teamProfileIdsOf(org.id, profile.id) : null) : null
+  // A manager who does not sell sees the team's badges (who holds each), not a personal collection.
+  const all = (await getAchievements(org.id, mine ? profile.id : null)).filter((a) => a.active)
   const unlocked = all.filter((a) => a.unlockedAt).sort((a, b) => (b.unlockedAt ?? '').localeCompare(a.unlockedAt ?? ''))
   const locked = all.filter((a) => !a.unlockedAt).sort((a, b) => b.progress - a.progress)
   const criteria = (a: (typeof all)[number]) => a.metric === 'revenue'
@@ -30,9 +38,24 @@ export default async function AchievementsPage({ params }: { params: Promise<{ o
     : `${a.threshold.toLocaleString('en-IN')} ${(a.threshold === 1 ? ONE[a.metric] : METRIC_TEXT[a.metric]) ?? a.metric}${WINDOW[a.window]}`
 
   return (
-    <PageShell title="Achievements" description={`${unlocked.length} of ${all.length} unlocked. Each one comes from real work — keep going for the rest.`}>
-      <PerformanceTabs orgSlug={orgSlug} current="achievements" canManage={canManagePerformance(role)} />
-      {unlocked.length > 0 && (
+    <PageShell title="Achievements" description={mine ? `${unlocked.length} of ${all.length} unlocked. Each one comes from real work — keep going for the rest.` : 'What your team has earned. Every badge comes from real work in REGrow.'}>
+      <PerformanceTabs orgSlug={orgSlug} current="achievements" canManage={canManagePerformance(role)} watchesTeam={watchesTeam(role)} sellsPersonally={sellsPersonally(role, sales)} />
+      {team && (
+        <section aria-labelledby="team-unlocks" className="surface-raised mb-8 rounded-2xl border border-default bg-surface p-5">
+          <h2 id="team-unlocks" className="text-[14px] font-semibold text-foreground">{role === 'team_lead' ? 'Your team’s latest' : 'Team’s latest'}</h2>
+          {team.recent.length === 0 ? <p className="mt-1 text-[13px] text-muted">No badges yet. They arrive with the first calls, visits and bookings.</p> : (
+            <ul className="mt-2 divide-y divide-[var(--border)]">
+              {team.recent.map((r, i) => (
+                <li key={i} className="flex items-center justify-between gap-3 py-2 text-[13px]">
+                  <span><span className="font-medium text-foreground">{r.name}</span> <span className="text-muted">unlocked</span> <span className="font-medium text-foreground">{r.title}</span></span>
+                  <span className="shrink-0 text-[12px] text-subtle">{new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }).format(new Date(r.at))}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+      {mine && unlocked.length > 0 && (
         <section aria-labelledby="unlocked" className="mb-8">
           <h2 id="unlocked" className="mb-3 text-[14px] font-semibold text-foreground">Unlocked</h2>
           <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -46,11 +69,12 @@ export default async function AchievementsPage({ params }: { params: Promise<{ o
         </section>
       )}
       <section aria-labelledby="locked">
-        <h2 id="locked" className="mb-3 text-[14px] font-semibold text-foreground">{unlocked.length ? 'Still to unlock' : 'Your achievements'}</h2>
+        <h2 id="locked" className="mb-3 text-[14px] font-semibold text-foreground">{!mine ? 'All badges' : unlocked.length ? 'Still to unlock' : 'Your achievements'}</h2>
         <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {locked.map((a) => (
             <div key={a.key}>
-              <Medal icon={a.icon} title={a.title} description={criteria(a)} unlocked={false} progress={a.progress} xp={a.xp} />
+              <Medal icon={a.icon} title={a.title} description={criteria(a)} unlocked={false} progress={mine ? a.progress : 0} xp={a.xp} />
+              {team && <p className="mt-1.5 text-center text-[11px] text-muted">{team.holders.get(a.key) ? `${team.holders.get(a.key)} ${team.holders.get(a.key) === 1 ? 'person has' : 'people have'} it` : 'Nobody yet'}</p>}
               {a.rewardNote && <p className="mt-1.5 flex items-center justify-center gap-1 text-center text-[11px] text-muted"><Gift className="size-3" aria-hidden /> {a.rewardNote}</p>}
             </div>
           ))}

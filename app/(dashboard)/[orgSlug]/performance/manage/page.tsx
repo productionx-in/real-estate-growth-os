@@ -1,6 +1,8 @@
 // app/(dashboard)/[orgSlug]/performance/manage/page.tsx — Targets & settings (owners and admins): targets for people,
 // teams or everyone with their history; points, levels, daily missions and leaderboard privacy; the workspace's own
 // achievements; audited point corrections. Every save goes through /api/performance/*, which checks the role again.
+import { sellsPersonally, watchesTeam } from '@/lib/sales/structure'
+import { getSalesStructure } from '@/lib/dal/sales-structure'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
@@ -17,6 +19,7 @@ export const dynamic = 'force-dynamic'
 export default async function ManagePerformancePage({ params }: { params: Promise<{ orgSlug: string }> }) {
   const { orgSlug } = await params
   const { org, role } = await getVerifiedWorkspace(orgSlug)
+  const sales = await getSalesStructure(org.id)
   if (!canManagePerformance(role)) redirect(`/${orgSlug}/performance`)
   const service = createServiceClient()
   const [settings, targets, history, achievements, { data: members }, { data: teams }] = await Promise.all([
@@ -31,7 +34,7 @@ export default async function ManagePerformancePage({ params }: { params: Promis
   const teamList = ((teams ?? []) as { id: string; name: string }[])
   return (
     <PageShell title="Targets & settings" description="Set goals, decide what earns points and what colleagues see of each other. Every change is kept and audited.">
-      <PerformanceTabs orgSlug={orgSlug} current="manage" canManage />
+      <PerformanceTabs orgSlug={orgSlug} current="manage" canManage watchesTeam={watchesTeam(role)} sellsPersonally={sellsPersonally(role, sales)} />
       <PerformanceManager orgId={org.id} settings={settings} targets={targets} people={people} teams={teamList}
         achievements={achievements.map((a) => ({ key: a.key, title: a.title, description: a.description, metric: a.metric, threshold: a.threshold, window: a.window, xp: a.xp, icon: a.icon, custom: a.custom, active: a.active, rewardNote: a.rewardNote }))}
         history={history.map((h) => ({

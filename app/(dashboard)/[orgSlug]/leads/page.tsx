@@ -78,9 +78,9 @@ export default async function LeadsPage({ params, searchParams }: PageProps) {
     listViews(org.id, viewer),
     service.from('projects').select('id, name').eq('org_id', org.id).order('name'),
     isManager
-      ? service.from('org_members').select('profile:profiles(id, full_name)').eq('org_id', org.id).eq('status', 'active')
+      ? service.from('org_members').select('profile:profiles!org_members_profile_id_fkey(id, full_name)').eq('org_id', org.id).eq('status', 'active')
       : scope === 'team'
-      ? service.from('org_members').select('profile:profiles(id, full_name)').eq('org_id', org.id).eq('status', 'active')
+      ? service.from('org_members').select('profile:profiles!org_members_profile_id_fkey(id, full_name)').eq('org_id', org.id).eq('status', 'active')
         .in('profile_id', [profile.id, ...(viewer.teamProfileIds ?? [])])
       : Promise.resolve({ data: [] as { profile: { id: string; full_name: string } | null }[] }),
     service.from('leads').select('tags').eq('org_id', org.id).not('tags', 'eq', '{}').limit(2000),

@@ -2,6 +2,7 @@
 // Assigns (or unassigns) a lead. Managers and above may give any lead to anyone who can take leads; a team
 // lead only their team's leads, only to themselves or a teammate (lib/auth/permissions.ts canAssignTo).
 // Everything is checked here on the server; the database triggers check assignee eligibility again.
+import { assignableRolesFor } from '@/lib/dal/sales-structure'
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeLeadAccess } from '@/lib/auth/tenant'
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
       }
       const { data: target } = await service.from('org_members').select('role')
         .eq('org_id', context.orgId).eq('profile_id', assignToProfileId).eq('status', 'active').maybeSingle()
-      if (!target || !ASSIGNABLE_ROLES.includes(target.role as MemberRole)) {
+      if (!target || !(await assignableRolesFor(context.orgId)).includes(target.role as MemberRole)) {
         return NextResponse.json({ error: 'That person cannot be given leads in this workspace.' }, { status: 400 })
       }
     }

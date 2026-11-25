@@ -1,4 +1,5 @@
 // app/(dashboard)/[orgSlug]/leads/[leadId]/page.tsx
+import { assignableRolesFor } from '@/lib/dal/sales-structure'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -113,7 +114,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
   const [activities, tasks, visitProjects, visitAgents, waConversation, workspaceSettings] = await Promise.all([
     getLeadActivities(leadId), listLeadTasks(org.id, leadId),
     service.from('projects').select('id, name').eq('org_id', org.id).order('name'),
-    service.from('org_members').select('profile_id, profile:profiles!org_members_profile_id_fkey(full_name)').eq('org_id', org.id).eq('status', 'active').in('role', [...ASSIGNABLE_ROLES]),
+    service.from('org_members').select('profile_id, profile:profiles!org_members_profile_id_fkey(full_name)').eq('org_id', org.id).eq('status', 'active').in('role', await assignableRolesFor(org.id)),
     service.from('whatsapp_conversations').select('id').eq('org_id', org.id).eq('lead_id', leadId)
       .order('last_message_at', { ascending: false, nullsFirst: false }).limit(1).maybeSingle(),
     getWorkspaceSettings(org.id),

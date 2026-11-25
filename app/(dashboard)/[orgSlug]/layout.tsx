@@ -1,5 +1,7 @@
 // app/(dashboard)/[orgSlug]/layout.tsx
 // Org-scoped workspace shell: validates org membership and wraps workspace with Sidebar + Header
+import { canTakeLeads } from '@/lib/sales/structure'
+import { getSalesStructure } from '@/lib/dal/sales-structure'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
@@ -30,7 +32,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
     ? await billingHoldStatus(workspace.org.id, workspace.profile.id) : { hold: false, canPay: false }
   const modules = await getModules(workspace.org.id)
   const disabledModules = Object.entries(modules).filter(([, on]) => !on).map(([m]) => m)
-  const { inventory: inv, alerts } = await getWorkspaceSettings(workspace.org.id)
+  const [{ inventory: inv, alerts }, sales] = await Promise.all([getWorkspaceSettings(workspace.org.id), getSalesStructure(workspace.org.id)])
   const liveSupport = (await liveGrantsForOrg(workspace.org.id)).sort((a, b) => (b.expires_at ?? '').localeCompare(a.expires_at ?? ''))[0]
 
   return (
@@ -48,6 +50,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
       />
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <Header
+          takesLeads={canTakeLeads(workspace.role, sales)}
           orgId={workspace.org.id}
           orgName={workspace.org.name}
           orgSlug={workspace.org.slug}
@@ -65,7 +68,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
         )}
         {/* On phones, leave room for the tab bar (and the home indicator) below the content. */}
         <main id="main" className="flex-1 overflow-y-auto pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom))] md:pb-0">
-          <WorkspacePrefsProvider value={{ areaUnitBuilt: inv.areaUnitBuilt, areaUnitLand: inv.areaUnitLand, canDeleteInventory: workspace.isAdmin, statusLabels: inv.statusLabels }}>{children}</WorkspacePrefsProvider>
+          <WorkspacePrefsProvider value={{ areaUnitBuilt: inv.areaUnitBuilt, areaUnitLand: inv.areaUnitLand, canDeleteInventory: workspace.isAdmin, statusLabels: inv.statusLabels, ownerSells: sales.ownerSells, teamsEnabled: sales.teamsEnabled }}>{children}</WorkspacePrefsProvider>
         </main>
       </div>
       <Toaster />

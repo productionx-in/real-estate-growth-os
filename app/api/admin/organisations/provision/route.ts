@@ -1,5 +1,6 @@
 // app/api/admin/organisations/provision/route.ts
 // REGrow Platform Administration: Super Admin Organization & Subscription Provisioning
+import { initSalesStructure } from '@/lib/dal/sales-structure'
 import { appUrl } from '@/lib/site/urls'
 import { NextResponse, type NextRequest } from 'next/server'
 import crypto from 'node:crypto'
@@ -122,6 +123,7 @@ export async function POST(request: NextRequest) {
 
     const row = Array.isArray(provisionRpcResult) ? provisionRpcResult[0] : (provisionRpcResult as any)
     const orgId = row?.org_id
+    if (orgId) await initSalesStructure(orgId) // the owner manages; selling is a setting (Settings → Sales structure)
     const orgSlug = row?.org_slug || slug
     const subscriptionId = row?.subscription_id
     const invitationId = row?.invitation_id

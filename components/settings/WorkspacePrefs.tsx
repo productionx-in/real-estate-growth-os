@@ -11,9 +11,13 @@ export interface WorkspacePrefs {
   canDeleteInventory: boolean
   /** The workspace's names for unit statuses (Settings → Inventory). */
   statusLabels: Record<UnitStatus, string>
+  /** The owner also sells (Settings → Sales structure); off, owners are not offered as assignees. */
+  ownerSells: boolean
+  /** Team structure is switched on (Settings → Sales structure). */
+  teamsEnabled: boolean
 }
 
-const Prefs = createContext<WorkspacePrefs>({ areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', canDeleteInventory: false, statusLabels: DEFAULT_STATUS_LABELS })
+const Prefs = createContext<WorkspacePrefs>({ areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', canDeleteInventory: false, statusLabels: DEFAULT_STATUS_LABELS, ownerSells: true, teamsEnabled: false })
 
 export function WorkspacePrefsProvider({ value, children }: { value: WorkspacePrefs; children: React.ReactNode }) {
   return <Prefs.Provider value={value}>{children}</Prefs.Provider>
