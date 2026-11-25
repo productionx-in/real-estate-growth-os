@@ -13,6 +13,7 @@ import {
   Building,
   X,
   FileSpreadsheet,
+  Layers,
 } from 'lucide-react'
 import {
   PROJECT_CATEGORY_LABELS,
@@ -24,6 +25,7 @@ import { InventoryTable } from './InventoryTable'
 import { InventoryVisualView } from './InventoryVisualView'
 import { InventoryForm } from './InventoryForm'
 import { BulkImportModal } from './BulkImportModal'
+import { QuickAddUnitsModal } from './QuickAddUnitsModal'
 import { EmptyState } from '@/components/shared/EmptyState'
 
 interface InventoryViewManagerProps {
@@ -59,6 +61,7 @@ export function InventoryViewManager({
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
+  const [showQuickAdd, setShowQuickAdd] = useState(false)
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState('')
@@ -556,6 +559,16 @@ export function InventoryViewManager({
 
                 <button
                   type="button"
+                  onClick={() => setShowQuickAdd(true)}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-lg hover:bg-[var(--surface-hover)] transition-colors shadow-2xs"
+                  title="Add a run of units with the same details (e.g. Plot 1–120)"
+                >
+                  <Layers className="w-3.5 h-3.5 text-brand" />
+                  <span>Add many</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setShowAddModal(true)}
                   className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-brand-foreground bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] transition-colors shadow-xs"
                 >
@@ -722,6 +735,16 @@ export function InventoryViewManager({
           projectId={projectId}
           defaultCategory={projectCategory}
           onClose={() => setShowAddModal(false)}
+          onSuccess={refreshItems}
+        />
+      )}
+
+      {/* 5b. Add many units at once (lib/inventory/quick-add.ts) */}
+      {showQuickAdd && (
+        <QuickAddUnitsModal
+          projectId={projectId}
+          projectCategory={projectCategory}
+          onClose={() => setShowQuickAdd(false)}
           onSuccess={refreshItems}
         />
       )}

@@ -1251,7 +1251,7 @@ export interface Database {
           project_id: string
           reference_id: string
           file_name: string
-          file_type: 'csv' | 'xlsx'
+          file_type: 'csv' | 'xlsx' | 'generated'
           initiated_by: string | null
           total_rows: number
           successful_rows: number
@@ -1266,7 +1266,7 @@ export interface Database {
           project_id: string
           reference_id: string
           file_name: string
-          file_type: 'csv' | 'xlsx'
+          file_type: 'csv' | 'xlsx' | 'generated'
           initiated_by?: string | null
           total_rows?: number
           successful_rows?: number
@@ -1281,7 +1281,7 @@ export interface Database {
           project_id?: string
           reference_id?: string
           file_name?: string
-          file_type?: 'csv' | 'xlsx'
+          file_type?: 'csv' | 'xlsx' | 'generated'
           initiated_by?: string | null
           total_rows?: number
           successful_rows?: number
