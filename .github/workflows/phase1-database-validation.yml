@@ -55,7 +55,17 @@ jobs:
         id: stack
         run: |
           echo "Starting disposable local Supabase environment on runner..."
-          supabase start --debug
+          # The database container sometimes fails to bind its port on a fresh runner ("address already in use")
+          # before any test runs. Clean up and try again (up to 3 attempts) instead of failing the whole run.
+          for attempt in 1 2 3; do
+            if supabase start --debug; then break; fi
+            if [ "$attempt" = 3 ]; then echo "Supabase did not start after 3 attempts."; exit 1; fi
+            echo "supabase start failed (attempt $attempt); cleaning up and retrying in 15 s..."
+            supabase stop --no-backup || true
+            docker ps -aq --filter "name=supabase_" | xargs -r docker rm -f || true
+            docker network ls -q --filter "name=supabase_network" | xargs -r docker network rm || true
+            sleep 15
+          done
           echo "Disposable Supabase services started successfully."
           supabase status
 
