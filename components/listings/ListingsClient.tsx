@@ -98,7 +98,7 @@ export function ListingsClient({ orgId, agency, me, listings, template, canCreat
       ) : (
         <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {listings.map((l) => (
-            <li key={l.id} className="flex flex-col rounded-xl border border-default bg-surface p-4">
+            <li key={l.id} className="surface-raised flex flex-col rounded-2xl border border-default bg-surface p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="truncate text-[14px] font-semibold text-foreground">{l.title}</p>

@@ -4,6 +4,7 @@
 // open the lead or reassign it from any item; drag an open follow-up to another day (desktop) to move it.
 // Changes go through the existing follow-up and assignment APIs, which check permissions on the server.
 // Site visits are moved and completed on the visit itself (Site visits page), so the visit and its follow-up never drift.
+import { toast } from '@/components/ui/toast'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -28,7 +29,6 @@ export function CalendarBoard(p: Props) {
   const router = useRouter()
   const [open, setOpen] = useState<CalendarItem | null>(null)
   const [assigning, setAssigning] = useState<CalendarItem | null>(null)
-  const [msg, setMsg] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null)
   const [dragOver, setDragOver] = useState<string | null>(null)
   const team = p.person === 'team'
   const grouped = useMemo(() => byDay(p.items, p.tz), [p.items, p.tz])
@@ -42,14 +42,14 @@ export function CalendarBoard(p: Props) {
     : p.view === 'day' ? dayLabel(p.anchor, { weekday: 'long', day: 'numeric', month: 'long' })
     : `${dayLabel(p.days[0], { day: 'numeric', month: 'short' })} – ${dayLabel(p.days[p.days.length - 1], { day: 'numeric', month: 'short', year: 'numeric' })}`
 
-  async function patch(item: CalendarItem, body: { status?: 'done'; dueAt?: string }, ok: string) {
-    setMsg(null)
+  // Feedback is a toast (components/ui/toast.tsx), the same everywhere in the product; a move can be undone.
+  async function patch(item: CalendarItem, body: { status?: 'done'; dueAt?: string }, ok: string, undo?: () => void) {
     try {
       const res = await fetch(`/api/leads/${item.leadId}/tasks/${item.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       const out = await res.json().catch(() => ({}))
-      if (!res.ok) { setMsg({ tone: 'danger', text: out.error ?? 'Could not update the follow-up.' }); return false }
-      setMsg({ tone: 'success', text: ok }); setOpen(null); router.refresh(); return true
-    } catch { setMsg({ tone: 'danger', text: 'Network error. Please try again.' }); return false }
+      if (!res.ok) { toast.error(out.error ?? 'Could not update the follow-up.'); return false }
+      toast.success(ok, undo ? { action: { label: 'Undo', onClick: undo } } : undefined); setOpen(null); router.refresh(); return true
+    } catch { toast.error('Network error. Please try again.'); return false }
   }
 
   /** Dropped on another day: same time of day, new date (in the workspace's time zone). */
@@ -57,8 +57,10 @@ export function CalendarBoard(p: Props) {
     if (localDay(new Date(item.dueAt), p.tz) === day) return
     const [h, m] = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: p.tz }).format(new Date(item.dueAt)).split(':').map(Number)
     const target = zoned(day, h, m, p.tz)
-    if (target.getTime() <= p.nowMs) { setMsg({ tone: 'danger', text: 'That time has already passed. Pick a later day.' }); return }
-    await patch(item, { dueAt: target.toISOString() }, `Moved ${item.leadName} to ${dayLabel(day, { weekday: 'short', day: 'numeric', month: 'short' })}.`)
+    if (target.getTime() <= p.nowMs) { toast.error('That time has already passed. Pick a later day.'); return }
+    // Undo puts it back, as long as the original time is still ahead (the API refuses past times).
+    const back = new Date(item.dueAt).getTime() > p.nowMs ? () => { void patch({ ...item, dueAt: target.toISOString() }, { dueAt: item.dueAt }, `Moved ${item.leadName} back.`) } : undefined
+    await patch(item, { dueAt: target.toISOString() }, `Moved ${item.leadName} to ${dayLabel(day, { weekday: 'short', day: 'numeric', month: 'short' })}.`, back)
   }
 
   const chip = (it: CalendarItem, compact = false) => {
@@ -120,7 +122,6 @@ export function CalendarBoard(p: Props) {
         {(Object.keys(KINDS) as (keyof typeof KINDS)[]).map((k) => <li key={k} className="flex items-center gap-1.5"><span className={cn('size-3 rounded-sm border-l-[3px]', KIND_CLASS[k])} aria-hidden />{KINDS[k].label}</li>)}
         <li className="flex items-center gap-1.5"><AlertTriangle className="size-3 text-danger" aria-hidden /> Overdue</li>
       </ul>
-      {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
 
       {/* Overdue, from before the days shown */}
       {p.overdue.length > 0 && (

@@ -37,7 +37,7 @@ export default async function RolesPage({ params }: { params: Promise<{ orgSlug:
         </ul>
         {isAdmin && <p className="mt-3 text-[13px]"><Link href={`/${orgSlug}/team`} className="font-medium text-brand underline">Go to Team members</Link></p>}
       </SettingsCard>
-      <div className="overflow-x-auto rounded-xl border border-default bg-surface">
+      <div className="surface-raised overflow-x-auto rounded-2xl border border-default bg-surface">
         <table className="w-full min-w-[880px] text-[13px]">
           <caption className="sr-only">What each role can do</caption>
           <thead className="bg-surface-muted text-left text-[11px] font-semibold uppercase tracking-wide text-subtle">

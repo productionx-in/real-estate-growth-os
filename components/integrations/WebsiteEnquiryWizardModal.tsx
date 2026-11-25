@@ -437,7 +437,7 @@ export function WebsiteEnquiryWizardModal({
           {/* TAB 3: Protection & Settings */}
           {activeTab === 'settings' && (
             <div className="space-y-4">
-              <div className="border border-default rounded-xl p-4 bg-surface space-y-3">
+              <div className="surface-raised border border-default rounded-2xl p-4 bg-surface space-y-3">
                 <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
                   Origin Domain Whitelist (CORS & Domain Protection)
                 </h4>

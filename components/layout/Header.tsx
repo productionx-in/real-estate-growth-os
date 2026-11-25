@@ -56,7 +56,7 @@ export function Header({ orgId, orgName, orgSlug = '', orgType = 'developer', ro
   return (
     <header
       style={{ height: 'var(--header-height)' }}
-      className="z-10 flex flex-shrink-0 items-center justify-between gap-2 border-b border-default bg-surface px-2 md:px-5"
+      className="glass z-10 flex flex-shrink-0 items-center justify-between gap-2 border-b border-default px-2 md:px-5"
     >
       <div className="flex min-w-0 items-center gap-1.5">
         <button

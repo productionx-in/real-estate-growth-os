@@ -314,7 +314,7 @@ export function MetaConnectWizardModal({
                   How Connection Works
                 </h4>
                 <div className="grid grid-cols-1 gap-2.5">
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-default bg-surface">
+                  <div className="surface-raised flex items-start gap-3 p-3 rounded-2xl border border-default bg-surface">
                     <div className="w-6 h-6 rounded-full bg-brand-light text-brand flex items-center justify-center text-[12px] font-bold flex-shrink-0 mt-0.5">
                       1
                     </div>
@@ -327,7 +327,7 @@ export function MetaConnectWizardModal({
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-default bg-surface">
+                  <div className="surface-raised flex items-start gap-3 p-3 rounded-2xl border border-default bg-surface">
                     <div className="w-6 h-6 rounded-full bg-brand-light text-brand flex items-center justify-center text-[12px] font-bold flex-shrink-0 mt-0.5">
                       2
                     </div>
@@ -340,7 +340,7 @@ export function MetaConnectWizardModal({
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-default bg-surface">
+                  <div className="surface-raised flex items-start gap-3 p-3 rounded-2xl border border-default bg-surface">
                     <div className="w-6 h-6 rounded-full bg-brand-light text-brand flex items-center justify-center text-[12px] font-bold flex-shrink-0 mt-0.5">
                       3
                     </div>
@@ -593,7 +593,7 @@ export function MetaConnectWizardModal({
                   return (
                     <div
                       key={form.id}
-                      className="p-3.5 rounded-xl border border-default bg-surface space-y-2 shadow-2xs"
+                      className="surface-raised p-3.5 rounded-2xl border border-default bg-surface space-y-2"
                     >
                       <div className="flex items-start justify-between">
                         <div>
@@ -646,7 +646,7 @@ export function MetaConnectWizardModal({
                 directly to these designated CRM projects.
               </div>
 
-              <div className="bg-surface border border-default rounded-xl divide-y divide-default text-[12px]">
+              <div className="surface-raised bg-surface border border-default rounded-2xl divide-y divide-default text-[12px]">
                 <div className="p-3.5 flex justify-between">
                   <span className="text-subtle font-medium">Connection Plan</span>
                   <span className="font-semibold text-foreground">{connectionName}</span>

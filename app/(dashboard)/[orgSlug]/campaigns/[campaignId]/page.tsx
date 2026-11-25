@@ -71,7 +71,7 @@ export default async function CampaignPage({ params }: { params: Promise<{ orgSl
           </CardContent></Card>
         )}
         {c.channel === 'whatsapp' && <p className="text-[13px] text-muted">Template: <span className="font-medium text-foreground">{c.waTemplateName}</span> ({c.waLanguage})</p>}
-        <div className="overflow-x-auto rounded-xl border border-default bg-surface">
+        <div className="surface-raised overflow-x-auto rounded-2xl border border-default bg-surface">
           <table className="w-full min-w-[560px] text-[13px]">
             <thead className="bg-surface-muted text-left text-[12px] text-muted">
               <tr><th className="px-3 py-2 font-medium">Lead</th><th className="px-3 py-2 font-medium">{c.channel === 'email' ? 'E-mail' : 'WhatsApp'}</th><th className="px-3 py-2 font-medium">Result</th><th className="px-3 py-2 font-medium">When</th></tr>

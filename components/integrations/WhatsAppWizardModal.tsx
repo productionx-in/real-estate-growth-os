@@ -318,7 +318,7 @@ export function WhatsAppWizardModal({
 
               <div className="space-y-3">
                 {STANDARD_REAL_ESTATE_TEMPLATES.map((tpl) => (
-                  <div key={tpl.id} className="p-4 rounded-xl border border-default bg-surface space-y-2">
+                  <div key={tpl.id} className="surface-raised p-4 rounded-2xl border border-default bg-surface space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-foreground font-mono">{tpl.name}</span>
@@ -343,7 +343,7 @@ export function WhatsAppWizardModal({
           {/* TAB 3: Consent & Compliance */}
           {activeTab === 'consent' && (
             <div className="space-y-4">
-              <div className="border border-default rounded-xl p-4 bg-surface space-y-2">
+              <div className="surface-raised border border-default rounded-2xl p-4 bg-surface space-y-2">
                 <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
                   Automated Opt-Out &amp; STOP Processing
                 </h4>
@@ -364,7 +364,7 @@ export function WhatsAppWizardModal({
                 </div>
               </div>
 
-              <div className="border border-default rounded-xl p-4 bg-surface space-y-2">
+              <div className="surface-raised border border-default rounded-2xl p-4 bg-surface space-y-2">
                 <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
                   24-Hour Customer Service Window
                 </h4>

@@ -200,7 +200,7 @@ export function IntegrationCentreView({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* 1. Meta Lead Ads */}
-          <div className="bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-brand/30 transition-all shadow-2xs flex flex-col justify-between">
+          <div className="surface-raised bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-brand/30 transition-all flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
                 <div className="w-10 h-10 rounded-xl bg-brand-light text-brand flex items-center justify-center shadow-2xs">
@@ -283,7 +283,7 @@ export function IntegrationCentreView({
           </div>
 
           {/* 2. Google Ads */}
-          <div className="bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all shadow-2xs flex flex-col justify-between">
+          <div className="surface-raised bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
                 <div className="w-10 h-10 rounded-xl bg-warning-bg text-warning flex items-center justify-center shadow-2xs">
@@ -331,7 +331,7 @@ export function IntegrationCentreView({
           </div>
 
           {/* 3. Website Enquiry Forms */}
-          <div className="bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all shadow-2xs flex flex-col justify-between">
+          <div className="surface-raised bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
                 <div className="w-10 h-10 rounded-xl bg-accent-bg text-accent flex items-center justify-center shadow-2xs">
@@ -394,7 +394,7 @@ export function IntegrationCentreView({
           </div>
 
           {/* 4. WhatsApp Business */}
-          <div className="bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all shadow-2xs flex flex-col justify-between">
+          <div className="surface-raised bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
                 <div className="w-10 h-10 rounded-xl bg-success-bg text-success flex items-center justify-center shadow-2xs">
@@ -455,7 +455,7 @@ export function IntegrationCentreView({
           </div>
 
           {/* 5. Property Portals */}
-          <div className="bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all shadow-2xs flex flex-col justify-between">
+          <div className="surface-raised bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
                 <div className="w-10 h-10 rounded-xl bg-danger-bg text-danger flex items-center justify-center shadow-2xs">
@@ -504,7 +504,7 @@ export function IntegrationCentreView({
           </div>
 
           {/* 6. Developer APIs & Webhooks */}
-          <div className="bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all shadow-2xs flex flex-col justify-between">
+          <div className="surface-raised bg-surface border border-default rounded-2xl p-5 space-y-4 hover:border-strong transition-all flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
                 <div className="w-10 h-10 rounded-xl bg-accent-bg text-accent flex items-center justify-center shadow-2xs">
@@ -588,7 +588,7 @@ export function IntegrationCentreView({
               return (
                 <div
                   key={conn.id}
-                  className="bg-surface border border-default rounded-2xl p-5 shadow-2xs hover:border-strong transition-all space-y-4"
+                  className="surface-raised bg-surface border border-default rounded-2xl p-5 hover:border-strong transition-all space-y-4"
                 >
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -612,7 +612,7 @@ export function IntegrationCentreView({
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setSelectedConnection(conn)}
-                        className="px-3 py-1.5 text-[12px] font-medium text-muted bg-surface border border-default rounded-xl hover:bg-surface-muted transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                        className="surface-raised px-3 py-1.5 text-[12px] font-medium text-muted bg-surface border border-default rounded-2xl hover:bg-surface-muted transition-colors flex items-center gap-1.5 cursor-pointer"
                       >
                         <Sliders className="w-3.5 h-3.5" />
                         Manage Mappings ({conn.mappingsCount || 0})
@@ -669,7 +669,7 @@ export function IntegrationCentreView({
           </p>
         </div>
 
-        <div className="bg-surface border border-default rounded-2xl overflow-hidden shadow-2xs">
+        <div className="surface-raised bg-surface border border-default rounded-2xl overflow-hidden">
           <table className="w-full text-left text-[12px]">
             <thead className="bg-surface-muted/80 border-b border-default text-muted font-semibold">
               <tr>

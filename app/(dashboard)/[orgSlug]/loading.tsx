@@ -5,7 +5,7 @@ export default function WorkspaceLoading() {
   return (
     <div className="flex h-full flex-col" aria-busy="true">
       <span role="status" className="sr-only">Loading…</span>
-      <div className="border-b border-default bg-surface px-4 py-5 md:px-6">
+      <div className="px-4 pb-1 pt-4 md:px-6 md:pt-6">
         <Skeleton className="h-4 w-40" />
         <Skeleton className="mt-2 h-3 w-72 max-w-full" />
       </div>

@@ -81,7 +81,7 @@ export function MapDocuments({ orgId, orgSlug, projectId, layouts, documents, ve
   )
 
   return (
-    <section aria-labelledby="map-files" className="space-y-4 rounded-xl border border-default bg-surface p-5 shadow-2xs">
+    <section aria-labelledby="map-files" className="surface-raised space-y-4 rounded-2xl border border-default bg-surface p-5">
       <div>
         <h2 id="map-files" className="text-[15px] font-semibold text-foreground">Map versions</h2>
         <p className="text-[13px] text-muted">The live version is what your team and buyers see. A new version goes live only when the owner or an admin publishes it.</p>

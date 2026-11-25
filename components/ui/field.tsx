@@ -3,10 +3,11 @@ import * as React from 'react'
 import { cn } from '@/lib/utils/cn'
 
 // 16px text on phones: smaller text makes iOS zoom the page when a field is focused. Compact on larger screens.
+// Design language v3: fields sit into the surface (.field, app/globals.css) and come forward with a soft glow on focus.
 const control =
-  'w-full rounded-md border border-strong bg-surface px-3 text-[16px] sm:text-[13px] text-foreground shadow-sm ' +
-  'placeholder:text-subtle transition-colors focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-0 ' +
-  'focus-visible:border-ring disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-subtle ' +
+  'field w-full rounded-md border border-default px-3 text-[16px] sm:text-[13px] text-foreground ' +
+  'placeholder:text-subtle focus-visible:outline-none focus-visible:border-ring ' +
+  'disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:text-subtle ' +
   'aria-[invalid=true]:border-danger'
 
 export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(

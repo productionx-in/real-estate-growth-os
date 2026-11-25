@@ -37,7 +37,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ orgSlu
 
   return (
     <PageShell back={{ href: `/${orgSlug}/billing`, label: 'Billing' }} title={inv.invoice_number} actions={<PrintButton />}>
-      <article className="mx-auto max-w-2xl rounded-xl border border-default bg-surface p-6 print:border-0 print:p-0 md:p-8">
+      <article className="surface-raised mx-auto max-w-2xl rounded-2xl border border-default bg-surface p-6 print:border-0 print:p-0 md:p-8">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b border-default pb-5">
           <div>
             <p className="text-[18px] font-semibold">{PRODUCT_NAME}</p>

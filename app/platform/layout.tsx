@@ -1,5 +1,6 @@
 // app/platform/layout.tsx — REGrow internal console. Platform staff only, MFA-verified session on every screen.
 // Shows customer workspace metadata; customer business data only through a support grant.
+import { Toaster } from '@/components/ui/toast'
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { getConsoleAccess, PLATFORM_AUDIT_READERS } from '@/lib/auth/platform'
@@ -58,5 +59,5 @@ export default async function PlatformLayout({ children }: { children: React.Rea
     },
   ].filter((g) => g.items.length > 0)
 
-  return <ConsoleShell groups={groups} userLabel={access.label} roleLabel={roleLabel}>{children}</ConsoleShell>
+  return <><ConsoleShell groups={groups} userLabel={access.label} roleLabel={roleLabel}>{children}</ConsoleShell><Toaster /></>
 }

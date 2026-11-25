@@ -81,7 +81,7 @@ export function OrgInventoryExplorer({
   return (
     <div className="space-y-6">
       {/* Counts by status: one neutral strip; colour only marks the status, the label says it. */}
-      <dl className="grid grid-cols-3 overflow-hidden rounded-xl border border-default bg-surface sm:grid-cols-6">
+      <dl className="surface-raised grid grid-cols-3 overflow-hidden rounded-2xl border border-default bg-surface sm:grid-cols-6">
         {([
           ['Total units', items.length, null],
           [statusLabels.available, metrics.available, 'bg-success'],

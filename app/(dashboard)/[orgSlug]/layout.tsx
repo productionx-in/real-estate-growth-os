@@ -16,6 +16,7 @@ import { DemoBanner } from '@/components/layout/DemoBanner'
 import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 import { WorkspacePrefsProvider } from '@/components/settings/WorkspacePrefs'
 import { LiveAlerts } from '@/components/notifications/LiveAlerts'
+import { Toaster } from '@/components/ui/toast'
 
 interface OrgLayoutProps {
   children: React.ReactNode
@@ -67,6 +68,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
           <WorkspacePrefsProvider value={{ areaUnitBuilt: inv.areaUnitBuilt, areaUnitLand: inv.areaUnitLand, canDeleteInventory: workspace.isAdmin, statusLabels: inv.statusLabels }}>{children}</WorkspacePrefsProvider>
         </main>
       </div>
+      <Toaster />
       <LiveAlerts orgId={workspace.org.id} orgSlug={workspace.org.slug} settings={alerts} />
       <BottomNav orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={disabledModules} />
       <SupportBubble context="workspace" orgSlug={workspace.org.slug} orgName={workspace.org.name} />

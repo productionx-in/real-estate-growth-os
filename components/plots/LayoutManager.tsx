@@ -55,7 +55,7 @@ export function LayoutManager({ orgId, projectId, layout }: { orgId: string; pro
   }
 
   return (
-    <section aria-labelledby="layout-manage" className="space-y-4 rounded-xl border border-default bg-surface p-4 shadow-2xs">
+    <section aria-labelledby="layout-manage" className="surface-raised space-y-4 rounded-2xl border border-default bg-surface p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="layout-manage" className="text-[14px] font-semibold text-foreground">{layout ? 'Manage this layout' : 'Add a layout'}</h2>
         {layout && (layout.status === 'published' ? <Badge tone="success">Published</Badge> : <Badge tone="warning">Draft — only managers see it</Badge>)}

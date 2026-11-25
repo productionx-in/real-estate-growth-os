@@ -137,7 +137,7 @@ export default async function SpeedToLeadPage({ params, searchParams }: { params
           </section>
         )}
 
-        <section className="rounded-xl border border-default bg-surface p-4" aria-labelledby="timing-h">
+        <section className="surface-raised rounded-2xl border border-default bg-surface p-4" aria-labelledby="timing-h">
           <h2 id="timing-h" className="text-[13px] font-semibold">From enquiry to first call <span className="font-normal text-muted">· each step measured separately</span></h2>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-[13px]">
