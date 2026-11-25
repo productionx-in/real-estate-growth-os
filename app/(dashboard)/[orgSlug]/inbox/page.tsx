@@ -12,6 +12,7 @@ import { InboxLive } from '@/components/inbox/InboxLive'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { getResponseMinutes } from '@/lib/dal/action-board'
 import { getThread, listConversations, type InboxFilter } from '@/lib/dal/whatsapp-inbox'
+import { numberLabel } from '@/lib/integrations/whatsapp/numbers'
 import { messageLabel } from '@/lib/integrations/whatsapp/inbox-rules'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils/cn'
@@ -37,13 +38,17 @@ export default async function InboxPage({ params, searchParams }: PageProps) {
   const filter: InboxFilter = sp.f && sp.f in FILTERS && (sp.f !== 'unlinked' || isManager) ? (sp.f as InboxFilter) : 'all'
   const openId = sp.c && UUID.test(sp.c) ? sp.c : null
 
-  const [conversations, thread, { timezone }, { count: connections }] = await Promise.all([
+  const [conversations, thread, { timezone }, { data: numberRows }] = await Promise.all([
     listConversations(org.id, viewer, filter),
     openId ? getThread(org.id, openId, viewer) : Promise.resolve(null),
     getResponseMinutes(org.id),
-    createServiceClient().from('integration_connections').select('id', { count: 'exact', head: true })
+    createServiceClient().from('integration_connections').select('id, name, metadata')
       .eq('org_id', org.id).eq('provider', 'whatsapp_cloud'),
   ])
+  const connections = (numberRows ?? []).length
+  // With several WhatsApp numbers, each conversation shows the number it is on (lib/integrations/whatsapp/numbers.ts).
+  const numberOf = new Map((numberRows ?? []).map((c) => [c.id, numberLabel({ name: c.name, metadata: c.metadata as Record<string, unknown> | null })]))
+  const showNumber = numberOf.size > 1
 
   const time = (iso: string | null) => {
     if (!iso) return ''
@@ -106,8 +111,9 @@ export default async function InboxPage({ params, searchParams }: PageProps) {
                   </span>
                   {c.unread > 0 && <span className="shrink-0 rounded-full bg-brand px-1.5 text-[11px] font-semibold text-brand-foreground" aria-label={`${c.unread} unread`}>{c.unread}</span>}
                 </div>
-                {(c.optedOut || (isManager && c.assigneeName)) && (
-                  <div className="mt-1 flex gap-2 text-[11px] text-subtle">
+                {(c.optedOut || (isManager && c.assigneeName) || showNumber) && (
+                  <div className="mt-1 flex flex-wrap gap-x-2 text-[11px] text-subtle">
+                    {showNumber && <span className="truncate">{numberOf.get(c.connectionId) ?? 'WhatsApp number'}</span>}
                     {c.optedOut && <span className="text-danger">Opted out</span>}
                     {isManager && c.assigneeName && <span>{c.assigneeName}</span>}
                   </div>
@@ -133,7 +139,7 @@ export default async function InboxPage({ params, searchParams }: PageProps) {
               </Link>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[14px] font-semibold text-foreground">{thread.conversation.name}</p>
-                <p className="text-[12px] text-muted">{thread.conversation.phone}{thread.conversation.assigneeName ? ` · ${thread.conversation.assigneeName}` : ''}</p>
+                <p className="text-[12px] text-muted">{thread.conversation.phone}{thread.conversation.assigneeName ? ` · ${thread.conversation.assigneeName}` : ''}{showNumber ? ` · via ${numberOf.get(thread.conversation.connectionId) ?? 'WhatsApp'}` : ''}</p>
               </div>
               {thread.conversation.optedOut && <Badge tone="danger">Opted out</Badge>}
               {thread.conversation.leadId && (

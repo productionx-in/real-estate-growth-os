@@ -3,6 +3,7 @@
 // Handles multi-tenant routing by matching incoming WABA ID or Phone Number ID to connected integrations.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { routeWebhookEntries } from '@/lib/integrations/whatsapp/numbers'
 import { createServiceClient } from '@/lib/supabase/server'
 import { checkDistributedRateLimit } from '@/lib/integrations/webhooks/rate-limiter'
 import {
@@ -95,48 +96,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Malformed JSON payload' }, { status: 400 })
   }
 
-  // 5. Multi-Tenant Connection Resolution
+  // 5. Multi-Tenant Connection Resolution: each change goes to the connection of the number it was sent to
+  //    (lib/integrations/whatsapp/numbers.ts), so a workspace with several numbers gets each message once.
   const service = createServiceClient()
   const { data: connections } = await service
     .from('integration_connections')
-    .select('id, org_id, status, provider, metadata')
+    .select('id, org_id, status, provider, metadata, external_account_id')
     .eq('provider', 'whatsapp_cloud')
     .eq('status', 'connected')
 
-  const activeConnections = connections || []
+  const activeConnections = (connections || []).map((c) => ({ ...c, metadata: (c.metadata || {}) as Record<string, unknown> }))
   if (activeConnections.length === 0) {
     // Signed by Meta but for no connected workspace: acknowledge so Meta does not retry and disable the webhook.
     return NextResponse.json({ success: true, results: [] })
   }
 
-  // Group events by target connection
   const results = []
-  for (const conn of activeConnections) {
-    const meta = (conn.metadata || {}) as Record<string, unknown>
-    const wabaId = meta.wabaId as string | undefined
-    const selectedPhone = meta.selectedPhoneNumberId as string | undefined
-
-    // Check if any entry matches this connection
-    // Match only on identifiers this connection actually has: an unset phone id must never match an event
-    // that also lacks one, or one workspace would receive another's messages.
-    const matchingEntries = payload.entry?.filter((entry) => {
-      if (wabaId && entry.id === wabaId) return true
-      if (!selectedPhone) return false
-      return entry.changes?.some((c) => c.value?.metadata?.phone_number_id === selectedPhone) ?? false
-    })
-
-    if (matchingEntries && matchingEntries.length > 0) {
-      const filteredPayload: WhatsAppWebhookPayload = {
-        object: payload.object,
-        entry: matchingEntries,
-      }
-      const summary = await processWhatsAppWebhookPayload({
-        connectionId: conn.id,
-        payload: filteredPayload,
-        customServiceClient: service,
-      })
-      results.push({ connectionId: conn.id, summary })
-    }
+  for (const [connectionId, entries] of routeWebhookEntries(payload.entry ?? [], activeConnections)) {
+    const filteredPayload: WhatsAppWebhookPayload = { object: payload.object, entry: entries }
+    const summary = await processWhatsAppWebhookPayload({ connectionId, payload: filteredPayload, customServiceClient: service })
+    results.push({ connectionId, summary })
   }
 
   // An event that matches no connection belongs to no workspace here: acknowledge it (so Meta does not retry

@@ -33,7 +33,7 @@ function loadSdk(appId: string, version: string): Promise<FBSdk> {
   })
 }
 
-export function WhatsAppEmbeddedSignup({ orgId, connected, canManage }: { orgId: string; connected: boolean; canManage: boolean }) {
+export function WhatsAppEmbeddedSignup({ orgId, connected, canManage, full = false }: { orgId: string; connected: boolean; canManage: boolean; full?: boolean }) {
   const router = useRouter()
   const [config, setConfig] = useState<Config | null>(null)
   const [open, setOpen] = useState(false)
@@ -108,8 +108,8 @@ export function WhatsAppEmbeddedSignup({ orgId, connected, canManage }: { orgId:
   }
   return (
     <>
-      <Button size="sm" variant={connected ? 'secondary' : 'primary'} className="w-full" onClick={() => { setOpen(true); setError(null); setNotice(null) }}>
-        <MessageCircle aria-hidden /> {connected ? 'Reconnect WhatsApp number' : 'Connect WhatsApp number'}
+      <Button size="sm" variant={connected ? 'secondary' : 'primary'} className="w-full" disabled={full} title={full ? 'Up to 5 numbers per workspace' : undefined} onClick={() => { setOpen(true); setError(null); setNotice(null) }}>
+        <MessageCircle aria-hidden /> {connected ? 'Add or reconnect a number' : 'Connect WhatsApp number'}
       </Button>
       {notice && !open && <Alert tone="success" className="mt-2">{notice}</Alert>}
       <Dialog open={open} onOpenChange={(o) => { if (!busy) setOpen(o) }}>
