@@ -33,6 +33,8 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
   const modules = await getModules(workspace.org.id)
   const disabledModules = Object.entries(modules).filter(([, on]) => !on).map(([m]) => m)
   const [{ inventory: inv, alerts }, sales] = await Promise.all([getWorkspaceSettings(workspace.org.id), getSalesStructure(workspace.org.id)])
+  // Team structure off → no Teams link (it is not a module; nav.ts MODULE_OF_SEGMENT).
+  const navDisabled = sales.teamsEnabled ? disabledModules : [...disabledModules, 'teams']
   const liveSupport = (await liveGrantsForOrg(workspace.org.id)).sort((a, b) => (b.expires_at ?? '').localeCompare(a.expires_at ?? ''))[0]
 
   return (
@@ -46,7 +48,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
         orgType={workspace.org.type}
         role={workspace.role}
         availableOrgs={workspace.availableOrgs}
-        disabledModules={disabledModules}
+        disabledModules={navDisabled}
       />
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <Header
@@ -73,9 +75,9 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
       </div>
       <Toaster />
       <LiveAlerts orgId={workspace.org.id} orgSlug={workspace.org.slug} settings={alerts} />
-      <BottomNav orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={disabledModules} />
+      <BottomNav orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={navDisabled} />
       <SupportBubble context="workspace" orgSlug={workspace.org.slug} orgName={workspace.org.name} />
-      <CommandPalette orgId={workspace.org.id} orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={disabledModules} />
+      <CommandPalette orgId={workspace.org.id} orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={navDisabled} />
     </div>
   )
 }

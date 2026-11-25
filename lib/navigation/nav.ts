@@ -7,7 +7,7 @@ import { canCreateLeads } from '@/lib/auth/permissions'
 
 export type NavKey =
   | 'home' | 'today' | 'leads' | 'visits' | 'inbox' | 'sales' | 'routing' | 'speed' | 'projects' | 'inventory'
-  | 'documents' | 'analytics' | 'integrations' | 'team' | 'settings' | 'billing' | 'audit' | 'support' | 'partners' | 'help' | 'listings' | 'campaigns' | 'performance' | 'calendar'
+  | 'documents' | 'analytics' | 'integrations' | 'team' | 'settings' | 'billing' | 'audit' | 'support' | 'partners' | 'help' | 'listings' | 'campaigns' | 'performance' | 'calendar' | 'teams'
 
 export interface NavLink {
   key: NavKey
@@ -29,6 +29,8 @@ export type OrgType = 'developer' | 'channel_partner'
 export const MODULE_OF_SEGMENT: Record<string, string> = {
   sales: 'sales', visits: 'sales', documents: 'sales', partners: 'sales', inventory: 'inventory', listings: 'inventory', routing: 'routing',
   integrations: 'integrations', analytics: 'analytics',
+  // Not a paid module: the layout lists it as off while team structure is switched off (Settings → Sales structure).
+  teams: 'teams',
 }
 
 export { ROLE_LABELS } from '@/lib/auth/permissions'
@@ -49,6 +51,8 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
   const documents = L('documents', 'Document templates', '/documents')
   const analytics = L('analytics', 'Analytics', '/analytics')
   const team = L('team', 'Team', '/team')
+  // Teams (20260097): leaders, members, projects and team comparison, for the people who run or lead teams.
+  const teams = L('teams', 'Teams', '/teams')
   // Points, targets, missions, achievements and the team leaderboard (lib/performance/*), for everyone who sells.
   const performance = L('performance', 'Performance', '/performance')
   // Channel partner network: owners, admins and managers of either side (the page and API check again).
@@ -70,7 +74,7 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
     ]
   } else if (role === 'team_lead') {
     groups = [
-      { items: [home, today, L('leads', 'Team leads', '/leads'), calendar, visits, inbox, performance] },
+      { items: [home, today, L('leads', 'Team leads', '/leads'), calendar, visits, inbox, performance, teams] },
       { title: 'Selling', items: [L('sales', 'Sales', '/sales'), ...(agency ? [listings] : []), inventory] },
     ]
   } else if (role === 'post_sales') {
@@ -81,21 +85,21 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
   } else if (orgType === 'channel_partner') {
     groups = [
       { items: [home, today, L('leads', 'Referred leads', '/leads'), calendar, visits, inbox, listings, L('sales', 'Deals & commissions', '/sales'), partners, campaigns, performance] },
-      { title: 'Agency', items: [team, ...(isAdmin(role) ? adminLinks : [])] },
+      { title: 'Agency', items: [teams, team, ...(isAdmin(role) ? adminLinks : [])] },
     ]
   } else if (role === 'manager') {
     groups = [
       { items: [home, today, L('leads', 'Leads', '/leads'), calendar, visits, inbox] },
       { title: 'Sales', items: [L('sales', 'Sales', '/sales'), partners, campaigns, L('routing', 'Lead routing', '/routing'), L('speed', 'Speed to lead', '/speed-to-lead')] },
       { title: 'Portfolio', items: [projects, inventory, documents] },
-      { title: 'Insights', items: [performance, analytics, team] },
+      { title: 'Insights', items: [performance, teams, analytics, team] },
     ]
   } else {
     groups = [
       { items: [home, today, L('leads', 'Leads', '/leads'), calendar, visits, inbox] },
       { title: 'Sales', items: [L('sales', 'Sales & partners', '/sales'), partners, campaigns, L('routing', 'Lead routing', '/routing'), L('speed', 'Speed to lead', '/speed-to-lead')] },
       { title: 'Portfolio', items: [projects, inventory, documents] },
-      { title: 'Insights', items: [performance, analytics] },
+      { title: 'Insights', items: [performance, teams, analytics] },
       { title: 'Workspace', items: [L('integrations', 'Integrations', '/integrations'), team, ...adminLinks] },
     ]
   }
