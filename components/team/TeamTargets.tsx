@@ -52,7 +52,7 @@ export function TeamTargets({ orgId, month, people }: { orgId: string; month: st
   }
 
   return (
-    <section aria-labelledby="targets-title" className="overflow-hidden rounded-xl border border-default bg-surface shadow-2xs">
+    <section aria-labelledby="targets-title" className="surface-raised overflow-hidden rounded-2xl border border-default bg-surface">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default bg-surface-hover px-5 py-3.5">
         <h3 id="targets-title" className="flex items-center gap-2 text-[13px] font-bold text-foreground"><Target aria-hidden className="size-4 text-brand" /> Targets · {monthLabel}</h3>
         <p className="text-[11px] text-muted">{expected}% of the month gone. Amber = more than 10 points behind that pace.</p>

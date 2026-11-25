@@ -236,9 +236,9 @@ export function BillingClient({ orgId, orgSlug, orgName, overview, payOnline }: 
       <section aria-labelledby="inv-h" className="space-y-3">
         <h2 id="inv-h" className="text-[15px] font-semibold">Invoices</h2>
         {overview.invoices.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-default bg-surface p-6 text-center text-[13px] text-muted">No invoices yet.</p>
+          <p className="surface-raised rounded-2xl border border-dashed border-default bg-surface p-6 text-center text-[13px] text-muted">No invoices yet.</p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-default bg-surface">
+          <div className="surface-raised overflow-x-auto rounded-2xl border border-default bg-surface">
             <table className="w-full text-[13px]">
               <thead><tr className="border-b border-default text-left text-[12px] text-muted">
                 <th className="px-4 py-2.5 font-medium">Invoice</th><th className="px-4 py-2.5 font-medium">For</th>

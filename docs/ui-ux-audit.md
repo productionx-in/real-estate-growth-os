@@ -54,6 +54,24 @@ Verified:
 - interactions in the browser: tilt, menus, dialogs, phone bottom sheets;
 - `npm test` and the design-token checks.
 
+## Design language v3 — soft clay depth (from the owner's reference designs)
+
+The references (neumorphic and claymorphic mobile UIs, layered 3D cards, soft gradients) set the look for every screen:
+
+- **Canvas**: a cool tinted background (`--background`) with two soft coloured lights painted once behind everything.
+- **Surfaces**: white clay — a lit top edge, a faint shade on the bottom edge, and blue-tinted soft shadows; corners one
+  step rounder (`--radius` 10 → `--radius-2xl` 24). 46 hand-built cards across 28 files moved onto the same depth.
+- **Controls**: the primary action is a lit brand gradient that glows, rises a pixel on hover and sinks when pressed;
+  secondary keys are clay; fields sit into the surface and come forward with a soft glow on focus; native checkboxes,
+  radios and sliders take the brand colour.
+- **Shell**: frosted sidebar, header and phone tab bar over the canvas; page titles larger and bolder, sitting on the
+  canvas instead of a white band.
+- **Feedback**: one toast system (`components/ui/toast.tsx`) — success, error, info, with an action such as Undo;
+  polite live region, pauses on hover, mounted in the workspace and the console. The calendar uses it first (moving a
+  follow-up can be undone).
+- **Side sheet** (`components/ui/sheet.tsx`) for details without leaving the page; a bottom sheet on phones.
+- Status colours are one shade deeper so text stays ≥ 4.5:1 on the tinted canvas (checked by the token test).
+
 ## Rollout of the rest, one module per pull request
 
 Each step moves hand-built pieces onto the shared components, so later design changes reach every screen without

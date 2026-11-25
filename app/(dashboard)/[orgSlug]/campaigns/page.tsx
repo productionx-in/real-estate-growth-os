@@ -53,7 +53,7 @@ export default async function CampaignsPage({ params }: { params: Promise<{ orgS
         {campaigns.length === 0 ? (
           <Card><EmptyState icon={Megaphone} title="No campaigns yet" description="Drafts and sent campaigns appear here, with how many were delivered." /></Card>
         ) : (
-          <ul className="divide-y divide-default overflow-hidden rounded-xl border border-default bg-surface">
+          <ul className="surface-raised divide-y divide-default overflow-hidden rounded-2xl border border-default bg-surface">
             {campaigns.map((c) => (
               <li key={c.id}>
                 <Link href={`/${orgSlug}/campaigns/${c.id}`} className="flex flex-col gap-1 px-4 py-3 hover:bg-surface-hover sm:flex-row sm:items-center sm:justify-between">

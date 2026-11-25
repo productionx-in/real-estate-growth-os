@@ -51,6 +51,9 @@
   --red-400: #f87171;
   --red-600: #dc2626;
   --red-700: #b91c1c;
+  --red-800: #991b1b;
+  --green-800: #166534;
+  --amber-800: #92400e;
 
   /* 2. Semantic — light */
   /* Design language v3: a soft, cool canvas the white clay surfaces float above. */
@@ -76,14 +79,15 @@
   --border-strong: #cdd5e1;
   --focus-ring: var(--blue-600);
 
-  --success: var(--green-700);
+  /* One shade deeper than v2: status text must stay ≥ 4.5:1 on the tinted canvas too. */
+  --success: var(--green-800);
   --success-bg: var(--green-50);
   --success-foreground: var(--gray-0);
-  --warning: var(--amber-700);
+  --warning: var(--amber-800);
   --warning-bg: var(--amber-50);
   --warning-foreground: var(--gray-0);
-  --danger: var(--red-600);
-  --danger-hover: var(--red-700);
+  --danger: var(--red-700);
+  --danger-hover: var(--red-800);
   --danger-bg: var(--red-50);
   --danger-foreground: var(--gray-0);
   --accent: var(--violet-700);

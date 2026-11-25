@@ -48,7 +48,7 @@ export default async function ProjectMapPage({ params, searchParams }: {
     const info = STATE_INFO[addon.state]
     return (
       <PageShell title="Plot map" description={project.name} back={back}>
-        <div className="mx-auto max-w-xl space-y-3 rounded-xl border border-default bg-surface p-6 text-center shadow-2xs">
+        <div className="surface-raised mx-auto max-w-xl space-y-3 rounded-2xl border border-default bg-surface p-6 text-center">
           <span className="mx-auto grid size-12 place-items-center rounded-xl bg-brand-light text-brand"><MapPinned aria-hidden className="size-6" /></span>
           <h2 className="text-[16px] font-semibold text-foreground">{ADDONS.plot_maps.name}</h2>
           <Badge tone={info.tone}>{info.label}</Badge>
@@ -94,7 +94,7 @@ export default async function ProjectMapPage({ params, searchParams }: {
           <StaffDrawingAccess orgId={org.id} projectId={projectId} access={staffAccess ? { expiresAt: staffAccess.expiresAt, grantedBy: staffAccess.grantedBy } : null} />
         )}
         {isManager && all.length === 0 && !adding && (
-          <section aria-label="Set up your map" className="rounded-xl border border-default bg-surface p-5 shadow-2xs">
+          <section aria-label="Set up your map" className="surface-raised rounded-2xl border border-default bg-surface p-5">
             <h2 className="text-[15px] font-semibold text-foreground">Set up your plot map</h2>
             <ol className="mt-2 list-decimal space-y-1 pl-5 text-[13px] text-muted">
               <li>Upload the approved layout of this project (or one phase) as a PDF, PNG or JPG, and choose the page.</li>

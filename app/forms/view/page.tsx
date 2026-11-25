@@ -107,7 +107,7 @@ function EnquiryFormContent() {
 
   return (
     <div className="min-h-screen bg-surface-muted flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-surface rounded-xl shadow-sm border border-default p-6">
+      <div className="surface-raised w-full max-w-md bg-surface rounded-2xl border border-default p-6">
         <h2 className="text-xl font-bold text-foreground text-center mb-1">{formTitle}</h2>
         <p className="text-sm text-subtle text-center mb-6">
           Submit your details to receive full project brochure, pricing, and floor plans.
@@ -246,7 +246,7 @@ export default function StandaloneEnquiryFormPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-surface-muted flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-surface rounded-xl shadow-sm border border-default p-6 text-center text-subtle text-sm">
+          <div className="surface-raised w-full max-w-md bg-surface rounded-2xl border border-default p-6 text-center text-subtle text-sm">
             Loading enquiry form...
           </div>
         </div>

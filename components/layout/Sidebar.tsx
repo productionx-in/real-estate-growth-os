@@ -112,7 +112,7 @@ export function Sidebar({
         aria-label="Workspace navigation"
         style={{ width: rail ? 'var(--sidebar-width-collapsed)' : 'var(--sidebar-width)', transitionDuration: 'var(--duration-base)', transitionTimingFunction: 'var(--ease-out)' }}
         className={cn(
-          'flex h-full flex-shrink-0 flex-col border-r border-default bg-surface',
+          'glass flex h-full flex-shrink-0 flex-col border-r border-default',
           'fixed inset-y-0 left-0 z-40 transition-[transform,width] md:static md:z-auto md:translate-x-0',
           mobileOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'
         )}

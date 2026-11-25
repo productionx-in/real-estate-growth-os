@@ -22,7 +22,7 @@ export function StaffDrawingAccess({ orgId, projectId, access }: { orgId: string
     } catch { setError('Network error. Please try again.') } finally { setBusy(false) }
   }
   return (
-    <section aria-labelledby="staff-drawing" className="space-y-2 rounded-xl border border-default bg-surface p-5 shadow-2xs">
+    <section aria-labelledby="staff-drawing" className="surface-raised space-y-2 rounded-2xl border border-default bg-surface p-5">
       <h2 id="staff-drawing" className="text-[15px] font-semibold text-foreground">Let REGrow draw the plot boundaries</h2>
       <p className="text-[13px] text-muted">
         The REGrow team can trace each plot’s outline and number on your uploaded layout. They see the layout page and the

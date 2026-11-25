@@ -407,7 +407,7 @@ export function ConnectionDetailsModal({
               )}
 
               {/* Mappings Table */}
-              <div className="border border-default rounded-xl overflow-hidden bg-surface shadow-2xs">
+              <div className="surface-raised border border-default rounded-2xl overflow-hidden bg-surface">
                 <table className="w-full text-left text-[12px]">
                   <thead className="bg-surface-muted border-b border-default text-muted font-semibold">
                     <tr>
@@ -510,7 +510,7 @@ export function ConnectionDetailsModal({
                   pages.map((page) => (
                     <div
                       key={page.id}
-                      className="p-4 rounded-xl border border-default bg-surface space-y-3 shadow-2xs"
+                      className="surface-raised p-4 rounded-2xl border border-default bg-surface space-y-3"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">

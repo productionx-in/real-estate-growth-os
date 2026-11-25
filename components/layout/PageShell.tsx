@@ -15,7 +15,7 @@ interface PageShellProps {
 export function PageShell({ title, description, actions, back, children }: PageShellProps) {
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b border-default bg-surface px-4 py-4 md:px-6 md:py-5">
+      <div className="px-4 pb-1 pt-4 md:px-6 md:pt-6">
         {back && (
           <Link href={back.href} className="mb-2 inline-flex items-center gap-1 text-[12px] font-medium text-muted transition-colors hover:text-foreground">
             <ArrowLeft aria-hidden className="size-3.5" /> {back.label}
@@ -23,7 +23,7 @@ export function PageShell({ title, description, actions, back, children }: PageS
         )}
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
           <div className="min-w-0">
-            <h1 className="text-[18px] font-semibold leading-tight tracking-[-0.01em] text-foreground md:text-[20px]">{title}</h1>
+            <h1 className="text-[20px] font-bold leading-tight tracking-[-0.02em] text-foreground md:text-[24px]">{title}</h1>
             {description && <div className="mt-1 text-[13px] text-muted">{description}</div>}
           </div>
           {actions && <div className="flex flex-wrap items-center gap-2 sm:ml-4">{actions}</div>}

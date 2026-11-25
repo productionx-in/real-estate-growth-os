@@ -24,7 +24,7 @@ export default async function SettingsHub({ params }: { params: Promise<{ orgSlu
         {groups.map((g) => {
           const Icon = ICONS[g.key] ?? Building2
           return (
-            <li key={g.key} className="rounded-xl border border-default bg-surface p-4 shadow-2xs">
+            <li key={g.key} className="surface-raised rounded-2xl border border-default bg-surface p-4">
               <div className="mb-2 flex gap-3">
                 <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-light text-brand"><Icon aria-hidden className="size-4" /></span>
                 <div>

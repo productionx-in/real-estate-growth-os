@@ -15,7 +15,7 @@ export function BottomNav({ orgSlug, role, orgType, disabledModules }: { orgSlug
   const tabs = tabLinks(navGroups(orgSlug, role, orgType, disabledModules))
   const item = 'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors'
   return (
-    <nav aria-label="Main" className="safe-bottom fixed inset-x-0 bottom-0 z-20 border-t border-default bg-surface/95 backdrop-blur md:hidden">
+    <nav aria-label="Main" className="safe-bottom fixed inset-x-0 bottom-0 z-20 glass border-t border-default md:hidden">
       <ul className="flex" style={{ height: 'var(--bottom-nav-height)' }}>
         {tabs.map((t) => {
           const Icon = NAV_ICONS[t.key]

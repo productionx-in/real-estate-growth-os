@@ -30,7 +30,7 @@ export default async function SharedDocumentPage({ params }: { params: Promise<{
 
   return (
     <main className="min-h-dvh bg-background px-4 py-8 print:bg-surface print:p-0">
-      <article className="mx-auto max-w-3xl rounded-xl border border-default bg-surface p-6 shadow-sm sm:p-10 print:border-0 print:shadow-none">
+      <article className="surface-raised mx-auto max-w-3xl rounded-2xl border border-default bg-surface p-6 sm:p-10 print:border-0 print:shadow-none">
         {/* With a letterhead the company's details head the page; otherwise just its name. */}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
           <p className="text-[12px] text-muted">

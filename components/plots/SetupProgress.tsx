@@ -16,7 +16,7 @@ export function SetupProgress({ view, orgId, canAct }: { view: SetupView; orgId:
   const done = view.completed === view.stages.length
   const mine = view.openBlockers.filter((b) => b.waitingOn === 'customer')
   return (
-    <section aria-labelledby="setup-title" className="rounded-xl border border-default bg-surface p-5 shadow-2xs">
+    <section aria-labelledby="setup-title" className="surface-raised rounded-2xl border border-default bg-surface p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="setup-title" className="text-[15px] font-semibold text-foreground">Map set-up</h2>

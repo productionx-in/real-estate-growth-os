@@ -5,7 +5,7 @@ export default function LeadLoading() {
   return (
     <div className="flex h-full flex-col" aria-busy="true">
       <span role="status" className="sr-only">Loading lead…</span>
-      <div className="border-b border-default bg-surface px-4 py-4 md:px-6 md:py-5">
+      <div className="px-4 pb-1 pt-4 md:px-6 md:pt-6">
         <Skeleton className="h-3 w-12" />
         <Skeleton className="mt-3 h-5 w-48" />
         <Skeleton className="mt-2 h-3 w-72 max-w-full" />

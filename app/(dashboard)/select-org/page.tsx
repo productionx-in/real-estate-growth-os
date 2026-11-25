@@ -60,7 +60,7 @@ export default async function SelectOrgPage({ searchParams }: { searchParams: Pr
           <div className="flex size-9 items-center justify-center rounded-xl bg-brand text-brand-foreground"><Building2 aria-hidden className="size-5" /></div>
           <span className="text-lg font-bold text-foreground">{PRODUCT_NAME}</span>
         </div>
-        <div className="rounded-2xl border border-default bg-surface p-6 shadow-sm sm:p-7">
+        <div className="surface-raised rounded-2xl border border-default bg-surface p-6 sm:p-7">
           {decision.kind === 'none' ? (
             <>
               <h1 className="text-[17px] font-semibold text-foreground">You are not in a workspace yet</h1>

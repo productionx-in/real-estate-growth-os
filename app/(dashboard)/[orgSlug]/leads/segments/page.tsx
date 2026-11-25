@@ -68,7 +68,7 @@ export default async function SegmentsPage({ params, searchParams }: PageProps) 
               <h2 id="your-segments" className="text-[15px] font-semibold">Segments</h2>
               {manage && !sp.new && <Link href={`/${orgSlug}/leads/segments?new=1#new`} className="text-[13px] font-medium text-brand hover:underline">New list</Link>}
             </div>
-            <ul className="divide-y divide-default overflow-hidden rounded-xl border border-default bg-surface">
+            <ul className="surface-raised divide-y divide-default overflow-hidden rounded-2xl border border-default bg-surface">
               {segments.map((s) => (
                 <li key={s.id}>
                   <Link href={`/${orgSlug}/leads/segments/${s.id}`} className="flex flex-col gap-1 px-4 py-3 hover:bg-surface-hover sm:flex-row sm:items-center sm:justify-between">
