@@ -5,6 +5,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Alert, Button, Input } from '@/components/ui'
+import { qaPassedSinceSubmit } from '@/lib/plots/version-groups'
 
 export interface ReviewItem { action: string; comment: string | null; actorName: string | null; at: string }
 type Action = 'submit' | 'qa_pass' | 'qa_fail' | 'approve' | 'reject' | 'publish'
@@ -22,8 +23,7 @@ export function VersionReview({ orgId, versionId, status, canApprove, history }:
   const [comment, setComment] = useState('')
   const [busy, setBusy] = useState<Action | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const lastSubmit = history.findIndex((h) => h.action === 'submitted')
-  const qaPassed = history.slice(0, lastSubmit < 0 ? 0 : lastSubmit).some((h) => h.action === 'qa_passed')
+  const qaPassed = qaPassedSinceSubmit(history)
 
   async function act(action: Action) {
     if (action === 'publish' && !window.confirm('Publish this version? Your team and anyone with the buyer link will see it at once; the previous version is kept in history.')) return
@@ -49,6 +49,7 @@ export function VersionReview({ orgId, versionId, status, canApprove, history }:
   const visible = buttons.filter((b) => b.show)
   const needsComment = visible.some((b) => b.a === 'reject' || b.a === 'qa_fail')
 
+  if (visible.length === 0 && !error && history.length === 0) return null
   return (
     <div className="space-y-2 border-t border-default pt-2">
       {visible.length > 0 && (
@@ -59,8 +60,6 @@ export function VersionReview({ orgId, versionId, status, canApprove, history }:
           </div>
         </>
       )}
-      {status === 'in_review' && !canApprove && qaPassed && <p className="text-[12px] text-muted">Waiting for the workspace owner or an admin to approve.</p>}
-      {status === 'approved' && !canApprove && <p className="text-[12px] text-muted">Approved — the owner or an admin can publish it.</p>}
       {error && <Alert tone="danger">{error}</Alert>}
       {history.length > 0 && (
         <details className="text-[12px]">
