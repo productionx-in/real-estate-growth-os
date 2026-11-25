@@ -26,6 +26,8 @@ export interface ConversationSummary {
   lastDirection: 'inbound' | 'outbound' | null
   unread: number
   optedOut: boolean
+  /** Which of the workspace's WhatsApp numbers the conversation is on. */
+  connectionId: string
 }
 
 interface ConvRow {
@@ -65,6 +67,7 @@ function summarise(r: ConvRow): ConversationSummary {
     lastDirection: r.last_direction,
     unread: r.unread_count,
     optedOut: r.is_opted_out,
+    connectionId: r.connection_id,
   }
 }
 

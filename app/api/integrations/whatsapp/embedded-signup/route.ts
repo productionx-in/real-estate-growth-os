@@ -11,6 +11,7 @@ import { auditMember } from '@/lib/dal/org-audit'
 import { encryptCredential } from '@/lib/integrations/crypto'
 import { embeddedSignupConfig } from '@/lib/integrations/readiness'
 import { checkSignupInput, completeEmbeddedSignup, EmbeddedSignupError } from '@/lib/integrations/whatsapp/embedded-signup'
+import { MAX_WHATSAPP_NUMBERS, phoneNumberIdOf, wabaIdOf } from '@/lib/integrations/whatsapp/numbers'
 import type { Json } from '@/types/database'
 
 const ROLES = ['owner', 'admin', 'manager'] as const
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
     .neq('org_id', orgId)
   const taken = (others ?? []).some((c) => {
     const m = (c.metadata ?? {}) as Record<string, unknown>
-    return m.wabaId === input.wabaId || m.selectedPhoneNumberId === input.phoneNumberId
+    return m.wabaId === input.wabaId || phoneNumberIdOf(m) === input.phoneNumberId
   })
   if (taken) return NextResponse.json({ error: 'This WhatsApp number is already connected to another REGrow workspace.' }, { status: 409 })
 
@@ -95,15 +96,21 @@ export async function POST(request: NextRequest) {
     } as unknown as Json,
   }
 
-  // Reuse the workspace's existing WhatsApp connection (keeps its history and mappings), else create one.
-  const { data: existing } = await service
+  // A workspace can connect several numbers (lib/integrations/whatsapp/numbers.ts). Connecting the same number again
+  // refreshes its connection (keeping its conversations and history); a new number becomes a new connection.
+  const { data: mine } = await service
     .from('integration_connections')
-    .select('id')
+    .select('id, metadata, status, external_account_id')
     .eq('org_id', orgId)
     .eq('provider', 'whatsapp_cloud')
     .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle()
+  const own = (mine ?? []).map((c) => ({ ...c, metadata: (c.metadata ?? {}) as Record<string, unknown> }))
+  const existing = own.find((c) => phoneNumberIdOf(c.metadata) === input.phoneNumberId)
+    // A connection from before several numbers were possible, on the same business account but with no number stored.
+    ?? own.find((c) => !phoneNumberIdOf(c.metadata) && wabaIdOf(c.metadata, c.external_account_id) === input.wabaId)
+  if (!existing && own.filter((c) => c.status === 'connected').length >= MAX_WHATSAPP_NUMBERS) {
+    return NextResponse.json({ error: `A workspace can connect up to ${MAX_WHATSAPP_NUMBERS} WhatsApp numbers. Disconnect one you no longer use first.` }, { status: 409 })
+  }
   const write = existing
     ? await service.from('integration_connections').update(row).eq('id', existing.id).eq('org_id', orgId).select('id').single()
     : await service.from('integration_connections').insert(row).select('id').single()

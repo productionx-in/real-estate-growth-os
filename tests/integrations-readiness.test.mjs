@@ -115,10 +115,16 @@ test('webhook verification fails closed: no verify token is written into the cod
   }
 })
 
-test('the central WhatsApp webhook never hands an unmatched event to another workspace', () => {
+test('the central WhatsApp webhook never hands an unmatched event to another workspace', async () => {
   const src = read('app/api/webhooks/whatsapp/route.ts')
   assert.doesNotMatch(src, /activeConnections\[0\]/)
-  assert.match(src, /if \(!selectedPhone\) return false/)
+  assert.match(src, /routeWebhookEntries\(payload\.entry \?\? \[\], activeConnections\)/)
+  // Behaviour (lib/integrations/whatsapp/numbers.ts): an unset number never matches an event that also lacks one,
+  // and nothing is routed to a connection that matches neither the number nor (uniquely) the business account.
+  const { routeWebhookEntries } = await jiti.import(path.join(root, 'lib/integrations/whatsapp/numbers.ts'))
+  const conns = [{ id: 'no-ids', metadata: {} }, { id: 'other-account', metadata: { wabaId: 'W-OTHER' } }]
+  assert.equal(routeWebhookEntries([{ id: 'W1', changes: [{ value: { metadata: {} } }] }], conns).size, 0)
+  assert.equal(routeWebhookEntries([{ changes: [{ value: { metadata: { phone_number_id: 'P1' } } }] }], conns).size, 0)
 })
 
 test('OAuth callbacks only return to same-origin paths', () => {
