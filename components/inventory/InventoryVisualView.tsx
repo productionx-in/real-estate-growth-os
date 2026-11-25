@@ -1,5 +1,6 @@
 'use client'
 // components/inventory/InventoryVisualView.tsx
+import { useStatusLabels } from '@/components/settings/WorkspacePrefs'
 import { useState, useMemo } from 'react'
 import {
   Building2,
@@ -12,7 +13,6 @@ import {
   Info,
 } from 'lucide-react'
 import {
-  INVENTORY_STATUS_LABELS,
   INVENTORY_STATUS_COLORS,
   PROJECT_CATEGORY_LABELS,
   type InventoryItemWithRelations,
@@ -35,6 +35,7 @@ export function InventoryVisualView({
   category: projectCategory,
   onItemUpdated,
 }: InventoryVisualViewProps) {
+  const statusLabels = useStatusLabels()
   // Mixed-use sub-category selection
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>('all')
 
@@ -207,7 +208,7 @@ export function InventoryVisualView({
                 <div key={st} className="flex items-center gap-1.5">
                   <span className={`w-2.5 h-2.5 rounded-full ${style.dot}`} />
                   <span className="text-[var(--foreground)] font-medium">
-                    {INVENTORY_STATUS_LABELS[st]}
+                    {statusLabels[st]}
                   </span>
                   <span className="text-[10px] text-[var(--foreground-muted)] px-1.5 py-0.5 rounded-full bg-surface-hover font-semibold">
                     {count}

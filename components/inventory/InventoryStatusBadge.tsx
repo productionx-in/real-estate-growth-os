@@ -1,5 +1,8 @@
+'use client'
 // components/inventory/InventoryStatusBadge.tsx
 import { cn } from '@/lib/utils/cn'
+import { useStatusLabels } from '@/components/settings/WorkspacePrefs'
+import type { UnitStatus } from '@/lib/settings/workspace'
 import {
   INVENTORY_STATUS_LABELS,
   INVENTORY_STATUS_COLORS,
@@ -17,7 +20,7 @@ export function InventoryStatusBadge({
   className,
   showDot = true,
 }: InventoryStatusBadgeProps) {
-  const label = INVENTORY_STATUS_LABELS[status] || status
+  const label = useStatusLabels()[status as UnitStatus] ?? INVENTORY_STATUS_LABELS[status] ?? status
   const style = INVENTORY_STATUS_COLORS[status] || INVENTORY_STATUS_COLORS.available
 
   return (

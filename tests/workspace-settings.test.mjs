@@ -30,8 +30,32 @@ test('asking for a reason needs at least one reason in each list', () => {
   assert.deepEqual(w.normaliseSection('leads', { lostReasons: [], junkReasons: [], requireReason: false }).errors, {})
 })
 
+test('status names: renamed per workspace, trimmed, at most 24 characters, never two the same; blanks keep the standard name', () => {
+  const ok = w.normaliseSection('inventory', { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', statusLabels: { blocked: '  Landowner   share ', on_hold: '' } })
+  assert.deepEqual(ok.errors, {})
+  assert.equal(ok.value.statusLabels.blocked, 'Landowner share')
+  assert.equal(ok.value.statusLabels.on_hold, 'On hold', 'blank → standard name')
+  assert.deepEqual(Object.keys(ok.value.statusLabels).sort(), ['available', 'blocked', 'booked', 'on_hold', 'sold'], 'only the five fixed statuses')
+  const extra = w.normaliseSection('inventory', { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', statusLabels: { reserved: 'Reserved' } })
+  assert.equal(extra.value.statusLabels.reserved, undefined, 'no new statuses can be invented')
+  assert.ok(w.normaliseSection('inventory', { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', statusLabels: { sold: 'x'.repeat(25) } }).errors['statusLabels.sold'])
+  assert.ok(w.normaliseSection('inventory', { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', statusLabels: { booked: 'available' } }).errors['statusLabels.booked'], 'case-insensitive duplicate')
+  assert.deepEqual(w.settingsFromRow({ inventory: { holdHours: 24 } }).inventory.statusLabels, w.DEFAULT_STATUS_LABELS, 'stored rows from before keep the standard names')
+  const statuses = read('lib/validations/inventory.ts').match(/new_status: z\.enum\(\[([^\]]+)\]/)[1].match(/'(\w+)'/g).map((x) => x.slice(1, -1))
+  assert.deepEqual([...w.UNIT_STATUSES].sort(), statuses.sort(), 'the same five statuses the inventory API accepts')
+})
+
+test('status names reach every inventory screen through the workspace provider', () => {
+  assert.match(read('app/(dashboard)/[orgSlug]/layout.tsx'), /statusLabels: inv\.statusLabels/)
+  for (const f of ['components/inventory/InventoryStatusBadge.tsx', 'components/inventory/InventoryStatusDialog.tsx', 'components/inventory/InventoryVisualView.tsx',
+    'components/inventory/InventoryViewManager.tsx', 'components/inventory/OrgInventoryExplorer.tsx', 'components/inventory/InventoryDetailDrawer.tsx', 'components/plots/PlotMap.tsx', 'components/plots/ShapeEditor.tsx']) {
+    assert.match(read(f), /useStatusLabels\(\)/, f)
+    assert.doesNotMatch(read(f), /'On Hold'|>On Hold</, f)
+  }
+})
+
 test('hold time is a whole number of hours from 0 to 720; area units come from the inventory form’s list', () => {
-  assert.deepEqual(w.normaliseSection('inventory', { holdHours: 48, areaUnitBuilt: 'sqft', areaUnitLand: 'guntas' }), { value: { holdHours: 48, areaUnitBuilt: 'sqft', areaUnitLand: 'guntas' }, errors: {} })
+  assert.deepEqual(w.normaliseSection('inventory', { holdHours: 48, areaUnitBuilt: 'sqft', areaUnitLand: 'guntas' }), { value: { holdHours: 48, areaUnitBuilt: 'sqft', areaUnitLand: 'guntas', statusLabels: w.DEFAULT_STATUS_LABELS }, errors: {} })
   assert.ok(w.normaliseSection('inventory', { holdHours: 0, areaUnitBuilt: 'sqm', areaUnitLand: 'sqyd' }).errors.areaUnitBuilt)
   const formUnits = read('lib/validations/inventory.ts').match(/area_unit: z\.enum\(\[([^\]]+)\]/)[1].match(/'(\w+)'/g).map((x) => x.slice(1, -1))
   assert.deepEqual(Object.keys(w.AREA_UNITS).sort(), formUnits.sort(), 'every setting value is one the inventory form accepts')
@@ -74,7 +98,7 @@ test('a missing, empty or malformed stored row falls back to the defaults', () =
   const s = w.settingsFromRow({ leads: { lostReasons: ['Price'] }, inventory: { holdHours: 'abc' } })
   assert.deepEqual(s.leads.lostReasons, ['Price']); assert.deepEqual(s.leads.junkReasons, w.DEFAULT_SETTINGS.leads.junkReasons)
   assert.equal(s.inventory.holdHours, 0)
-  assert.deepEqual(w.settingsFromRow({ inventory: { holdHours: 12 } }).inventory, { holdHours: 12, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd' }, 'rows saved before a field existed get its default')
+  assert.deepEqual(w.settingsFromRow({ inventory: { holdHours: 12 } }).inventory, { holdHours: 12, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', statusLabels: w.DEFAULT_STATUS_LABELS }, 'rows saved before a field existed get its default')
 })
 
 test('closing a lead: the reason must be on the workspace’s list, or “Other” with a note', () => {

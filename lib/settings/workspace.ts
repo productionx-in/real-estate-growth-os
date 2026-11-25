@@ -25,6 +25,23 @@ export interface InventorySettings {
   areaUnitBuilt: AreaUnit
   /** Area unit pre-filled for new plots. */
   areaUnitLand: AreaUnit
+  /**
+   * What this workspace calls each unit status (e.g. "Blocked" → "Landowner share"). Only the names change: the five
+   * statuses, what they mean for matching, the plot map and bookings, and the allowed changes between them stay fixed.
+   */
+  statusLabels: Record<UnitStatus, string>
+}
+
+export const UNIT_STATUSES = ['available', 'on_hold', 'booked', 'sold', 'blocked'] as const
+export type UnitStatus = (typeof UNIT_STATUSES)[number]
+export const DEFAULT_STATUS_LABELS: Record<UnitStatus, string> = { available: 'Available', on_hold: 'On hold', booked: 'Booked', sold: 'Sold', blocked: 'Blocked' }
+/** What each status means, shown beside the name so a renamed status still says what it does. */
+export const STATUS_MEANING: Record<UnitStatus, string> = {
+  available: 'Can be offered and matched to buyers.',
+  on_hold: 'Reserved for a buyer for a while; released automatically if a hold time is set.',
+  booked: 'A booking has been made.',
+  sold: 'Sale completed. Final.',
+  blocked: 'Not for sale for now (for example, landowner’s share or management quota).',
 }
 
 export interface ReportSettings {
@@ -88,7 +105,7 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
     junkReasons: ['Wrong or invalid number', 'Duplicate enquiry', 'Not looking to buy', 'Broker or agent', 'Spam or test'],
     requireReason: true,
   },
-  inventory: { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd' },
+  inventory: { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', statusLabels: DEFAULT_STATUS_LABELS },
   reports: { fyStartMonth: 4, weekStartsOn: 1 },
   lists: { locations: [] },
   fields: { lead: [] },
@@ -107,7 +124,7 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
   alerts: DEFAULT_LEAD_ALERTS,
 }
 
-export const LIMITS = { reasons: 20, reasonLength: 80, holdHours: 720, locations: 200, locationLength: 60 } as const
+export const LIMITS = { reasons: 20, reasonLength: 80, holdHours: 720, locations: 200, locationLength: 60, statusLabel: 24 } as const
 
 type Errors = Record<string, string>
 
@@ -243,9 +260,29 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
     holdHours: Number.isInteger(hours) && hours >= 0 && hours <= LIMITS.holdHours ? hours : 0,
     areaUnitBuilt: unit(o.areaUnitBuilt, 'sqft', 'areaUnitBuilt'),
     areaUnitLand: unit(o.areaUnitLand, 'sqyd', 'areaUnitLand'),
+    statusLabels: statusLabelsFrom(o.statusLabels, errors),
   }
   if (!(Number.isInteger(hours) && hours >= 0 && hours <= LIMITS.holdHours)) errors.holdHours = `Hold time is a whole number of hours from 0 to ${LIMITS.holdHours} (30 days).`
   return { value: value as WorkspaceSettings[S], errors }
+}
+
+/** Status names: each 1–24 characters after trimming, no two the same (ignoring case); blanks fall back to the default. */
+function statusLabelsFrom(v: unknown, errors: Record<string, string>): Record<UnitStatus, string> {
+  const given = v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {}
+  const out = { ...DEFAULT_STATUS_LABELS }
+  for (const k of UNIT_STATUSES) {
+    const raw = typeof given[k] === 'string' ? (given[k] as string).replace(/\s+/g, ' ').trim() : ''
+    if (!raw) continue
+    if (raw.length > LIMITS.statusLabel) { errors[`statusLabels.${k}`] = `Keep status names to ${LIMITS.statusLabel} characters.`; continue }
+    out[k] = raw
+  }
+  const seen = new Map<string, UnitStatus>()
+  for (const k of UNIT_STATUSES) {
+    const key = out[k].toLowerCase()
+    if (seen.has(key)) { errors[`statusLabels.${k}`] = `“${out[k]}” is already the name of another status.`; out[k] = DEFAULT_STATUS_LABELS[k] }
+    else seen.set(key, k)
+  }
+  return out
 }
 
 /** A stored row (possibly partial or from an older version) merged over the defaults; never throws. */
