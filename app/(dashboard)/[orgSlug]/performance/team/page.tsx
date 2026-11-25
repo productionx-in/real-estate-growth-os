@@ -2,6 +2,7 @@
 // admins and managers (everyone) and team leads (their team). Where a manager starts in Performance: assignments,
 // contacts, visits, conversions, revenue, targets and achievements per person, what needs attention, and a way into
 // each person's full page. Read from the event ledger and live lead state (lib/dal/team-overview.ts).
+import { fmtDeals } from '@/lib/sales/deal-credit'
 import { rankTeams } from '@/lib/teams/structure'
 import { listTeamStructure, teamPerformance } from '@/lib/dal/teams'
 import type { Metadata } from 'next'
@@ -49,7 +50,7 @@ export default async function TeamOverviewPage({ params, searchParams }: { param
     { label: 'Leads assigned', value: t.assigned },
     { label: 'Contacted', value: t.contacted },
     { label: 'Site visits', value: t.visits },
-    { label: 'Deals closed', value: t.closed },
+    { label: 'Deals closed', value: t.deals, hint: t.closed !== t.deals ? `${fmtDeals(t.closed)} in credit (shared deals)` : undefined },
     { label: 'Conversion', value: t.conversionPct, suffix: '%', hint: t.assigned ? 'deals ÷ leads assigned' : 'no leads assigned' },
     { label: 'Revenue', value: t.revenue, money: true },
   ]
@@ -156,7 +157,7 @@ export default async function TeamOverviewPage({ params, searchParams }: { param
                       </td>
                       <td className="px-3 py-3 text-right tabular-nums">{r.assigned}</td><td className="px-3 py-3 text-right tabular-nums">{r.contacted}</td>
                       <td className="px-3 py-3 text-right tabular-nums">{r.followUps}</td><td className="px-3 py-3 text-right tabular-nums">{r.visits}</td>
-                      <td className="px-3 py-3 text-right font-semibold tabular-nums">{r.closed}</td>
+                      <td className="px-3 py-3 text-right font-semibold tabular-nums">{fmtDeals(r.closed)}</td>
                       <td className="px-3 py-3 text-right tabular-nums">{r.conversionPct === null ? '—' : `${r.conversionPct}%`}</td>
                       <td className="px-3 py-3 text-right tabular-nums">{fmtAmount('revenue', r.revenue)}</td>
                       <td className="px-3 py-3 text-right tabular-nums">{r.targetPct === null ? '—' : <Badge tone={r.targetPct >= 100 ? 'success' : r.targetPct >= 60 ? 'brand' : 'warning'}>{r.targetPct}%</Badge>}</td>
@@ -177,7 +178,7 @@ export default async function TeamOverviewPage({ params, searchParams }: { param
                       {r.targetPct !== null && <Badge tone={r.targetPct >= 100 ? 'success' : r.targetPct >= 60 ? 'brand' : 'warning'}>{r.targetPct}% of target</Badge>}
                     </div>
                     <dl className="mt-3 grid grid-cols-4 gap-2 text-center">
-                      {[['Assigned', r.assigned], ['Contacted', r.contacted], ['Visits', r.visits], ['Closed', r.closed]].map(([l, v]) => (
+                      {[['Assigned', r.assigned], ['Contacted', r.contacted], ['Visits', r.visits], ['Closed', fmtDeals(r.closed)]].map(([l, v]) => (
                         <div key={l as string} className="rounded-lg bg-surface-muted py-2"><dt className="text-[11px] text-muted">{l}</dt><dd className="text-[16px] font-bold tabular-nums text-foreground">{v}</dd></div>
                       ))}
                     </dl>

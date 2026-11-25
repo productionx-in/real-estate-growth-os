@@ -15,9 +15,9 @@ function test(name, fn) { fn(); passed++; console.log(`  ✓ ${name}`) }
 console.log('TEAM STRUCTURE')
 
 const per = new Map([
-  ['a', { assigned: 10, contacted: 8, closed: 2, revenue: 2e7, xp: 300, meetings: 3, follow_ups: 5 }],
-  ['b', { assigned: 5, contacted: 5, closed: 1, revenue: 5e6, xp: 100, meetings: 1, follow_ups: 2 }],
-  ['c', { assigned: 4, contacted: 2, closed: 3, revenue: 1e6, xp: 90, meetings: 0, follow_ups: 0 }],
+  ['a', { assigned: 10, contacted: 8, closed: 2, deals: 2, revenue: 2e7, xp: 300, meetings: 3, follow_ups: 5 }],
+  ['b', { assigned: 5, contacted: 5, closed: 1, deals: 1, revenue: 5e6, xp: 100, meetings: 1, follow_ups: 2 }],
+  ['c', { assigned: 4, contacted: 2, closed: 3, deals: 3, revenue: 1e6, xp: 90, meetings: 0, follow_ups: 0 }],
 ])
 
 test('a team’s numbers are the sum of its members’ recorded work; a person counts once; conversion follows', () => {

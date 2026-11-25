@@ -1,6 +1,7 @@
 // app/(dashboard)/[orgSlug]/performance/page.tsx — My performance: level and points, what to do next, today's missions,
 // targets, the numbers that matter and recent achievements. Everyone who sells sees their own; owners, admins and
 // managers can look at anyone's (?person=). Read from the event ledger (20260094), never typed in.
+import { fmtDeals } from '@/lib/sales/deal-credit'
 import { sellsPersonally, watchesTeam } from '@/lib/sales/structure'
 import { getSalesStructure } from '@/lib/dal/sales-structure'
 import type { Metadata } from 'next'
@@ -43,7 +44,7 @@ export default async function MyPerformancePage({ params, searchParams }: { para
     { label: 'Contacted this week', value: p.week.contacted, hint: `${p.today.contacted} today` },
     { label: 'Follow-ups done this week', value: p.week.follow_ups, hint: `${p.upcomingFollowUps} coming up`, href: own ? `/${orgSlug}/today` : undefined },
     { label: 'Site visits this month', value: p.month.meetings, hint: `${p.week.meetings} this week` },
-    { label: 'Deals closed this month', value: p.month.closed, hint: p.conversionPct === null ? 'no leads assigned this month' : `${p.conversionPct}% of leads assigned this month` },
+    { label: 'Deals closed this month', value: p.month.closed, metric: 'closed', hint: [p.month.closed !== p.month.deals ? `credit from shared deals · ${p.month.deals} closed yourself` : null, p.conversionPct === null ? 'no leads assigned this month' : `${p.conversionPct}% of leads assigned this month`].filter(Boolean).join(' · ') },
     { label: 'Revenue this month', value: p.month.revenue, metric: 'revenue', hint: `${p.month.assigned} leads assigned this month` },
   ]
 
@@ -88,7 +89,7 @@ export default async function MyPerformancePage({ params, searchParams }: { para
           const body = (
             <>
               <p className="text-[12px] font-medium text-muted">{t.label}</p>
-              <p className="mt-1 text-[24px] font-bold text-foreground [transform:translateZ(20px)]">{t.metric === 'revenue' ? fmtAmount('revenue', t.value) : <CountUp value={t.value} />}</p>
+              <p className="mt-1 text-[24px] font-bold text-foreground [transform:translateZ(20px)]">{t.metric === 'revenue' ? fmtAmount('revenue', t.value) : !Number.isInteger(t.value) ? fmtDeals(t.value) : <CountUp value={t.value} />}</p>
               <p className="text-[11px] text-subtle">{t.hint}</p>
             </>
           )
@@ -118,7 +119,7 @@ export default async function MyPerformancePage({ params, searchParams }: { para
             {p.targets.length === 0 ? <p className="text-[13px] text-muted">No targets set for you right now.</p> : p.targets.map((t) => (
               <Bar key={t.id} value={t.done} max={t.amount}
                 label={`${PERIODS[t.period]} · ${METRICS[t.metric].label}`}
-                sub={t.metric === 'revenue' ? `${fmtAmount('revenue', t.done)} of ${fmtAmount('revenue', t.amount)}` : `${t.done} / ${t.amount} · ${t.pct}%`} />
+                sub={t.metric === 'revenue' ? `${fmtAmount('revenue', t.done)} of ${fmtAmount('revenue', t.amount)}` : `${t.metric === 'closed' ? fmtDeals(t.done) : t.done} / ${t.amount} · ${t.pct}%`} />
             ))}
           </CardContent>
         </Card>

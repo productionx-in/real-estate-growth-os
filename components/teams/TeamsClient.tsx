@@ -2,6 +2,7 @@
 // components/teams/TeamsClient.tsx — the Teams page: a card per team (leader, people, projects, this month's numbers
 // and rank, team achievements) and a side sheet to create or change a team. Every change goes through /api/teams,
 // which checks the role again; saving a team also sets who is in its lead-routing pool.
+import { fmtDeals } from '@/lib/sales/deal-credit'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -70,7 +71,7 @@ export function TeamsClient({ orgId, orgSlug, canManage, teams, sellers, leaders
               )}
 
               <dl className="mt-4 grid grid-cols-4 gap-2 text-center">
-                {[['Assigned', t.month.assigned], ['Contacted', t.month.contacted], ['Visits', t.month.meetings], ['Closed', t.month.closed]].map(([l, v]) => (
+                {[['Assigned', t.month.assigned], ['Contacted', t.month.contacted], ['Visits', t.month.meetings], ['Closed', fmtDeals(t.month.closed)]].map(([l, v]) => (
                   <div key={l as string} className="rounded-xl bg-surface-muted py-2"><dt className="text-[11px] text-muted">{l}</dt><dd className="text-[16px] font-bold tabular-nums text-foreground">{v}</dd></div>
                 ))}
               </dl>
