@@ -15,6 +15,7 @@ import { getModules } from '@/lib/auth/entitlements'
 import { DemoBanner } from '@/components/layout/DemoBanner'
 import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 import { WorkspacePrefsProvider } from '@/components/settings/WorkspacePrefs'
+import { LiveAlerts } from '@/components/notifications/LiveAlerts'
 
 interface OrgLayoutProps {
   children: React.ReactNode
@@ -28,7 +29,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
     ? await billingHoldStatus(workspace.org.id, workspace.profile.id) : { hold: false, canPay: false }
   const modules = await getModules(workspace.org.id)
   const disabledModules = Object.entries(modules).filter(([, on]) => !on).map(([m]) => m)
-  const { inventory: inv } = await getWorkspaceSettings(workspace.org.id)
+  const { inventory: inv, alerts } = await getWorkspaceSettings(workspace.org.id)
   const liveSupport = (await liveGrantsForOrg(workspace.org.id)).sort((a, b) => (b.expires_at ?? '').localeCompare(a.expires_at ?? ''))[0]
 
   return (
@@ -66,6 +67,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
           <WorkspacePrefsProvider value={{ areaUnitBuilt: inv.areaUnitBuilt, areaUnitLand: inv.areaUnitLand, canDeleteInventory: workspace.isAdmin }}>{children}</WorkspacePrefsProvider>
         </main>
       </div>
+      <LiveAlerts orgId={workspace.org.id} orgSlug={workspace.org.slug} settings={alerts} />
       <BottomNav orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={disabledModules} />
       <SupportBubble context="workspace" orgSlug={workspace.org.slug} orgName={workspace.org.name} />
       <CommandPalette orgId={workspace.org.id} orgSlug={workspace.org.slug} role={workspace.role} orgType={workspace.org.type} disabledModules={disabledModules} />

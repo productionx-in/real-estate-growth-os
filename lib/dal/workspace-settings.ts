@@ -8,7 +8,7 @@ import { DEFAULT_SETTINGS, settingsFromRow, type SettingsSection, type Workspace
 const table = () => (createServiceClient() as unknown as { from: (t: string) => any }).from('org_settings')
 
 export async function getWorkspaceSettings(orgId: string): Promise<WorkspaceSettings> {
-  const { data, error } = await table().select('leads, inventory, reports, lists, fields, notifications, visits, matching, whatsapp').eq('org_id', orgId).maybeSingle()
+  const { data, error } = await table().select('leads, inventory, reports, lists, fields, notifications, visits, matching, whatsapp, alerts').eq('org_id', orgId).maybeSingle()
   if (error) return DEFAULT_SETTINGS
   return settingsFromRow(data)
 }

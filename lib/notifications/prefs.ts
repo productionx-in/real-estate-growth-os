@@ -7,11 +7,14 @@
 
 export const ALERTS = {
   lead_assigned: { label: 'A lead is assigned to me', hint: 'Including leads moved to you by a manager or a rule.', urgent: true },
+  lead_new: { label: 'A new lead arrives (owners, admins and managers)', hint: 'Every new lead, with who it went to.', urgent: true },
+  lead_uncontacted: { label: 'A lead of mine is still not contacted', hint: 'Repeats until someone calls or messages the lead.', urgent: false },
   lead_unassigned: { label: 'A lead is taken off me', hint: 'Reassigned to someone else.', urgent: false },
   sla_nudge: { label: 'A new lead is waiting for my first call', hint: 'Shortly before the response target runs out.', urgent: true },
   sla_breach: { label: 'A lead missed its response target', hint: 'Sent to managers and the lead’s owner.', urgent: true },
   follow_up_due: { label: 'A follow-up is due', hint: 'At the time you set.', urgent: false },
   follow_up_overdue: { label: 'A follow-up is overdue', hint: 'Once, when it slips past due.', urgent: false },
+  plot_map: { label: 'Plot map setup news', hint: 'When your plot map needs something or is ready to review.', urgent: false },
   document_viewed: { label: 'A buyer opened a document I shared', hint: 'The first time they open it.', urgent: false },
 } as const
 export type AlertType = keyof typeof ALERTS

@@ -166,12 +166,14 @@ async function main() {
       const acts = (await many(`SELECT type FROM public.lead_activities WHERE lead_id=$1 ORDER BY created_at`, [taskLead.id])).map((a) => a.type)
       assert.deepEqual(acts, ['call_logged', 'status_changed', 'follow_up_scheduled'])
     })
-    await test('reminder 15 min before due, then overdue alert — each exactly once', async () => {
+    // The reminder comes 5 minutes before by default (Settings → Lead alerts, 20260093; it was 15 before that).
+    await test('reminder 5 min before due, then overdue alert — each exactly once', async () => {
       const t = await one(`SELECT * FROM public.lead_tasks WHERE lead_id=$1 AND status='open'`, [taskLead.id])
       await run(plusMin(t.due_at, -20))
+      await run(plusMin(t.due_at, -6))
       assert.equal((await notes(asha, 'follow_up_due')).filter((x) => x.lead_id === taskLead.id).length, 0)
-      await run(plusMin(t.due_at, -14))
-      await run(plusMin(t.due_at, -10))
+      await run(plusMin(t.due_at, -4))
+      await run(plusMin(t.due_at, -2))
       assert.equal((await notes(asha, 'follow_up_due')).filter((x) => x.lead_id === taskLead.id).length, 1)
       await run(plusMin(t.due_at, 16))
       await run(plusMin(t.due_at, 30))

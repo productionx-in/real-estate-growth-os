@@ -52,7 +52,10 @@ test('choices are validated; stored values of any shape fall back to defaults', 
 })
 
 test('every notification the database can create has a setting', () => {
-  const m = read('supabase/migrations/20260052_document_templates.sql').match(/notifications_type_check CHECK \(type IN \(\s*([^)]+)\)/)[1]
+  // The latest migration that redefines the allowed types is the one in force.
+  const latest = fs.readdirSync(path.join(root, 'supabase/migrations')).sort().reverse()
+    .map((f) => read(`supabase/migrations/${f}`)).find((sql) => /notifications_type_check CHECK \(type IN \(/.test(sql))
+  const m = latest.match(/notifications_type_check CHECK \(type IN \(\s*([^)]+)\)/)[1]
   const types = m.match(/'(\w+)'/g).map((x) => x.slice(1, -1))
   assert.deepEqual([...types].sort(), [...p.ALERT_TYPES].sort())
 })

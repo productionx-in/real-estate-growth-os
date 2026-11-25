@@ -351,3 +351,10 @@ svg[data-animated] .rio-eyes { transform-box: fill-box; transform-origin: center
 svg[data-animated] .rio-wing { transform-box: fill-box; transform-origin: 10% 20%; }
 .group:hover svg[data-animated] .rio-wing { animation: rio-wave 0.6s ease-in-out 2; }
 .rio-bob { animation: rio-bob 3.2s ease-in-out infinite; }
+
+/* Lead alert banners (components/notifications/LiveAlerts.tsx): drop in from the top with a little spring, like a phone
+   notification; leave faster than they arrive. Reduced motion makes both instant (rule above). */
+@keyframes alert-in { 0% { transform: translateY(-110%) scale(0.96); opacity: 0 } 70% { transform: translateY(4%) scale(1.01); opacity: 1 } 100% { transform: translateY(0) scale(1); opacity: 1 } }
+@keyframes alert-out { to { transform: translateY(-40%) scale(0.97); opacity: 0 } }
+.alert-banner { animation: alert-in 380ms cubic-bezier(0.2, 0.9, 0.3, 1) both; }
+.alert-banner[data-leaving] { animation: alert-out 200ms ease-in both; }

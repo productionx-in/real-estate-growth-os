@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { Alert, Button, Field, Input } from '@/components/ui'
 import { ALERTS, ALERT_TYPES, type AlertType, type PersonPrefs, type TeamDefaults } from '@/lib/notifications/prefs'
 
-function Switch({ on, label, onChange, disabled }: { on: boolean; label: string; onChange: (v: boolean) => void; disabled?: boolean }) {
+export function Switch({ on, label, onChange, disabled }: { on: boolean; label: string; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
     <button type="button" role="switch" aria-checked={on} aria-label={label} disabled={disabled} onClick={() => onChange(!on)}
       className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-60 ${on ? 'bg-brand' : 'border border-default bg-surface-hover'}`}>
