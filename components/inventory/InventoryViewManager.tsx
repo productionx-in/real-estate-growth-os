@@ -1,6 +1,7 @@
 'use client'
 // components/inventory/InventoryViewManager.tsx
 import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   LayoutGrid,
   List,
@@ -61,7 +62,15 @@ export function InventoryViewManager({
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
+  // Arriving from "Create project" (?addUnits=1) opens "Add many units" straight away.
+  const router = useRouter()
   const [showQuickAdd, setShowQuickAdd] = useState(false)
+  useEffect(() => {
+    if (!isManager || new URLSearchParams(window.location.search).get('addUnits') !== '1') return
+    // Drop the flag from the address so a reload does not reopen it.
+    window.history.replaceState(null, '', window.location.pathname)
+    if (initialItems.length === 0) setShowQuickAdd(true)
+  }, [isManager, initialItems.length])
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState('')
@@ -119,6 +128,8 @@ export function InventoryViewManager({
       console.error(e)
     }
   }, [projectId])
+  // Many units at once also change the counts the page around this list shows (tabs, project header).
+  const afterBulkAdd = useCallback(() => { refreshItems(); router.refresh() }, [refreshItems, router])
 
   // Count active filters (excluding default 'all' or empty)
   const activeFiltersCount = useMemo(() => {
@@ -745,7 +756,7 @@ export function InventoryViewManager({
           projectId={projectId}
           projectCategory={projectCategory}
           onClose={() => setShowQuickAdd(false)}
-          onSuccess={refreshItems}
+          onSuccess={afterBulkAdd}
         />
       )}
 
@@ -755,7 +766,7 @@ export function InventoryViewManager({
           projectId={projectId}
           projectCategory={projectCategory}
           onClose={() => setShowImportModal(false)}
-          onSuccess={refreshItems}
+          onSuccess={afterBulkAdd}
         />
       )}
     </div>
