@@ -8,6 +8,7 @@
 // Select: drag a plot to move it, drag a corner to reshape (rectangles stay rectangles), drag a "+" to add a corner,
 // Delete removes the selected corner (or the plot). Polygon: click corners, then click the first corner, double-click
 // or press Enter; Backspace removes the last corner, Esc cancels. Mouse wheel zooms.
+import { useStatusLabels } from '@/components/settings/WorkspacePrefs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Hand, Hexagon, Link2, Link2Off, Minus, MousePointer2, Plus, Redo2, Save, Search, Square, Trash2, Undo2, Maximize } from 'lucide-react'
 import { Alert, Badge, Button, Field, Input } from '@/components/ui'
@@ -49,6 +50,7 @@ export function ShapeEditor({ orgId, versionId, width, height, imageUrl, initial
   /** Where shapes are saved and re-read (default: the workspace route). */
   endpoint?: string
 }) {
+  const statusLabels = useStatusLabels()
   const url = endpoint ?? `/api/plot-maps/versions/${versionId}/shapes`
   const [shapes, setShapes] = useState<Shape[]>(() => initialShapes.map((s) => ({ ...s, key: newKey() })))
   const [past, setPast] = useState<Shape[][]>([])
@@ -402,7 +404,7 @@ export function ShapeEditor({ orgId, versionId, width, height, imageUrl, initial
                 <p className="text-[13px] font-medium text-foreground">Inventory unit</p>
                 {sel.unitId ? (
                   <div className="flex items-center justify-between gap-2 rounded-md border border-default px-2 py-1.5 text-[13px]">
-                    <span><Link2 aria-hidden className="mr-1 inline size-3.5 text-success" />{unitById.get(sel.unitId)?.unitNumber ?? 'Unknown unit'} <span className="text-muted">· {unitById.get(sel.unitId)?.status.replace('_', ' ')}</span></span>
+                    <span><Link2 aria-hidden className="mr-1 inline size-3.5 text-success" />{unitById.get(sel.unitId)?.unitNumber ?? 'Unknown unit'} <span className="text-muted">· {statusLabels[unitById.get(sel.unitId)?.status as keyof typeof statusLabels] ?? unitById.get(sel.unitId)?.status.replace('_', ' ')}</span></span>
                     <Button size="sm" variant="ghost" onClick={() => update(sel.key, { unitId: null })}><Link2Off aria-hidden /> Unlink</Button>
                   </div>
                 ) : (
@@ -415,7 +417,7 @@ export function ShapeEditor({ orgId, versionId, width, height, imageUrl, initial
                     <Input placeholder="Find a unit to link…" value={unitQuery} onChange={(e) => setUnitQuery(e.target.value)} aria-label="Find a unit" />
                     <ul className="max-h-40 overflow-y-auto rounded-md border border-default text-[13px]">
                       {unitChoices.length === 0 ? <li className="px-2 py-1.5 text-muted">No unlinked unit matches.</li> : unitChoices.map((u) => (
-                        <li key={u.id}><button type="button" className="w-full px-2 py-1.5 text-left hover:bg-surface-hover" onClick={() => { update(sel.key, { unitId: u.id }); setUnitQuery('') }}>{u.unitNumber} <span className="text-muted">· {u.status.replace('_', ' ')}</span></button></li>
+                        <li key={u.id}><button type="button" className="w-full px-2 py-1.5 text-left hover:bg-surface-hover" onClick={() => { update(sel.key, { unitId: u.id }); setUnitQuery('') }}>{u.unitNumber} <span className="text-muted">· {statusLabels[u.status as keyof typeof statusLabels] ?? u.status.replace('_', ' ')}</span></button></li>
                       ))}
                     </ul>
                   </>
