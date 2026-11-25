@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { SettingsCard, SettingsHeader } from '@/components/settings/SettingsSection'
 import { DailyReportToggle } from '@/components/account/DailyReportToggle'
 import { PushAlertsToggle } from '@/components/notifications/PushAlertsToggle'
+import { DeviceSoundToggle } from '@/components/notifications/DeviceSoundToggle'
 import { AlertPreferences, WeeklyDigestToggle } from '@/components/notifications/AlertPreferences'
 import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 import { personFromStored } from '@/lib/notifications/prefs'
@@ -29,6 +30,7 @@ export default async function NotificationSettingsPage({ params }: { params: Pro
       <SettingsHeader title="My notifications" scope="you" description="Choose how REGrow reaches you." />
       <SettingsCard title="Alerts on this device" description="New leads and reminders as phone or desktop alerts, even when REGrow is closed. Turn on for each device you use.">
         <PushAlertsToggle />
+        <div className="mt-4 border-t border-default pt-4"><DeviceSoundToggle /></div>
       </SettingsCard>
       <SettingsCard title="Which alerts" description="Choose what reaches your devices. Everything always appears in your inbox in REGrow.">
         <AlertPreferences initial={personFromStored(p?.notification_prefs)} team={settings.notifications} />

@@ -75,7 +75,7 @@ test('wiring: the processor replies after recording the message; the API accepts
   const p = read('lib/integrations/whatsapp/processor.ts')
   assert.match(p, /newMessage: !!recorded/)
   assert.match(p, /\.eq\('is_opted_out', false\)/, 'the claim refuses an opted-out conversation')
-  assert.match(read('app/api/settings/workspace/route.ts'), /'whatsapp'\]\)/)
+  assert.match(read('app/api/settings/workspace/route.ts'), /'whatsapp'[,\]]/)
   const page = C.SETTINGS.flatMap((g) => g.pages).find((x) => x.key === 'whatsapp-auto-replies')
   assert.equal(page.audience, 'admins')
   assert.match(read('app/(dashboard)/[orgSlug]/settings/whatsapp/page.tsx'), /if \(!isAdmin\) redirect/)

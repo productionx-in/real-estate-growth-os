@@ -3,6 +3,7 @@
 // Nothing here is a secret; owners and admins change it (the API authorises), everyone in the workspace reads it.
 import { DEFAULT_TEAM, normaliseTeam, teamFromStored, type TeamDefaults } from '@/lib/notifications/prefs'
 import { fieldsFromStored, normaliseFields, type FieldDef } from '@/lib/settings/fields'
+import { DEFAULT_LEAD_ALERTS, leadAlertsFromStored, normaliseLeadAlerts, type LeadAlertSettings } from '@/lib/notifications/lead-alerts'
 
 export interface LeadSettings {
   /** Choices offered when a lead is marked Lost (in this order). */
@@ -77,7 +78,7 @@ export interface WhatsAppSettings {
   workDays: number[]
 }
 
-export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings; notifications: TeamDefaults; visits: VisitSettings; matching: MatchingSettings; whatsapp: WhatsAppSettings }
+export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings; notifications: TeamDefaults; visits: VisitSettings; matching: MatchingSettings; whatsapp: WhatsAppSettings; alerts: LeadAlertSettings }
 export type SettingsSection = keyof WorkspaceSettings
 
 // The reasons Indian sales teams record most often; a workspace edits, reorders or replaces them.
@@ -102,6 +103,8 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
     hoursStart: 10, hoursEnd: 19, workDays: [1, 2, 3, 4, 5, 6],
   },
   matching: { overBudgetPct: 10, minScore: 0, maxSuggestions: 8 },
+  // Lead alerts are on until a workspace turns them off (lib/notifications/lead-alerts.ts).
+  alerts: DEFAULT_LEAD_ALERTS,
 }
 
 export const LIMITS = { reasons: 20, reasonLength: 80, holdHours: 720, locations: 200, locationLength: 60 } as const
@@ -130,6 +133,10 @@ function reasons(input: unknown, label: string, errors: Errors, key: string): st
 export function normaliseSection<S extends SettingsSection>(section: S, input: unknown, current?: WorkspaceSettings): { value: WorkspaceSettings[S]; errors: Errors } {
   const errors: Errors = {}
   const o = (input && typeof input === 'object' && !Array.isArray(input) ? input : {}) as Record<string, unknown>
+  if (section === 'alerts') {
+    const r = normaliseLeadAlerts(o)
+    return { value: r.value as WorkspaceSettings[S], errors: r.errors }
+  }
   if (section === 'notifications') {
     const r = normaliseTeam(o)
     return { value: r.value as WorkspaceSettings[S], errors: r.errors }
@@ -242,7 +249,7 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
 }
 
 /** A stored row (possibly partial or from an older version) merged over the defaults; never throws. */
-export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown; notifications?: unknown; visits?: unknown; matching?: unknown; whatsapp?: unknown } | null | undefined): WorkspaceSettings {
+export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown; notifications?: unknown; visits?: unknown; matching?: unknown; whatsapp?: unknown; alerts?: unknown } | null | undefined): WorkspaceSettings {
   const merge = <S extends SettingsSection>(s: S, stored: unknown): WorkspaceSettings[S] => {
     if (!stored || typeof stored !== 'object' || Array.isArray(stored) || !Object.keys(stored).length) return DEFAULT_SETTINGS[s]
     const { value } = normaliseSection(s, { ...DEFAULT_SETTINGS[s], ...(stored as object) })
@@ -257,6 +264,7 @@ export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; rep
     notifications: teamFromStored(row?.notifications),
     visits: merge('visits', row?.visits), matching: merge('matching', row?.matching),
     whatsapp: merge('whatsapp', row?.whatsapp),
+    alerts: leadAlertsFromStored(row?.alerts),
   }
 }
 

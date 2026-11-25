@@ -226,6 +226,9 @@ async function main() {
       channel: 'whatsapp', isConfigured: () => true,
       deliver: async (n) => { if (failWhatsAppOnce) { failWhatsAppOnce = false; throw new Error('provider 503') } sent.push(['whatsapp', n.id]); return { status: 'sent' } },
     })
+    // One notification for this lead, so the runner's counts below are about retries only: managers' copies of new-lead
+    // alerts (20260093, tested in p52-lead-alerts) are switched off for this workspace from here on.
+    await q(`INSERT INTO public.org_settings (org_id, alerts) VALUES ($1, '{"newLead": false}') ON CONFLICT (org_id) DO UPDATE SET alerts = EXCLUDED.alerts`, [org])
     const lead = await one(`INSERT INTO public.leads (org_id, project_id, name, phone, source) VALUES ($1, $2, 'Runner Buyer', $3, 'google_ads') RETURNING id`, [org, project, phone()])
     const notif = await one(`SELECT id FROM public.notifications WHERE lead_id = $1`, [lead.id])
     await test('a failing channel is retried later without re-sending channels that succeeded', async () => {
