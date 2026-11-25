@@ -6,7 +6,7 @@ import { assignableRolesFor } from '@/lib/dal/sales-structure'
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeLeadAccess } from '@/lib/auth/tenant'
-import { ASSIGNABLE_ROLES, canAssignLeads, canAssignTo, canWorkLead } from '@/lib/auth/permissions'
+import { canAssignLeads, canAssignTo, canWorkLead } from '@/lib/auth/permissions'
 import { createServiceClient } from '@/lib/supabase/server'
 import type { MemberRole } from '@/types/database'
 
