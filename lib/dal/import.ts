@@ -70,7 +70,7 @@ export async function createImportJob({
   projectId: string
   referenceId: string
   fileName: string
-  fileType: 'csv' | 'xlsx'
+  fileType: 'csv' | 'xlsx' | 'generated'
   initiatedBy?: string | null
   totalRows: number
 }) {

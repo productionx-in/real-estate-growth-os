@@ -12,7 +12,7 @@ const ImportRequestSchema = z.object({
   projectId: z.string().uuid(),
   referenceId: z.string().optional(),
   fileName: z.string().min(1).max(255),
-  fileType: z.enum(['csv', 'xlsx']),
+  fileType: z.enum(['csv', 'xlsx', 'generated']),
   rows: z.array(z.any()).min(1, 'At least one valid row is required').max(5000, 'Maximum 5,000 rows per batch'),
   failedRows: z
     .array(

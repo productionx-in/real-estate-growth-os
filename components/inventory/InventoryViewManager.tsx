@@ -1,6 +1,7 @@
 'use client'
 // components/inventory/InventoryViewManager.tsx
 import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   LayoutGrid,
   List,
@@ -13,6 +14,7 @@ import {
   Building,
   X,
   FileSpreadsheet,
+  Layers,
 } from 'lucide-react'
 import {
   PROJECT_CATEGORY_LABELS,
@@ -24,6 +26,7 @@ import { InventoryTable } from './InventoryTable'
 import { InventoryVisualView } from './InventoryVisualView'
 import { InventoryForm } from './InventoryForm'
 import { BulkImportModal } from './BulkImportModal'
+import { QuickAddUnitsModal } from './QuickAddUnitsModal'
 import { EmptyState } from '@/components/shared/EmptyState'
 
 interface InventoryViewManagerProps {
@@ -59,6 +62,15 @@ export function InventoryViewManager({
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
+  // Arriving from "Create project" (?addUnits=1) opens "Add many units" straight away.
+  const router = useRouter()
+  const [showQuickAdd, setShowQuickAdd] = useState(false)
+  useEffect(() => {
+    if (!isManager || new URLSearchParams(window.location.search).get('addUnits') !== '1') return
+    // Drop the flag from the address so a reload does not reopen it.
+    window.history.replaceState(null, '', window.location.pathname)
+    if (initialItems.length === 0) setShowQuickAdd(true)
+  }, [isManager, initialItems.length])
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState('')
@@ -116,6 +128,8 @@ export function InventoryViewManager({
       console.error(e)
     }
   }, [projectId])
+  // Many units at once also change the counts the page around this list shows (tabs, project header).
+  const afterBulkAdd = useCallback(() => { refreshItems(); router.refresh() }, [refreshItems, router])
 
   // Count active filters (excluding default 'all' or empty)
   const activeFiltersCount = useMemo(() => {
@@ -556,6 +570,16 @@ export function InventoryViewManager({
 
                 <button
                   type="button"
+                  onClick={() => setShowQuickAdd(true)}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-lg hover:bg-[var(--surface-hover)] transition-colors shadow-2xs"
+                  title="Add a run of units with the same details (e.g. Plot 1–120)"
+                >
+                  <Layers className="w-3.5 h-3.5 text-brand" />
+                  <span>Add many</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setShowAddModal(true)}
                   className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-brand-foreground bg-[var(--brand)] rounded-lg hover:bg-[var(--brand-hover)] transition-colors shadow-xs"
                 >
@@ -726,13 +750,23 @@ export function InventoryViewManager({
         />
       )}
 
+      {/* 5b. Add many units at once (lib/inventory/quick-add.ts) */}
+      {showQuickAdd && (
+        <QuickAddUnitsModal
+          projectId={projectId}
+          projectCategory={projectCategory}
+          onClose={() => setShowQuickAdd(false)}
+          onSuccess={afterBulkAdd}
+        />
+      )}
+
       {/* 6. Bulk Import Modal (CSV & Excel) */}
       {showImportModal && (
         <BulkImportModal
           projectId={projectId}
           projectCategory={projectCategory}
           onClose={() => setShowImportModal(false)}
-          onSuccess={refreshItems}
+          onSuccess={afterBulkAdd}
         />
       )}
     </div>

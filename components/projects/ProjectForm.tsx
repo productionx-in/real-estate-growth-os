@@ -187,7 +187,8 @@ export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: Projec
       }
 
       const data = await response.json()
-      router.push(`/${orgSlug}/projects/${data.project.id}`)
+      // A new project opens straight into "Add many units" (components/inventory/QuickAddUnitsModal.tsx).
+      router.push(`/${orgSlug}/projects/${data.project.id}${isEditing ? '' : '?addUnits=1'}`)
       router.refresh()
     } catch {
       setServerError('Network error. Please try again.')
