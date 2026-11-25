@@ -59,7 +59,9 @@ export function SalesStructureForm({ orgId, orgSlug, initial, ownerOpenLeads }: 
         )}
       </Switch>
       <Switch checked={v.teamsEnabled} onChange={(teamsEnabled) => setV({ ...v, teamsEnabled })} icon={UsersRound} label="Team structure"
-        description="Organise salespeople into teams, each with a leader and, if you like, its own projects. Adds team-wise performance, leaderboards and achievements. Leave it off to manage everyone as one team." />
+        description="Organise salespeople into teams, each with a leader and, if you like, its own projects. Adds team-wise performance, leaderboards and achievements. Leave it off to manage everyone as one team.">
+        {initial.teamsEnabled && <p className="mt-3 text-[13px]"><Link href={`/${orgSlug}/teams`} className="font-medium text-brand">Open Teams →</Link></p>}
+      </Switch>
       <div className="flex items-center gap-3">
         <Button onClick={save} loading={busy} disabled={!changed}>Save</Button>
         {changed && <span className="text-[12px] text-muted">Unsaved changes</span>}

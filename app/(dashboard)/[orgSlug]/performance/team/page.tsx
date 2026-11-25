@@ -2,6 +2,8 @@
 // admins and managers (everyone) and team leads (their team). Where a manager starts in Performance: assignments,
 // contacts, visits, conversions, revenue, targets and achievements per person, what needs attention, and a way into
 // each person's full page. Read from the event ledger and live lead state (lib/dal/team-overview.ts).
+import { rankTeams } from '@/lib/teams/structure'
+import { listTeamStructure, teamPerformance } from '@/lib/dal/teams'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -24,16 +26,25 @@ export const dynamic = 'force-dynamic'
 
 const ROLE_LABEL: Record<string, string> = { owner: 'Owner', admin: 'Admin', manager: 'Manager', team_lead: 'Team lead', sales_exec: 'Sales' }
 
-export default async function TeamOverviewPage({ params, searchParams }: { params: Promise<{ orgSlug: string }>; searchParams: Promise<{ period?: string }> }) {
+export default async function TeamOverviewPage({ params, searchParams }: { params: Promise<{ orgSlug: string }>; searchParams: Promise<{ period?: string; team?: string }> }) {
   const { orgSlug } = await params
   const sp = await searchParams
   const { org, role, profile } = await getVerifiedWorkspace(orgSlug)
   if (!watchesTeam(role)) notFound()
   const period: OverviewPeriod = sp.period && sp.period in OVERVIEW_PERIODS ? (sp.period as OverviewPeriod) : 'month'
-  const only = role === 'team_lead' ? await teamProfileIdsOf(org.id, profile.id) : null
-  const [o, sales] = await Promise.all([getTeamOverview(org.id, period, only), getSalesStructure(org.id)])
+  const visible = role === 'team_lead' ? await teamProfileIdsOf(org.id, profile.id) : null
+  const sales = await getSalesStructure(org.id)
+  // Team structure: compare the teams, and narrow the people to one team (?team=).
+  const allTeams = sales.teamsEnabled ? (await listTeamStructure(org.id)).filter((t) => t.isActive && (!visible || t.leader?.id === profile.id || t.members.some((m) => visible.includes(m.id)))) : []
+  const team = sp.team ? allTeams.find((t) => t.id === sp.team) ?? null : null
+  const only = team ? team.members.map((m) => m.id).filter((id) => !visible || visible.includes(id)) : visible
+  const o = await getTeamOverview(org.id, period, only)
+  const teamRows = allTeams.length ? await (async () => {
+    const perf = await teamPerformance(org.id, allTeams, { from: o.from, to: o.to })
+    return rankTeams(allTeams.map((t) => ({ id: t.id, name: t.name, leader: t.leader?.name ?? null, totals: perf.get(t.id)!.period })))
+  })() : []
   const t = o.totals
-  const href = (p: OverviewPeriod) => `/${orgSlug}/performance/team?period=${p}`
+  const href = (p: OverviewPeriod, t: string | null = team?.id ?? null) => `/${orgSlug}/performance/team?period=${p}${t ? `&team=${t}` : ''}`
   const tiles = [
     { label: 'Leads assigned', value: t.assigned },
     { label: 'Contacted', value: t.contacted },
@@ -60,6 +71,7 @@ export default async function TeamOverviewPage({ params, searchParams }: { param
               className={cn('rounded-lg px-3 py-1.5', p === period ? 'bg-brand-light font-medium text-brand' : 'text-muted hover:text-foreground')}>{OVERVIEW_PERIODS[p]}</Link>
           ))}
         </nav>
+        {sales.teamsEnabled && teamRows.length === 0 && role !== 'team_lead' && <Link href={`/${orgSlug}/teams`} className="text-[13px] font-medium text-brand">Set up teams →</Link>}
         {role === 'owner' && !sales.ownerSells && (
           <p className="text-[12px] text-muted">You manage and are not on the sales board. <Link href={`/${orgSlug}/settings/sales`} className="font-medium text-brand">Change in Settings</Link></p>
         )}
@@ -87,9 +99,35 @@ export default async function TeamOverviewPage({ params, searchParams }: { param
         ))}
       </div>
 
+      {teamRows.length > 0 && (
+        <section aria-labelledby="teams-compare" className="mt-5">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h2 id="teams-compare" className="text-[15px] font-semibold text-foreground">Teams · {OVERVIEW_PERIODS[period].toLowerCase()}</h2>
+            <Link href={`/${orgSlug}/teams`} className="text-[13px] font-medium text-brand">Manage teams</Link>
+          </div>
+          <ul className="stagger grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {teamRows.map((t) => (
+              <li key={t.id}>
+                <Link href={href(period, team?.id === t.id ? null : t.id)} aria-current={team?.id === t.id ? 'true' : undefined}
+                  className={cn('lift surface-raised flex items-center gap-3 rounded-2xl border bg-surface p-4', team?.id === t.id ? 'border-brand' : 'border-default')}>
+                  <span className={cn('grid size-10 shrink-0 place-items-center rounded-xl text-[14px] font-bold', t.rank === 1 ? 'medal-lit bg-warning-bg text-warning' : 'bg-surface-hover text-muted')}>#{t.rank}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-semibold text-foreground">{t.name}</span>
+                    <span className="block text-[12px] text-muted">{t.totals.members} {t.totals.members === 1 ? 'person' : 'people'}{t.leader ? ` · led by ${t.leader}` : ''}</span>
+                  </span>
+                  <span className="text-right text-[12px] tabular-nums text-muted">
+                    <span className="block text-[16px] font-bold text-foreground">{t.totals.closed}</span>closed · {fmtAmount('revenue', t.totals.revenue)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section aria-labelledby="people" className="mt-5">
         <div className="mb-2 flex items-center justify-between gap-2">
-          <h2 id="people" className="text-[15px] font-semibold text-foreground">People · {OVERVIEW_PERIODS[period].toLowerCase()}</h2>
+          <h2 id="people" className="text-[15px] font-semibold text-foreground">{team ? `${team.name} · ` : 'People · '}{OVERVIEW_PERIODS[period].toLowerCase()}{team && <Link href={href(period, null)} className="ml-2 text-[12px] font-normal text-brand">Show everyone</Link>}</h2>
           <Link href={`/${orgSlug}/performance/leaderboard`} className="text-[13px] font-medium text-brand">Leaderboard</Link>
         </div>
         {o.rows.length === 0 ? (

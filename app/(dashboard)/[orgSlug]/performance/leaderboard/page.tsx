@@ -2,6 +2,8 @@
 // custom dates (the workspace's time zone), a top-three podium, everyone's rank, how far each person is from the next
 // place and how they moved against the previous period. Friendly by design: what colleagues can see of each other is the
 // workspace's choice (Targets & settings → Leaderboard); owners, admins and managers always see everything.
+import { rankTeams, teamTotals } from '@/lib/teams/structure'
+import { listTeamStructure, teamPerformance } from '@/lib/dal/teams'
 import { sellsPersonally, watchesTeam } from '@/lib/sales/structure'
 import { getSalesStructure } from '@/lib/dal/sales-structure'
 import type { Metadata } from 'next'
@@ -32,7 +34,7 @@ function Avatar({ row, size = 36 }: { row: LeaderRow; size?: number }) {
     : <span aria-hidden className="flex shrink-0 items-center justify-center rounded-full bg-brand-light font-semibold text-brand" style={{ width: size, height: size, fontSize: size * 0.36 }}>{initials}</span>
 }
 
-export default async function LeaderboardPage({ params, searchParams }: { params: Promise<{ orgSlug: string }>; searchParams: Promise<{ p?: string; from?: string; to?: string }> }) {
+export default async function LeaderboardPage({ params, searchParams }: { params: Promise<{ orgSlug: string }>; searchParams: Promise<{ p?: string; from?: string; to?: string; by?: string }> }) {
   const { orgSlug } = await params
   const sp = await searchParams
   const { org, role, profile } = await getVerifiedWorkspace(orgSlug)
@@ -52,6 +54,58 @@ export default async function LeaderboardPage({ params, searchParams }: { params
       label = `${f(from)} – ${f(to)}`
     }
   }
+  const byTeams = sales.teamsEnabled && sp.by === 'teams'
+  const q = (extra: string) => `/${orgSlug}/performance/leaderboard?${extra}${byTeams ? '&by=teams' : ''}`
+  const switcher = sales.teamsEnabled ? (
+    <div className="surface-raised inline-flex rounded-xl border border-default bg-surface p-0.5 text-[13px]" role="group" aria-label="Rank">
+      {[['people', 'People'], ['teams', 'Teams']].map(([k, l]) => (
+        <Link key={k} href={`/${orgSlug}/performance/leaderboard?p=${period}${k === 'teams' ? '&by=teams' : ''}${period === 'custom' && sp.from && sp.to ? `&from=${sp.from}&to=${sp.to}` : ''}`} aria-current={(k === 'teams') === byTeams ? 'true' : undefined}
+          className={cn('rounded-lg px-3 py-1.5', (k === 'teams') === byTeams ? 'bg-brand-light font-semibold text-brand' : 'text-muted hover:text-foreground')}>{l}</Link>
+      ))}
+    </div>
+  ) : null
+  if (byTeams) {
+    const teams = (await listTeamStructure(org.id)).filter((t) => t.isActive)
+    const perf = window ? await teamPerformance(org.id, teams, window) : new Map()
+    const ranked = rankTeams(teams.map((t) => ({ id: t.id, name: t.name, leader: t.leader?.name ?? null, members: t.members, totals: perf.get(t.id)?.period ?? teamTotals([], new Map()) })))
+    const top = Math.max(1, ...ranked.map((r) => r.totals.closed))
+    const myTeams = new Set(teams.filter((t) => t.leader?.id === profile.id || t.members.some((m) => m.id === profile.id)).map((t) => t.id))
+    return (
+      <PageShell title="Leaderboard" description={`Teams ranked ${label.toLowerCase()}: deals closed, then revenue, then points per person — so a bigger team does not win on size alone.`}>
+        <PerformanceTabs orgSlug={orgSlug} current="leaderboard" canManage={canManagePerformance(role)} watchesTeam={watchesTeam(role)} sellsPersonally={sellsPersonally(role, sales)} />
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {switcher}
+          <div className="inline-flex rounded-lg border border-default bg-background p-0.5 text-[13px]">
+            {(Object.keys(PERIOD_TABS) as P[]).filter((k) => k !== 'custom').map((k) => (
+              <Link key={k} href={q(`p=${k}`)} aria-current={k === period ? 'true' : undefined}
+                className={cn('rounded-md px-3 py-1.5', k === period ? 'bg-surface font-semibold shadow-sm' : 'text-muted hover:text-foreground')}>{PERIOD_TABS[k]}</Link>
+            ))}
+          </div>
+        </div>
+        {ranked.length === 0 ? (
+          <Card><CardContent><EmptyState icon={Crown} title="No teams yet" description="Create teams on the Teams page to rank them here." /></CardContent></Card>
+        ) : (
+          <ol className="stagger space-y-3">
+            {ranked.map((t) => (
+              <li key={t.id} className={cn('surface-raised flex flex-wrap items-center gap-4 rounded-2xl border bg-surface p-4', myTeams.has(t.id) ? 'border-brand' : 'border-default')}>
+                <span className={cn('grid size-12 shrink-0 place-items-center rounded-2xl text-[18px] font-bold', t.rank === 1 ? 'medal-lit bg-warning-bg text-warning' : t.rank <= 3 ? 'bg-brand-light text-brand' : 'bg-surface-hover text-muted')}>#{t.rank}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-foreground">{t.name}{myTeams.has(t.id) && <span className="ml-2 text-[11px] font-medium text-brand">Your team</span>}</p>
+                  <p className="text-[12px] text-muted">{t.totals.members} {t.totals.members === 1 ? 'person' : 'people'}{t.leader ? ` · led by ${t.leader}` : ''} · {t.xpPerMember.toLocaleString('en-IN')} XP per person</p>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-hover" aria-hidden><div className="stagger-bar h-full origin-left rounded-full bg-brand" style={{ width: `${Math.round((t.totals.closed / top) * 100)}%` }} /></div>
+                </div>
+                <dl className="grid grid-cols-3 gap-4 text-right text-[12px] text-muted">
+                  <div><dt>Closed</dt><dd className="text-[18px] font-bold tabular-nums text-foreground">{t.totals.closed}</dd></div>
+                  <div><dt>Revenue</dt><dd className="text-[18px] font-bold tabular-nums text-foreground">{fmtAmount('revenue', t.totals.revenue)}</dd></div>
+                  <div><dt>Contacted</dt><dd className="text-[18px] font-bold tabular-nums text-foreground">{t.totals.contacted}</dd></div>
+                </dl>
+              </li>
+            ))}
+          </ol>
+        )}
+      </PageShell>
+    )
+  }
   const managers = isManagement(role)
   const everyoneSees = settings.leaderboard.visibleTo === 'everyone'
   const show = managers ? { xp: true, contacted: true, closed: true, revenue: true, target: true } : settings.leaderboard.show
@@ -65,6 +119,7 @@ export default async function LeaderboardPage({ params, searchParams }: { params
     <PageShell title="Leaderboard" description={`Friendly competition: points for real work, ranked ${label.toLowerCase()} (${tzLabel}).`}>
       <PerformanceTabs orgSlug={orgSlug} current="leaderboard" canManage={canManagePerformance(role)} watchesTeam={watchesTeam(role)} sellsPersonally={sellsPersonally(role, sales)} />
       <div className="mb-4 flex flex-wrap items-center gap-2">
+        {switcher}
         <div className="inline-flex rounded-lg border border-default bg-background p-0.5 text-[13px]">
           {(Object.keys(PERIOD_TABS) as P[]).map((k) => (
             <Link key={k} href={`/${orgSlug}/performance/leaderboard?p=${k}`} aria-current={k === period ? 'true' : undefined}

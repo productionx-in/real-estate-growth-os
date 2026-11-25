@@ -1,6 +1,7 @@
 // app/(dashboard)/[orgSlug]/performance/achievements/page.tsx — the Achievement Centre: every badge the workspace offers,
 // unlocked ones lit with their date, locked ones dimmed with how close the person is. Unlocking is the database's job,
 // from real events (20260094); nothing here can award anything.
+import { listTeamStructure, teamPerformance } from '@/lib/dal/teams'
 import { teamProfileIdsOf } from '@/lib/dal/viewer'
 import { getTeamUnlocks } from '@/lib/dal/team-overview'
 import { sellsPersonally, watchesTeam } from '@/lib/sales/structure'
@@ -31,6 +32,9 @@ export default async function AchievementsPage({ params }: { params: Promise<{ o
   const team = watchesTeam(role) ? await getTeamUnlocks(org.id, role === 'team_lead' ? await teamProfileIdsOf(org.id, profile.id) : null) : null
   // A manager who does not sell sees the team's badges (who holds each), not a personal collection.
   const all = (await getAchievements(org.id, mine ? profile.id : null)).filter((a) => a.active)
+  // Team structure: each team's milestones (its current members' all-time work). A team lead sees their teams.
+  const teamList = sales.teamsEnabled ? (await listTeamStructure(org.id)).filter((t) => t.isActive && (watchesTeam(role) && role !== 'team_lead' ? true : t.leader?.id === profile.id || t.members.some((m) => m.id === profile.id))) : []
+  const teamAch = teamList.length ? await teamPerformance(org.id, teamList, { from: new Date(0), to: new Date() }) : null
   const unlocked = all.filter((a) => a.unlockedAt).sort((a, b) => (b.unlockedAt ?? '').localeCompare(a.unlockedAt ?? ''))
   const locked = all.filter((a) => !a.unlockedAt).sort((a, b) => b.progress - a.progress)
   const criteria = (a: (typeof all)[number]) => a.metric === 'revenue'
@@ -65,6 +69,29 @@ export default async function AchievementsPage({ params }: { params: Promise<{ o
                 {a.rewardNote && <p className="mt-1.5 flex items-center justify-center gap-1 text-center text-[11px] text-muted"><Gift className="size-3" aria-hidden /> {a.rewardNote}</p>}
               </div>
             ))}
+          </div>
+        </section>
+      )}
+      {teamAch && (
+        <section aria-labelledby="team-ach" className="mb-8">
+          <h2 id="team-ach" className="mb-3 text-[14px] font-semibold text-foreground">Team achievements</h2>
+          <div className="stagger grid gap-3 md:grid-cols-2">
+            {teamList.map((t) => {
+              const a = teamAch.get(t.id)!.achievements
+              return (
+                <div key={t.id} className="surface-raised rounded-2xl border border-default bg-surface p-4">
+                  <p className="font-semibold text-foreground">{t.name} <span className="text-[12px] font-normal text-muted">· {a.filter((x) => x.unlocked).length} of {a.length}</span></p>
+                  <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
+                    {a.map((x) => (
+                      <li key={x.key} className="text-[12px]">
+                        <span className={x.unlocked ? 'font-medium text-warning' : 'text-muted'}>{x.unlocked ? '★ ' : ''}{x.title}</span>
+                        {!x.unlocked && <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-surface-hover" aria-hidden><span className="block h-full rounded-full bg-brand" style={{ width: `${Math.round(x.progress * 100)}%` }} /></span>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )
+            })}
           </div>
         </section>
       )}
