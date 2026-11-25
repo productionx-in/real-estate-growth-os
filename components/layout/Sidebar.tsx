@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams, usePathname, useRouter } from 'next/navigation'
 import {
-  LayoutDashboard, Users, FolderOpen, UserCircle, Settings, Building2, Layers, Plug, TrendingUp, Briefcase,
+  LayoutDashboard, Users, UsersRound, FolderOpen, UserCircle, Settings, Building2, Layers, Plug, TrendingUp, Briefcase,
   ChevronsUpDown, Check, Compass, Shuffle, ListChecks, Gauge, ScrollText, LifeBuoy, CalendarDays,
   MessageCircle, FileText, PanelLeftClose, PanelLeftOpen, X, CreditCard,
   Handshake, ShieldCheck, House, Megaphone, Trophy, CalendarRange,
@@ -29,7 +29,7 @@ const COLLAPSE_KEY = 'regrow:nav-collapsed'
 export const NAV_ICONS: Record<NavKey, React.ComponentType<{ className?: string }>> = {
   home: LayoutDashboard, today: ListChecks, leads: Users, visits: CalendarDays, inbox: MessageCircle,
   sales: Briefcase, routing: Shuffle, speed: Gauge, projects: FolderOpen, inventory: Layers, documents: FileText,
-  analytics: TrendingUp, integrations: Plug, team: UserCircle, settings: Settings, billing: CreditCard, audit: ScrollText, support: ShieldCheck, partners: Handshake, help: LifeBuoy, listings: House, campaigns: Megaphone, performance: Trophy, calendar: CalendarRange,
+  analytics: TrendingUp, integrations: Plug, team: UserCircle, settings: Settings, billing: CreditCard, audit: ScrollText, support: ShieldCheck, partners: Handshake, help: LifeBuoy, listings: House, campaigns: Megaphone, performance: Trophy, calendar: CalendarRange, teams: UsersRound,
 }
 
 export interface SidebarProps {
