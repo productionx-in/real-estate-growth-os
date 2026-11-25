@@ -1,5 +1,6 @@
 'use client'
 // components/inventory/OrgInventoryExplorer.tsx
+import { useStatusLabels } from '@/components/settings/WorkspacePrefs'
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
@@ -34,6 +35,7 @@ export function OrgInventoryExplorer({
   initialItems,
   orgSlug,
 }: OrgInventoryExplorerProps) {
+  const statusLabels = useStatusLabels()
   const [items] = useState<InventoryItemWithRelations[]>(initialItems)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedProject, setSelectedProject] = useState<string>('all')
@@ -82,11 +84,11 @@ export function OrgInventoryExplorer({
       <dl className="grid grid-cols-3 overflow-hidden rounded-xl border border-default bg-surface sm:grid-cols-6">
         {([
           ['Total units', items.length, null],
-          ['Available', metrics.available, 'bg-success'],
-          ['On hold', metrics.on_hold, 'bg-warning'],
-          ['Booked', metrics.booked, 'bg-brand'],
-          ['Sold', metrics.sold, 'bg-foreground'],
-          ['Blocked', metrics.blocked, 'bg-danger'],
+          [statusLabels.available, metrics.available, 'bg-success'],
+          [statusLabels.on_hold, metrics.on_hold, 'bg-warning'],
+          [statusLabels.booked, metrics.booked, 'bg-brand'],
+          [statusLabels.sold, metrics.sold, 'bg-foreground'],
+          [statusLabels.blocked, metrics.blocked, 'bg-danger'],
         ] as const).map(([label, value, dot], i) => (
           <div key={label} className={`px-4 py-3 ${i % 3 ? 'border-l border-default' : ''} ${i >= 3 ? 'border-t border-default sm:border-t-0' : ''} ${i === 3 ? 'sm:border-l' : ''}`}>
             <dt className="flex items-center gap-1.5 text-[12px] text-muted">
@@ -155,11 +157,7 @@ export function OrgInventoryExplorer({
             className="text-xs py-1.5 px-2 bg-[var(--surface-muted)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] text-[var(--foreground)]"
           >
             <option value="all">All Statuses</option>
-            <option value="available">Available</option>
-            <option value="on_hold">On Hold</option>
-            <option value="booked">Booked</option>
-            <option value="sold">Sold</option>
-            <option value="blocked">Blocked</option>
+            {(Object.keys(statusLabels) as (keyof typeof statusLabels)[]).map((k) => <option key={k} value={k}>{statusLabels[k]}</option>)}
           </select>
         </div>
 

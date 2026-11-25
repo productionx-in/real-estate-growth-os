@@ -18,13 +18,13 @@ console.log('NAVIGATION')
 
 test('each role keeps exactly the pages it had before the redesign', () => {
   const sort = (a) => [...a].sort()
-  assert.deepEqual(keys('owner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'campaigns', 'routing', 'speed', 'projects', 'inventory', 'documents', 'performance', 'analytics', 'integrations', 'team', 'settings', 'billing', 'audit', 'support', 'help']))
+  assert.deepEqual(keys('owner'), sort(['home', 'today', 'leads', 'calendar', 'visits', 'inbox', 'sales', 'partners', 'campaigns', 'routing', 'speed', 'projects', 'inventory', 'documents', 'performance', 'analytics', 'integrations', 'team', 'settings', 'billing', 'audit', 'support', 'help']))
   assert.deepEqual(keys('admin'), keys('owner'))
-  assert.deepEqual(keys('manager'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'sales', 'partners', 'campaigns', 'routing', 'speed', 'projects', 'inventory', 'documents', 'performance', 'analytics', 'team', 'help']))
-  assert.deepEqual(keys('sales_exec'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'performance', 'sales', 'inventory', 'help']))
+  assert.deepEqual(keys('manager'), sort(['home', 'today', 'leads', 'calendar', 'visits', 'inbox', 'sales', 'partners', 'campaigns', 'routing', 'speed', 'projects', 'inventory', 'documents', 'performance', 'analytics', 'team', 'help']))
+  assert.deepEqual(keys('sales_exec'), sort(['home', 'today', 'leads', 'calendar', 'visits', 'inbox', 'performance', 'sales', 'inventory', 'help']))
   assert.deepEqual(keys('readonly'), sort(['home', 'projects', 'inventory', 'documents', 'analytics', 'help']))
-  assert.deepEqual(keys('manager', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'listings', 'sales', 'partners', 'campaigns', 'performance', 'team', 'help']))
-  assert.deepEqual(keys('owner', 'channel_partner'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'listings', 'sales', 'partners', 'campaigns', 'performance', 'team', 'settings', 'billing', 'audit', 'support', 'help']))
+  assert.deepEqual(keys('manager', 'channel_partner'), sort(['home', 'today', 'leads', 'calendar', 'visits', 'inbox', 'listings', 'sales', 'partners', 'campaigns', 'performance', 'team', 'help']))
+  assert.deepEqual(keys('owner', 'channel_partner'), sort(['home', 'today', 'leads', 'calendar', 'visits', 'inbox', 'listings', 'sales', 'partners', 'campaigns', 'performance', 'team', 'settings', 'billing', 'audit', 'support', 'help']))
 })
 
 test('campaigns (marketing to segments) appear for owners, admins and managers only', () => {
@@ -34,13 +34,18 @@ test('campaigns (marketing to segments) appear for owners, admins and managers o
 
 test('new roles: a team lead gets the selling pages; post-sales gets customers, bookings and documents, no pipeline tools', () => {
   const sort = (a) => [...a].sort()
-  assert.deepEqual(keys('team_lead'), sort(['home', 'today', 'leads', 'visits', 'inbox', 'performance', 'sales', 'inventory', 'help']))
-  assert.deepEqual(keys('post_sales'), sort(['home', 'leads', 'inbox', 'sales', 'documents', 'projects', 'inventory', 'help']))
+  assert.deepEqual(keys('team_lead'), sort(['home', 'today', 'leads', 'calendar', 'visits', 'inbox', 'performance', 'sales', 'inventory', 'help']))
+  assert.deepEqual(keys('post_sales'), sort(['home', 'leads', 'calendar', 'inbox', 'sales', 'documents', 'projects', 'inventory', 'help']))
   for (const k of ['routing', 'speed', 'analytics', 'team', 'settings', 'billing', 'audit', 'support', 'integrations']) {
     assert.ok(!keys('team_lead').includes(k) && !keys('post_sales').includes(k), k)
   }
   assert.deepEqual(nav.tabLinks(nav.navGroups('acme', 'post_sales')).map((t) => t.key), ['home', 'leads', 'inbox', 'projects'])
   assert.equal(nav.canCreateLead('post_sales'), false)
+})
+
+test('Calendar is for everyone who works leads; not read-only', () => {
+  for (const r of ['owner', 'admin', 'manager', 'team_lead', 'sales_exec', 'post_sales']) assert.ok(keys(r).includes('calendar'), r)
+  assert.ok(!keys('readonly').includes('calendar'))
 })
 
 test('Performance (points, targets, leaderboard) is for everyone who sells; not read-only or post-sales', () => {

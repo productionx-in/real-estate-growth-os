@@ -1,11 +1,11 @@
 'use client'
 // components/inventory/InventoryStatusDialog.tsx
+import { useStatusLabels } from '@/components/settings/WorkspacePrefs'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Loader2, AlertCircle, ArrowRight } from 'lucide-react'
 import {
   ALLOWED_STATUS_TRANSITIONS,
-  INVENTORY_STATUS_LABELS,
   type InventoryStatus,
   type InventoryItem,
 } from '@/types/inventory'
@@ -22,6 +22,7 @@ export function InventoryStatusDialog({
   onClose,
   onSuccess,
 }: InventoryStatusDialogProps) {
+  const statusLabels = useStatusLabels()
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [selectedStatus, setSelectedStatus] = useState<InventoryStatus | null>(null)
@@ -133,7 +134,7 @@ export function InventoryStatusDialog({
                             : 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-hover)]'
                         }`}
                       >
-                        <span>{INVENTORY_STATUS_LABELS[st]}</span>
+                        <span>{statusLabels[st as keyof typeof statusLabels]}</span>
                         <ArrowRight className="w-3.5 h-3.5 opacity-50" />
                       </button>
                     )
@@ -141,7 +142,7 @@ export function InventoryStatusDialog({
                 </div>
               ) : (
                 <p className="text-[12px] text-[var(--foreground-subtle)] bg-[var(--surface-hover)] p-3 rounded-lg">
-                  This unit has reached the terminal status of &apos;{INVENTORY_STATUS_LABELS[item.status]}&apos;. No further standard transitions are allowed.
+                  This unit has reached the terminal status of &apos;{statusLabels[item.status as keyof typeof statusLabels]}&apos;. No further standard transitions are allowed.
                 </p>
               )}
             </div>
