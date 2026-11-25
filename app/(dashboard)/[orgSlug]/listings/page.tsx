@@ -2,6 +2,7 @@
 // agency workspace sees the listings (to share them); owner details only reach managers, the listing's agent and
 // whoever added it (lib/dal/listings.ts).
 import type { Metadata } from 'next'
+import { Input, Select } from '@/components/ui'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { PageShell } from '@/components/layout/PageShell'
@@ -40,12 +41,12 @@ export default async function ListingsPage({ params, searchParams }: { params: P
           <nav aria-label="Sale or rent" className="inline-flex rounded-lg border border-default bg-[var(--background)] p-0.5">{[tab(null, 'All'), tab('sale', 'For sale'), tab('rent', 'For rent')]}</nav>
           <form className="flex items-center gap-2" action={`/${orgSlug}/listings`}>
             {kind && <input type="hidden" name="kind" value={kind} />}
-            <input name="q" defaultValue={sp.q ?? ''} placeholder="Search title, locality, city" aria-label="Search listings"
-              className="h-9 w-56 rounded-md border border-default bg-surface px-3 text-[13px] text-foreground" />
-            <select name="status" defaultValue={status ?? ''} aria-label="Status" className="h-9 rounded-md border border-default bg-surface px-2 text-[13px] text-foreground">
+            <Input name="q" defaultValue={sp.q ?? ''} placeholder="Search title, locality, city" aria-label="Search listings"
+              className="w-56" />
+            <Select name="status" defaultValue={status ?? ''} aria-label="Status">
               <option value="">Available and on hold</option><option value="all">All, incl. closed</option>
               {Object.entries(LISTING_STATUSES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
+            </Select>
             <button type="submit" className="h-9 rounded-md border border-default px-3 text-[13px] font-medium text-foreground hover:bg-surface-hover">Apply</button>
           </form>
         </div>

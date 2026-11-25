@@ -3,6 +3,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Input, Select } from '@/components/ui'
 import {
   X,
   ShieldCheck,
@@ -296,12 +297,11 @@ export function MetaConnectWizardModal({
                 <label className="block text-[12px] font-semibold text-[var(--foreground)] mb-1.5">
                   Connection Name
                 </label>
-                <input
+                <Input
                   type="text"
                   value={connectionName}
                   onChange={(e) => setConnectionName(e.target.value)}
                   placeholder="e.g. Meta Advertising — Main Account"
-                  className="w-full px-3.5 py-2 text-[13px] rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-hidden focus:ring-2 focus:ring-ring"
                 />
                 <p className="mt-1 text-[11px] text-[var(--foreground-muted)]">
                   Helps distinguish this account if your organisation manages multiple advertising
@@ -435,7 +435,7 @@ export function MetaConnectWizardModal({
                   type="button"
                   onClick={handleInitiateMetaOAuth}
                   disabled={isInitiatingOAuth}
-                  className="w-full py-2.5 px-4 rounded-xl bg-brand hover:bg-brand text-brand-foreground font-semibold text-[13px] flex items-center justify-center gap-2 shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+                  className="btn-primary w-full py-2.5 px-4 rounded-xl bg-brand hover:bg-brand text-brand-foreground font-semibold text-[13px] flex items-center justify-center gap-2 transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   <FacebookIcon className="w-4 h-4" />
                   {isInitiatingOAuth ? 'Initiating Meta Handshake...' : 'Authenticate with Meta OAuth'}
@@ -564,18 +564,16 @@ export function MetaConnectWizardModal({
                 <label className="block text-[12px] font-semibold text-foreground">
                   Default Fallback Project
                 </label>
-                <select
+                <Select
                   value={defaultProjectId}
-                  onChange={(e) => setDefaultProjectId(e.target.value)}
-                  className="w-full px-3 py-2 text-[13px] rounded-lg border border-strong bg-surface text-foreground focus:outline-hidden focus:ring-2 focus:ring-ring"
-                >
+                  onChange={(e) => setDefaultProjectId(e.target.value)}>
                   <option value="">-- No Default (Leave Unmapped for Manual Assignment) --</option>
                   {projects.map((proj) => (
                     <option key={proj.id} value={proj.id}>
                       {proj.name} ({proj.category})
                     </option>
                   ))}
-                </select>
+                </Select>
                 <p className="text-[11px] text-subtle">
                   Used if a new lead form is created on Facebook in the future before you configure a
                   specific mapping.
@@ -611,11 +609,9 @@ export function MetaConnectWizardModal({
                         <label className="block text-[11px] font-medium text-muted mb-1">
                           Route Leads From This Form To:
                         </label>
-                        <select
+                        <Select
                           value={currentMappedProject}
-                          onChange={(e) => handleFormMappingChange(form.id, e.target.value)}
-                          className="w-full px-3 py-1.5 text-[12px] rounded-lg border border-strong bg-surface text-foreground focus:outline-hidden focus:ring-2 focus:ring-ring"
-                        >
+                          onChange={(e) => handleFormMappingChange(form.id, e.target.value)}>
                           <option value="">
                             -- Unmapped (Requires Manual Assignment in Leads) --
                           </option>
@@ -624,7 +620,7 @@ export function MetaConnectWizardModal({
                               {proj.name} ({proj.category})
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       </div>
                     </div>
                   )
@@ -729,7 +725,7 @@ export function MetaConnectWizardModal({
             <button
               onClick={handleSaveConnection}
               disabled={isSubmitting}
-              className="px-5 py-2 text-[13px] font-medium text-brand-foreground bg-brand rounded-xl hover:bg-brand disabled:opacity-50 transition-colors flex items-center gap-1.5 shadow-2xs"
+              className="btn-primary px-5 py-2 text-[13px] font-medium text-brand-foreground bg-brand rounded-xl hover:bg-brand disabled:opacity-50 transition-colors flex items-center gap-1.5"
             >
               {isSubmitting ? (
                 <>

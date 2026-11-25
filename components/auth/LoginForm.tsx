@@ -1,6 +1,7 @@
 'use client'
 // components/auth/LoginForm.tsx
 import { useState } from 'react'
+import { Input } from '@/components/ui'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Shield, KeyRound, CheckCircle2, ArrowLeft, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -118,13 +119,13 @@ export function LoginForm({ defaultRedirect }: { defaultRedirect?: string } = {}
               <label htmlFor="reset-email" className="block text-[13px] font-medium text-[var(--foreground)]">
                 Email
               </label>
-              <input
+              <Input
                 id="reset-email"
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
+                className="focus:ring-brand-light"
                 placeholder="you@company.com"
                 autoFocus
               />
@@ -133,7 +134,7 @@ export function LoginForm({ defaultRedirect }: { defaultRedirect?: string } = {}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 transition-colors flex items-center justify-center gap-2 shadow-2xs"
+              className="btn-primary w-full py-2.5 px-4 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 transition-colors flex items-center justify-center gap-2"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
               <span>{loading ? 'Sending Request…' : 'Send Reset Link'}</span>
@@ -168,14 +169,14 @@ export function LoginForm({ defaultRedirect }: { defaultRedirect?: string } = {}
         <label htmlFor="email" className="block text-[13px] font-medium text-[var(--foreground)]">
           Email
         </label>
-        <input
+        <Input
           id="email"
           type="email"
           autoComplete="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors placeholder:text-[var(--foreground-subtle)]"
+          className="focus:ring-brand-light"
           placeholder="you@company.com"
         />
       </div>
@@ -209,7 +210,7 @@ export function LoginForm({ defaultRedirect }: { defaultRedirect?: string } = {}
       <button
         type="submit"
         disabled={loading}
-        className="w-full h-11 px-4 text-[14px] font-semibold text-brand-foreground bg-brand rounded-lg hover:bg-brand-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-xs"
+        className="btn-primary w-full h-11 px-4 text-[14px] font-semibold text-brand-foreground bg-brand rounded-lg hover:bg-brand-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
       >
         {loading ? 'Signing in…' : 'Sign in'}
       </button>

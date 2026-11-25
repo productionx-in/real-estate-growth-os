@@ -1,6 +1,7 @@
 'use client'
 // components/inventory/InventoryViewManager.tsx
 import { useStatusLabels } from '@/components/settings/WorkspacePrefs'
+import { Input, Select } from '@/components/ui'
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -441,12 +442,12 @@ export function InventoryViewManager({
           {/* Left: Search input */}
           <div className="relative flex-1 max-w-sm">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-subtle)]" />
-            <input
+            <Input
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Search by unit #, tower, block, or floor..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] text-[var(--foreground)]"
+              className="pl-8 pr-3"
             />
             {searchQuery && (
               <button
@@ -463,36 +464,32 @@ export function InventoryViewManager({
           <div className="flex items-center gap-2 flex-wrap">
             {/* Category Filter (Especially vital for Mixed-Use) */}
             {(projectCategory === 'mixed_use' || categoryOptions.length > 1) && (
-              <select
+              <Select
                 value={selectedCategory}
                 onChange={(e) => handleCategoryChange(e.target.value)}
-                className="px-2.5 py-1.5 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none text-[var(--foreground)]"
-                aria-label="Filter by Category"
-              >
+                aria-label="Filter by Category">
                 <option value="all">All Categories</option>
                 {categoryOptions.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat in PROJECT_CATEGORY_LABELS ? PROJECT_CATEGORY_LABELS[cat] : cat}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
 
             {/* BHK Filter (Conditional: shown for apartments, villas, or mixed-use with BHKs) */}
             {projectCategory !== 'plotted_developments' && bhkOptions.length > 0 && (
-              <select
+              <Select
                 value={selectedBhk}
                 onChange={(e) => handleBhkChange(e.target.value)}
-                className="px-2.5 py-1.5 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none text-[var(--foreground)]"
-                aria-label="Filter by BHK"
-              >
+                aria-label="Filter by BHK">
                 <option value="all">All BHKs</option>
                 {bhkOptions.map((bhk) => (
                   <option key={bhk} value={bhk}>
                     {bhk}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
 
             {/* Toggle Advanced Filters Button */}
@@ -602,18 +599,16 @@ export function InventoryViewManager({
               <label className="block text-[11px] font-semibold text-[var(--foreground-muted)] uppercase tracking-wider mb-1">
                 Hierarchy / Tower
               </label>
-              <select
+              <Select
                 value={selectedHierarchyNode}
-                onChange={(e) => handleHierarchyChange(e.target.value)}
-                className="w-full px-2.5 py-1.5 bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none text-xs text-[var(--foreground)]"
-              >
+                onChange={(e) => handleHierarchyChange(e.target.value)}>
                 <option value="all">All Locations / Towers</option>
                 {hierarchyNodes.map((n) => (
                   <option key={n.id} value={n.id}>
                     {n.name} ({n.node_type})
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
 
             {/* Facing Filter */}
@@ -621,18 +616,16 @@ export function InventoryViewManager({
               <label className="block text-[11px] font-semibold text-[var(--foreground-muted)] uppercase tracking-wider mb-1">
                 Facing / Orientation
               </label>
-              <select
+              <Select
                 value={selectedFacing}
-                onChange={(e) => handleFacingChange(e.target.value)}
-                className="w-full px-2.5 py-1.5 bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none text-xs text-[var(--foreground)]"
-              >
+                onChange={(e) => handleFacingChange(e.target.value)}>
                 <option value="all">All Facings</option>
                 {facingOptions.map((facing) => (
                   <option key={facing} value={facing}>
                     {facing}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
 
             {/* Price Range Filter */}
@@ -641,20 +634,20 @@ export function InventoryViewManager({
                 Price Range (₹)
               </label>
               <div className="flex items-center gap-1.5">
-                <input
+                <Input
                   type="number"
                   placeholder="Min"
                   value={minPrice}
                   onChange={(e) => handleMinPriceChange(e.target.value)}
-                  className="w-1/2 px-2 py-1.5 bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none text-xs text-[var(--foreground)]"
+                  className="w-1/2"
                 />
                 <span className="text-[var(--foreground-subtle)]">-</span>
-                <input
+                <Input
                   type="number"
                   placeholder="Max"
                   value={maxPrice}
                   onChange={(e) => handleMaxPriceChange(e.target.value)}
-                  className="w-1/2 px-2 py-1.5 bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none text-xs text-[var(--foreground)]"
+                  className="w-1/2"
                 />
               </div>
             </div>
@@ -665,20 +658,20 @@ export function InventoryViewManager({
                 Area Range
               </label>
               <div className="flex items-center gap-1.5">
-                <input
+                <Input
                   type="number"
                   placeholder="Min Area"
                   value={minArea}
                   onChange={(e) => handleMinAreaChange(e.target.value)}
-                  className="w-1/2 px-2 py-1.5 bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none text-xs text-[var(--foreground)]"
+                  className="w-1/2"
                 />
                 <span className="text-[var(--foreground-subtle)]">-</span>
-                <input
+                <Input
                   type="number"
                   placeholder="Max Area"
                   value={maxArea}
                   onChange={(e) => handleMaxAreaChange(e.target.value)}
-                  className="w-1/2 px-2 py-1.5 bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none text-xs text-[var(--foreground)]"
+                  className="w-1/2"
                 />
               </div>
             </div>
@@ -735,7 +728,7 @@ export function InventoryViewManager({
             <button
               type="button"
               onClick={handleResetFilters}
-              className="px-3.5 py-1.5 text-xs font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-lg hover:bg-[var(--surface-hover)]"
+              className="btn-secondary px-3.5 py-1.5 text-xs font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-lg hover:bg-[var(--surface-hover)]"
             >
               Reset Filters
             </button>

@@ -2,6 +2,7 @@
 // components/inventory/HierarchyNodeSelector.tsx
 // Interactive hierarchy node selector with parent-child pathing & visual nesting
 import { useState, useEffect, useMemo } from 'react'
+import { Select } from '@/components/ui'
 import { FolderTree, Building2, Layers, Box, Network, Compass, AlertCircle, Loader2 } from 'lucide-react'
 import type { HierarchyNodeWithStats, HierarchyTreeResult } from '@/lib/dal/hierarchy'
 
@@ -136,12 +137,11 @@ export function HierarchyNodeSelector({
         <div className="absolute left-3 top-2.5 text-[var(--foreground-muted)] pointer-events-none">
           <NodeIcon nodeType={selectedNode?.node_type} className="w-3.5 h-3.5" />
         </div>
-        <select
+        <Select
           value={value ?? ''}
           onChange={handleSelect}
           disabled={disabled || flatNodes.length === 0}
-          className="w-full pl-8 pr-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] disabled:opacity-60 transition-colors"
-        >
+          className="pl-8 pr-3 disabled:opacity-60">
           <option value="">
             {flatNodes.length === 0
               ? 'No hierarchy defined (Project Root)'
@@ -160,7 +160,7 @@ export function HierarchyNodeSelector({
               </option>
             )
           })}
-        </select>
+        </Select>
       </div>
 
       {selectedNode && (

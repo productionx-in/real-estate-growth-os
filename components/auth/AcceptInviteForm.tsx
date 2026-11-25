@@ -1,6 +1,7 @@
 'use client'
 // components/auth/AcceptInviteForm.tsx
 import { useState, useEffect } from 'react'
+import { Input } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import { ShieldCheck, UserCheck, ArrowRight, Loader2, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -198,7 +199,7 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
             type="button"
             onClick={handleAcceptLoggedIn}
             disabled={loading}
-            className="w-full py-2.5 px-4 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 shadow-2xs"
+            className="btn-primary w-full py-2.5 px-4 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
             <span>Accept Invitation &amp; Enter Workspace</span>
@@ -217,7 +218,7 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
             <PasswordInput id="invite-password" autoComplete="current-password" required autoFocus value={password} disabled={loading} onChange={(e) => setPassword(e.target.value)} placeholder="Your REGrow password" />
           </div>
           <button type="submit" disabled={loading || !password}
-            className="w-full py-2.5 px-4 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 shadow-2xs">
+            className="btn-primary w-full py-2.5 px-4 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
             <span>Sign in &amp; join {invitation.orgName}</span>
           </button>
@@ -232,14 +233,14 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
             <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
               Your Full Name <span className="text-[var(--danger)]">*</span>
             </label>
-            <input
+            <Input
               type="text"
               required
               value={fullName}
               disabled={loading}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Aditya Sharma"
-              className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
+              className="focus:ring-brand-light"
             />
           </div>
 
@@ -247,11 +248,11 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
             <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
               Work Email
             </label>
-            <input
+            <Input
               type="email"
               readOnly
               value={invitation.email}
-              className="w-full px-3 py-2 text-[13px] bg-surface-muted border border-[var(--border)] rounded-md text-[var(--foreground-muted)] font-mono cursor-not-allowed"
+              className="text-[var(--foreground-muted)] font-mono cursor-not-allowed"
             />
             <p className="text-[11px] text-[var(--foreground-subtle)] mt-1">
               This invitation is locked to this email address.
@@ -276,7 +277,7 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
           <button
             type="submit"
             disabled={loading || !fullName.trim() || passwordProblem(password, invitation.email) !== null}
-            className="w-full py-2.5 px-4 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 shadow-2xs mt-2"
+            className="btn-primary w-full py-2.5 px-4 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 mt-2"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
             <span>Set Password &amp; Join {invitation.orgName}</span>

@@ -2,6 +2,7 @@
 // components/leads/LeadTags.tsx — a lead's tags: shown to everyone who can see the lead, editable by whoever
 // works it. Suggestions are tags already used in this workspace, so the team converges on the same words.
 import * as React from 'react'
+import { Input } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import { Tag, X, Plus } from 'lucide-react'
 import { MAX_TAGS, normalizeTag } from '@/lib/leads/tags'
@@ -44,9 +45,9 @@ export function LeadTags({ leadId, tags, suggestions, canEdit }: { leadId: strin
       ))}
       {canEdit && value.length < MAX_TAGS && (adding ? (
         <form onSubmit={(e) => { e.preventDefault(); add(); }} className="inline-flex">
-          <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={() => { if (draft.trim()) add(); setAdding(false) }}
+          <Input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={() => { if (draft.trim()) add(); setAdding(false) }}
             list={listId} maxLength={30} placeholder="tag" aria-label="New tag"
-            className="h-7 w-28 rounded-full border border-strong bg-surface px-2.5 text-[12px] outline-none focus:border-ring" />
+            className="h-7 w-28 rounded-full px-2.5 text-[12px] sm:h-7" />
           <datalist id={listId}>{suggestions.filter((s) => !value.includes(s)).slice(0, 30).map((s) => <option key={s} value={s} />)}</datalist>
         </form>
       ) : (

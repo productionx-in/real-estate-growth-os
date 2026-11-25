@@ -213,14 +213,14 @@ export function AssignLeadDialog({
           <div className="flex gap-2 px-5 pb-5">
             <button
               onClick={onClose}
-              className="flex-1 py-2 px-4 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] transition-colors"
+              className="btn-secondary flex-1 py-2 px-4 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleAssign}
               disabled={isPending || loadingMembers}
-              className="flex-1 py-2 px-4 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
+              className="btn-primary flex-1 py-2 px-4 text-[13px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
             >
               {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {isPending ? 'Assigning…' : 'Assign'}

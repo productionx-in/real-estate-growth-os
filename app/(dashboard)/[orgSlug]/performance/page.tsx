@@ -72,7 +72,7 @@ export default async function MyPerformancePage({ params, searchParams }: { para
               {p.overallTargetPct !== null && <p className="mt-1 text-[13px] text-muted">Your targets are {p.overallTargetPct}% complete overall.</p>}
             </div>
             {own && p.pendingContacts > 0 && (
-              <Link href={`/${orgSlug}/leads?focus=waiting`} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3.5 py-2 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">Open waiting leads <ArrowRight className="size-4" aria-hidden /></Link>
+              <Link href={`/${orgSlug}/leads?focus=waiting`} className="btn-primary inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3.5 py-2 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">Open waiting leads <ArrowRight className="size-4" aria-hidden /></Link>
             )}
           </CardContent>
         </Card>

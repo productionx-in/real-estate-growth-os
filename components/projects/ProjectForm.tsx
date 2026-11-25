@@ -1,6 +1,7 @@
 'use client'
 // components/projects/ProjectForm.tsx
 import { useState } from 'react'
+import { Select } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -296,17 +297,16 @@ export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: Projec
                 className={inputClass}
                 placeholder="e.g. 12.5"
               />
-              <select
+              <Select
                 value={form.total_area_unit ?? 'acres'}
                 onChange={(e) => set('total_area_unit', e.target.value)}
-                className="w-28 px-2 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none"
-              >
+                className="w-28">
                 <option value="acres">Acres</option>
                 <option value="sqyd">Sq. Yds</option>
                 <option value="sqft">Sq. Ft</option>
                 <option value="cents">Cents</option>
                 <option value="guntas">Guntas</option>
-              </select>
+              </Select>
             </div>
           </div>
         </div>
@@ -750,7 +750,7 @@ export function ProjectForm({ orgSlug, orgId, defaultValues, projectId }: Projec
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-brand-foreground bg-[var(--brand)] hover:opacity-90 rounded-md shadow-xs transition-all disabled:opacity-50"
+          className="btn-primary inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-brand-foreground bg-[var(--brand)] hover:opacity-90 rounded-md transition-all disabled:opacity-50"
         >
           {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
           {isEditing ? 'Save Changes' : 'Create Project'}

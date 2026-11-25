@@ -47,7 +47,7 @@ export function ExportLeadsButton({ orgSlug, filterQuery = '' }: ExportLeadsButt
       type="button"
       onClick={handleExport}
       disabled={downloading}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] disabled:opacity-60 transition-colors"
+      className="btn-secondary inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-[var(--foreground)] bg-[var(--surface)] border border-[var(--border)] rounded-md hover:bg-[var(--surface-hover)] disabled:opacity-60 transition-colors"
       title="Export leads to CSV file"
     >
       {downloading ? (

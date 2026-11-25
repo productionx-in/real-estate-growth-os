@@ -1,6 +1,7 @@
 'use client'
 // components/team/InviteMemberModal.tsx
 import { useState } from 'react'
+import { Input, Select } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import { X, Mail, Shield, Check, Copy, AlertCircle, Loader2 } from 'lucide-react'
 import type { MemberRole } from '@/types/database'
@@ -141,16 +142,16 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
                 Invitation Activation URL
               </label>
               <div className="flex gap-2">
-                <input
+                <Input
                   type="text"
                   readOnly
                   value={inviteUrl}
-                  className="w-full px-3 py-2 text-[12px] font-mono bg-surface-muted border border-[var(--border)] rounded-md text-[var(--foreground)]"
+                  className="font-mono"
                 />
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="px-3 py-2 bg-[var(--brand)] text-brand-foreground text-[12px] font-medium rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center gap-1.5 flex-shrink-0"
+                  className="btn-primary px-3 py-2 bg-[var(--brand)] text-brand-foreground text-[12px] font-medium rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center gap-1.5 flex-shrink-0"
                 >
                   {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -172,7 +173,7 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
               <label htmlFor="invite-email" className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
                 Employee Work Email <span className="text-[var(--danger)]">*</span>
               </label>
-              <input
+              <Input
                 id="invite-email"
                 type="email"
                 required
@@ -180,7 +181,7 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
                 disabled={isLimitReached || loading}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="colleague@propertydeveloper.com"
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors disabled:opacity-60"
+                className="focus:ring-brand-light disabled:opacity-60"
               />
             </div>
 
@@ -188,18 +189,17 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
               <label htmlFor="invite-role" className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
                 Assigned Role <span className="text-[var(--danger)]">*</span>
               </label>
-              <select
+              <Select
                 id="invite-role"
                 aria-describedby="invite-role-hint"
                 value={role}
                 disabled={isLimitReached || loading}
                 onChange={(e) => setRole(e.target.value as MemberRole)}
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors disabled:opacity-60"
-              >
+                className="focus:ring-brand-light disabled:opacity-60">
                 {INVITE_ROLES.map((r) => (
                   <option key={r} value={r}>{ROLE_LABELS[r]}</option>
                 ))}
-              </select>
+              </Select>
               <p id="invite-role-hint" className="mt-1.5 text-[12px] text-muted">{ROLE_DESCRIPTIONS[role]}</p>
             </div>
 
@@ -207,17 +207,16 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
               <label htmlFor="invite-expiry" className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
                 Invitation Expiry
               </label>
-              <select
+              <Select
                 id="invite-expiry"
                 value={expiresInDays}
                 disabled={isLimitReached || loading}
                 onChange={(e) => setExpiresInDays(Number(e.target.value))}
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors disabled:opacity-60"
-              >
+                className="focus:ring-brand-light disabled:opacity-60">
                 <option value={7}>7 days (Standard)</option>
                 <option value={14}>14 days</option>
                 <option value={30}>30 days</option>
-              </select>
+              </Select>
             </div>
 
             <div className="flex items-center justify-end gap-2.5 pt-2">
@@ -232,7 +231,7 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
               <button
                 type="submit"
                 disabled={isLimitReached || loading || !email.trim()}
-                className="px-4 py-2 bg-[var(--brand)] text-brand-foreground text-[13px] font-medium rounded-md hover:bg-[var(--brand-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                className="btn-primary px-4 py-2 bg-[var(--brand)] text-brand-foreground text-[13px] font-medium rounded-md hover:bg-[var(--brand-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
                 <span>{loading ? 'Creating Invitation…' : 'Issue Invitation'}</span>

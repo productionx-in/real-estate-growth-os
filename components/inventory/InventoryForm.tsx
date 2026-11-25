@@ -2,6 +2,7 @@
 // components/inventory/InventoryForm.tsx
 // Category-Aware Inventory Creation & Editing Modal (Stage 3C)
 import { useWorkspacePrefs } from '@/components/settings/WorkspacePrefs'
+import { Input, Select, Textarea } from '@/components/ui'
 import { useState, useTransition, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -452,7 +453,7 @@ export function InventoryForm({
                   <label className="font-medium text-[var(--foreground)]">
                     {unitNumberLabel} <span className="text-danger">*</span>
                   </label>
-                  <input
+                  <Input
                     type="text"
                     required
                     value={unitNumber}
@@ -466,7 +467,7 @@ export function InventoryForm({
                         ? 'e.g. Suite 302'
                         : 'e.g. A-402'
                     }
-                    className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] font-semibold"
+                    className="font-semibold"
                   />
                 </div>
 
@@ -492,7 +493,7 @@ export function InventoryForm({
                       ? 'Cluster / Street'
                       : 'Tower / Building'}
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={towerName}
                     onChange={(e) => setTowerName(e.target.value)}
@@ -503,36 +504,32 @@ export function InventoryForm({
                         ? 'e.g. Palm Street'
                         : 'e.g. Tower 1'
                     }
-                    className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                   />
                 </div>
 
                 {unitCategory !== 'plotted_developments' && (
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground-muted)]">Floor Number</label>
-                    <input
+                    <Input
                       type="number"
                       value={floorNumber}
                       onChange={(e) => setFloorNumber(e.target.value)}
                       placeholder="e.g. 4"
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                     />
                   </div>
                 )}
 
                 <div className="space-y-1">
                   <label className="font-medium text-[var(--foreground-muted)]">Facing</label>
-                  <select
+                  <Select
                     value={facing}
-                    onChange={(e) => setFacing(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
-                  >
+                    onChange={(e) => setFacing(e.target.value)}>
                     {FACING_OPTIONS.map((f) => (
                       <option key={f} value={f}>
                         {f} Facing
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -549,49 +546,44 @@ export function InventoryForm({
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground)]">BHK Layout</label>
-                    <select
+                    <Select
                       value={bhkConfig}
-                      onChange={(e) => setBhkConfig(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
-                    >
+                      onChange={(e) => setBhkConfig(e.target.value)}>
                       {BHK_OPTIONS.map((b) => (
                         <option key={b} value={b}>
                           {b}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
 
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground)]">Bedrooms</label>
-                    <input
+                    <Input
                       type="number"
                       min="0"
                       value={bedrooms}
                       onChange={(e) => setBedrooms(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                     />
                   </div>
 
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground)]">Bathrooms</label>
-                    <input
+                    <Input
                       type="number"
                       min="0"
                       value={bathrooms}
                       onChange={(e) => setBathrooms(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                     />
                   </div>
 
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground)]">Balconies</label>
-                    <input
+                    <Input
                       type="number"
                       min="0"
                       value={balconies}
                       onChange={(e) => setBalconies(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                     />
                   </div>
                 </div>
@@ -602,24 +594,22 @@ export function InventoryForm({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground)]">Plot Dimensions</label>
-                    <input
+                    <Input
                       type="text"
                       value={plotDimensions}
                       onChange={(e) => setPlotDimensions(e.target.value)}
                       placeholder="e.g. 33 ft x 50 ft"
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                     />
                   </div>
 
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground)]">Road Width (Feet)</label>
-                    <input
+                    <Input
                       type="number"
                       min="0"
                       value={roadWidthFt}
                       onChange={(e) => setRoadWidthFt(e.target.value)}
                       placeholder="e.g. 40"
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                     />
                   </div>
 
@@ -643,44 +633,39 @@ export function InventoryForm({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground)]">Commercial Asset Type</label>
-                    <select
+                    <Select
                       value={commercialAssetType}
-                      onChange={(e) => setCommercialAssetType(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
-                    >
+                      onChange={(e) => setCommercialAssetType(e.target.value)}>
                       {COMMERCIAL_ASSET_TYPES.map((t) => (
                         <option key={t} value={t}>
                           {t}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
 
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground)]">Frontage / Display (Feet)</label>
-                    <input
+                    <Input
                       type="number"
                       min="0"
                       value={frontageFt}
                       onChange={(e) => setFrontageFt(e.target.value)}
                       placeholder="e.g. 35"
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                     />
                   </div>
 
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground)]">Fit-out / Handover State</label>
-                    <select
+                    <Select
                       value={furnishingStatus}
-                      onChange={(e) => setFurnishingStatus(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
-                    >
+                      onChange={(e) => setFurnishingStatus(e.target.value)}>
                       {FURNISHING_OPTIONS.map((opt) => (
                         <option key={opt.value} value={opt.value}>
                           {opt.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                 </div>
               )}
@@ -690,48 +675,43 @@ export function InventoryForm({
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground)]">Villa Typology</label>
-                    <select
+                    <Select
                       value={bhkConfig}
-                      onChange={(e) => setBhkConfig(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
-                    >
+                      onChange={(e) => setBhkConfig(e.target.value)}>
                       <option value="3BHK Villa">3BHK Villa</option>
                       <option value="4BHK Villa">4BHK Villa</option>
                       <option value="4BHK Triplex">4BHK Triplex</option>
                       <option value="5BHK Luxury">5BHK Luxury</option>
-                    </select>
+                    </Select>
                   </div>
 
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground)]">Number of Floors</label>
-                    <input
+                    <Input
                       type="text"
                       value={villaFloors}
                       onChange={(e) => setVillaFloors(e.target.value)}
                       placeholder="e.g. G+1 or Triplex"
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                     />
                   </div>
 
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground)]">Bathrooms</label>
-                    <input
+                    <Input
                       type="number"
                       min="0"
                       value={bathrooms}
                       onChange={(e) => setBathrooms(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                     />
                   </div>
 
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground)]">Car Parking Slots</label>
-                    <input
+                    <Input
                       type="number"
                       min="0"
                       value={parkingSpaces}
                       onChange={(e) => setParkingSpaces(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                     />
                   </div>
                 </div>
@@ -752,7 +732,7 @@ export function InventoryForm({
                     <span className="text-danger">*</span>
                   </label>
                   <div className="flex gap-2">
-                    <input
+                    <Input
                       type="number"
                       step="any"
                       required
@@ -760,33 +740,31 @@ export function InventoryForm({
                       value={areaValue}
                       onChange={(e) => setAreaValue(e.target.value)}
                       placeholder={unitCategory === 'plotted_developments' ? 'e.g. 240' : 'e.g. 1850'}
-                      className="flex-1 px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] font-semibold"
+                      className="flex-1 font-semibold"
                     />
-                    <select
+                    <Select
                       value={areaUnit}
                       onChange={(e) => setAreaUnit(e.target.value)}
-                      className="w-24 px-2 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
-                    >
+                      className="w-24">
                       <option value="sqft">Sq. Ft</option>
                       <option value="sqyd">Sq. Yd</option>
                       <option value="acres">Acres</option>
                       <option value="guntas">Guntas</option>
                       <option value="cents">Cents</option>
-                    </select>
+                    </Select>
                   </div>
                 </div>
 
                 {unitCategory !== 'plotted_developments' && (
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground-muted)]">Carpet Area (Sq. Ft)</label>
-                    <input
+                    <Input
                       type="number"
                       step="any"
                       min="0"
                       value={carpetArea}
                       onChange={(e) => setCarpetArea(e.target.value)}
                       placeholder="e.g. 1350"
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                     />
                   </div>
                 )}
@@ -794,14 +772,13 @@ export function InventoryForm({
                 {unitCategory === 'villas_gated_communities' && (
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground-muted)]">Plot Extent (Sq. Yd)</label>
-                    <input
+                    <Input
                       type="number"
                       step="any"
                       min="0"
                       value={plotArea}
                       onChange={(e) => setPlotArea(e.target.value)}
                       placeholder="e.g. 350"
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                     />
                   </div>
                 )}
@@ -809,14 +786,13 @@ export function InventoryForm({
                 {unitCategory !== 'plotted_developments' && (
                   <div className="space-y-1">
                     <label className="font-medium text-[var(--foreground-muted)]">Super Built-up (Sq. Ft)</label>
-                    <input
+                    <Input
                       type="number"
                       step="any"
                       min="0"
                       value={superBuiltUpArea}
                       onChange={(e) => setSuperBuiltUpArea(e.target.value)}
                       placeholder="e.g. 1950"
-                      className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                     />
                   </div>
                 )}
@@ -835,7 +811,7 @@ export function InventoryForm({
                   <label className="font-medium text-[var(--foreground)]">
                     Base Rate (₹ per {({ sqft: 'sq.ft', sqyd: 'sq.yd', acres: 'acre', guntas: 'gunta', cents: 'cent' } as Record<string, string>)[areaUnit] ?? areaUnit})
                   </label>
-                  <input
+                  <Input
                     type="number"
                     step="any"
                     min="0"
@@ -849,20 +825,19 @@ export function InventoryForm({
                       }
                     }}
                     placeholder="e.g. 6500"
-                    className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="font-medium text-[var(--foreground)]">Total Price (₹)</label>
-                  <input
+                  <Input
                     type="number"
                     step="any"
                     min="0"
                     value={totalPrice}
                     onChange={(e) => setTotalPrice(e.target.value)}
                     placeholder="e.g. 12025000"
-                    className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)] font-semibold"
+                    className="font-semibold"
                   />
                 </div>
               </div>
@@ -871,12 +846,11 @@ export function InventoryForm({
             {/* SECTION 5: Internal Notes */}
             <div className="space-y-2">
               <label className="font-medium text-[var(--foreground)]">Internal Notes & Description</label>
-              <textarea
+              <Textarea
                 rows={2}
                 value={internalNotes}
                 onChange={(e) => setInternalNotes(e.target.value)}
                 placeholder="Special attributes, park view premium, developer reserved, or custom payment plan terms..."
-                className="w-full px-3 py-2 text-xs bg-[var(--surface)] border border-[var(--border)] rounded-lg outline-none focus:border-[var(--brand)]"
               />
             </div>
 
@@ -893,7 +867,7 @@ export function InventoryForm({
               <button
                 type="submit"
                 disabled={isPending}
-                className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-semibold rounded-lg bg-[var(--brand)] text-brand-foreground hover:bg-[var(--brand-dark)] transition-colors shadow-2xs disabled:opacity-50"
+                className="btn-primary inline-flex items-center gap-1.5 px-5 py-2 text-xs font-semibold rounded-lg bg-[var(--brand)] text-brand-foreground hover:bg-[var(--brand-dark)] transition-colors disabled:opacity-50"
               >
                 {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 {isEditing ? 'Save Changes' : 'Create Inventory Unit'}

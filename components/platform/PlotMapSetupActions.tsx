@@ -4,7 +4,7 @@
 // tells them; waiting on REGrow does not), and resolve one. Set-up metadata only.
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Alert, Button } from '@/components/ui'
+import { Alert, Button, Textarea } from '@/components/ui'
 
 const STAGES = [
   ['uploaded', 'Layout upload'], ['processed', 'File processing'], ['mapped', 'Boundary mapping'], ['linked', 'Inventory links'],
@@ -64,8 +64,8 @@ export function PlotMapSetupActions({ orgId, projectId, assigneeUserId, staff, b
               <option value="customer">Customer (pauses the clock)</option><option value="regrow">REGrow</option></select></label>
           </div>
           <label className="block text-[12px] text-muted">What is needed (the customer sees this when it waits on them)
-            <textarea required minLength={5} maxLength={500} rows={2} value={reason} onChange={(e) => setReason(e.target.value)}
-              className="mt-1 w-full rounded-md border border-default bg-surface p-2 text-[13px] text-foreground" />
+            <Textarea required minLength={5} maxLength={500} rows={2} value={reason} onChange={(e) => setReason(e.target.value)}
+              className="mt-1" />
           </label>
           <div className="flex gap-2">
             <Button size="sm" type="submit" loading={busy === 'raise'}>Raise blocker</Button>

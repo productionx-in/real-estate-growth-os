@@ -52,4 +52,30 @@ test('hand-built cards share the raised depth (no flat card-sized surfaces left)
   assert.deepEqual(flat, [])
 })
 
+
+const APP_DIRS = ['components/account', 'components/admin', 'components/analytics', 'components/audit', 'components/auth', 'components/billing', 'components/calendar',
+  'components/campaigns', 'components/dashboard', 'components/documents', 'components/integrations', 'components/inventory', 'components/leads', 'components/listings',
+  'components/matching', 'components/notifications', 'components/onboarding', 'components/partners', 'components/performance', 'components/platform', 'components/plots',
+  'components/projects', 'components/routing', 'components/sales', 'components/settings', 'components/team', 'components/today', 'components/visits', 'app/(dashboard)', 'app/(auth)', 'app/platform']
+const tsx = (d) => !fs.existsSync(path.join(root, d)) ? [] : fs.readdirSync(path.join(root, d), { withFileTypes: true }).flatMap((e) => e.isDirectory() ? tsx(path.join(d, e.name)) : e.name.endsWith('.tsx') ? [path.join(d, e.name)] : [])
+
+test('in the app, fields use the shared controls and primary actions use the shared key (no hand-styled ones come back)', () => {
+  const fields = [], keys = []
+  for (const f of APP_DIRS.flatMap(tsx)) {
+    const src = read(f)
+    for (const m of src.matchAll(/<(input|select|textarea)\b([^>]*?)className="([^"]*)"/gs)) {
+      const type = m[2].match(/\btype="(\w+)"/)?.[1]
+      if (['checkbox', 'radio', 'file', 'range', 'hidden', 'color', 'submit', 'button'].includes(type)) continue
+      const t = m[3].split(/\s+/)
+      if (t.includes('border') && !t.includes('border-0')) fields.push(`${f}: <${m[1]} className="${m[3].slice(0, 50)}…"`)
+    }
+    for (const m of src.matchAll(/<(button|Link|a)\b[^>]*?className="([^"]*)"/gs)) {
+      const t = m[2].split(/\s+/)
+      if ((t.includes('bg-brand') || t.includes('bg-[var(--brand)]')) && t.some((x) => ['text-brand-foreground', 'text-white', 'text-[var(--brand-foreground)]'].includes(x)) && !t.includes('btn-primary')) keys.push(`${f}: ${m[2].slice(0, 50)}…`)
+    }
+  }
+  assert.deepEqual(fields, [], 'use Input / Select / Textarea from components/ui')
+  assert.deepEqual(keys, [], 'use Button, or add btn-primary to a link styled as the primary action')
+})
+
 console.log(`\nDesign language v3: ${passed} checks passed.`)

@@ -1,6 +1,7 @@
 'use client'
 // components/admin/PlatformProvisioningModal.tsx
 import { useState } from 'react'
+import { Input, Select } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import { Building2, Shield, Check, Copy, AlertCircle, Loader2 } from 'lucide-react'
 import { PLAN_CONFIGS, type PlanTier } from '@/lib/subscriptions/config'
@@ -167,7 +168,7 @@ export function PlatformProvisioningModal({ prefill }: { prefill?: ProvisionPref
             <button
               type="button"
               onClick={handleReset}
-              className="w-full py-2.5 px-4 bg-[var(--brand)] text-brand-foreground text-[13px] font-medium rounded-md hover:bg-[var(--brand-hover)] transition-colors"
+              className="btn-primary w-full py-2.5 px-4 bg-[var(--brand)] text-brand-foreground text-[13px] font-medium rounded-md hover:bg-[var(--brand-hover)] transition-colors"
             >
               Provision Another Organisation
             </button>
@@ -180,14 +181,14 @@ export function PlatformProvisioningModal({ prefill }: { prefill?: ProvisionPref
               <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
                 Organisation Name <span className="text-[var(--danger)]">*</span>
               </label>
-              <input
+              <Input
                 type="text"
                 required
                 value={name}
                 disabled={loading}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Prestige Estates"
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
+                className="focus:ring-brand-light"
               />
             </div>
 
@@ -195,13 +196,13 @@ export function PlatformProvisioningModal({ prefill }: { prefill?: ProvisionPref
               <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
                 Workspace Slug (Optional)
               </label>
-              <input
+              <Input
                 type="text"
                 value={slug}
                 disabled={loading}
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="prestige"
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
+                className="focus:ring-brand-light"
               />
             </div>
           </div>
@@ -211,29 +212,27 @@ export function PlatformProvisioningModal({ prefill }: { prefill?: ProvisionPref
               <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
                 Customer Type <span className="text-[var(--danger)]">*</span>
               </label>
-              <select
+              <Select
                 value={type}
                 disabled={loading}
-                onChange={(e) => setType(e.target.value as 'developer' | 'channel_partner')}
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none"
-              >
+                onChange={(e) => setType(e.target.value as 'developer' | 'channel_partner')}>
                 <option value="developer">Property Developer / Builder</option>
                 <option value="channel_partner">Channel Partner Organisation</option>
-              </select>
+              </Select>
             </div>
 
             <div>
               <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
                 Primary Administrator Email <span className="text-[var(--danger)]">*</span>
               </label>
-              <input
+              <Input
                 type="email"
                 required
                 value={adminEmail}
                 disabled={loading}
                 onChange={(e) => setAdminEmail(e.target.value)}
                 placeholder="admin@developer.com"
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
+                className="focus:ring-brand-light"
               />
             </div>
           </div>
@@ -243,13 +242,13 @@ export function PlatformProvisioningModal({ prefill }: { prefill?: ProvisionPref
               <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
                 Primary Administrator Name (Optional)
               </label>
-              <input
+              <Input
                 type="text"
                 value={adminName}
                 disabled={loading}
                 onChange={(e) => setAdminName(e.target.value)}
                 placeholder="Vikram Sharma"
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors"
+                className="focus:ring-brand-light"
               />
             </div>
           </div>
@@ -259,32 +258,29 @@ export function PlatformProvisioningModal({ prefill }: { prefill?: ProvisionPref
               <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
                 Subscription Plan
               </label>
-              <select
+              <Select
                 value={planTier}
                 disabled={loading}
-                onChange={(e) => handleTierChange(e.target.value as PlanTier)}
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none"
-              >
+                onChange={(e) => handleTierChange(e.target.value as PlanTier)}>
                 {Object.entries(PLAN_CONFIGS).map(([k, cfg]) => (
                   <option key={k} value={k}>
                     {cfg.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
 
             <div>
               <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
                 Included Seats
               </label>
-              <input
+              <Input
                 type="number"
                 min={1}
                 max={500}
                 value={includedSeats}
                 disabled={loading}
                 onChange={(e) => setIncludedSeats(Number(e.target.value))}
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none"
               />
             </div>
 
@@ -292,15 +288,13 @@ export function PlatformProvisioningModal({ prefill }: { prefill?: ProvisionPref
               <label className="block text-[12px] font-medium text-[var(--foreground)] mb-1">
                 Billing Cycle
               </label>
-              <select
+              <Select
                 value={billingCycle}
                 disabled={loading}
-                onChange={(e) => setBillingCycle(e.target.value as 'monthly' | 'annual')}
-                className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none"
-              >
+                onChange={(e) => setBillingCycle(e.target.value as 'monthly' | 'annual')}>
                 <option value="annual">Annual Billing</option>
                 <option value="monthly">Monthly Billing</option>
-              </select>
+              </Select>
             </div>
           </div>
 
@@ -308,7 +302,7 @@ export function PlatformProvisioningModal({ prefill }: { prefill?: ProvisionPref
             <button
               type="submit"
               disabled={loading || !name.trim() || !adminEmail.trim()}
-              className="w-full py-2.5 px-4 bg-[var(--brand)] text-brand-foreground text-[13px] font-semibold rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 shadow-2xs"
+              className="btn-primary w-full py-2.5 px-4 bg-[var(--brand)] text-brand-foreground text-[13px] font-semibold rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
               <span>{loading ? 'Provisioning Workspace…' : 'Provision Customer Organisation & Send Invitation'}</span>

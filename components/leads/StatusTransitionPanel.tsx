@@ -2,6 +2,7 @@
 // components/leads/StatusTransitionPanel.tsx
 // Shows allowed next statuses and lets user transition with an optional note.
 import { useState, useTransition } from 'react'
+import { Textarea } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import { ChevronRight, Loader2 } from 'lucide-react'
 import { LeadStatusBadge } from './LeadStatusBadge'
@@ -95,12 +96,12 @@ export function StatusTransitionPanel({ leadId, leadName, currentStatus, reasons
         <label htmlFor="statusNote" className="block text-[12px] font-medium text-[var(--foreground-muted)] mb-1">
           Add a note (optional)
         </label>
-        <textarea
+        <Textarea
           id="statusNote"
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={2}
-          className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors resize-none placeholder:text-[var(--foreground-subtle)]"
+          className="focus:ring-brand-light resize-none"
           placeholder="Spoke to client, interested in 2BHK…"
         />
       </div>

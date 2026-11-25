@@ -3,6 +3,7 @@
 'use client'
 
 import { absolute, appUrl } from '@/lib/site/urls'
+import { Input, Select } from '@/components/ui'
 import { useState } from 'react'
 import {
   X,
@@ -237,11 +238,10 @@ export function WhatsAppWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     WhatsApp Business Account ID (WABA)
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={wabaId}
                     onChange={(e) => setWabaId(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg bg-surface-muted text-foreground"
                   />
                 </div>
 
@@ -249,11 +249,10 @@ export function WhatsAppWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Phone Number ID
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={phoneNumberId}
                     onChange={(e) => setPhoneNumberId(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg bg-surface-muted text-foreground"
                   />
                 </div>
 
@@ -261,11 +260,10 @@ export function WhatsAppWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Display Phone Number
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={displayPhone}
                     onChange={(e) => setDisplayPhone(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg text-foreground"
                   />
                 </div>
 
@@ -273,17 +271,15 @@ export function WhatsAppWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Default Project Routing
                   </label>
-                  <select
+                  <Select
                     value={selectedProjectId}
-                    onChange={(e) => setSelectedProjectId(e.target.value)}
-                    className="w-full text-xs px-2.5 py-2 border border-strong rounded-lg bg-surface text-foreground"
-                  >
+                    onChange={(e) => setSelectedProjectId(e.target.value)}>
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
 
@@ -389,12 +385,11 @@ export function WhatsAppWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Buyer Name *
                   </label>
-                  <input
+                  <Input
                     type="text"
                     required
                     value={testBuyerName}
                     onChange={(e) => setTestBuyerName(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg text-foreground"
                   />
                 </div>
 
@@ -402,12 +397,11 @@ export function WhatsAppWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Buyer WhatsApp Number *
                   </label>
-                  <input
+                  <Input
                     type="tel"
                     required
                     value={testPhone}
                     onChange={(e) => setTestPhone(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg text-foreground"
                   />
                 </div>
 
@@ -415,12 +409,11 @@ export function WhatsAppWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Inbound Message Text
                   </label>
-                  <input
+                  <Input
                     type="text"
                     required
                     value={testMessage}
                     onChange={(e) => setTestMessage(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg text-foreground"
                   />
                 </div>
 
@@ -428,11 +421,10 @@ export function WhatsAppWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Click-to-WhatsApp Ad Headline (Referral)
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={testAdHeadline}
                     onChange={(e) => setTestAdHeadline(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg text-foreground"
                   />
                 </div>
 
@@ -440,11 +432,10 @@ export function WhatsAppWizardModal({
                   <label className="block text-xs font-semibold text-muted mb-1">
                     Ad ID (Campaign Attribution)
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={testAdId}
                     onChange={(e) => setTestAdId(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border border-strong rounded-lg text-foreground"
                   />
                 </div>
 

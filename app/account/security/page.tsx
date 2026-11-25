@@ -39,7 +39,7 @@ export default async function AccountSecurityPage({ searchParams }: { searchPara
             <h1 className="text-[16px] font-semibold">Two-step verification is on</h1>
           </div>
           <p className="text-[13px] text-muted">Signed in as {user.email}. Your authenticator app is verified for this account.</p>
-          <Link href={href} className="inline-flex min-h-10 items-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">
+          <Link href={href} className="btn-primary inline-flex min-h-10 items-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">
             {next ? 'Back to your settings' : staff ? 'Continue to the console' : 'Continue to your workspace'}
           </Link>
         </CardContent>

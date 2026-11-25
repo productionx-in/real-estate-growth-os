@@ -1,6 +1,7 @@
 'use client'
 // components/inventory/InventoryTable.tsx
 import { useState, useMemo } from 'react'
+import { Select } from '@/components/ui'
 import {
   formatCurrency,
   formatRelative,
@@ -347,16 +348,14 @@ export function InventoryTable({
 
             <div className="flex items-center gap-1.5">
               <span>Rows per page:</span>
-              <select
+              <Select
                 value={currentPageSize}
-                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                className="bg-[var(--surface)] border border-[var(--border)] rounded px-1.5 py-0.5 text-xs text-[var(--foreground)] outline-none"
-              >
+                onChange={(e) => handlePageSizeChange(Number(e.target.value))}>
                 <option value={10}>10</option>
                 <option value={25}>25</option>
                 <option value={50}>50</option>
                 <option value={100}>100</option>
-              </select>
+              </Select>
             </div>
           </div>
 

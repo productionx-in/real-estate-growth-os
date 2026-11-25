@@ -1,6 +1,7 @@
 'use client'
 // components/team/DeactivateMemberModal.tsx
 import { useState } from 'react'
+import { Select } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import { X, UserX, AlertTriangle, Loader2 } from 'lucide-react'
 
@@ -142,17 +143,15 @@ export function DeactivateMemberModal({
                   <p className="text-[11px] text-[var(--foreground-muted)] mb-2">Transfer all open leads immediately to another representative</p>
 
                   {reassignmentMode === 'reassign_to_member' && (
-                    <select
+                    <Select
                       value={targetProfileId}
-                      onChange={(e) => setTargetProfileId(e.target.value)}
-                      className="w-full px-2.5 py-1.5 text-[12px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none"
-                    >
+                      onChange={(e) => setTargetProfileId(e.target.value)}>
                       {activeMembers.map((m) => (
                         <option key={m.profileId} value={m.profileId}>
                           {m.name} ({m.role})
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   )}
                 </div>
               </label>

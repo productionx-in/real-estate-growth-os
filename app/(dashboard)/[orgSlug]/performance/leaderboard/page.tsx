@@ -11,7 +11,7 @@ import { fmtAmount, getGamification, getLeaderboard, orgTimezone, type LeaderRow
 import { isManagement } from '@/lib/auth/permissions'
 import { canManagePerformance, periodWindow } from '@/lib/performance/rules'
 import { PageShell } from '@/components/layout/PageShell'
-import { Card, CardContent, EmptyState, Tilt } from '@/components/ui'
+import { Card, CardContent, EmptyState, Tilt, Input } from '@/components/ui'
 import { PerformanceTabs } from '@/components/performance/PerformanceTabs'
 import { cn } from '@/lib/utils/cn'
 
@@ -71,9 +71,9 @@ export default async function LeaderboardPage({ params, searchParams }: { params
         {period === 'custom' && (
           <form className="flex flex-wrap items-center gap-2 text-[13px]" action={`/${orgSlug}/performance/leaderboard`}>
             <input type="hidden" name="p" value="custom" />
-            <label className="flex items-center gap-1.5 text-muted">From <input type="date" name="from" defaultValue={sp.from} required className="h-9 rounded-md border border-default bg-surface px-2 text-foreground" /></label>
-            <label className="flex items-center gap-1.5 text-muted">to <input type="date" name="to" defaultValue={sp.to} required className="h-9 rounded-md border border-default bg-surface px-2 text-foreground" /></label>
-            <button type="submit" className="h-9 rounded-md bg-brand px-3 font-medium text-brand-foreground hover:bg-brand-hover">Show</button>
+            <label className="flex items-center gap-1.5 text-muted">From <Input type="date" name="from" defaultValue={sp.from} required /></label>
+            <label className="flex items-center gap-1.5 text-muted">to <Input type="date" name="to" defaultValue={sp.to} required /></label>
+            <button type="submit" className="btn-primary h-9 rounded-md bg-brand px-3 font-medium text-brand-foreground hover:bg-brand-hover">Show</button>
           </form>
         )}
       </div>

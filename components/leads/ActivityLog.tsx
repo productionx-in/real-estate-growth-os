@@ -2,6 +2,7 @@
 // components/leads/ActivityLog.tsx
 // Displays the immutable activity history for a lead.
 import { useState, useTransition } from 'react'
+import { Textarea } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import { MessageSquare, Loader2, ArrowRight, User, Plus } from 'lucide-react'
 import { formatRelative } from '@/lib/utils/format'
@@ -122,11 +123,11 @@ export function ActivityLog({ leadId, activities: initialActivities }: ActivityL
 
       {/* Add note */}
       <form onSubmit={handleAddNote} className="mb-5">
-        <textarea
+        <Textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={2}
-          className="w-full px-3 py-2 text-[13px] bg-[var(--surface)] border border-[var(--border)] rounded-md outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-brand-light transition-colors resize-none placeholder:text-[var(--foreground-subtle)]"
+          className="focus:ring-brand-light resize-none"
           placeholder="Add a note about this lead…"
         />
         {error && <p className="mt-1 text-[12px] text-[var(--danger)]">{error}</p>}
@@ -134,7 +135,7 @@ export function ActivityLog({ leadId, activities: initialActivities }: ActivityL
           <button
             type="submit"
             disabled={isPending || !note.trim()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="btn-primary inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isPending && <Loader2 className="w-3 h-3 animate-spin" />}
             {isPending ? 'Adding…' : 'Add note'}
