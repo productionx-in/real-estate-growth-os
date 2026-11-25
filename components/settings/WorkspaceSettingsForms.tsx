@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react'
 import { Alert, Button, Field, Input, Select } from '@/components/ui'
-import { AREA_UNITS, LIMITS, describeHold, normaliseSection, type AreaUnit, type InventorySettings, type LeadSettings, type ReportSettings, type SettingsSection } from '@/lib/settings/workspace'
+import { AREA_UNITS, DEFAULT_STATUS_LABELS, LIMITS, STATUS_MEANING, UNIT_STATUSES, describeHold, normaliseSection, type AreaUnit, type InventorySettings, type LeadSettings, type ReportSettings, type SettingsSection } from '@/lib/settings/workspace'
 
 function useSave(orgId: string, section: SettingsSection) {
   const router = useRouter()
@@ -88,7 +88,7 @@ export function InventorySettingsForm({ orgId, initial }: { orgId: string; initi
   const choices = HOLD_CHOICES.includes(value.holdHours) ? HOLD_CHOICES : [...HOLD_CHOICES, value.holdHours].sort((a, b) => a - b)
   const units = Object.entries(AREA_UNITS) as [AreaUnit, string][]
   return (
-    <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); save(value, 'Saved. New holds and new units use these settings; existing ones keep theirs.') }}>
+    <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); save(value, 'Saved. New holds and new units use these settings; status names change everywhere at once.') }}>
       <Field label="Release units on hold after" hint="A unit on hold goes back to Available on its own when the time runs out, so a forgotten hold never blocks a sale. The unit’s history records it.">
         <Select value={value.holdHours} onChange={(e) => setValue({ ...value, holdHours: Number(e.target.value) })} className="max-w-xs">
           {choices.map((h) => <option key={h} value={h}>{h === 0 ? 'Never — release by hand' : describeHold(h)}</option>)}
@@ -106,6 +106,18 @@ export function InventorySettingsForm({ orgId, initial }: { orgId: string; initi
           </Select>
         </Field>
       </div>
+      <fieldset className="space-y-3">
+        <legend className="text-[13px] font-semibold text-foreground">Status names</legend>
+        <p className="text-[12px] text-muted">Call each status what your team calls it, for example “Landowner share” instead of “Blocked”. Only the name changes: what each status does, and which changes are allowed between them, stay the same. Leave a box empty to use the standard name.</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {UNIT_STATUSES.map((k) => (
+            <Field key={k} label={DEFAULT_STATUS_LABELS[k]} hint={STATUS_MEANING[k]}>
+              <Input value={value.statusLabels[k]} maxLength={LIMITS.statusLabel} placeholder={DEFAULT_STATUS_LABELS[k]}
+                onChange={(e) => setValue({ ...value, statusLabels: { ...value.statusLabels, [k]: e.target.value } })} />
+            </Field>
+          ))}
+        </div>
+      </fieldset>
       {message && <Alert tone={message.tone}>{message.text}</Alert>}
       <Button type="submit" loading={busy}>Save inventory settings</Button>
     </form>

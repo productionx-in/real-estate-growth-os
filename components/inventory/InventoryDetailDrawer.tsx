@@ -1,5 +1,6 @@
 'use client'
 // components/inventory/InventoryDetailDrawer.tsx
+import { useStatusLabels } from '@/components/settings/WorkspacePrefs'
 import { useWorkspacePrefs } from '@/components/settings/WorkspacePrefs'
 import { useState, useEffect, useCallback } from 'react'
 import {
@@ -54,6 +55,7 @@ export function InventoryDetailDrawer({
   hasPrev = false,
   hasNext = false,
 }: InventoryDetailDrawerProps) {
+  const statusLabels = useStatusLabels()
   const [detailsOverride, setDetailsOverride] = useState<(Partial<InventoryItemWithRelations> & { hierarchy_path?: string }) | null>(null)
   const [history, setHistory] = useState<InventoryHistoryRecord[]>([])
   const [loadingHistory, setLoadingHistory] = useState(true)
@@ -642,7 +644,7 @@ export function InventoryDetailDrawer({
                       <div className="flex items-center gap-1.5">
                         {h.previous_status ? (
                           <span className="text-[var(--foreground-muted)] font-medium capitalize text-[11px]">
-                            {h.previous_status.replace('_', ' ')}
+                            {statusLabels[h.previous_status as keyof typeof statusLabels] ?? h.previous_status.replace('_', ' ')}
                           </span>
                         ) : (
                           <span className="text-[var(--foreground-subtle)] italic text-[11px]">
@@ -651,7 +653,7 @@ export function InventoryDetailDrawer({
                         )}
                         <ArrowRight className="w-3 h-3 text-[var(--foreground-subtle)]" />
                         <span className="font-semibold text-[var(--foreground)] capitalize text-xs">
-                          {h.new_status.replace('_', ' ')}
+                          {statusLabels[h.new_status as keyof typeof statusLabels] ?? h.new_status.replace('_', ' ')}
                         </span>
                       </div>
                       <span className="text-[11px] text-[var(--foreground-subtle)] font-medium">

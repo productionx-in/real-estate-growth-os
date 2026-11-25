@@ -3,6 +3,7 @@
 // drawn as React elements, each plot coloured by its live inventory status. Search, status filters, zoom and pan,
 // and a details card. Used in the workspace (mode "team") and on the public share page (mode "public").
 // Accessible: every plot is a focusable button with a spoken label; colour is never the only signal (legend, card).
+import { useStatusLabels } from '@/components/settings/WorkspacePrefs'
 import { createElement, useMemo, useRef, useState } from 'react'
 import { Maximize2, MessageCircle, Minus, Phone, Plus, Search, X } from 'lucide-react'
 import type { LayoutGeometry, PlotInfo } from '@/lib/dal/plot-layouts'
@@ -43,6 +44,8 @@ export interface PlotMapProps {
 }
 
 export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, contact, image, enquiryToken }: PlotMapProps) {
+  const statusLabels = useStatusLabels()
+  const labelOf = (st: string) => statusLabels[st as keyof typeof statusLabels] ?? statusOf(st).label
   const base = useMemo(() => viewBox.split(' ').map(Number) as [number, number, number, number], [viewBox])
   const [view, setView] = useState(base)
   const [selected, setSelected] = useState<string | null>(null)
@@ -100,7 +103,7 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
   function describe(key: string, p?: PlotInfo) {
     if (!p) return `Plot ${key}, not linked to a unit`
     const area = p.area ? `, ${p.area} ${AREA_UNIT[p.areaUnit ?? ''] ?? p.areaUnit ?? ''}` : ''
-    return `Plot ${p.unitNumber}, ${statusOf(p.status).label}${area}${p.facing ? `, ${p.facing} facing` : ''}`
+    return `Plot ${p.unitNumber}, ${labelOf(p.status)}${area}${p.facing ? `, ${p.facing} facing` : ''}`
   }
 
   const enquire = sel && contact?.phone
@@ -120,7 +123,7 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
               <ul className="absolute z-10 mt-1 w-full rounded-md border border-default bg-surface py-1 shadow-md">
                 {matches.map((k) => (
                   <li key={k}><button type="button" onClick={() => { setSelected(k); setQuery('') }} className="block w-full px-3 py-2 text-left text-[13px] hover:bg-surface-hover">
-                    {plots[k].unitNumber} · <span className="text-muted">{statusOf(plots[k].status).label}</span>
+                    {plots[k].unitNumber} · <span className="text-muted">{labelOf(plots[k].status)}</span>
                   </button></li>
                 ))}
               </ul>
@@ -133,7 +136,7 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
                 <button key={s} type="button" aria-pressed={on} onClick={() => setHidden((h) => { const n = new Set(h); if (on) n.add(s); else n.delete(s); return n })}
                   className={cn('inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-[12px] font-medium', on ? 'border-default bg-surface text-foreground' : 'border-dashed border-default text-subtle line-through')}>
                   <span aria-hidden className="size-2.5 rounded-full" style={{ background: statusOf(s).color }} />
-                  {statusOf(s).label} <span className="text-muted">{counts[s]}</span>
+                  {labelOf(s)} <span className="text-muted">{counts[s]}</span>
                 </button>
               )
             })}
@@ -198,7 +201,7 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
               <button type="button" aria-label="Close" onClick={() => setSelected(null)} className="grid size-8 place-items-center rounded text-subtle hover:bg-surface-hover"><X aria-hidden className="size-4" /></button>
             </div>
             <p className="inline-flex items-center gap-1.5 rounded-full bg-surface-hover px-2.5 py-1 text-[12px] font-medium text-foreground">
-              <span aria-hidden className="size-2.5 rounded-full" style={{ background: statusOf(sel.status).color }} /> {statusOf(sel.status).label}
+              <span aria-hidden className="size-2.5 rounded-full" style={{ background: statusOf(sel.status).color }} /> {labelOf(sel.status)}
             </p>
             <dl className="grid grid-cols-2 gap-2 text-[13px]">
               {sel.area != null && <div><dt className="text-[11px] text-muted">Area</dt><dd className="font-medium">{sel.area} {AREA_UNIT[sel.areaUnit ?? ''] ?? sel.areaUnit}</dd></div>}

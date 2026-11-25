@@ -1,5 +1,6 @@
 'use client'
 // components/inventory/InventoryViewManager.tsx
+import { useStatusLabels } from '@/components/settings/WorkspacePrefs'
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -57,6 +58,7 @@ export function InventoryViewManager({
   initialItems,
   isManager,
 }: InventoryViewManagerProps) {
+  const statusLabels = useStatusLabels()
   const [items, setItems] = useState<(InventoryItemWithRelations & { hierarchy_path?: string })[]>(initialItems)
   const [viewMode, setViewMode] = useState<ViewMode>('table')
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
@@ -377,35 +379,35 @@ export function InventoryViewManager({
             text: 'text-[var(--foreground)]',
           },
           {
-            label: 'Available',
+            label: statusLabels.available,
             value: metrics.available,
             statusKey: 'available',
             color: 'border-success/30 bg-success-bg/50',
             text: 'text-success',
           },
           {
-            label: 'On Hold',
+            label: statusLabels.on_hold,
             value: metrics.on_hold,
             statusKey: 'on_hold',
             color: 'border-warning/30 bg-warning-bg/50',
             text: 'text-warning',
           },
           {
-            label: 'Booked',
+            label: statusLabels.booked,
             value: metrics.booked,
             statusKey: 'booked',
             color: 'border-brand/30 bg-brand-light/50',
             text: 'text-brand',
           },
           {
-            label: 'Sold',
+            label: statusLabels.sold,
             value: metrics.sold,
             statusKey: 'sold',
             color: 'border-accent-border bg-accent-bg',
             text: 'text-accent',
           },
           {
-            label: 'Blocked',
+            label: statusLabels.blocked,
             value: metrics.blocked,
             statusKey: 'blocked',
             color: 'border-default bg-surface-muted',
