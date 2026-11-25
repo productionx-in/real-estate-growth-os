@@ -2,6 +2,7 @@
 // Customer-facing Integration Centre view for managing marketing channels, Meta connections, and project mappings.
 'use client'
 
+import { MAX_WHATSAPP_NUMBERS, numberLabel } from '@/lib/integrations/whatsapp/numbers'
 import { useState } from 'react'
 import {
   Plug,
@@ -79,6 +80,8 @@ export function IntegrationCentreView({
   const activeMetaConnections = metaConnections.filter((c) => c.status === 'connected')
   const websiteConnection = connections.find((c) => c.provider === 'website_webhook')
   const whatsappConnection = connections.find((c) => c.provider === 'whatsapp_cloud')
+  // A workspace can connect several WhatsApp numbers (lib/integrations/whatsapp/numbers.ts).
+  const whatsappNumbers = connections.filter((c) => c.provider === 'whatsapp_cloud' && c.status === 'connected')
   const activeVerifiedConnections = connections.filter((c) => c.status === 'connected')
 
   // Refresh data from API
@@ -399,12 +402,12 @@ export function IntegrationCentreView({
                 </div>
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                    whatsappConnection?.status === 'connected'
+                    whatsappNumbers.length > 0
                       ? 'bg-success-bg text-success border border-success/30'
                       : 'bg-surface-hover text-muted border border-default'
                   }`}
                 >
-                  {whatsappConnection?.status === 'connected' ? 'Connected' : 'Not Connected'}
+                  {whatsappNumbers.length > 1 ? `${whatsappNumbers.length} numbers` : whatsappNumbers.length ? 'Connected' : 'Not Connected'}
                 </span>
               </div>
 
@@ -419,14 +422,20 @@ export function IntegrationCentreView({
               </p>
 
               <div className="space-y-1.5 pt-2 border-t border-default text-[11px] text-subtle">
-                <div className="flex justify-between gap-2">
-                  <span>Number:</span>
-                  <span className="font-medium text-foreground">
-                    {whatsappConnection?.status === 'connected'
-                      ? String((whatsappConnection.metadata as Record<string, unknown> | null)?.displayPhoneNumber ?? 'Connected')
-                      : 'Not connected'}
-                  </span>
-                </div>
+                {whatsappNumbers.length === 0 ? (
+                  <div className="flex justify-between gap-2"><span>Number:</span><span className="font-medium text-foreground">Not connected</span></div>
+                ) : (
+                  <ul className="space-y-1" aria-label="Connected WhatsApp numbers">
+                    {whatsappNumbers.map((c) => (
+                      <li key={c.id} className="flex items-center justify-between gap-2">
+                        <span className="min-w-0 truncate font-medium text-foreground">{numberLabel({ name: c.name, metadata: c.metadata as Record<string, unknown> | null })}</span>
+                        {canManage && (
+                          <button type="button" onClick={() => setSelectedConnection(c)} className="shrink-0 text-brand hover:underline">Manage</button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 {whatsappConnection?.last_error && (
                   <p className="text-warning">{whatsappConnection.last_error}</p>
                 )}
@@ -434,7 +443,7 @@ export function IntegrationCentreView({
             </div>
 
             <div className="space-y-2 pt-3">
-              <WhatsAppEmbeddedSignup orgId={org.id} connected={whatsappConnection?.status === 'connected'} canManage={canManage} />
+              <WhatsAppEmbeddedSignup orgId={org.id} connected={whatsappNumbers.length > 0} canManage={canManage} full={whatsappNumbers.length >= MAX_WHATSAPP_NUMBERS} />
               <button
                 onClick={() => setIsWhatsAppWizardOpen(true)}
                 disabled={!canManage}

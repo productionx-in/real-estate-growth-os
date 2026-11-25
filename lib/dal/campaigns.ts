@@ -11,6 +11,7 @@ import { getSegment, segmentCandidates } from '@/lib/dal/segments'
 import { queueEmail } from '@/lib/email/service'
 import { sendWhatsAppMessage } from '@/lib/integrations/whatsapp/client'
 import { templateBody, templateParamCount } from '@/lib/integrations/whatsapp/inbox-rules'
+import { numberLabel } from '@/lib/integrations/whatsapp/numbers'
 import {
   MAX_RECIPIENTS, WHATSAPP_BATCH, addressFor, canRunCampaigns, planRecipients, unknownPlaceholders, whatsappParams,
   type CampaignStatus, type Channel, type Counts,
@@ -114,8 +115,7 @@ export async function whatsappOptions(orgId: string): Promise<WhatsAppOption[]> 
     const templates = ((tpls ?? []) as { template_name: string; language: string; components: unknown }[])
       .map((t) => { const body = templateBody(t.components); return { name: t.template_name, language: t.language, body, params: templateParamCount(body) } })
       .filter((t) => t.params <= 1)
-    const phone = typeof c.metadata?.display_phone_number === 'string' ? ` (${c.metadata.display_phone_number})` : ''
-    out.push({ connectionId: c.id, label: `${c.name ?? 'WhatsApp'}${phone}`, templates })
+    out.push({ connectionId: c.id, label: numberLabel(c), templates })
   }
   return out
 }

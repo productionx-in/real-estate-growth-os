@@ -6,6 +6,7 @@
 import { decryptCredential } from '@/lib/integrations/crypto'
 import { createServiceClient } from '@/lib/supabase/server'
 import { canSendOutboundMessage } from './consent'
+import { phoneNumberIdOf } from './numbers'
 import { validateTemplateForSending } from './templates'
 import type {
   WhatsAppTemplateAsset,
@@ -100,7 +101,7 @@ export async function sendWhatsAppMessage(params: {
 
   // 3. Resolve phone_number_id from metadata
   const meta = conn.metadata as Record<string, unknown> | null
-  const phoneNumberId = meta?.phone_number_id as string | undefined
+  const phoneNumberId = phoneNumberIdOf(meta) ?? undefined
   if (!phoneNumberId) {
     return {
       success: false,
