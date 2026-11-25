@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { BellRing, CalendarClock, Phone, UserPlus, X } from 'lucide-react'
+import { BellRing, CalendarClock, Phone, Trophy, UserPlus, X } from 'lucide-react'
 import { loudest, soundFor, type AlertSoundKind, type LeadAlertSettings } from '@/lib/notifications/lead-alerts'
 import { playSound, unlockSoundOnInteraction } from '@/lib/notifications/sounds'
 import { cn } from '@/lib/utils/cn'
@@ -18,12 +18,13 @@ interface Alert { id: string; kind: AlertSoundKind; title: string; body: string;
 type Shown = Alert & { leaving?: boolean }
 
 const POLL_MS = 15_000
-const STAY_MS: Record<AlertSoundKind, number> = { newLead: 12_000, reminder: 15_000, followUp: 12_000 }
+const STAY_MS: Record<AlertSoundKind, number> = { newLead: 12_000, reminder: 15_000, followUp: 12_000, win: 9_000 }
 const MAX_VISIBLE = 3
 const SEEN_KEY = 'regrow.alerts.seen'
 
 const LOOK: Record<AlertSoundKind, { icon: typeof UserPlus; label: string; tint: string }> = {
   newLead: { icon: UserPlus, label: 'New lead', tint: 'bg-brand text-brand-foreground' },
+  win: { icon: Trophy, label: 'Well done', tint: 'bg-warning text-warning-foreground' },
   reminder: { icon: BellRing, label: 'Not contacted yet', tint: 'bg-warning text-warning-foreground' },
   followUp: { icon: CalendarClock, label: 'Follow-up', tint: 'bg-success text-success-foreground' },
 }
