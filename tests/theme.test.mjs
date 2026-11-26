@@ -43,9 +43,9 @@ test('the other preferences: match device, always light, always dark', () => {
   assert.equal(T.effective('light', new Date('2026-11-18T18:30:00Z'), true, 'Asia/Kolkata', -330), 'light')
 })
 
-test('public, buyer-facing and marketing pages stay light; the app and sign-in follow the preference', () => {
-  for (const p of ['/', '/pricing', '/demo', '/leakage-audit', '/privacy', '/terms', '/p/skyline', '/d/abc', '/forms/x']) assert.equal(T.lightOnly(p), true, p)
-  for (const p of ['/acme/leads', '/select-org', '/login', '/platform', '/pricingcalc']) assert.equal(T.lightOnly(p), false, p)
+test('public, buyer-facing, marketing and sign-in pages stay light (no flash from the light site); the app follows the preference', () => {
+  for (const p of ['/', '/pricing', '/demo', '/leakage-audit', '/privacy', '/terms', '/p/skyline', '/d/abc', '/forms/x', '/login', '/reset-password', '/register', '/invite/abc']) assert.equal(T.lightOnly(p), true, p)
+  for (const p of ['/acme/leads', '/select-org', '/platform', '/pricingcalc', '/loginx']) assert.equal(T.lightOnly(p), false, p)
 })
 
 test('the inline boot script runs on its own and sets the theme before paint; storage errors are harmless', () => {

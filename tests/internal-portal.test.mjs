@@ -16,7 +16,7 @@ function test(name, fn) { fn(); passed++; console.log(`  ✓ ${name}`) }
 
 console.log('INTERNAL PORTAL & SIGN-IN')
 
-test('sign-in: two public entry points, staff unlisted; each lands in the right place; unknown values fall back safely', () => {
+test('sign-in: one customer sign-in (owner decision 26 Nov 2026), staff unlisted and visibly different; each lands in the right place; unknown values fall back safely', () => {
   assert.deepEqual(S.AUDIENCES.map((a) => a.id), ['developer', 'agency', 'staff'])
   assert.deepEqual(S.PUBLIC_AUDIENCES.map((a) => a.id), ['developer', 'agency'], 'the staff sign-in is not offered publicly')
   assert.equal(S.audienceHome('staff'), '/platform')
@@ -24,8 +24,10 @@ test('sign-in: two public entry points, staff unlisted; each lands in the right 
   assert.equal(S.audienceHome('developer'), '/select-org?type=developer')
   assert.equal(S.parseAudience('https://evil.example'), 'developer')
   const login = read('app/(auth)/login/page.tsx')
-  assert.match(login, /redirectTo\?\.startsWith\('\/platform'\) \? 'staff'/, 'console sign-in links open the staff entry')
-  assert.match(login, /PUBLIC_AUDIENCES\.map/, 'the switcher lists public entry points only')
+  assert.match(login, /redirectTo\?\.startsWith\('\/platform'\)/, 'console sign-in links open the staff entry')
+  assert.doesNotMatch(login, /PUBLIC_AUDIENCES|for=\$\{a\.id\}/, 'customers get one sign-in, no developer/agency switcher')
+  assert.match(login, /Staff console/); assert.match(login, /theme-dark band-ink/, 'the staff card looks different from the customer one')
+  assert.match(login, /defaultRedirect=\{staff \? audienceHome\('staff'\) : '\/select-org'\} staff=\{staff\}/)
   assert.doesNotMatch(login, /AUDIENCES\.map\(\(a\) => \{\s*const Icon = ICON\[a\.id\]\s*const active = a\.id === audience\s*return \(\s*<Link key=\{a\.id\} href=\{`\/login\?for=\$\{a\.id\}\$\{a\.id === 'staff'/)
   for (const f of ['app/page.tsx', 'components/marketing/MarketingHeader.tsx', 'components/marketing/MarketingFooter.tsx', 'components/marketing/MobileMenu.tsx']) {
     if (fs.existsSync(path.join(root, f))) assert.doesNotMatch(read(f), /for=staff/, `${f} must not link the staff sign-in`)

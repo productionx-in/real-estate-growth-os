@@ -186,6 +186,8 @@
 }
 
 /* 2. Semantic — dark */
+/* .theme-dark: the same dark tokens on one element (the staff sign-in card), whatever the page theme. */
+.theme-dark,
 :root[data-theme="dark"] {
   --background: #0b1120;
   --surface: #121a2b;
