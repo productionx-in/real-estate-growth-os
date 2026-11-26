@@ -49,6 +49,15 @@ export interface GamificationSettings {
     visibleTo: Visibility
     show: { xp: boolean; contacted: boolean; closed: boolean; revenue: boolean; target: boolean }
   }
+  /** The sales activity feed (20260101): bookings, achievements, targets, trophies and rewards as they happen. */
+  feed: {
+    enabled: boolean
+    /** Everyone who sells, or owners, admins and managers only. */
+    visibleTo: Visibility
+    /** Show booking values to people who are not managers (managers always see them). */
+    showAmounts: boolean
+    reactions: boolean
+  }
 }
 
 export const DEFAULT_LEVELS: Level[] = [
@@ -68,6 +77,8 @@ export const DEFAULT_GAMIFICATION: GamificationSettings = {
   missions: DEFAULT_MISSIONS,
   // Friendly by default: everyone sees points, contacts, deals and target progress; money only for managers.
   leaderboard: { visibleTo: 'everyone', show: { xp: true, contacted: true, closed: true, revenue: false, target: true } },
+  // Celebrate together by default; booking values stay with managers unless the workspace chooses otherwise.
+  feed: { enabled: true, visibleTo: 'everyone', showAmounts: false, reactions: true },
 }
 
 type Errors = Record<string, string>
@@ -126,7 +137,14 @@ export function normaliseGamification(input: unknown): { value: GamificationSett
     visibleTo: (lb.visibleTo === 'managers' ? 'managers' : 'everyone') as Visibility,
     show: Object.fromEntries(Object.entries(d.leaderboard.show).map(([k, v]) => [k, typeof show[k] === 'boolean' ? show[k] : v])) as GamificationSettings['leaderboard']['show'],
   }
-  return { value: { enabled: typeof o.enabled === 'boolean' ? o.enabled : d.enabled, xp, followUpDailyCap, levels, missions, leaderboard }, errors }
+  const fd = (o.feed && typeof o.feed === 'object' ? o.feed : {}) as Record<string, unknown>
+  const feed = {
+    enabled: typeof fd.enabled === 'boolean' ? fd.enabled : d.feed.enabled,
+    visibleTo: (fd.visibleTo === 'managers' ? 'managers' : 'everyone') as Visibility,
+    showAmounts: typeof fd.showAmounts === 'boolean' ? fd.showAmounts : d.feed.showAmounts,
+    reactions: typeof fd.reactions === 'boolean' ? fd.reactions : d.feed.reactions,
+  }
+  return { value: { enabled: typeof o.enabled === 'boolean' ? o.enabled : d.enabled, xp, followUpDailyCap, levels, missions, leaderboard, feed }, errors }
 }
 
 export function gamificationFromStored(v: unknown): GamificationSettings {

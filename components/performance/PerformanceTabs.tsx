@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { cn } from '@/lib/utils/cn'
 
-export type PerformanceTab = 'team' | 'me' | 'leaderboard' | 'achievements' | 'manage'
+export type PerformanceTab = 'team' | 'me' | 'leaderboard' | 'achievements' | 'activity' | 'manage'
 
 export function PerformanceTabs({ orgSlug, current, canManage, watchesTeam = false, sellsPersonally = true }: {
   orgSlug: string; current: PerformanceTab; canManage: boolean; watchesTeam?: boolean; sellsPersonally?: boolean
@@ -13,6 +13,8 @@ export function PerformanceTabs({ orgSlug, current, canManage, watchesTeam = fal
     ...(sellsPersonally ? [{ key: 'me', label: 'My performance', href: `/${orgSlug}/performance${watchesTeam ? '?me=1' : ''}` }] : []),
     { key: 'leaderboard', label: 'Leaderboard', href: `/${orgSlug}/performance/leaderboard` },
     { key: 'achievements', label: 'Achievements', href: `/${orgSlug}/performance/achievements` },
+    // The sales activity feed (20260101); the page itself follows the workspace's feed settings.
+    { key: 'activity', label: 'Activity', href: `/${orgSlug}/performance/activity` },
     ...(canManage ? [{ key: 'manage', label: 'Targets & settings', href: `/${orgSlug}/performance/manage` }] : []),
   ]
   return (

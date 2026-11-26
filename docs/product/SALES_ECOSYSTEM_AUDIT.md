@@ -1,5 +1,9 @@
 # Sales performance ecosystem — audit and plan
 
+> **Status (stages A–E built):** Teams nav (A), shared deal credit 20260098 (B), weekly challenges, monthly
+> achievements and trophies 20260099 (C), Rewards 20260100 (D), Activity feed 20260101 (E). Remaining: the global UI
+> items in §8 (shared table, dialog migration, chart frame).
+
 Audit of the request for teams, targets, shared deal credit, gamification, rewards, an activity feed, CRM
 integration, global UI, and security. Written before building anything, so each stage extends what exists
 instead of adding a second system.
@@ -29,7 +33,7 @@ are all read from it, so nothing is counted twice and nothing can be typed in by
 | Individual and team dashboards with progress | Done (`/performance`, `/performance/team`) |
 | History of target changes | Done (`performance_target_history`) |
 
-## 3. Shared deal credit — missing → Stage B
+## 3. Shared deal credit — Stage B (built)
 
 Today a booked deal credits 100% to the lead's assignee (`perf_from_lead`), and revenue credits the
 closer (the bookings trigger). Stage B adds:
@@ -56,7 +60,7 @@ closer (the bookings trigger). Stage B adds:
 | Conversion rate and target completion columns | **Stage C** |
 | No duplicate achievements | Done (unique `achievement_unlocks` per window, `dedupe_key`) |
 
-## 5. Rewards and incentives — missing → Stage D
+## 5. Rewards and incentives — Stage D (built)
 
 New module `/rewards`:
 
@@ -68,7 +72,7 @@ New module `/rewards`:
   (unique key).
 - **Claims:** pending → approved / rejected → fulfilled → redeemed. Every step is audited.
 
-## 6. Activity feed — missing → Stage E
+## 6. Activity feed — Stage E (built)
 
 The feed is built from what already happened, so there is no second source of truth: closed deals,
 achievement unlocks, targets hit, and team milestones. It adds:
