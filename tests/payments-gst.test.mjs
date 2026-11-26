@@ -45,7 +45,7 @@ await test('authorisation: GST particulars are Platform Owner only; billing deta
   assert.match(profile, /recordOrgAudit\(/)
   assert.doesNotMatch(profile, /^export const /m, 'route files export handlers only')
   const invoice = read('app/(dashboard)/[orgSlug]/billing/invoices/[invoiceId]/page.tsx')
-  assert.doesNotMatch(invoice, /GST \(18%\)|INFYN Group/, 'no hard-coded rate or supplier')
+  assert.doesNotMatch(invoice, /GST \(18%\)|Production X/, 'no hard-coded rate or supplier')
 })
 
 console.log(`Payments GST: ${passed} checks passed`)

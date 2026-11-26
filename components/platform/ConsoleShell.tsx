@@ -4,6 +4,7 @@
 // every page and API route checks the role again.
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { ReMark } from '@/components/brand/Logo'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   Bot, Building2, ChevronDown, CreditCard, LayoutDashboard, LifeBuoy, LogOut, Menu, PlusCircle, ScrollText, ShieldCheck, TrendingUp, UserCog, Users, Mail, Plug, Puzzle, MapPinned, X,
@@ -69,8 +70,8 @@ function Rail({ groups, onNavigate }: { groups: ConsoleNavGroup[]; onNavigate?: 
 function Brand() {
   return (
     <Link href="/platform" className="flex items-center gap-2.5 px-6 py-5">
-      <span className="grid size-8 place-items-center rounded-lg bg-highlight text-[13px] font-bold text-highlight-foreground">RG</span>
-      <span className="text-[13px] font-semibold uppercase tracking-wider text-rail-strong">REGrow console</span>
+      <ReMark tone="white" className="h-6 w-auto" />
+      <span className="text-[13px] font-semibold uppercase tracking-wider text-rail-strong">Console</span>
     </Link>
   )
 }

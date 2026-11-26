@@ -1,4 +1,4 @@
-// tests/db-integration/p23-internal-portal.test.mjs — REGrow's internal experiences against the local Supabase stack
+// tests/db-integration/p23-internal-portal.test.mjs — RE by PX's internal experiences against the local Supabase stack
 // (migration 20260061, lib/platform/portal.ts): Internal Sales (own vs all prospects, assignment rules, website
 // requests imported once), Internal Support (cases, internal notes hidden from customers, cross-organisation
 // isolation), staff accounts (Platform Owner only, never yourself, always one owner), audit, and no client access.
@@ -34,7 +34,7 @@ async function main() {
   const count = async (s, p) => Number((await one(s, p)).n)
 
   const mkUser = async (label) => {
-    const { data, error } = await db.auth.admin.createUser({ email: `${label}-${RUN}@regrow.test`, password: PASSWORD, email_confirm: true, user_metadata: { full_name: label } })
+    const { data, error } = await db.auth.admin.createUser({ email: `${label}-${RUN}@repx.test`, password: PASSWORD, email_confirm: true, user_metadata: { full_name: label } })
     if (error) throw error
     return { id: data.user.id, email: data.user.email, profile: (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [data.user.id])).id }
   }
@@ -91,11 +91,11 @@ async function main() {
     assert.ok(await count(`SELECT count(*) n FROM public.platform_audit_logs WHERE target_entity_id=$1 AND action LIKE 'sales.%'`, [pA]) >= 3)
   })
 
-  await test('sales: website demo requests (REGrow’s own form connection) import once; only managers or the owner', async () => {
-    const infyn = await mkOrg('Infyn')
-    const conn = (await one(`INSERT INTO public.integration_connections (org_id, provider, name, status) VALUES ($1,'website_webhook','Website demo form','connected') RETURNING id`, [infyn])).id
+  await test('sales: website demo requests (RE by PX’s own form connection) import once; only managers or the owner', async () => {
+    const px = await mkOrg('Production X')
+    const conn = (await one(`INSERT INTO public.integration_connections (org_id, provider, name, status) VALUES ($1,'website_webhook','Website demo form','connected') RETURNING id`, [px])).id
     for (const [name, company] of [['Ravi', `Company: Lotus Estates ${RUN} (Developer / builder)\nSales team size: 12\nRequest: A migration assessment`], ['Meera', `Company: Prime Brokers ${RUN} (Channel-partner agency)\nSales team size: 4`]]) {
-      await sql.query(`INSERT INTO public.leads (org_id, name, phone, source, connection_id, notes, status) VALUES ($1,$2,$3,'website',$4,$5,'new')`, [infyn, name, `+9190000${Math.floor(Math.random() * 90000 + 10000)}`, conn, company])
+      await sql.query(`INSERT INTO public.leads (org_id, name, phone, source, connection_id, notes, status) VALUES ($1,$2,$3,'website',$4,$5,'new')`, [px, name, `+9190000${Math.floor(Math.random() * 90000 + 10000)}`, conn, company])
     }
     assert.equal((await P.importWebsiteRequests(db, repA.actor, conn)).status, 403)
     assert.equal((await P.importWebsiteRequests(db, manager.actor, conn)).data.imported, 2)
@@ -150,7 +150,7 @@ async function main() {
     assert.equal((await P.addStaff(db, manager.actor, newcomer.email, 'sales_rep')).status, 403)
     // Someone with no account yet: the account is created without a password, and only a one-time link is returned.
     const ORIGIN = 'http://localhost:3000'
-    const freshEmail = `fresh-${RUN}@regrow.test`
+    const freshEmail = `fresh-${RUN}@repx.test`
     assert.equal((await P.addStaff(db, owner.actor, freshEmail, 'sales_rep')).status, 500, 'no app address: nothing is created')
     assert.equal(await count('SELECT count(*) n FROM auth.users WHERE email=$1', [freshEmail]), 0)
     const fresh = await P.addStaff(db, owner.actor, freshEmail, 'sales_rep', ORIGIN)

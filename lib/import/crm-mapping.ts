@@ -1,5 +1,5 @@
 // lib/import/crm-mapping.ts
-// Maps what other CRMs (Sell.Do, LeadSquared, TeleCRM, spreadsheets) export into REGrow's vocabulary,
+// Maps what other CRMs (Sell.Do, LeadSquared, TeleCRM, spreadsheets) export into RE by PX's vocabulary,
 // so a team can move its history over without hand-editing the file.
 import type { LeadSource, LeadStatus } from '@/types/database'
 import { parseDate } from '@/lib/audit/leakage'

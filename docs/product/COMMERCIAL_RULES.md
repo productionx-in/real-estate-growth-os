@@ -1,4 +1,4 @@
-# REGrow — commercial rules (decided 2026-11-18)
+# RE by PX — commercial rules (decided 2026-11-18)
 
 The founder delegated these decisions ("you do the math … keep in product info"). They are recorded here and in
 `DECISIONS_LOG.md` (DEC-022). Each line says whether it is **enforced in code**, **planned** (which PR), or a
@@ -8,8 +8,8 @@ The founder delegated these decisions ("you do the math … keep in product info
 
 | Plan | For | Monthly | Annual | Included users | Extra user / month | Status |
 |---|---|---|---|---|---|---|
-| REGrow for Agencies | Channel-partner agencies | ₹4,999 | ₹49,990 | 5 | ₹600 | Live (catalogue = website) |
-| REGrow Leads | Developers | ₹12,000 | ₹1,20,000 | 10 | ₹900 | Live (catalogue = website) |
+| RE for Agencies | Channel-partner agencies | ₹4,999 | ₹49,990 | 5 | ₹600 | Live (catalogue = website) |
+| RE by PX Leads | Developers | ₹12,000 | ₹1,20,000 | 10 | ₹900 | Live (catalogue = website) |
 | Enterprise | Groups, custom terms | Quote | Quote | Contract | Contract | Sales-assisted (platform provisioning) |
 | Independent CP | Individual brokers | ₹1,499 | ₹14,990 | 1 | ₹600, at most 1 extra (2 users max) | **Planned** (own PR). Capped so it never undercuts Agencies: 2 users = ₹2,099 vs Agencies ₹4,999 for 5. |
 
@@ -37,7 +37,7 @@ Annual = 10 × monthly (two months free). Prices come only from the versioned ca
   even over the lead limit — a buyer enquiry is never lost. Manual entry and CSV import stop at the limit. **Enforced.**
 - **One trial per person per organisation type, for life.** Someone who runs an agency and a developer business
   gets one trial for each; a second workspace of the same type starts without a trial and must choose a plan.
-  **Enforced** (`trial_grants`). REGrow staff can still provision any workspace through platform provisioning.
+  **Enforced** (`trial_grants`). RE by PX staff can still provision any workspace through platform provisioning.
 - Upgrade any time during or after the trial; data and team stay. **Enforced.**
 
 ## End of a trial or paid period
@@ -46,7 +46,7 @@ Annual = 10 × monthly (two months free). Prices come only from the versioned ca
   enquiries are still captured, nobody can change records. **Enforced** (job every 15 minutes).
 - Paid period ends → **7 days "payment overdue" with full access**, then read-only. **Enforced.**
 - Owners and admins keep access to Plan & billing while read-only, and paying restores the workspace at once.
-  **Enforced.** A suspension by REGrow staff is not lifted by paying.
+  **Enforced.** A suspension by RE by PX staff is not lifted by paying.
 - Data is never deleted for non-payment. Export during read-only: owners can request it from support (self-serve
   export while read-only is **planned**).
 
@@ -64,7 +64,7 @@ Annual = 10 × monthly (two months free). Prices come only from the versioned ca
 - Verification is per organisation. Unverified organisations can use their own CRM fully; **cross-organisation
   actions (sending or accepting partnership requests, sharing projects, registering buyers) need verification.**
   Evidence: developer — legal name plus GSTIN or RERA promoter registration; agency — legal name plus RERA agent
-  registration or GSTIN. Reviewed by REGrow staff; shared phone/email/owner is a reason to review, never to block
+  registration or GSTIN. Reviewed by RE by PX staff; shared phone/email/owner is a reason to review, never to block
   or merge. Workspaces provisioned by staff before self-serve count as verified. **Planned (verification PR).**
 
 ## Website and acquisition

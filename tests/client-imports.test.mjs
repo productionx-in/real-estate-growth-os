@@ -1,6 +1,6 @@
 // tests/client-imports.test.mjs — a server file must not import plain values (constants, helpers) from a module marked
 // 'use client': on the server that import is a client reference, not the value. STAGE_LABEL imported that way left
-// every stage badge on REGrow's sales pipeline empty. Components (capitalised) and types are fine.
+// every stage badge on RE by PX's sales pipeline empty. Components (capitalised) and types are fine.
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'

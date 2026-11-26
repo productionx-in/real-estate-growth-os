@@ -24,7 +24,7 @@ async function main() {
   const sql = new (pg.default || pg).Client({ connectionString: DATABASE_URL }); await sql.connect()
   const one = async (s, p) => (await sql.query(s, p)).rows[0]
   const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } })
-  const { data: u, error: ue } = await db.auth.admin.createUser({ email: `ws-${RUN}@regrow.test`, password: `Ws-Test-${RUN}x9`, email_confirm: true, user_metadata: { full_name: 'Settings Owner' } })
+  const { data: u, error: ue } = await db.auth.admin.createUser({ email: `ws-${RUN}@repx.test`, password: `Ws-Test-${RUN}x9`, email_confirm: true, user_metadata: { full_name: 'Settings Owner' } })
   if (ue) throw ue
   const actor = (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [u.user.id])).id
 

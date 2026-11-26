@@ -45,11 +45,11 @@ async function main() {
   console.log('P0 — INVITATION EMAIL MUST MATCH (real lib/dal/invitations.ts)')
   try {
     const org = (await one(`INSERT INTO public.organisations (name, slug, type) VALUES ($1,$2,'developer') RETURNING id`, [`Inv ${RUN}`, `inv-${RUN}`])).id
-    const owner = await mkAuthUser(`owner-${RUN}@regrow.test`, true)
+    const owner = await mkAuthUser(`owner-${RUN}@repx.test`, true)
     await db.query(`INSERT INTO public.org_members (org_id, profile_id, role) VALUES ($1,$2,'owner')`, [org, owner.profileId])
-    const invited = `asha-${RUN}@regrow.test`
+    const invited = `asha-${RUN}@repx.test`
     const asha = await mkAuthUser(invited, true)
-    const mallory = await mkAuthUser(`mallory-${RUN}@regrow.test`, true)
+    const mallory = await mkAuthUser(`mallory-${RUN}@repx.test`, true)
 
     await test('another account holding the link cannot join (403), and the invitation stays pending', async () => {
       const token = await invite(org, owner.profileId, invited)
@@ -65,13 +65,13 @@ async function main() {
       assert.equal(ok.orgSlug, `inv-${RUN}`)
     })
     await test('the invited email is matched case-insensitively', async () => {
-      const upper = await mkAuthUser(`ravi-${RUN}@regrow.test`, true)
-      const token = await invite(org, owner.profileId, `Ravi-${RUN}@ReGrow.test`)
+      const upper = await mkAuthUser(`ravi-${RUN}@repx.test`, true)
+      const token = await invite(org, owner.profileId, `Ravi-${RUN}@RePx.test`)
       const r = await dal.acceptEmployeeInvitation(token, upper.profileId, upper.authId)
       assert.equal(r.success, true, r.error)
     })
     await test('an unverified account with the right email must verify first (403)', async () => {
-      const email = `unverified-${RUN}@regrow.test`
+      const email = `unverified-${RUN}@repx.test`
       const u = await mkAuthUser(email, false)
       const token = await invite(org, owner.profileId, email)
       const r = await dal.acceptEmployeeInvitation(token, u.profileId, u.authId)

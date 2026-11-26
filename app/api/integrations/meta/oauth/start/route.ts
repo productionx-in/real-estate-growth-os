@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         {
           error: 'meta_app_not_configured',
           message:
-            'Central REGrow Meta Developer App is not yet configured. The following environment variables must be configured on the server: ' +
+            'Central RE by PX Meta Developer App is not yet configured. The following environment variables must be configured on the server: ' +
             config.missing.join(', '),
           missing: config.missing,
         },

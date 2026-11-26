@@ -13,8 +13,8 @@ export function safeRedirectPath(raw: string | null | undefined, fallback: strin
   if (/[\\\u0000-\u001f\u007f]/.test(value)) return fallback // backslashes and control chars (incl. encoded tab/newline after decoding)
   try {
     // Resolve against a dummy origin: the result must stay on that origin and keep the same path.
-    const url = new URL(value, 'https://regrow.invalid')
-    if (url.origin !== 'https://regrow.invalid') return fallback
+    const url = new URL(value, 'https://repx.invalid')
+    if (url.origin !== 'https://repx.invalid') return fallback
     return `${url.pathname}${url.search}${url.hash}`
   } catch {
     return fallback

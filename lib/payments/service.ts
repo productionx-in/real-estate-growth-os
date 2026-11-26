@@ -335,7 +335,7 @@ export async function reconcile(db: Db, adapter: ProviderAdapter, from: Date, to
       }
       await db.from('org_subscription_payments').update({ settlement_id: s?.id, settled_at: l.settledAt, fee_cents: l.feePaise, tax_on_fee_cents: l.taxOnFeePaise }).eq('id', p.id)
     }
-    // Captured in REGrow more than 5 days before the period end but not in any settlement yet.
+    // Captured in RE by PX more than 5 days before the period end but not in any settlement yet.
     const { data: unsettled } = await db.from('org_subscription_payments').select('id, provider_payment_id, amount_cents')
       .eq('provider', adapter.code).eq('environment', adapter.environment).is('settlement_id', null).lt('verified_at', new Date(to.getTime() - 5 * 86_400_000).toISOString())
     for (const u of unsettled ?? []) {

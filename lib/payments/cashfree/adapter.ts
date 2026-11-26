@@ -90,7 +90,7 @@ export function cashfreeAdapter(cfg: CashfreeConfig, fetchImpl: typeof fetch = f
         body: JSON.stringify({
           subscription_id: ref(input.reference),
           customer_details: { customer_id: ref(input.customer.id), customer_email: input.customer.email ?? undefined, customer_phone: input.customer.phone ?? undefined, customer_name: input.customer.name ?? undefined },
-          plan_details: { plan_name: `REGrow ${input.frequency}`, plan_type: 'ON_DEMAND', plan_currency: 'INR', plan_max_amount: toRupees(input.maxAmountPaise) },
+          plan_details: { plan_name: `RE by PX ${input.frequency}`, plan_type: 'ON_DEMAND', plan_currency: 'INR', plan_max_amount: toRupees(input.maxAmountPaise) },
           authorization_details: { authorization_amount: 1, authorization_amount_refund: true, payment_methods: input.method === 'upi_autopay' ? ['upi'] : input.method === 'enach' ? ['enach'] : ['card'] },
           subscription_meta: input.returnUrl ? { return_url: input.returnUrl } : undefined,
           subscription_tags: { org_id: input.orgId },

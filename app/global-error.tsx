@@ -9,9 +9,9 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   useEffect(() => {
     if (!isStaleBuildError(error)) return
     let last = 0
-    try { last = Number(sessionStorage.getItem('regrow:stale-reload-at') ?? 0) } catch { /* storage blocked */ }
+    try { last = Number(sessionStorage.getItem('repx:stale-reload-at') ?? 0) } catch { /* storage blocked */ }
     if (Date.now() - last > 60_000) {
-      try { sessionStorage.setItem('regrow:stale-reload-at', String(Date.now())) } catch { /* storage blocked */ }
+      try { sessionStorage.setItem('repx:stale-reload-at', String(Date.now())) } catch { /* storage blocked */ }
       window.location.reload()
     }
   }, [error])
@@ -20,12 +20,12 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
       <body style={{ margin: 0, fontFamily: 'system-ui, sans-serif', background: '#f8f9fa', color: '#111827' }}>
         <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ maxWidth: 420, textAlign: 'center' }}>
-            <h1 style={{ fontSize: 20, margin: 0 }}>REGrow couldn’t load</h1>
+            <h1 style={{ fontSize: 20, margin: 0 }}>RE by PX couldn’t load</h1>
             <p style={{ color: '#4b5563', fontSize: 14 }}>Your data is safe. Please try again in a moment.</p>
             {error.digest && <p style={{ color: '#6b7280', fontSize: 12 }}>Reference: {error.digest}</p>}
             <button
               onClick={() => (error.digest ? reset() : window.location.reload())}
-              style={{ marginTop: 12, background: '#1d4ed8', color: '#fff', border: 0, borderRadius: 6, padding: '8px 14px', fontSize: 14, cursor: 'pointer' }}
+              style={{ marginTop: 12, background: '#4338ca', color: '#fff', border: 0, borderRadius: 6, padding: '8px 14px', fontSize: 14, cursor: 'pointer' }}
             >
               Try again
             </button>

@@ -18,6 +18,6 @@ export async function GET(request: NextRequest) {
   const m = await requireModule(orgId, 'analytics'); if (m) return m
   const [c, names] = await Promise.all([getCatalogue(orgId, period), report === 'team' ? memberNames(orgId) : Promise.resolve(new Map<string, string>())])
   return new NextResponse(catalogueCsv(report, c, names), {
-    headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="regrow-${report}-${period}.csv"`, 'Cache-Control': 'no-store' },
+    headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="re-by-px-${report}-${period}.csv"`, 'Cache-Control': 'no-store' },
   })
 }

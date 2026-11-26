@@ -1,6 +1,6 @@
 // lib/integrations/meta/config.ts
-// Central REGrow Meta Developer App Configuration.
-// REGrow operates ONE verified Meta developer app across all customer tenants.
+// Central RE by PX Meta Developer App Configuration.
+// RE by PX operates ONE verified Meta developer app across all customer tenants.
 // Manages OAuth endpoints, app credentials, permissions, and webhook parameters.
 import { appUrl } from '@/lib/site/urls'
 

@@ -1,6 +1,6 @@
 'use client'
-// components/plots/StaffDrawingAccess.tsx — an owner or admin lets REGrow draw this project's plot boundaries for a
-// limited time (POST/DELETE /api/plot-maps/staff-access), or withdraws it. REGrow sees the layout page and outlines
+// components/plots/StaffDrawingAccess.tsx — an owner or admin lets RE by PX draw this project's plot boundaries for a
+// limited time (POST/DELETE /api/plot-maps/staff-access), or withdraws it. RE by PX sees the layout page and outlines
 // only; your team still links each plot to its unit, and approves and publishes the map.
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -23,9 +23,9 @@ export function StaffDrawingAccess({ orgId, projectId, access }: { orgId: string
   }
   return (
     <section aria-labelledby="staff-drawing" className="surface-raised space-y-2 rounded-2xl border border-default bg-surface p-5">
-      <h2 id="staff-drawing" className="text-[15px] font-semibold text-foreground">Let REGrow draw the plot boundaries</h2>
+      <h2 id="staff-drawing" className="text-[15px] font-semibold text-foreground">Let RE by PX draw the plot boundaries</h2>
       <p className="text-[13px] text-muted">
-        The REGrow team can trace each plot’s outline and number on your uploaded layout. They see the layout page and the
+        The RE by PX team can trace each plot’s outline and number on your uploaded layout. They see the layout page and the
         outlines only — not your inventory, prices or buyers — and cannot link plots to units. Your team links every plot,
         then approves and publishes the map.
       </p>

@@ -51,7 +51,7 @@ await test('seed requires the database marker and owner-only marking (source che
 
 await test('reserved test addresses are recognised; real ones are not', async () => {
   const { isReservedTestAddress } = await jiti.import(path.join(root, 'lib/email/adapter.ts'))
-  for (const a of ['builder.admin@example.test', 'sales@regrow-demo.example.test', 'x@foo.example', 'a@b.invalid', 'a@example.com', 'a@mail.example.org', 'Name <a@x.test>'])
+  for (const a of ['builder.admin@example.test', 'sales@repx-demo.example.test', 'x@foo.example', 'a@b.invalid', 'a@example.com', 'a@mail.example.org', 'Name <a@x.test>'])
     assert.equal(isReservedTestAddress(a), true, a)
   for (const a of ['owner@gmail.com', 'a@testing.com', 'a@example.co.in', 'a@contest.in', 'a@myexample.com'])
     assert.equal(isReservedTestAddress(a), false, a)

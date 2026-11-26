@@ -48,8 +48,8 @@ const a: ArticleContent = {
     },
   ],
   related: [
-    { href: '/channel-partner-management', label: 'Channel partner management in REGrow' },
-    { href: '/agencies', label: 'REGrow for channel partner agencies' },
+    { href: '/channel-partner-management', label: 'Channel partner management in RE by PX' },
+    { href: '/agencies', label: 'RE by PX for channel partner agencies' },
     { href: '/inventory-management', label: 'Sharing live inventory with partners' },
   ],
 }

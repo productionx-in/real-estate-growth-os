@@ -43,7 +43,7 @@ async function main() {
 
   const PASSWORD = `Pw-${RUN}-1234567`
   const mkUser = async (name) => {
-    const email = `${name}-${RUN}@regrow.test`
+    const email = `${name}-${RUN}@repx.test`
     const res = await fetch(`${API}/auth/v1/admin/users`, {
       method: 'POST', headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password: PASSWORD, email_confirm: true }),
@@ -67,7 +67,7 @@ async function main() {
     (await one(`INSERT INTO public.org_members (org_id, profile_id, role, status) VALUES ($1,$2,$3,$4) RETURNING id`, [org, u.profileId, role, status])).id
   const member = (org, u) => one('SELECT id, role, status, lifecycle_saved_role, lifecycle_suspended FROM public.org_members WHERE org_id=$1 AND profile_id=$2', [org, u.profileId])
   const lifecycle = (org, state, reason = 'Test change') =>
-    one(`SELECT public.set_organisation_lifecycle($1, $2, $3, NULL, 'platform', 'REGrow platform team') AS r`, [org, state, reason]).then((x) => x.r)
+    one(`SELECT public.set_organisation_lifecycle($1, $2, $3, NULL, 'platform', 'RE by PX platform team') AS r`, [org, state, reason]).then((x) => x.r)
 
   console.log('P1 — ORGANISATION LIFECYCLE, AUDIT TRAIL, SESSIONS, TEAM PRIVILEGES')
   const createdOrgs = []
@@ -147,7 +147,7 @@ async function main() {
       assert.equal(ev.n, 8)
       const a = await one(`SELECT actor_kind, actor_label, metadata FROM public.org_audit_logs
         WHERE org_id=$1 AND action='organisation.lifecycle_changed' ORDER BY created_at, id LIMIT 1`, [org])
-      assert.deepEqual([a.actor_kind, a.actor_label, a.metadata.from, a.metadata.to, a.metadata.reason], ['platform', 'REGrow platform team', 'active', 'suspended', 'Invoice overdue'])
+      assert.deepEqual([a.actor_kind, a.actor_label, a.metadata.from, a.metadata.to, a.metadata.reason], ['platform', 'RE by PX platform team', 'active', 'suspended', 'Invoice overdue'])
     })
     await test('only the service role can change lifecycle or revoke sessions', async () => {
       for (const fn of ['public.set_organisation_lifecycle(uuid,text,text,uuid,text,text)', 'public.revoke_user_sessions(uuid)']) {
@@ -210,7 +210,7 @@ async function main() {
       const r2 = await dal.changeMemberRole(org, (await member(org, owner)).id, 'readonly', admin.profileId)
       assert.equal(r2.success, false)
       assert.equal((await member(org, owner)).role, 'owner')
-      const r3 = await dal.createEmployeeInvitation(org, admin.profileId, `x-${RUN}@regrow.test`, 'owner')
+      const r3 = await dal.createEmployeeInvitation(org, admin.profileId, `x-${RUN}@repx.test`, 'owner')
       assert.equal(r3.success, false); assert.match(r3.error, /owner/)
     })
     await test('nobody changes their own role, and the last owner cannot be demoted', async () => {
@@ -232,7 +232,7 @@ async function main() {
       const exAdmin = await mkUser('exadmin'); await join(org, exAdmin, 'admin', 'deactivated')
       assert.equal((await dal.changeMemberRole(org, (await member(org, rep)).id, 'manager', exAdmin.profileId)).success, false)
       const inv = await one(`INSERT INTO public.org_invitations (org_id, email, role, invited_by, token_hash) VALUES ($1,$2,'sales_exec',$3,$4) RETURNING id`,
-        [org, `y-${RUN}@regrow.test`, owner.profileId, crypto.randomBytes(16).toString('hex')])
+        [org, `y-${RUN}@repx.test`, owner.profileId, crypto.randomBytes(16).toString('hex')])
       assert.equal((await dal.revokeEmployeeInvitation(org, inv.id, exAdmin.profileId)).success, false)
       const d = await dal.deactivateMember({ orgId: org, memberId: (await member(org, rep)).id, actorProfileId: exAdmin.profileId, reassignmentMode: 'unassigned' })
       assert.equal(d.success, false)

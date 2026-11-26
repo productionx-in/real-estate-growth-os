@@ -11,7 +11,7 @@ import { MARKETING_PATHS } from '@/lib/site/urls'
 
 /** `lightPaths`: the public marketing pages (always light). Passed in, because this function must stay self-contained. */
 export function themeRuntime(lightPaths: string[] = MARKETING_PATHS) {
-  const KEY = 'regrow-theme'
+  const KEY = 'repx-theme'
   const PREFS = ['sun', 'system', 'light', 'dark']
   const LIGHT_ONLY = [/^\/privacy(\/|$)/, /^\/terms(\/|$)/, /^\/refund-policy(\/|$)/, /^\/contact(\/|$)/, /^\/p\//, /^\/d\//, /^\/forms(\/|$)/] // plus every marketing page (lightPaths)
 
@@ -86,4 +86,4 @@ export function themeRuntime(lightPaths: string[] = MARKETING_PATHS) {
 }
 
 /** Inline before first paint. */
-export const THEME_BOOT_SCRIPT = `(function(){try{var t=(${themeRuntime.toString()})(${JSON.stringify(MARKETING_PATHS)});window.__regrowTheme=t;t.apply()}catch(e){}})()`
+export const THEME_BOOT_SCRIPT = `(function(){try{var t=(${themeRuntime.toString()})(${JSON.stringify(MARKETING_PATHS)});window.__repxTheme=t;t.apply()}catch(e){}})()`

@@ -1,5 +1,5 @@
 // lib/email/daily-report.ts — the 8 AM e-mails: "Your day" for each salesperson and "Your team's day" for owners,
-// admins and managers. Numbers first, one clear next step, a link into REGrow. Lead names only (never phone
+// admins and managers. Numbers first, one clear next step, a link into RE by PX. Lead names only (never phone
 // numbers or other details), and only to people in the same workspace who could already see those leads.
 import { renderEmail } from '@/lib/email/layout'
 
@@ -30,7 +30,7 @@ export interface TeamDay {
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
 const inr = (rupees: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(rupees)
 const mins = (m: number) => (m < 60 ? `${Math.round(m)} min` : m < 1440 ? `${Math.round(m / 6) / 10} h` : `${Math.round(m / 144) / 10} days`)
-const REASON = 'You get this each morning as a member of a REGrow workspace. Turn it off in Account → E-mail notifications.'
+const REASON = 'You get this each morning as a member of a RE by PX workspace. Turn it off in Account → E-mail notifications.'
 
 /** True when there is nothing worth telling this person today. */
 export const quietDay = (d: PersonDay) => !d.newAssigned && !d.waitingFirstCall && !d.followUpsToday && !d.followUpsOverdue && !d.visitsToday

@@ -19,12 +19,12 @@ export function generateFormEmbedSnippets(options: FormEmbedOptions): EmbedSnipp
   const projectQuery = options.projectId ? `&projectId=${options.projectId}` : ''
 
   // 1. Script Tag Embed (Responsive inline widget)
-  const scriptTag = `<!-- REGrow Enquiry Form Embed -->
+  const scriptTag = `<!-- RE by PX Enquiry Form Embed -->
 <div id="productionx-enquiry-form" data-connection-id="${options.connectionId}"${projectParam} data-title="${title}" data-button="${button}"></div>
 <script src="${baseUrl}/forms/embed.js" async defer></script>`
 
   // 2. iframe Embed (Sandbox isolation)
-  const iframe = `<!-- REGrow Enquiry Form iframe -->
+  const iframe = `<!-- RE by PX Enquiry Form iframe -->
 <iframe
   src="${baseUrl}/forms/view?connectionId=${options.connectionId}${projectQuery}"
   width="100%"

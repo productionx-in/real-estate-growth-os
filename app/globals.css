@@ -38,7 +38,7 @@
   --blue-400: #60a5fa;
   --blue-500: #3b82f6;
   --blue-600: #2563eb;
-  --blue-700: #1d4ed8; /* REGrow brand */
+  --blue-700: #1d4ed8; /* RE by PX brand */
   --blue-800: #1e40af;
   --blue-900: #1e3a8a;
   --green-50: #f0fdf4;
@@ -57,54 +57,60 @@
 
   /* 2. Semantic — light */
   /* Design language v3: a soft, cool canvas the white clay surfaces float above. */
-  --background: #eef2f8;
+  --background: #f3f6fa;
   --surface: var(--gray-0);
-  --surface-muted: #f6f8fc;
-  --surface-hover: #edf1f7;
-  --surface-sunken: #e8edf5;
-  --overlay: rgb(15 23 42 / 0.38);
+  --surface-muted: #f6f8fb;
+  --surface-hover: #eef1f7;
+  --surface-sunken: #e9edf4;
+  --overlay: rgb(11 17 32 / 0.40);
 
   --foreground: var(--gray-900);
   --foreground-muted: var(--gray-600);
   --foreground-subtle: #576072;
   --foreground-inverse: var(--gray-0);
 
-  --brand: var(--blue-700);
-  --brand-hover: var(--blue-800);
-  --brand-dark: var(--blue-900);
-  --brand-light: var(--blue-50);
+  --brand: #4338ca;
+  --brand-hover: #3730a3;
+  --brand-dark: #312e81;
+  --brand-light: #eef2ff;
   --brand-foreground: var(--gray-0);
+  /* RE by PX logo: Carbon Midnight ink + Electric Indigo signal (components/brand/Logo.tsx). */
+  --ink: #0b1120;
+  --logo-ink: #0b1120;
+  --logo-signal: #4338ca;
+  --logo-muted: #475569;
+  --logo-rule: #cbd5e1;
 
   --border: #e1e7f0;
   --border-strong: #cdd5e1;
-  --focus-ring: var(--blue-600);
+  --focus-ring: #4f46e5;
 
   /* One shade deeper than v2: status text must stay ≥ 4.5:1 on the tinted canvas too. */
-  --success: var(--green-800);
-  --success-bg: var(--green-50);
+  --success: #047857;
+  --success-bg: #ecfdf5;
   --success-foreground: var(--gray-0);
-  --warning: var(--amber-800);
-  --warning-bg: var(--amber-50);
+  --warning: #92400e;
+  --warning-bg: #fffbeb;
   --warning-foreground: var(--gray-0);
-  --danger: var(--red-700);
-  --danger-hover: var(--red-800);
-  --danger-bg: var(--red-50);
+  --danger: #be123c;
+  --danger-hover: #9f1239;
+  --danger-bg: #fff1f2;
   --danger-foreground: var(--gray-0);
   --accent: var(--violet-700);
   /* Chart series (components/ui/chart.tsx): distinct in hue and lightness, 3:1+ against the surface. */
-  --chart-1: #2563eb;
+  --chart-1: #4f46e5;
   --chart-2: #059669;
   --chart-3: #d97706;
-  --chart-4: #7c3aed;
+  --chart-4: #0284c7;
   --chart-5: #e11d48;
   --accent-bg: var(--violet-50);
   --accent-border: var(--violet-200);
   --accent-foreground: var(--gray-0);
-  --info: var(--blue-600);
-  --info-bg: var(--blue-50);
+  --info: #0369a1;
+  --info-bg: #f0f9ff;
 
-  --sidebar-active-bg: var(--blue-50);
-  --sidebar-active-text: var(--blue-700);
+  --sidebar-active-bg: #eef2ff;
+  --sidebar-active-text: #3730a3;
 
   /* Internal console: dark navigation rail and a warm highlight, the same in both themes. */
   --console-rail: var(--gray-950);
@@ -137,24 +143,24 @@
      (cards, fields); md: raised on hover; lg: menus and popovers; xl–2xl: dialogs and sheets. */
   --shadow-2xs: 0 1px 2px rgb(30 41 82 / 0.05);
   --shadow-xs: 0 1px 2px rgb(30 41 82 / 0.06), 0 2px 6px -2px rgb(30 58 138 / 0.06);
-  --shadow-sm: 0 1px 2px rgb(30 41 82 / 0.06), 0 6px 16px -6px rgb(30 58 138 / 0.12);
-  --shadow-md: 0 2px 4px -1px rgb(30 41 82 / 0.07), 0 12px 28px -8px rgb(30 58 138 / 0.18);
-  --shadow-lg: 0 4px 8px -2px rgb(30 41 82 / 0.08), 0 20px 44px -12px rgb(30 58 138 / 0.24);
-  --shadow-xl: 0 8px 16px -4px rgb(30 41 82 / 0.10), 0 32px 64px -16px rgb(30 58 138 / 0.30);
-  --shadow-2xl: 0 12px 24px -6px rgb(30 41 82 / 0.12), 0 44px 88px -20px rgb(30 58 138 / 0.36);
+  --shadow-sm: 0 1px 2px rgb(11 17 32 / 0.04), 0 6px 16px -6px rgb(11 17 32 / 0.08);
+  --shadow-md: 0 2px 6px rgb(11 17 32 / 0.03), 0 18px 40px -12px rgb(11 17 32 / 0.08);
+  --shadow-lg: 0 4px 8px -2px rgb(11 17 32 / 0.05), 0 24px 48px -14px rgb(11 17 32 / 0.14);
+  --shadow-xl: 0 8px 16px -4px rgb(11 17 32 / 0.06), 0 32px 64px -16px rgb(11 17 32 / 0.20);
+  --shadow-2xl: 0 12px 24px -6px rgb(11 17 32 / 0.08), 0 44px 88px -20px rgb(11 17 32 / 0.28);
   /* The lit top edge of a raised surface, and the faint shade under its bottom edge (clay). */
   --edge-highlight: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 -1px 0 rgb(30 41 82 / 0.04);
   /* Fields and wells sit into the surface. */
   --shadow-inset: inset 0 1px 2px rgb(30 41 82 / 0.08), inset 0 0 0 1px rgb(30 41 82 / 0.02);
   /* The primary action: a lit gradient that glows in the brand colour. */
-  --brand-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 55%, #4338ca 100%);
-  --brand-glow: 0 1px 2px rgb(29 78 216 / 0.30), 0 8px 20px -6px rgb(37 99 235 / 0.55);
-  --focus-glow: 0 0 0 4px rgb(37 99 235 / 0.16);
+  --brand-gradient: linear-gradient(135deg, #4f46e5 0%, #4338ca 60%, #3730a3 100%);
+  --brand-glow: 0 1px 2px rgb(67 56 202 / 0.30), 0 8px 20px -6px rgb(79 70 229 / 0.50);
+  --focus-glow: 0 0 0 4px rgb(79 70 229 / 0.16);
   /* The canvas: two soft coloured lights behind everything (fixed, painted once). */
-  --canvas-glow-1: rgb(59 130 246 / 0.10);
-  --canvas-glow-2: rgb(139 92 246 / 0.08);
+  --canvas-glow-1: rgb(79 70 229 / 0.07);
+  --canvas-glow-2: rgb(14 165 233 / 0.05);
   /* Frosted navigation over the canvas. */
-  --glass: rgb(255 255 255 / 0.72);
+  --glass: rgb(255 255 255 / 0.88);
 
   /* Layout and shape */
   --sidebar-width: 240px;
@@ -181,11 +187,11 @@
 
 /* 2. Semantic — dark */
 :root[data-theme="dark"] {
-  --background: #0a0f1c;
+  --background: #0b1120;
   --surface: #121a2b;
   --surface-muted: #0f1626;
   --surface-hover: #1a2438;
-  --surface-sunken: #0b1120;
+  --surface-sunken: #070b16;
   --overlay: rgb(2 6 18 / 0.62);
 
   --foreground: var(--gray-100);
@@ -194,40 +200,45 @@
   --foreground-inverse: var(--gray-900);
 
   /* Lighter fills on a dark page: buttons carry dark text so both text-on-fill and brand-as-text pass AA. */
-  --brand: var(--blue-400);
-  --brand-hover: var(--blue-300);
-  --brand-dark: var(--blue-300);
-  --brand-light: rgb(59 130 246 / 0.14);
+  --brand: #818cf8;
+  --brand-hover: #a5b4fc;
+  --brand-dark: #a5b4fc;
+  --brand-light: rgb(99 102 241 / 0.16);
   --brand-foreground: var(--gray-950);
+  --ink: #4338ca;
+  --logo-ink: #ffffff;
+  --logo-signal: #6366f1;
+  --logo-muted: #94a3b8;
+  --logo-rule: rgb(255 255 255 / 0.2);
 
   --border: #1f2a40;
   --border-strong: #2d3a54;
-  --focus-ring: var(--blue-400);
+  --focus-ring: #818cf8;
 
-  --success: var(--green-400);
+  --success: #34d399;
   --success-bg: rgb(74 222 128 / 0.12);
   --success-foreground: var(--gray-950);
-  --warning: var(--amber-400);
+  --warning: #fbbf24;
   --warning-bg: rgb(251 191 36 / 0.12);
   --warning-foreground: var(--gray-950);
-  --danger: var(--red-400);
-  --danger-hover: var(--red-400);
+  --danger: #fb7185;
+  --danger-hover: #fda4af;
   --danger-bg: rgb(248 113 113 / 0.12);
   --danger-foreground: var(--gray-950);
   --accent: var(--violet-300);
-  --chart-1: #60a5fa;
+  --chart-1: #818cf8;
   --chart-2: #34d399;
   --chart-3: #fbbf24;
-  --chart-4: #a78bfa;
+  --chart-4: #38bdf8;
   --chart-5: #fb7185;
   --accent-bg: rgb(167 139 250 / 0.14);
   --accent-border: rgb(167 139 250 / 0.32);
   --accent-foreground: var(--gray-950);
-  --info: var(--blue-400);
-  --info-bg: rgb(96 165 250 / 0.12);
+  --info: #38bdf8;
+  --info-bg: rgb(56 189 248 / 0.12);
 
-  --sidebar-active-bg: rgb(59 130 246 / 0.16);
-  --sidebar-active-text: var(--blue-300);
+  --sidebar-active-bg: rgb(99 102 241 / 0.18);
+  --sidebar-active-text: #c7d2fe;
 
   --console-rail: var(--gray-950);
   --console-rail-hover: var(--gray-850);
@@ -263,8 +274,8 @@
   --shadow-2xl: 0 12px 24px -6px rgb(0 0 0 / 0.60), 0 44px 88px -20px rgb(0 0 0 / 0.72);
   --edge-highlight: inset 0 1px 0 rgb(255 255 255 / 0.07), inset 0 -1px 0 rgb(0 0 0 / 0.25);
   --shadow-inset: inset 0 1px 2px rgb(0 0 0 / 0.45), inset 0 0 0 1px rgb(255 255 255 / 0.03);
-  --brand-gradient: linear-gradient(135deg, #93c5fd 0%, #60a5fa 50%, #818cf8 100%);
-  --brand-glow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 22px -6px rgb(96 165 250 / 0.45);
+  --brand-gradient: linear-gradient(135deg, #a5b4fc 0%, #818cf8 55%, #6366f1 100%);
+  --brand-glow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 22px -6px rgb(99 102 241 / 0.45);
   --focus-glow: 0 0 0 4px rgb(96 165 250 / 0.22);
   --canvas-glow-1: rgb(59 130 246 / 0.14);
   --canvas-glow-2: rgb(139 92 246 / 0.10);
@@ -631,4 +642,48 @@ svg[data-animated] .rio-wing { transform-box: fill-box; transform-origin: 10% 20
   :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="hidden"]), select, textarea):where(:not(.field):not([data-palette-input]):not([class*="border-0"]):not([class*="border-none"]):not([class*="bg-transparent"])):focus-visible {
     box-shadow: var(--focus-glow);
   }
+}
+
+@layer components {
+/* ── RE by PX: frosted ceramic surfaces, dark anchor bands, hover lift ─────────────────────────── */
+.ceramic {
+  background: rgb(255 255 255 / 0.88);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgb(255 255 255 / 0.9);
+  border-radius: 22px;
+  box-shadow: 0 0 0 1px rgb(15 23 42 / 0.05), 0 2px 6px rgb(11 17 32 / 0.03), 0 18px 40px -12px rgb(11 17 32 / 0.08);
+}
+:root[data-theme="dark"] .ceramic { background: rgb(18 26 43 / 0.82); border-color: rgb(255 255 255 / 0.08); }
+.lift { transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 280ms ease-out, border-color 280ms ease-out; }
+.lift:hover {
+  transform: translateY(-4px);
+  border-color: rgb(99 102 241 / 0.35);
+  box-shadow: 0 0 0 1px rgb(79 70 229 / 0.10), 0 4px 10px rgb(11 17 32 / 0.04), 0 26px 50px -14px rgb(11 17 32 / 0.14);
+}
+/* Deep Carbon Midnight band (How it works, footer) with a faint indigo rim glow. */
+.band-ink {
+  background: radial-gradient(60% 50% at 50% 0%, rgb(79 70 229 / 0.22), transparent 70%), #0b1120;
+  color: #e2e8f0;
+  --logo-ink: #ffffff;
+  --logo-signal: #6366f1;
+  --logo-muted: #94a3b8;
+  --logo-rule: rgb(255 255 255 / 0.2);
+}
+.band-ink .ceramic-dark, .ceramic-dark {
+  background: rgb(255 255 255 / 0.04);
+  border: 1px solid rgb(255 255 255 / 0.09);
+  border-radius: 20px;
+}
+/* Hero mist: two ultra-soft washes (under 8%). */
+.hero-mist {
+  background:
+    radial-gradient(50% 60% at 20% 10%, rgb(79 70 229 / 0.07), transparent 70%),
+    radial-gradient(45% 55% at 85% 20%, rgb(14 165 233 / 0.05), transparent 70%);
+}
+/* Parallax tilt (components/marketing/TiltStack.tsx sets --rx/--ry). */
+.tilt { transform: perspective(1200px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1); will-change: transform; }
+@media (prefers-reduced-motion: reduce) {
+  .lift, .lift:hover, .tilt { transition: none; transform: none; }
+}
 }

@@ -1,6 +1,6 @@
-# REGrow console: what each staff role needs
+# RE by PX console: what each staff role needs
 
-The console (`/platform`) is where REGrow's own team watches customers and does its work. Each role opens
+The console (`/platform`) is where RE by PX's own team watches customers and does its work. Each role opens
 the console to a home page built around its own job. Which navigation links appear depends on the role, and
 the server enforces every permission again. Staff never see customers' leads, buyers or documents. Opening a
 customer's records needs a support grant that the customer approves, that expires, and that is audited.
@@ -10,7 +10,7 @@ customer's records needs a support grant that the customer approves, that expire
 | Role | Job | Questions on arrival | Home shows |
 |---|---|---|---|
 | Platform Owner | Runs the business | Are we growing? Is revenue safe? Which customers are slipping? Is the team keeping up? | Revenue and customer KPIs, growth trend, customers at risk, team workload, staff activity |
-| Platform admin | Keeps customers set up and healthy | Who is stuck in setup? Who stopped using REGrow? Who is read-only and why? | Customer health list (worst first), onboarding still pending, lifecycle mix, support summary |
+| Platform admin | Keeps customers set up and healthy | Who is stuck in setup? Who stopped using RE by PX? Who is read-only and why? | Customer health list (worst first), onboarding still pending, lifecycle mix, support summary |
 | Finance | Money in and out | What failed? What needs my approval? What renews soon? Do the books reconcile? | Payment alerts, refunds awaiting approval, unapplied money, disputes, reconciliation exceptions, renewals in the next 30 days |
 | Sales manager | Pipeline and team | Where is the pipeline leaking? Who is behind on follow-ups? Which website requests are unassigned? | Funnel by stage, win rate, team follow-up table, unassigned website requests |
 | Sales executive | Own prospects | Whom do I call today? What is overdue? | Today's and overdue follow-ups, own funnel |

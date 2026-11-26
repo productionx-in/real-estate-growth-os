@@ -41,19 +41,19 @@ enable_confirmations = false
 
 # Branded auth emails, generated from lib/email/layout.ts by scripts/build-auth-email-templates.mjs.
 [auth.email.template.confirmation]
-subject = "Confirm your email for REGrow"
+subject = "Confirm your email for RE by PX"
 content_path = "./supabase/templates/confirmation.html"
 
 [auth.email.template.recovery]
-subject = "Reset your REGrow password"
+subject = "Reset your RE by PX password"
 content_path = "./supabase/templates/recovery.html"
 
 [auth.email.template.magic_link]
-subject = "Your REGrow sign-in link"
+subject = "Your RE by PX sign-in link"
 content_path = "./supabase/templates/magic_link.html"
 
 [auth.email.template.email_change]
-subject = "Confirm your new email for REGrow"
+subject = "Confirm your new email for RE by PX"
 content_path = "./supabase/templates/email_change.html"
 
 [auth.mfa]

@@ -1,5 +1,5 @@
 // tests/db-integration/m0-sales-tenant-integrity.test.mjs
-// REGrow M0 — real-database tests for migration 20260036 (enforce_sales_tenant_integrity).
+// RE by PX M0 — real-database tests for migration 20260036 (enforce_sales_tenant_integrity).
 // Runs against a disposable local Supabase stack (`supabase db reset`). Writes go through a superuser
 // connection, which — like the application's service-role client — bypasses RLS but NOT triggers,
 // so these tests exercise exactly the path the production DAL uses.
@@ -57,7 +57,7 @@ async function main() {
       await q(
         `INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
          VALUES ($1, '00000000-0000-0000-0000-000000000000', $2, 'x', now(), '{"provider":"email"}', '{}', now(), now(), 'authenticated', 'authenticated')`,
-        [id, `m0-${label}-${RUN}@regrow.test`]
+        [id, `m0-${label}-${RUN}@repx.test`]
       )
       const p = await one('SELECT id FROM public.profiles WHERE auth_user_id = $1', [id])
       return p ? p.id : (await one('INSERT INTO public.profiles (auth_user_id, full_name) VALUES ($1, $2) RETURNING id', [id, label])).id

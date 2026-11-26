@@ -1,8 +1,8 @@
 'use client'
-// components/notifications/LiveAlerts.tsx — lead alerts as banners while REGrow is open: a new lead, a lead still not
+// components/notifications/LiveAlerts.tsx — lead alerts as banners while RE by PX is open: a new lead, a lead still not
 // contacted, a follow-up coming up. They drop in at the top like a phone notification, with the workspace's sound.
 // The alerts themselves are made on the server (20260093 and the minute job), so they also arrive as phone or desktop
-// push with REGrow closed; this only shows the ones that land while someone is looking.
+// push with RE by PX closed; this only shows the ones that land while someone is looking.
 //   * Checks every 15 s while the tab is visible, and at once when the person comes back to it.
 //   * Each alert is shown once, in one tab; several at once make one sound (the most important kind).
 //   * Opening one marks it read and goes to the lead; "Call" dials from a phone.
@@ -20,7 +20,7 @@ type Shown = Alert & { leaving?: boolean }
 const POLL_MS = 15_000
 const STAY_MS: Record<AlertSoundKind, number> = { newLead: 12_000, reminder: 15_000, followUp: 12_000, win: 9_000 }
 const MAX_VISIBLE = 3
-const SEEN_KEY = 'regrow.alerts.seen'
+const SEEN_KEY = 'repx.alerts.seen'
 
 const LOOK: Record<AlertSoundKind, { icon: typeof UserPlus; label: string; tint: string }> = {
   newLead: { icon: UserPlus, label: 'New lead', tint: 'bg-brand text-brand-foreground' },
@@ -165,7 +165,7 @@ export function LiveAlerts({ orgId, orgSlug, settings }: { orgId: string; orgSlu
       {more > 0 && <p className="pointer-events-auto rounded-full bg-surface/95 px-3 py-1 text-[12px] text-muted shadow-sm">+{more} more in your notifications</p>}
       {pushHint && (
         <p className="pointer-events-auto w-full max-w-[420px] rounded-xl bg-surface/95 px-3 py-2 text-[12px] text-muted shadow-sm">
-          Get these even when REGrow is closed: <Link href={`/${orgSlug}/settings/notifications`} className="font-medium text-brand hover:underline" onClick={() => setPushHint(false)}>turn on alerts on this device</Link>
+          Get these even when RE by PX is closed: <Link href={`/${orgSlug}/settings/notifications`} className="font-medium text-brand hover:underline" onClick={() => setPushHint(false)}>turn on alerts on this device</Link>
         </p>
       )}
     </div>

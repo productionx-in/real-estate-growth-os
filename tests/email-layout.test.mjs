@@ -15,7 +15,7 @@ console.log('BRANDED EMAIL')
 test('names and organisation names typed by users cannot inject markup or links', () => {
   const e = invitationEmail({
     orgName: '<a href="https://evil.example">Click</a>', role: 'sales_exec',
-    inviteUrl: 'https://app.regrow.in/invite/abc', inviterName: '<img src=x onerror=alert(1)>Mallory',
+    inviteUrl: 'https://re.productionx.in/invite/abc', inviterName: '<img src=x onerror=alert(1)>Mallory',
   })
   assert.ok(!e.html.includes('<a href="https://evil.example">'), 'org name escaped')
   assert.ok(!e.html.includes('<img src=x'), 'inviter escaped')
@@ -27,10 +27,10 @@ test('only http(s) links can become buttons', () => {
   assert.throws(() => renderEmail({ preheader: 'p', heading: 'h', paragraphs: [], cta: { label: 'x', url: 'data:text/html,hi' } }))
 })
 test('the invitation names the role in words and has a plain-text version with the link', () => {
-  const e = invitationEmail({ orgName: 'Skyline Developers', role: 'sales_exec', inviteUrl: 'https://app.regrow.in/invite/abc', inviterName: 'Kiran' })
-  assert.equal(e.subject, 'Kiran invited you to Skyline Developers on REGrow')
+  const e = invitationEmail({ orgName: 'Skyline Developers', role: 'sales_exec', inviteUrl: 'https://re.productionx.in/invite/abc', inviterName: 'Kiran' })
+  assert.equal(e.subject, 'Kiran invited you to Skyline Developers on RE by PX')
   assert.ok(e.html.includes('a sales executive'))
-  assert.ok(e.text.includes('Accept invitation: https://app.regrow.in/invite/abc'))
+  assert.ok(e.text.includes('Accept invitation: https://re.productionx.in/invite/abc'))
   assert.ok(!e.text.includes('**'))
 })
 test('**bold** is the only formatting interpreted', () => {

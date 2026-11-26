@@ -39,7 +39,7 @@ export interface PublicPlan {
 export const PUBLIC_PLANS: PublicPlan[] = [
   {
     id: 'agencies',
-    name: 'REGrow for Agencies',
+    name: 'RE for Agencies',
     audience: 'Channel-partner agencies and brokerages',
     monthlyInr: 4999,
     annualInr: 49990,
@@ -59,7 +59,7 @@ export const PUBLIC_PLANS: PublicPlan[] = [
   },
   {
     id: 'leads',
-    name: 'REGrow Leads',
+    name: 'RE by PX Leads',
     audience: 'Developers running Meta, Google and portal campaigns',
     monthlyInr: 12000,
     annualInr: 120000,
@@ -94,7 +94,7 @@ export const PUBLIC_PLANS: PublicPlan[] = [
     companyType: 'developer',
     highlight: false,
     features: [
-      { text: 'Everything in REGrow Leads' },
+      { text: 'Everything in RE by PX Leads' },
       { text: 'Multiple business units and cities' },
       { text: 'API access and data export' },
       { text: 'Named success manager' },
@@ -122,7 +122,7 @@ export interface RoiInput {
   monthlyLeads: number
   /** Share of leads never contacted or contacted too late to matter, 0–100. */
   leakagePct: number
-  /** Share of those leads REGrow helps you reach in time, 0–100. */
+  /** Share of those leads RE by PX helps you reach in time, 0–100. */
   recoveryPct: number
   /** Salespeople who need a login. */
   users: number

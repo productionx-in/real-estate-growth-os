@@ -106,7 +106,7 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
     ]
   }
 
-  // Everyone can reach REGrow support from their workspace (cases they open; owners and admins see all of the org's).
+  // Everyone can reach RE by PX support from their workspace (cases they open; owners and admins see all of the org's).
   groups[groups.length - 1].items.push(L('help', 'Help & support', '/help'))
 
   return groups

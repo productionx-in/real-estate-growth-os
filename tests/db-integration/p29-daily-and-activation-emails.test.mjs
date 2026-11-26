@@ -30,7 +30,7 @@ async function main() {
   const sql = new (pg.default || pg).Client({ connectionString: DATABASE_URL }); await sql.connect()
   const one = async (s, p) => (await sql.query(s, p)).rows[0]
   const mkUser = async (label) => {
-    const { data, error } = await service.auth.admin.createUser({ email: `${label}-${RUN}@regrow-mail-check.com`, password: 'Daily-Test-' + RUN + 'x9!', email_confirm: true, user_metadata: { full_name: `${label} ${RUN}` } })
+    const { data, error } = await service.auth.admin.createUser({ email: `${label}-${RUN}@repx-mail-check.com`, password: 'Daily-Test-' + RUN + 'x9!', email_confirm: true, user_metadata: { full_name: `${label} ${RUN}` } })
     if (error) throw error
     return { id: data.user.id, email: data.user.email, profile: (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [data.user.id])).id }
   }
@@ -47,9 +47,9 @@ async function main() {
 
   await test('a new team member gets their own welcome; owners get "plan active"', async () => {
     mail.clear(); await customerLifecycleEmails({}, service)
-    assert.deepEqual(to(`Welcome to ${name} on REGrow`), [sales.email])
-    assert.deepEqual(to('Your REGrow plan is active').filter((e) => e === owner.email), [owner.email])
-    assert.equal(to('Your REGrow plan is active').includes(sales.email), false, 'salespeople get no billing e-mails')
+    assert.deepEqual(to(`Welcome to ${name} on RE by PX`), [sales.email])
+    assert.deepEqual(to('Your RE by PX plan is active').filter((e) => e === owner.email), [owner.email])
+    assert.equal(to('Your RE by PX plan is active').includes(sales.email), false, 'salespeople get no billing e-mails')
   })
 
   await test('the preference is the owner’s own: they can turn it off, nobody else can', async () => {

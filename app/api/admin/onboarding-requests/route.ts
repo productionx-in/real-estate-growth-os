@@ -1,5 +1,5 @@
 // app/api/admin/onboarding-requests/route.ts
-// REGrow Platform Administration: Closed-SaaS Customer Onboarding Requests Engine
+// RE by PX Platform Administration: Closed-SaaS Customer Onboarding Requests Engine
 import { NextResponse, type NextRequest } from 'next/server'
 import { authenticatePlatformAdmin, logPlatformAction } from '@/lib/auth/platform'
 import { createServiceClient } from '@/lib/supabase/server'

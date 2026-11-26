@@ -1,4 +1,4 @@
-// lib/email/customer.ts — the e-mails REGrow sends to a workspace's owners and admins about their account.
+// lib/email/customer.ts — the e-mails RE by PX sends to a workspace's owners and admins about their account.
 // Plain, specific and short: what happened, what it means, the one thing to do next. Built on the shared layout
 // (lib/email/layout.ts), so every message looks the same and has a text version. No business data from the
 // workspace (leads, buyers) ever goes into these e-mails.
@@ -13,13 +13,13 @@ export interface Rendered { subject: string; html: string; text: string }
 const inr = (cents: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(cents / 100)
 const day = (iso: string) => new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeZone: 'Asia/Kolkata' }).format(new Date(iso))
 const out = (subject: string, c: Parameters<typeof renderEmail>[0]): Rendered =>
-  ({ subject, ...renderEmail({ reason: 'You received this because you own or manage a REGrow workspace.', ...c }) })
+  ({ subject, ...renderEmail({ reason: 'You received this because you own or manage a RE by PX workspace.', ...c }) })
 
 export const customerEmails = {
   welcome: (o: { orgName: string; url: string; trialEndsAt?: string | null; plan?: string | null }) =>
-    out(`Your REGrow workspace "${o.orgName}" is ready`, {
-      preheader: o.trialEndsAt ? `Your free trial runs until ${day(o.trialEndsAt)}.` : 'Three steps to your first leads in REGrow.',
-      heading: `Welcome to REGrow, ${o.orgName}`,
+    out(`Your RE by PX workspace "${o.orgName}" is ready`, {
+      preheader: o.trialEndsAt ? `Your free trial runs until ${day(o.trialEndsAt)}.` : 'Three steps to your first leads in RE by PX.',
+      heading: `Welcome to RE by PX, ${o.orgName}`,
       paragraphs: [
         o.trialEndsAt
           ? `Your workspace is ready and your **free trial has started**${o.plan ? ` on the **${o.plan}** plan` : ''}. It runs until **${day(o.trialEndsAt)}** — everything is switched on.`
@@ -34,7 +34,7 @@ export const customerEmails = {
     }),
 
   trial_ending: (o: { orgName: string; endsAt: string; daysLeft: number; url: string }) =>
-    out(o.daysLeft <= 1 ? `Your REGrow trial ends tomorrow` : `Your REGrow trial ends in ${o.daysLeft} days`, {
+    out(o.daysLeft <= 1 ? `Your RE by PX trial ends tomorrow` : `Your RE by PX trial ends in ${o.daysLeft} days`, {
       preheader: `The trial for ${o.orgName} ends on ${day(o.endsAt)}.`,
       heading: o.daysLeft <= 1 ? 'Your trial ends tomorrow' : `Your trial ends in ${o.daysLeft} days`,
       paragraphs: [
@@ -46,7 +46,7 @@ export const customerEmails = {
     }),
 
   trial_ended: (o: { orgName: string; url: string }) =>
-    out(`Your REGrow trial has ended`, {
+    out(`Your RE by PX trial has ended`, {
       preheader: `Choose a plan to keep using ${o.orgName}.`,
       heading: 'Your trial has ended',
       paragraphs: [
@@ -58,7 +58,7 @@ export const customerEmails = {
     }),
 
   invoice_issued: (o: { orgName: string; invoiceNumber: string; amountCents: number; dueDate: string | null; url: string }) =>
-    out(`Invoice ${o.invoiceNumber} from REGrow — ${inr(o.amountCents)}`, {
+    out(`Invoice ${o.invoiceNumber} from RE by PX — ${inr(o.amountCents)}`, {
       preheader: `Invoice for ${o.orgName}${o.dueDate ? `, due ${day(o.dueDate)}` : ''}.`,
       heading: 'Your invoice is ready',
       paragraphs: [
@@ -92,11 +92,11 @@ export const customerEmails = {
     }),
 
   plan_active: (o: { orgName: string; plan: string | null; seats: number | null; renewsAt: string | null; url: string }) =>
-    out(`Your REGrow plan is active`, {
+    out(`Your RE by PX plan is active`, {
       preheader: `${o.orgName}${o.plan ? ` is on the ${o.plan} plan` : ' is active'}.`,
       heading: 'Your plan is active',
       paragraphs: [
-        `**${o.orgName}** is now on${o.plan ? ` the **${o.plan}** plan` : ' a paid plan'}${o.seats ? ` with **${o.seats} seats**` : ''}. Thank you for choosing REGrow.`,
+        `**${o.orgName}** is now on${o.plan ? ` the **${o.plan}** plan` : ' a paid plan'}${o.seats ? ` with **${o.seats} seats**` : ''}. Thank you for choosing RE by PX.`,
         ...(o.renewsAt ? [`Your current period runs until **${day(o.renewsAt)}**. We’ll remind you before it renews.`] : []),
         'Invoices, receipts and seats are under Billing.',
       ],
@@ -113,18 +113,18 @@ export const customerEmails = {
       post_sales: 'You look after bookings and buyers after the sale.',
       readonly: 'You can view the workspace; you can’t change anything.',
     }
-    return out(`Welcome to ${o.orgName} on REGrow`, {
+    return out(`Welcome to ${o.orgName} on RE by PX`, {
       preheader: 'Your account is set up. Here’s how to start.',
       heading: `Welcome, ${o.firstName}`,
       paragraphs: [
-        `You’ve joined **${o.orgName}** on REGrow as **${o.role.replace('_', ' ')}**. ${roleLine[o.role] ?? ''}`,
+        `You’ve joined **${o.orgName}** on RE by PX as **${o.role.replace('_', ' ')}**. ${roleLine[o.role] ?? ''}`,
         '**To start:**',
         '• open **Today** — it shows who to call now and what’s due',
         '• allow notifications when asked, so a new lead reaches you within seconds',
-        '• add REGrow to your phone’s home screen to use it like an app',
+        '• add RE by PX to your phone’s home screen to use it like an app',
         'You’ll also get a short summary of your day by e-mail each morning. You can turn it off in your account settings.',
       ],
-      cta: { label: 'Open REGrow', url: o.url },
+      cta: { label: 'Open RE by PX', url: o.url },
     })
   },
 
@@ -139,7 +139,7 @@ export const customerEmails = {
       preheader: v.p,
       heading: v.h,
       paragraphs: [v.p, ...(o.reason ? [`Reason: ${o.reason}`] : []), 'Questions? Reply to this e-mail and our team will help.'],
-      cta: { label: o.to === 'deactivated' ? 'Contact REGrow' : 'Open your workspace', url: o.url },
+      cta: { label: o.to === 'deactivated' ? 'Contact RE by PX' : 'Open your workspace', url: o.url },
     })
   },
 

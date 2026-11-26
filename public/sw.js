@@ -1,4 +1,4 @@
-/* REGrow service worker — Web Push alerts (M1-6).
+/* RE by PX service worker — Web Push alerts (M1-6).
  * Shows a system notification for each push and opens the lead when it is tapped.
  * No offline caching: the app always needs live data, and a stale cache would show wrong leads. */
 self.addEventListener('install', () => self.skipWaiting())
@@ -9,9 +9,9 @@ self.addEventListener('push', (event) => {
   try {
     payload = event.data ? event.data.json() : {}
   } catch {
-    payload = { title: 'REGrow', body: event.data ? event.data.text() : '' }
+    payload = { title: 'RE by PX', body: event.data ? event.data.text() : '' }
   }
-  const title = payload.title || 'REGrow'
+  const title = payload.title || 'RE by PX'
   event.waitUntil(
     self.registration.showNotification(title, {
       body: payload.body || '',

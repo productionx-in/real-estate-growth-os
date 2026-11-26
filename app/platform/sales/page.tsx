@@ -1,4 +1,4 @@
-// app/platform/sales/page.tsx — Internal Sales: REGrow's own prospects. Executives see their own and unassigned
+// app/platform/sales/page.tsx — Internal Sales: RE by PX's own prospects. Executives see their own and unassigned
 // prospects; managers, the Platform Owner and auditors see all. Never customer CRM data.
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -49,7 +49,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Promis
   return (
     <div className="space-y-5">
       <PageHeader title="Sales pipeline"
-        description={<>REGrow&apos;s own prospects: website requests, referrals and outbound. {can(role, 'salesAll') ? 'You see every prospect.' : 'You see your own prospects and unassigned ones.'}</>}
+        description={<>RE by PX&apos;s own prospects: website requests, referrals and outbound. {can(role, 'salesAll') ? 'You see every prospect.' : 'You see your own prospects and unassigned ones.'}</>}
         actions={<>
           {can(role, 'salesAll') && role !== 'auditor' && <ImportWebsiteButton />}
           {canWrite && <Link href={sp.add ? href({ add: undefined }) : `${href({})}${href({}).includes('?') ? '&' : '?'}add=1#add`} className="btn-primary inline-flex min-h-10 items-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">{sp.add ? 'Close' : 'Add prospect'}</Link>}

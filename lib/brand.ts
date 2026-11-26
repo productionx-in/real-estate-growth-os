@@ -1,16 +1,18 @@
 // lib/brand.ts
 // Single source of truth for product and company naming in user-visible copy.
-// REGrow is the product brand; INFYN Group is the company (parent) brand.
+// RE by PX is the product brand (short form: RE); Production X is the parent company ("by PX" in the logo).
 //
-// NOT covered here (deliberately unchanged until BRANDING_MIGRATION_PLAN phase 2, item M1-15):
-// integration contracts such as the website embed element id `productionx-enquiry-form`,
-// API-key prefix `px_live_`, outbound webhook headers `x-px-*` / User-Agent, and WhatsApp
-// verify-token defaults. Those need backward-compatible aliases before they can be renamed.
+// NOT renamed (stable technical contracts; changing them would break installs or stored data):
+// the website embed's legacy data-regrow-* attributes and window.REGrow (still read, data-re-* / REbyPX are
+// the documented names), REGROW_SOMETHING environment variable names, database objects and cron job names created by
+// earlier migrations, and the API-key prefix px_live_.
 
-export const PRODUCT_NAME = 'REGrow'
-export const COMPANY_NAME = 'INFYN Group'
-export const PRODUCT_FULL_NAME = `${PRODUCT_NAME} by ${COMPANY_NAME}`
-export const PRODUCT_DESCRIPTOR = 'Real Estate Growth Operating System'
+export const PRODUCT_NAME = 'RE by PX'
+export const PRODUCT_SHORT_NAME = 'RE'
+export const COMPANY_NAME = 'Production X'
+export const PRODUCT_FULL_NAME = PRODUCT_NAME
+export const PRODUCT_DESCRIPTOR = 'Real Estate Growth OS'
+export const COPYRIGHT = `© ${new Date().getFullYear()} ${COMPANY_NAME}. All rights reserved.`
 
-/** Display name for outbound email. The sending address stays as configured until the REGrow email domain is authenticated. */
+/** Display name for outbound email. */
 export const EMAIL_SENDER_NAME = PRODUCT_NAME

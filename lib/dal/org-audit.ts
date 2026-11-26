@@ -1,5 +1,5 @@
 // lib/dal/org-audit.ts
-// REGrow: customer-visible audit trail (org_audit_logs).
+// RE by PX: customer-visible audit trail (org_audit_logs).
 //
 // Records who changed access, configuration or data in an organisation. The table is append-only in the
 // database (trigger), readable by the organisation's owners and admins, and written only from the server.
@@ -200,7 +200,7 @@ const ACTION_LABELS: Record<string, string> = {
   'organisation.lifecycle_changed': 'Workspace status changed',
   'module.enabled': 'Module switched on',
   'module.disabled': 'Module switched off',
-  'support.access_requested': 'REGrow support asked for access',
+  'support.access_requested': 'RE by PX support asked for access',
   'support.access_approved': 'Approved support access',
   'support.access_denied': 'Denied support access',
   'support.access_revoked': 'Ended support access',

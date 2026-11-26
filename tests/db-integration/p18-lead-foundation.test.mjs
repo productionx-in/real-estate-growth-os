@@ -31,7 +31,7 @@ async function main() {
   try {
     const uid = crypto.randomUUID()
     await db.query(`INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
-      VALUES ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2,'x',now(),now(),now(),'{}','{"full_name":"Meera"}')`, [uid, `meera-${RUN}@regrow.test`])
+      VALUES ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2,'x',now(),now(),now(),'{}','{"full_name":"Meera"}')`, [uid, `meera-${RUN}@repx.test`])
     const manager = (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [uid])).id
     await db.query(`INSERT INTO public.org_members (org_id, profile_id, role) VALUES ($1,$2,'manager')`, [org, manager])
 

@@ -22,12 +22,12 @@ const withEnv = async (vars, fn) => {
 
 console.log('E-MAIL SERVICE')
 await test('sender, reply-to and provider come only from configuration; new names win, legacy names still work', async () => {
-  const c1 = cfg.getEmailConfig({ EMAIL_PROVIDER: 'resend', RESEND_API_KEY: 're_x123456', EMAIL_FROM_NAME: 'REGrow', EMAIL_FROM_ADDRESS: 'hello@regrowth.in', EMAIL_REPLY_TO: 'support@regrowth.in', VERCEL_ENV: 'production' })
-  assert.deepEqual([c1.provider, c1.from, c1.replyTo, c1.problems], ['resend', 'REGrow <hello@regrowth.in>', 'support@regrowth.in', []])
-  const legacy = cfg.getEmailConfig({ RESEND_API_KEY: 're_x123456', RESEND_FROM_EMAIL: 'REGrow Team <team@regrowth.in>', RESEND_REPLY_TO: 'help@regrowth.in', VERCEL_ENV: 'production' })
-  assert.deepEqual([legacy.provider, legacy.from, legacy.replyTo, legacy.source.from], ['resend', 'REGrow Team <team@regrowth.in>', 'help@regrowth.in', 'RESEND_FROM_EMAIL'])
-  const both = cfg.getEmailConfig({ RESEND_API_KEY: 're_x123456', RESEND_FROM_EMAIL: 'old@regrowth.in', EMAIL_FROM_ADDRESS: 'new@regrowth.in', VERCEL_ENV: 'production' })
-  assert.equal(both.fromAddress, 'new@regrowth.in')
+  const c1 = cfg.getEmailConfig({ EMAIL_PROVIDER: 'resend', RESEND_API_KEY: 're_x123456', EMAIL_FROM_NAME: 'RE by PX', EMAIL_FROM_ADDRESS: 'hello@productionx.in', EMAIL_REPLY_TO: 'support@productionx.in', VERCEL_ENV: 'production' })
+  assert.deepEqual([c1.provider, c1.from, c1.replyTo, c1.problems], ['resend', 'RE by PX <hello@productionx.in>', 'support@productionx.in', []])
+  const legacy = cfg.getEmailConfig({ RESEND_API_KEY: 're_x123456', RESEND_FROM_EMAIL: 'RE by PX Team <team@productionx.in>', RESEND_REPLY_TO: 'help@productionx.in', VERCEL_ENV: 'production' })
+  assert.deepEqual([legacy.provider, legacy.from, legacy.replyTo, legacy.source.from], ['resend', 'RE by PX Team <team@productionx.in>', 'help@productionx.in', 'RESEND_FROM_EMAIL'])
+  const both = cfg.getEmailConfig({ RESEND_API_KEY: 're_x123456', RESEND_FROM_EMAIL: 'old@productionx.in', EMAIL_FROM_ADDRESS: 'new@productionx.in', VERCEL_ENV: 'production' })
+  assert.equal(both.fromAddress, 'new@productionx.in')
 })
 await test('invalid or missing configuration is reported, never patched with a hard-coded sender', async () => {
   const none = cfg.getEmailConfig({ VERCEL_ENV: 'production' })
@@ -36,21 +36,21 @@ await test('invalid or missing configuration is reported, never patched with a h
   assert.ok(cfg.getEmailConfig({ EMAIL_PROVIDER: 'sendgrid', VERCEL_ENV: 'production' }).problems.some((p) => /not supported/.test(p)))
   assert.ok(cfg.getEmailConfig({ EMAIL_PROVIDER: 'mock', VERCEL_ENV: 'production' }).problems.some((p) => /mock/.test(p)), 'the mock is never accepted in production')
   for (const f of ['lib/email/adapter.ts', 'lib/email/service.ts', 'lib/email/templates.ts', 'lib/jobs/customer-emails.ts', 'lib/jobs/daily-reports.ts', 'lib/jobs/site-visit-notify.ts', 'lib/payments/monitoring.ts', 'lib/payments/mandates.ts', 'app/api/website/demo-request/route.ts'])
-    assert.doesNotMatch(read(f), /noreply@|@productionx\.ai|@regrowth\.in/, `${f} hard-codes no sender`)
+    assert.doesNotMatch(read(f), /noreply@|@productionx\.(ai|in)|@regrowth\.in/, `${f} hard-codes no sender`)
 })
 await test('Resend: idempotency key, configured sender at send time, timeout, and error classes', async () => {
   const calls = []
   const realFetch = globalThis.fetch
   try {
-    await withEnv({ RESEND_API_KEY: 're_test1234', EMAIL_FROM_ADDRESS: 'first@regrowth.in', EMAIL_REPLY_TO: 'support@regrowth.in' }, async () => {
+    await withEnv({ RESEND_API_KEY: 're_test1234', EMAIL_FROM_ADDRESS: 'first@productionx.in', EMAIL_REPLY_TO: 'support@productionx.in' }, async () => {
       globalThis.fetch = async (_u, init) => { calls.push({ headers: init.headers, body: JSON.parse(init.body) }); return new Response(JSON.stringify({ id: 'e1' }), { status: 200 }) }
       const a = adapter.getEmailAdapter()
       assert.equal(a.name, 'resend')
       assert.equal((await a.sendEmail({ to: 'x@company.in', subject: 's', html: 'h', idempotencyKey: 'invite:1:abc' })).success, true)
-      process.env.EMAIL_FROM_ADDRESS = 'second@regrowth.in' // changed while running: the next send uses it
+      process.env.EMAIL_FROM_ADDRESS = 'second@productionx.in' // changed while running: the next send uses it
       await adapter.getEmailAdapter().sendEmail({ to: 'x@company.in', subject: 's', html: 'h' })
       assert.equal(calls[0].headers['Idempotency-Key'], 'invite:1:abc')
-      assert.deepEqual([calls[0].body.from, calls[0].body.reply_to, calls[1].body.from], ['REGrow <first@regrowth.in>', 'support@regrowth.in', 'REGrow <second@regrowth.in>'])
+      assert.deepEqual([calls[0].body.from, calls[0].body.reply_to, calls[1].body.from], ['RE by PX <first@productionx.in>', 'support@productionx.in', 'RE by PX <second@productionx.in>'])
       for (const [status, msg, kind] of [[429, 'rate', 'transient'], [503, 'down', 'transient'], [401, 'bad key', 'config'], [422, 'The domain is not verified', 'config'], [422, 'Invalid `to` field', 'permanent']])
         assert.equal(adapter.classifyResend(status, msg), kind, `${status} ${msg}`)
       process.env.EMAIL_PROVIDER_TIMEOUT_MS = '60'

@@ -90,7 +90,7 @@ async function attempt(db: Db, row: Row, worker: string): Promise<SendResult> {
   if ('skip' in rendered) return fail('skipped', rendered.skip)
 
   // 3. Send, with the outbox key as the provider's idempotency key. Buyer-facing e-mail goes from the workspace's own
-  // verified domain when it has one (20260103); otherwise from REGrow's configured sender.
+  // verified domain when it has one (20260103); otherwise from RE by PX's configured sender.
   const own = rendered.fromOwn && row.org_id ? await orgSender(db, row.org_id).catch(() => null) : null
   const result = await getEmailAdapter().sendEmail({
     ...(own ? { from: own } : {}),

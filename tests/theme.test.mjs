@@ -62,7 +62,7 @@ test('the inline boot script runs on its own and sets the theme before paint; st
     }
     win.matchMedia = env.matchMedia
     new Function(...Object.keys(env), THEME_BOOT_SCRIPT)(...Object.values(env))
-    return { theme: attrs['data-theme'] ?? 'light', api: win.__regrowTheme }
+    return { theme: attrs['data-theme'] ?? 'light', api: win.__repxTheme }
   }
   assert.equal(run('dark', '2026-11-18T06:30:00Z', '/acme/leads').theme, 'dark')
   assert.equal(run('dark', '2026-11-18T06:30:00Z', '/pricing').theme, 'light', 'marketing stays light')

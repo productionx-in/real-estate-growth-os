@@ -13,7 +13,7 @@ export async function ModuleGate({ orgSlug, module, children }: { orgSlug: strin
     <div className="p-4 md:p-6">
       <Card className="mx-auto max-w-xl">
         <EmptyState icon={Lock} title={`${MODULES[module]} isn’t included in this workspace`}
-          description="Your data is kept. To add this module, contact your REGrow account manager." />
+          description="Your data is kept. To add this module, contact your RE by PX account manager." />
       </Card>
     </div>
   )

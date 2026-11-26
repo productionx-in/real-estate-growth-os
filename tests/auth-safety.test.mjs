@@ -26,8 +26,8 @@ test('rejects every off-site form and falls back to the default', () => {
 })
 test('the callback could never build a foreign URL from the result', () => {
   for (const a of ['@evil.example', '//evil.example', '/\\evil.example', '/ok']) {
-    const url = new URL(safeRedirectPath(a), 'https://app.regrow.in')
-    assert.equal(url.origin, 'https://app.regrow.in', a)
+    const url = new URL(safeRedirectPath(a), 'https://re.productionx.in')
+    assert.equal(url.origin, 'https://re.productionx.in', a)
   }
 })
 test('custom fallback is honoured', () => {

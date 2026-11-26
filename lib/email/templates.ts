@@ -99,7 +99,7 @@ const RENDERERS: Record<string, (p: Payload, ctx: RenderContext) => Promise<Rend
     const alerts = (p.alerts ?? []) as { kind: string; scope?: string | null; detail: string }[]
     const app = appUrl()
     return {
-      subject: `REGrow payments: ${alerts.length} alert(s)`,
+      subject: `RE by PX payments: ${alerts.length} alert(s)`,
       ...renderEmail({
         preheader: `${alerts.length} payment alert(s) need attention`,
         heading: 'Payment alerts',
@@ -114,13 +114,13 @@ const RENDERERS: Record<string, (p: Payload, ctx: RenderContext) => Promise<Rend
     const when = new Intl.DateTimeFormat('en-IN', { dateStyle: 'long', timeStyle: 'short', timeZone: 'Asia/Kolkata' }).format(new Date(str(p.debitAfter)))
     const amount = rupees(Number(p.amountPaise ?? 0))
     return {
-      subject: `Upcoming REGrow payment of ${amount}`,
+      subject: `Upcoming RE by PX payment of ${amount}`,
       ...renderEmail({
-        preheader: `${amount} will be debited for your REGrow renewal`,
+        preheader: `${amount} will be debited for your RE by PX renewal`,
         heading: 'Upcoming automatic payment',
         paragraphs: [
-          `Your REGrow subscription for ${str(p.orgName) || 'your workspace'} renews soon. ${amount} (including GST) will be debited through your UPI AutoPay mandate on or after ${when}.`,
-          'You can cancel the mandate at any time from Plan & billing in REGrow, or from your UPI app. If you cancel, you can still pay the renewal invoice manually.',
+          `Your RE by PX subscription for ${str(p.orgName) || 'your workspace'} renews soon. ${amount} (including GST) will be debited through your UPI AutoPay mandate on or after ${when}.`,
+          'You can cancel the mandate at any time from Plan & billing in RE by PX, or from your UPI app. If you cancel, you can still pay the renewal invoice manually.',
         ],
       }),
     }
@@ -183,12 +183,12 @@ const RENDERERS: Record<string, (p: Payload, ctx: RenderContext) => Promise<Rend
     }
   },
 
-  // To REGrow's Platform Owners when e-mails are held (configuration) or failed. Counts only — no customer data.
+  // To RE by PX's Platform Owners when e-mails are held (configuration) or failed. Counts only — no customer data.
   'staff.email_health'(p) {
     const app = appUrl()
     const held = Number(p.held ?? 0); const failed = Number(p.failed ?? 0)
     return {
-      subject: `REGrow e-mail: ${held ? `${held} held` : ''}${held && failed ? ', ' : ''}${failed ? `${failed} failed` : ''}`.trim(),
+      subject: `RE by PX e-mail: ${held ? `${held} held` : ''}${held && failed ? ', ' : ''}${failed ? `${failed} failed` : ''}`.trim(),
       ...renderEmail({
         preheader: 'Some application e-mails need attention.',
         heading: 'E-mail delivery needs attention',
@@ -198,7 +198,7 @@ const RENDERERS: Record<string, (p: Payload, ctx: RenderContext) => Promise<Rend
           'Details and a retry button are in Platform Admin → E-mail.',
         ],
         ...(app ? { cta: { label: 'Open e-mail health', url: `${app}/platform/email` } } : {}),
-        reason: 'Sent to REGrow Platform Owners about e-mail delivery.',
+        reason: 'Sent to RE by PX Platform Owners about e-mail delivery.',
       }),
     }
   },

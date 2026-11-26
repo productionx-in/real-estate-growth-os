@@ -37,7 +37,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   let emailed = false
   let emailError: string | null = null
   try {
-    const sent = await sendInvitation(db, { orgId, invitationId: inv.id, to: inv.email, orgName: org?.name ?? 'REGrow', role: ROLE_LABEL[inv.role] ?? inv.role, inviteUrl: url, inviterName: 'REGrow' })
+    const sent = await sendInvitation(db, { orgId, invitationId: inv.id, to: inv.email, orgName: org?.name ?? 'RE by PX', role: ROLE_LABEL[inv.role] ?? inv.role, inviteUrl: url, inviterName: 'RE by PX' })
     emailed = sent.success
     if (!sent.success) emailError = sent.error ?? 'e-mail not sent'
   } catch (e) { emailError = e instanceof Error ? e.message : 'e-mail not sent' }

@@ -1,4 +1,4 @@
-// lib/support/contact.ts — how customers and visitors reach REGrow. Nothing here is invented: the WhatsApp
+// lib/support/contact.ts — how customers and visitors reach RE by PX. Nothing here is invented: the WhatsApp
 // number comes from NEXT_PUBLIC_SUPPORT_WHATSAPP (set in Vercel) and the e-mail from lib/legal.ts. When a
 // value is missing, the option is simply not shown.
 import { LEGAL } from '@/lib/legal'

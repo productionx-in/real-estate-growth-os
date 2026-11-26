@@ -43,7 +43,7 @@ export default async function PlatformProvisioningPage({ searchParams }: { searc
   return (
     <PageShell
       title="Platform Customer Onboarding"
-      description="Authorised REGrow workspace provisioning and subscription seat entitlement management"
+      description="Authorised RE by PX workspace provisioning and subscription seat entitlement management"
     >
       <div className="py-6">
         <PlatformProvisioningModal prefill={prefill} />

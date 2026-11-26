@@ -1,5 +1,5 @@
 // lib/dal/plot-map-setup.ts — Interactive Plot Map setup progress from what is recorded (lib/plots/setup.ts turns the
-// facts into stages, progress and estimates), visible blockers, REGrow assignments, and the notifications that go with
+// facts into stages, progress and estimates), visible blockers, RE by PX assignments, and the notifications that go with
 // them. Callers authorise first: workspace members see their own projects; Platform staff see setup METADATA only
 // (stages, counts, dates, blocker text) — never inventory, buyers or the map's contents.
 import { createServiceClient } from '@/lib/supabase/server'
@@ -128,7 +128,7 @@ export async function setupQueue(): Promise<QueueRow[]> {
   ])
   const staffIds = [...new Set((assigns ?? []).map((a) => a.assignee_user).filter(Boolean) as string[])]
   const { data: staff } = staffIds.length ? await client.from('profiles').select('auth_user_id, full_name').in('auth_user_id', staffIds) : { data: [] }
-  const staffName = new Map((staff ?? []).map((s) => [s.auth_user_id as string, s.full_name || 'REGrow team']))
+  const staffName = new Map((staff ?? []).map((s) => [s.auth_user_id as string, s.full_name || 'RE by PX team']))
   const rows: QueueRow[] = []
   for (const a of active) {
     const facts = await setupFacts(a.org_id, a.project_id)
@@ -137,7 +137,7 @@ export async function setupQueue(): Promise<QueueRow[]> {
       orgId: a.org_id, orgName: (orgs ?? []).find((o) => o.id === a.org_id)?.name ?? '',
       projectId: a.project_id, projectName: (projects ?? []).find((p) => p.id === a.project_id)?.name ?? '',
       view: setupView(facts), plots: facts.plots,
-      assigneeUserId, assignee: assigneeUserId ? staffName.get(assigneeUserId) ?? 'REGrow team' : null,
+      assigneeUserId, assignee: assigneeUserId ? staffName.get(assigneeUserId) ?? 'RE by PX team' : null,
       openBlockers: (open ?? []).filter((b) => b.project_id === a.project_id).map((b) => ({ id: b.id, stage: b.stage, waitingOn: b.waiting_on, reason: b.reason, raisedAt: b.raised_at })),
     })
   }
@@ -150,7 +150,7 @@ export async function assignSetup(orgId: string, projectId: string, assigneeUser
   const client = db()
   if (assigneeUserId) {
     const { data: s } = await client.from('platform_users').select('user_id').eq('user_id', assigneeUserId).eq('is_active', true).maybeSingle()
-    if (!s) return { success: false, error: 'That person is not on the REGrow team.', status: 400 }
+    if (!s) return { success: false, error: 'That person is not on the RE by PX team.', status: 400 }
   }
   const { error } = await client.from('plot_map_setup_assignments')
     .upsert({ project_id: projectId, org_id: orgId, assignee_user: assigneeUserId, assigned_by: actorUserId, assigned_at: new Date().toISOString() }, { onConflict: 'project_id' })

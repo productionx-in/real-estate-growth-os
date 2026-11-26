@@ -42,7 +42,7 @@ export function LegalPage({ title, intro, sections }: { title: string; intro: Re
   )
 }
 
-/** A fact INFYN Group has not supplied yet: shown as a marked placeholder, never guessed. */
+/** A fact Production X has not supplied yet: shown as a marked placeholder, never guessed. */
 export function Pending({ what }: { what: string }) {
   return <mark className="rounded bg-[var(--warning-bg)] px-1 text-[var(--warning)]">[to be confirmed: {what}]</mark>
 }

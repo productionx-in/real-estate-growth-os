@@ -184,7 +184,7 @@ export function LeakageAudit() {
 
       <div className="mt-8 rounded-2xl bg-[#0b1220] text-white p-6 print:hidden">
         <p className="text-[17px] font-semibold">Want every lead called within 5 minutes?</p>
-        <p className="mt-1 text-[14px] text-slate-300">REGrow assigns each lead in seconds, alerts the salesperson and escalates if nobody calls. We can run it alongside your current CRM for a 30-day pilot.</p>
+        <p className="mt-1 text-[14px] text-slate-300">RE by PX assigns each lead in seconds, alerts the salesperson and escalates if nobody calls. We can run it alongside your current CRM for a 30-day pilot.</p>
         <Link href="/demo?plan=leads" className="mt-4 inline-block px-5 py-2.5 text-[15px] font-semibold text-[#0b1220] bg-white rounded-xl">Book a demo</Link>
       </div>
     </div>

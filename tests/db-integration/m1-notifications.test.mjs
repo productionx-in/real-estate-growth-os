@@ -1,5 +1,5 @@
 // tests/db-integration/m1-notifications.test.mjs
-// REGrow M1 — notifications outbox, in-app inbox, durable job queue and scheduler (migration 20260039),
+// RE by PX M1 — notifications outbox, in-app inbox, durable job queue and scheduler (migration 20260039),
 // plus the REAL lib/jobs/runner.ts and app/api/jobs/run/route.ts (imported via jiti) against local Supabase.
 import assert from 'node:assert/strict'
 import crypto from 'node:crypto'
@@ -60,7 +60,7 @@ async function main() {
     const id = crypto.randomUUID()
     await q(`INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
              VALUES ($1, '00000000-0000-0000-0000-000000000000', $2, 'x', now(), '{"provider":"email"}', '{}', now(), now(), 'authenticated', 'authenticated')`,
-      [id, `m1n-${label}-${RUN}@regrow.test`])
+      [id, `m1n-${label}-${RUN}@repx.test`])
     const p = await one('SELECT id FROM public.profiles WHERE auth_user_id = $1', [id])
     return { authId: id, profileId: p ? p.id : (await one('INSERT INTO public.profiles (auth_user_id, full_name) VALUES ($1, $2) RETURNING id', [id, label])).id }
   }

@@ -43,7 +43,7 @@ const a: ArticleContent = {
     },
   ],
   related: [
-    { href: '/sales-operations', label: 'Lead distribution and escalation in REGrow' },
+    { href: '/sales-operations', label: 'Lead distribution and escalation in RE by PX' },
     { href: '/sales-analytics', label: 'Speed-to-lead reporting' },
     { href: '/leakage-audit', label: 'Free lead-leakage audit from your export' },
   ],

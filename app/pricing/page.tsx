@@ -9,7 +9,7 @@ import { RoiCalculator } from '@/components/marketing/RoiCalculator'
 
 export const metadata: Metadata = {
   title: { absolute: `Pricing and packages — ${PRODUCT_NAME}` },
-  description: 'REGrow packages for real estate developers and channel partner agencies, sized to your team. Ask for a recommendation for your projects and team.',
+  description: 'RE by PX packages for real estate developers and channel partner agencies, sized to your team. Ask for a recommendation for your projects and team.',
   alternates: { canonical: '/pricing' },
 }
 
@@ -25,7 +25,7 @@ const FAQ = [
   { q: 'What counts as a user?', a: 'Anyone who signs in: salespeople, managers and admins. Deactivated users free their seat straight away.' },
   { q: 'Can we change team size later?', a: 'Yes. Add users at any time; extra users are charged from the date they are added.' },
   { q: 'Are prices inclusive of GST?', a: 'No. Prices are quoted in Indian rupees and exclude GST, which is shown separately on every invoice.' },
-  { q: 'We are a channel-partner agency working with a developer on REGrow. Do we pay?', a: 'Yes — each agency has its own workspace and its own plan (REGrow for Agencies), and your buyers stay yours. A developer partnering with you does not pay for your workspace, and you do not pay for theirs.' },
+  { q: 'We are a channel-partner agency working with a developer on RE by PX. Do we pay?', a: 'Yes — each agency has its own workspace and its own plan (RE for Agencies), and your buyers stay yours. A developer partnering with you does not pay for your workspace, and you do not pay for theirs.' },
 ]
 
 export default function PricingPage() {

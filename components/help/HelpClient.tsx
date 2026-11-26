@@ -56,7 +56,7 @@ export function HelpClient({ orgId, orgSlug, cases, open }: { orgId: string; org
           <CardContent className="space-y-3">
             {open.messages.map((m) => (
               <div key={m.id} className={`rounded-xl border border-default p-3 text-[14px] ${m.author_kind === 'staff' ? 'bg-surface-muted' : ''}`}>
-                <p className="text-[12px] font-medium text-muted">{m.author_label ?? (m.author_kind === 'staff' ? 'REGrow support' : 'You')} · {when(m.created_at)}</p>
+                <p className="text-[12px] font-medium text-muted">{m.author_label ?? (m.author_kind === 'staff' ? 'RE by PX support' : 'You')} · {when(m.created_at)}</p>
                 <p className="mt-1 whitespace-pre-wrap">{m.body}</p>
               </div>
             ))}
@@ -84,7 +84,7 @@ export function HelpClient({ orgId, orgSlug, cases, open }: { orgId: string; org
               </div>
               <Field label="Describe it" required hint="Please do not include passwords. If we need to look at your records, we will ask for your permission under Support access."><Textarea required minLength={5} rows={6} value={f.body} onChange={(e) => setF({ ...f, body: e.target.value })} /></Field>
               {error && <Alert tone="danger">{error}</Alert>}
-              <Button type="submit" disabled={busy}>Send to REGrow support</Button>
+              <Button type="submit" disabled={busy}>Send to RE by PX support</Button>
             </form>
           </CardContent>
         </Card>

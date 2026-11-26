@@ -1,6 +1,6 @@
-// app/contact/page.tsx — Contact. Ways to reach REGrow that work today (the contact form, which reaches the sales team
+// app/contact/page.tsx — Contact. Ways to reach RE by PX that work today (the contact form, which reaches the sales team
 // as a lead; Help & support for customers), plus company particulars from lib/legal.ts — shown as marked placeholders
-// until INFYN Group supplies them. Not indexed until those particulars are confirmed.
+// until Production X supplies them. Not indexed until those particulars are confirmed.
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CalendarCheck, LifeBuoy, Mail, ShieldCheck } from 'lucide-react'

@@ -20,7 +20,7 @@ async function main() {
     const mkUser = async (label) => {
       const id = crypto.randomUUID()
       await q(`INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
-               VALUES ($1,'00000000-0000-0000-0000-000000000000',$2,'x',now(),'{"provider":"email"}','{}',now(),now(),'authenticated','authenticated')`, [id, `m3-${label}-${RUN}@regrow.test`])
+               VALUES ($1,'00000000-0000-0000-0000-000000000000',$2,'x',now(),'{"provider":"email"}','{}',now(),now(),'authenticated','authenticated')`, [id, `m3-${label}-${RUN}@repx.test`])
       const p = (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [id])).id
       await q(`UPDATE public.profiles SET full_name=$2 WHERE id=$1`, [p, label])
       return p

@@ -201,7 +201,7 @@ export function PortalIntegrationModal({
                 <span className="font-mono font-medium text-foreground">{currentConfig.sampleId}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted">Routes to REGrow Project:</span>
+                <span className="text-muted">Routes to RE by PX Project:</span>
                 <Select
                   value={selectedProjectId}
                   onChange={(e) => setSelectedProjectId(e.target.value)}>

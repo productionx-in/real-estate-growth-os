@@ -9,7 +9,7 @@ test values), marked **Sensitive** for secrets, then redeploy. **Never paste a v
 or a document.** After a redeploy, *Platform console → Integrations* shows a yes/no for every setting below
 (never the value), so you can check your work there.
 
-Replace `https://APP` below with the production address (the value of `NEXT_PUBLIC_APP_URL`).
+The production address is **https://re.productionx.in** (live). URLs below use it.
 
 ---
 
@@ -18,18 +18,22 @@ Replace `https://APP` below with the production address (the value of `NEXT_PUBL
 - [ ] `ENCRYPTION_KEY` — a long random value (e.g. `openssl rand -base64 32`). Set it **once, before the first
       customer connects anything**, and never change it: stored tokens encrypted with another key cannot be read.
       Keep an offline copy in your password manager.
-- [ ] `NEXT_PUBLIC_APP_URL` — the production address customers use (e.g. `https://app.yourdomain`). Meta and
-      Google redirect URLs are built from it.
+- [ ] `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_SITE_URL` = `https://re.productionx.in` (Production). Canonical URLs,
+      Open Graph, e-mail links and Meta/Google redirect URLs are built from them.
+- [ ] Supabase → Authentication → URL configuration: Site URL `https://re.productionx.in`, Redirect URLs
+      `https://re.productionx.in/**` (keep the old address too until nobody uses it).
+- [ ] Contact mailboxes on productionx.in used in the site and e-mails (support@, hello@, noreply@) exist, and the
+      e-mail sending domain is verified in Resend (section 5).
 - [ ] Confirm every *required* row in `ENVIRONMENT.md` (Supabase URL and keys, etc.) is set for Production.
 
 ## 2. Meta Lead Ads (Facebook & Instagram)
 
-One central REGrow app at developers.facebook.com, owned by INFYN's business portfolio.
+One central RE by PX app at developers.facebook.com, owned by Production X's business portfolio.
 
 - [ ] Business verification of the business portfolio that owns the app (legal name, address, documents).
 - [ ] Create the app (type *Business*); add **Facebook Login for Business** and **Webhooks**.
-- [ ] Facebook Login → Valid OAuth redirect URI: `https://APP/api/integrations/meta/callback`
-- [ ] Webhooks → **Page** → callback `https://APP/api/webhooks/meta`, subscribe to **leadgen**; the verify token is
+- [ ] Facebook Login → Valid OAuth redirect URI: `https://re.productionx.in/api/integrations/meta/callback`
+- [ ] Webhooks → **Page** → callback `https://re.productionx.in/api/webhooks/meta`, subscribe to **leadgen**; the verify token is
       the value you choose for `META_WEBHOOK_VERIFY_TOKEN`.
 - [ ] App Review (screencast of the Connect flow — a demo workspace is ready for it): `pages_show_list`,
       `pages_read_engagement`, `pages_manage_metadata`, `pages_manage_ads`, `leads_retrieval`, `ads_read`,
@@ -47,7 +51,7 @@ Same Meta app as above.
 - [ ] Add the **WhatsApp** product and apply to become a **Tech Provider** (needs business verification).
 - [ ] Facebook Login for Business → Configurations → create a **WhatsApp Embedded Signup** configuration; copy its ID.
 - [ ] App settings → Allowed domains for the JavaScript SDK: the production domain.
-- [ ] Webhooks → **WhatsApp Business Account** → callback `https://APP/api/webhooks/whatsapp`, subscribe to
+- [ ] Webhooks → **WhatsApp Business Account** → callback `https://re.productionx.in/api/webhooks/whatsapp`, subscribe to
       **messages** (same verify token).
 - [ ] App Review: `whatsapp_business_management`, `whatsapp_business_messaging`, `business_management`.
 - [ ] Set in Vercel: `META_WA_CONFIG_ID`.
@@ -55,17 +59,17 @@ Same Meta app as above.
 
 ## 4. Google Ads lead forms
 
-- [ ] Google Cloud project owned by INFYN: OAuth consent screen (External), with app name, logo, privacy and terms
+- [ ] Google Cloud project owned by Production X: OAuth consent screen (External), with app name, logo, privacy and terms
       URLs and authorised domain; submit for **verification** (Google Ads scope is sensitive).
-- [ ] Credentials → OAuth client (*Web application*), redirect URI `https://APP/api/integrations/google/callback`.
-- [ ] Google Ads **manager account** → API Center → apply for a **Basic access** developer token (describe REGrow
+- [ ] Credentials → OAuth client (*Web application*), redirect URI `https://re.productionx.in/api/integrations/google/callback`.
+- [ ] Google Ads **manager account** → API Center → apply for a **Basic access** developer token (describe RE by PX
       as a lead-management tool reading lead-form submissions).
 - [ ] Set in Vercel: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (secret), `GOOGLE_DEVELOPER_TOKEN` (secret);
       optional `GOOGLE_WEBHOOK_KEY`, `GOOGLE_REDIRECT_URI` (only if it differs from the one above).
 
-## 5. Email (sending from REGrow and from customers' own domains)
+## 5. Email (sending from RE by PX and from customers' own domains)
 
-- [ ] Resend account owned by INFYN; verify REGrow's sending domain there (DNS records at your registrar).
+- [ ] Resend account owned by Production X; verify RE by PX's sending domain there (DNS records at your registrar).
 - [ ] Create a **production API key** with sending + domain access (customers' own domains are registered through
       it from *Integrations → Email domain*).
 - [ ] Set in Vercel: `RESEND_API_KEY` (secret), `EMAIL_PROVIDER=resend`, `EMAIL_FROM_ADDRESS` (on the verified
@@ -84,7 +88,7 @@ Same Meta app as above.
 
 - [ ] Property portals (99acres, MagicBricks, Housing): the customer's portal account manager turns on lead push to
       the workspace's webhook URL shown in *Integrations*.
-- [ ] Customer website and email domains: the customer adds the DNS records REGrow shows them; REGrow checks them
+- [ ] Customer website and email domains: the customer adds the DNS records RE by PX shows them; RE by PX checks them
       automatically.
 
 ## 8. Decisions and approvals

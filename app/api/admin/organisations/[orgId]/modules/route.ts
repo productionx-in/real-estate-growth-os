@@ -26,7 +26,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const service = createServiceClient()
   const { data, error } = await service.rpc('set_module_entitlement', {
-    p_org: orgId, p_module: module, p_enabled: enabled, p_reason: reason, p_actor: auth.user.id, p_label: 'REGrow platform team',
+    p_org: orgId, p_module: module, p_enabled: enabled, p_reason: reason, p_actor: auth.user.id, p_label: 'RE by PX platform team',
   })
   if (error) {
     const notFound = error.message.includes('not found')

@@ -1,7 +1,7 @@
 // lib/email/layout.ts
-// REGrow branded email: one table-based layout (renders in Gmail, Outlook, Apple Mail, dark mode) used by every
+// RE by PX branded email: one table-based layout (renders in Gmail, Outlook, Apple Mail, dark mode) used by every
 // email the app sends. Every value placed in the HTML is escaped — names and organisation names are typed by
-// users, and unescaped they would let anyone put links or markup into mail sent from REGrow's address.
+// users, and unescaped they would let anyone put links or markup into mail sent from RE by PX's address.
 import { COMPANY_NAME, PRODUCT_FULL_NAME, PRODUCT_NAME } from '@/lib/brand'
 
 export function escapeHtml(value: string): string {
@@ -30,7 +30,7 @@ export interface EmailContent {
   unsubscribeUrl?: string
 }
 
-const BRAND = '#1d4ed8'
+const BRAND = '#4338ca'
 const TEXT = '#111827'
 const MUTED = '#4b5563'
 const SUBTLE = '#6b7280'

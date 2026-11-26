@@ -34,7 +34,7 @@ export function ProfileForm({ initial, email, roleLabel, avatarUrl = null }: { i
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Full name" required><Input value={v.fullName} autoComplete="name" maxLength={80} onChange={(e) => setV({ ...v, fullName: e.target.value })} /></Field>
         <Field label="Phone" hint="Shown to buyers on documents you share."><Input value={v.phone} type="tel" autoComplete="tel" inputMode="tel" onChange={(e) => setV({ ...v, phone: e.target.value })} /></Field>
-        <Field label="E-mail" hint="Your sign-in address. Ask REGrow support to change it."><Input value={email} readOnly /></Field>
+        <Field label="E-mail" hint="Your sign-in address. Ask RE by PX support to change it."><Input value={email} readOnly /></Field>
         <Field label="Role" hint="Set by your workspace owner or admin."><Input value={roleLabel} readOnly /></Field>
       </div>
       {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}

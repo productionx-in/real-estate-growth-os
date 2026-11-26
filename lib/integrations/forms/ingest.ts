@@ -121,7 +121,7 @@ export async function ingestWebsiteEnquiry(body: EnquirySubmissionInput, ctx: In
   const meta = (connection.metadata || {}) as Record<string, unknown>
   const allowedDomains = Array.isArray(meta.allowedDomains) ? (meta.allowedDomains as string[]).filter((d) => typeof d === 'string' && d.trim()) : []
   if (ctx.mode === 'capture' && allowedDomains.length === 0) {
-    return { status: 403, body: { success: false, error: 'Add this website’s domain in REGrow (Integrations → Website) before capturing its forms.' } }
+    return { status: 403, body: { success: false, error: 'Add this website’s domain in RE by PX (Integrations → Website) before capturing its forms.' } }
   }
   if (allowedDomains.length > 0 && !isDomainAllowed(ctx.origin, allowedDomains)) {
     return { status: 403, body: { success: false, error: 'Submissions from this website domain are not authorized for this enquiry form.' } }

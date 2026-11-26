@@ -1,5 +1,5 @@
 // lib/dal/subscriptions.ts
-// REGrow: Subscription & Seat Entitlement Engine
+// RE by PX: Subscription & Seat Entitlement Engine
 import { createServiceClient } from '@/lib/supabase/server'
 import { PLAN_CONFIGS, type PlanTier, type PlanConfig } from '@/lib/subscriptions/config'
 

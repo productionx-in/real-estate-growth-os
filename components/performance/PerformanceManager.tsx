@@ -148,7 +148,7 @@ function SettingsSection({ orgId, initial, onSaved }: { orgId: string; initial: 
   return (
     <Card>
       <CardHeader className="items-center">
-        <div><CardTitle>Points, levels and missions</CardTitle><CardDescription>Points only come from real activity in REGrow. An assignment never earns points.</CardDescription></div>
+        <div><CardTitle>Points, levels and missions</CardTitle><CardDescription>Points only come from real activity in RE by PX. An assignment never earns points.</CardDescription></div>
         <Switch on={s.enabled} label="Points and missions" onChange={(v) => setS({ ...s, enabled: v })} />
       </CardHeader>
       <CardContent className={`space-y-6 ${s.enabled ? '' : 'opacity-60'}`}>
@@ -258,7 +258,7 @@ function AchievementsSection({ orgId, achievements, onSaved }: { orgId: string; 
   }
   return (
     <Card>
-      <CardHeader><div><CardTitle>Achievements</CardTitle><CardDescription>Switch built-in badges on or off, and add your own. A reward note is shown with the badge; REGrow promises no rewards itself.</CardDescription></div></CardHeader>
+      <CardHeader><div><CardTitle>Achievements</CardTitle><CardDescription>Switch built-in badges on or off, and add your own. A reward note is shown with the badge; RE by PX promises no rewards itself.</CardDescription></div></CardHeader>
       <CardContent className="space-y-5">
         <ul className="grid gap-2 sm:grid-cols-2">
           {achievements.map((a) => (

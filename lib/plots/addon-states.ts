@@ -31,9 +31,9 @@ export function addonState(row: { status: string; valid_until: string | null } |
 /** What each state lets a workspace do. Only `active` uses the feature; nothing else publishes or edits. */
 export const STATE_INFO: Record<AddonState, { label: string; tone: 'success' | 'warning' | 'danger' | 'neutral'; customer: string }> = {
   not_purchased: { label: 'Not activated', tone: 'neutral', customer: 'This add-on isn’t activated for this project yet.' },
-  pending: { label: 'Activation pending', tone: 'warning', customer: 'Activation has been requested. REGrow will confirm it and let you know.' },
+  pending: { label: 'Activation pending', tone: 'warning', customer: 'Activation has been requested. RE by PX will confirm it and let you know.' },
   active: { label: 'Active', tone: 'success', customer: 'Active for this project.' },
-  suspended: { label: 'Suspended', tone: 'danger', customer: 'Suspended for this project. Your layouts are kept, but the map is offline and can’t be edited or published. Contact your REGrow account manager.' },
+  suspended: { label: 'Suspended', tone: 'danger', customer: 'Suspended for this project. Your layouts are kept, but the map is offline and can’t be edited or published. Contact your RE by PX account manager.' },
   expired: { label: 'Expired', tone: 'danger', customer: 'The subscription for this project has ended. Your layouts are kept, but the map is offline and can’t be edited or published until it is renewed.' },
 }
 

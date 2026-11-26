@@ -1,5 +1,5 @@
 // lib/integrations/readiness.ts — is the platform configured for each integration?
-// REGrow runs ONE central Meta app (Lead Ads + WhatsApp Cloud API) and ONE Google Cloud app for every workspace;
+// RE by PX runs ONE central Meta app (Lead Ads + WhatsApp Cloud API) and ONE Google Cloud app for every workspace;
 // customers only authorise their own assets. This reports, per integration, which platform settings are present.
 // It returns setting NAMES and yes/no only — never a value — so it is safe to show to Platform staff.
 // Pure: pass the environment in (tests pass a fake one).
@@ -44,7 +44,7 @@ export function integrationReadiness(env: Env = process.env): IntegrationReadine
       { name: 'NEXT_PUBLIC_APP_URL', purpose: 'The app address used for OAuth redirect and webhook URLs (Vercel’s production domain is used when unset).', optional: true },
     ], []),
     build(env, 'meta_lead_ads', 'Meta Lead Ads (Facebook & Instagram)', [
-      { name: 'META_APP_ID', purpose: 'The central REGrow Meta app.' },
+      { name: 'META_APP_ID', purpose: 'The central RE by PX Meta app.' },
       { name: 'META_APP_SECRET', purpose: 'Verifies webhook signatures and exchanges login codes.' },
       { name: 'META_WEBHOOK_VERIFY_TOKEN', purpose: 'Answers Meta’s webhook verification; any long random string, entered in both places.' },
       { name: 'META_API_VERSION', purpose: 'Graph API version (defaults to v21.0).', optional: true },

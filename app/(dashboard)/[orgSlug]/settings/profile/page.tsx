@@ -16,7 +16,7 @@ export default async function ProfileSettingsPage({ params }: { params: Promise<
   const { user, profile, role } = await getVerifiedWorkspace(orgSlug)
   return (
     <div className="max-w-3xl space-y-4">
-      <SettingsHeader title="Profile & preferences" scope="you" description="Your photo, name and phone, and how REGrow looks for you." />
+      <SettingsHeader title="Profile & preferences" scope="you" description="Your photo, name and phone, and how RE by PX looks for you." />
       <SettingsCard title="Photo" description="📸 Add a photo so your team recognises you.">
         <ProfilePhoto name={profile?.full_name ?? ''} initialUrl={profile?.avatar_url ?? null} />
       </SettingsCard>

@@ -30,7 +30,7 @@ export default async function RolesPage({ params }: { params: Promise<{ orgSlug:
   const groups = [...new Set(CAPABILITIES.map((c) => c.group))]
   return (
     <div className="max-w-6xl space-y-4">
-      <SettingsHeader title="Roles & permissions" scope="org" description="What each role can do in REGrow. These are the rules the server enforces." />
+      <SettingsHeader title="Roles & permissions" scope="org" description="What each role can do in RE by PX. These are the rules the server enforces." />
       <SettingsCard title="Roles" description={isAdmin ? 'Change someone’s role from Team members.' : 'Owners and admins change roles from Team members.'}>
         <ul className="grid gap-2 sm:grid-cols-2">
           {MEMBER_ROLES.map((r) => <li key={r} className="text-[13px]"><span className="font-semibold text-foreground">{ROLE_LABELS[r]}</span> <span className="text-muted">— {ROLE_DESCRIPTIONS[r]}</span></li>)}

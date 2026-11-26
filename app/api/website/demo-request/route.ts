@@ -1,6 +1,6 @@
-// app/api/website/demo-request/route.ts — demo, consultation and contact requests from REGrow's own website. Public,
+// app/api/website/demo-request/route.ts — demo, consultation and contact requests from RE by PX's own website. Public,
 // so it is rate-limited per address, ignores bots (hidden field, too-fast submissions) and accepts only plain fields.
-// A request becomes a prospect in REGrow's internal Sales pipeline (staff console → Sales); nothing is written to any
+// A request becomes a prospect in RE by PX's internal Sales pipeline (staff console → Sales); nothing is written to any
 // customer workspace, and no setting is needed for it to work.
 import { after, NextResponse, type NextRequest } from 'next/server'
 import crypto from 'node:crypto'
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'We could not save your request. Please try again or email us.' }, { status: 500 })
   }
 
-  // After the reply: a confirmation to the person (if they gave an e-mail) and an alert to REGrow's sales team
+  // After the reply: a confirmation to the person (if they gave an e-mail) and an alert to RE by PX's sales team
   // (REGROW_SALES_NOTIFY_EMAIL, comma-separated). A failed e-mail never fails the request — it is already saved.
   const field = (label: string) => b.notes?.match(new RegExp(`^${label}: (.+)$`, 'm'))?.[1]?.trim() ?? null
   const given = (v: string | null) => (v && v !== 'not given' ? v : null)

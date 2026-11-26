@@ -41,7 +41,7 @@ async function main() {
     orgIds.push(id); return id
   }
   const mkUser = async (name) => {
-    const email = `${name.toLowerCase()}-${RUN}@regrow.test`
+    const email = `${name.toLowerCase()}-${RUN}@repx.test`
     const { data, error } = await service.auth.admin.createUser({ email, password: PASSWORD, email_confirm: true, user_metadata: { full_name: name } })
     if (error) throw error
     authIds.push(data.user.id)
@@ -84,10 +84,10 @@ async function main() {
       const c = await signIn(owner)
       const inv = (email) => c.rpc('reserve_employee_seat_atomic', { p_org_id: dev, p_email: email, p_role: 'sales_exec', p_expires_at: new Date(Date.now() + 86_400_000).toISOString() })
       for (const x of ['a', 'b', 'c']) {
-        const r = await inv(`${x}-${RUN}@regrow.test`)
+        const r = await inv(`${x}-${RUN}@repx.test`)
         assert.equal(r.data?.[0]?.success, true, JSON.stringify(r))
       }
-      const full = await inv(`d-${RUN}@regrow.test`)
+      const full = await inv(`d-${RUN}@repx.test`)
       assert.equal(full.data?.[0]?.success, false); assert.match(full.data[0].error_message, /Seat limit reached \(5\/5/)
     })
 
@@ -180,7 +180,7 @@ async function main() {
       assert.equal((await one('SELECT billing_hold FROM public.organisations WHERE id=$1', [dev])).billing_hold, true)
     })
 
-    await test('a suspension by REGrow staff is never lifted by a payment, and gives no billing access', async () => {
+    await test('a suspension by RE by PX staff is never lifted by a payment, and gives no billing access', async () => {
       // Staff take over the held workspace: the hold is cleared, so a later payment does not reopen it.
       await one(`SELECT public.set_organisation_lifecycle($1,'active','restored by staff',NULL,'platform')`, [dev])
       await one(`SELECT public.set_organisation_lifecycle($1,'suspended','policy review',NULL,'platform')`, [dev])

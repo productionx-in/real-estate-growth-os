@@ -1,5 +1,5 @@
 'use client'
-// components/plots/ResolveBlockerButton.tsx — the workspace tells REGrow it has done what a set-up blocker asked for
+// components/plots/ResolveBlockerButton.tsx — the workspace tells RE by PX it has done what a set-up blocker asked for
 // (POST /api/plot-maps/setup/blockers/[id]). The service clock restarts from the moment it is marked done.
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'

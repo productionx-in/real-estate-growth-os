@@ -1,4 +1,4 @@
-// app/api/platform/sales/route.ts — Internal Sales: REGrow's own prospects (never customer CRM data).
+// app/api/platform/sales/route.ts — Internal Sales: RE by PX's own prospects (never customer CRM data).
 // GET list (executives: own + unassigned; managers/Platform Owner/auditors: all) · POST create · POST import website requests.
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'

@@ -68,8 +68,8 @@ const a: ArticleContent = {
     },
   ],
   related: [
-    { href: '/inventory-management', label: 'REGrow inventory management' },
-    { href: '/site-visits-and-bookings', label: 'Holds and bookings in REGrow' },
+    { href: '/inventory-management', label: 'RE by PX inventory management' },
+    { href: '/site-visits-and-bookings', label: 'Holds and bookings in RE by PX' },
     { href: '/channel-partner-management', label: 'Sharing inventory with channel partners' },
   ],
 }

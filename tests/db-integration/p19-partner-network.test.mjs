@@ -38,7 +38,7 @@ async function main() {
     orgIds.push(id); return id
   }
   const mkUser = async (name, org, role) => {
-    const email = `${name.toLowerCase()}-${RUN}@regrow.test`
+    const email = `${name.toLowerCase()}-${RUN}@repx.test`
     const { data, error } = await service.auth.admin.createUser({ email, password: PASSWORD, email_confirm: true, user_metadata: { full_name: name } })
     if (error) throw error
     authIds.push(data.user.id)

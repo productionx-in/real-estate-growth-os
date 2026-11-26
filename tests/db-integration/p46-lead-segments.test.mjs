@@ -32,7 +32,7 @@ async function main() {
   const authIds = [], orgIds = []
   const mkOrg = async (name) => { const id = (await one(`INSERT INTO public.organisations (name, slug, type) VALUES ($1,$2,'developer') RETURNING id`, [`${name} ${RUN}`, `${name.toLowerCase()}-${RUN}`])).id; orgIds.push(id); return id }
   const mkUser = async (name, org, role) => {
-    const email = `${name.toLowerCase()}-${RUN}@regrow.test`
+    const email = `${name.toLowerCase()}-${RUN}@repx.test`
     const { data, error } = await service.auth.admin.createUser({ email, password: PASSWORD, email_confirm: true, user_metadata: { full_name: name } })
     if (error) throw error
     authIds.push(data.user.id)

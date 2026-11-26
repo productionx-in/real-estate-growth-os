@@ -1,6 +1,6 @@
-# REGrow — working rules
+# RE by PX — working rules
 
-REGrow (by INFYN Group) is a multi-tenant lead-management SaaS for real-estate developers and channel
+RE by PX (by Production X) is a multi-tenant lead-management SaaS for real-estate developers and channel
 partners. Next.js 16 App Router + React 19 + Tailwind v4 + Supabase (Postgres, Auth, pg_cron). Keep this
 file short — it loads every session.
 
@@ -15,7 +15,7 @@ marketplace. Attaching that repository does **not** activate its skills; install
 - `toolkit` — `webapp-testing` (Playwright)
 
 Invoke by name when the task is known (`/ui-ux-pro-max`, `/postgres-patterns`). Do not use the
-`ui-ux-pro-max` generator's "real estate" font suggestions for the app — REGrow is an operational CRM.
+`ui-ux-pro-max` generator's "real estate" font suggestions for the app — RE by PX is an operational CRM.
 
 ## Non-negotiables
 
