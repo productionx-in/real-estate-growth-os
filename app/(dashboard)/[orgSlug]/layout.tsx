@@ -69,7 +69,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
           <SupportAccessBanner orgSlug={workspace.org.slug} until={liveSupport.expires_at} emergency={liveSupport.emergency} canManage={workspace.isAdmin} />
         )}
         {/* On phones, leave room for the tab bar (and the home indicator) below the content. */}
-        <main id="main" className="flex-1 overflow-y-auto pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom))] md:pb-0">
+        <main id="main" className="min-w-0 flex-1 overflow-x-clip overflow-y-auto pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom))] md:pb-0">
           <WorkspacePrefsProvider value={{ areaUnitBuilt: inv.areaUnitBuilt, areaUnitLand: inv.areaUnitLand, canDeleteInventory: workspace.isAdmin, statusLabels: inv.statusLabels, ownerSells: sales.ownerSells, teamsEnabled: sales.teamsEnabled }}>{children}</WorkspacePrefsProvider>
         </main>
       </div>
