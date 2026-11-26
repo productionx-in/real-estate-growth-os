@@ -15,16 +15,16 @@ The production address is **https://re.productionx.in** (live). URLs below use i
 
 ## 1. Platform (do first)
 
-- [ ] `ENCRYPTION_KEY` — a long random value (e.g. `openssl rand -base64 32`). Set it **once, before the first
+- [x] `ENCRYPTION_KEY` — a long random value (e.g. `openssl rand -base64 32`). Set it **once, before the first
       customer connects anything**, and never change it: stored tokens encrypted with another key cannot be read.
       Keep an offline copy in your password manager.
-- [ ] `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_SITE_URL` = `https://re.productionx.in` (Production). Canonical URLs,
+- [x] `NEXT_PUBLIC_APP_URL` and `NEXT_PUBLIC_SITE_URL` = `https://re.productionx.in` (Production). Canonical URLs,
       Open Graph, e-mail links and Meta/Google redirect URLs are built from them.
 - [ ] Supabase → Authentication → URL configuration: Site URL `https://re.productionx.in`, Redirect URLs
       `https://re.productionx.in/**` (keep the old address too until nobody uses it).
 - [x] Contact address: re@productionx.in (support, sales and privacy; shown on Contact, Privacy and the chat assistant).
 - [ ] Verify productionx.in as the sending domain in Resend (section 5); replies go to re@productionx.in.
-- [ ] Weekly database backup: add GitHub secrets `SUPABASE_DB_URL` (Session pooler string) and `BACKUP_PASSPHRASE`,
+- [x] Weekly database backup: add GitHub secrets `SUPABASE_DB_URL` (Session pooler string) and `BACKUP_PASSPHRASE`,
       then run Actions → Database backup once (see `BACKUP_RECOVERY.md`).
 - [ ] Confirm every *required* row in `ENVIRONMENT.md` (Supabase URL and keys, etc.) is set for Production.
 
