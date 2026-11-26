@@ -70,7 +70,7 @@ export function WebsiteCapturePanel({ orgId, projects, onSaved }: {
   }
 
   const tag = status?.connectionId
-    ? `<script src="${origin}/capture.js" data-regrow-key="${status.connectionId}"${projectId ? ` data-regrow-project="${projectId}"` : ''}${onlyMarked ? ' data-regrow-forms="marked"' : ''} async></script>`
+    ? `<script src="${origin}/capture.js" data-re-key="${status.connectionId}"${projectId ? ` data-re-project="${projectId}"` : ''}${onlyMarked ? ' data-re-forms="marked"' : ''} async></script>`
     : ''
 
   return (
@@ -119,7 +119,7 @@ export function WebsiteCapturePanel({ orgId, projects, onSaved }: {
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Project (optional)">
               <Select value={projectId} onChange={(e) => setProjectId(e.target.value)}>
-                <option value="">Let REGrow route it</option>
+                <option value="">Let RE by PX route it</option>
                 {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </Select>
             </Field>
@@ -127,7 +127,7 @@ export function WebsiteCapturePanel({ orgId, projects, onSaved }: {
               <input type="checkbox" checked={onlyMarked} onChange={(e) => setOnlyMarked(e.target.checked)} className="mt-0.5 size-4 accent-[var(--brand)]" />
               <span>
                 Only forms I mark
-                <span className="block text-[12px] text-muted">Add data-regrow-form to the forms you want captured.</span>
+                <span className="block text-[12px] text-muted">Add data-re-form to the forms you want captured.</span>
               </span>
             </label>
           </div>
@@ -145,7 +145,7 @@ export function WebsiteCapturePanel({ orgId, projects, onSaved }: {
           {!status.enabled && <Alert tone="warning">Website enquiries are switched off — the script sends nothing until you switch them on.</Alert>}
           <ul className="list-disc space-y-1 pl-5 text-[12px] text-muted">
             <li>Forms with a password, card or OTP field are never read. Only name, phone, email, message, budget and unit type are sent.</li>
-            <li>To skip a form, add <code>data-regrow-ignore</code> to it. For forms built in JavaScript, call <code>REGrow.capture(&#123; name, phone, email &#125;)</code>.</li>
+            <li>To skip a form, add <code>data-re-ignore</code> to it. For forms built in JavaScript, call <code>REbyPX.capture(&#123; name, phone, email &#125;)</code>.</li>
             <li>To check it works: submit one of your forms, then look for the lead under Leads (source: Website).</li>
           </ul>
         </div>

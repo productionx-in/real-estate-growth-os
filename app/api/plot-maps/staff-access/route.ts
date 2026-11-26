@@ -1,6 +1,6 @@
-// app/api/plot-maps/staff-access/route.ts — the workspace lets REGrow draw the plot boundaries of one project (option
+// app/api/plot-maps/staff-access/route.ts — the workspace lets RE by PX draw the plot boundaries of one project (option
 // c), or withdraws that. Owners and admins; Inventory on; giving it needs the project's add-on active (withdrawing
-// never does). REGrow never sees inventory, prices or buyers, and cannot link plots to units. Audited.
+// never does). RE by PX never sees inventory, prices or buyers, and cannot link plots to units. Audited.
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'

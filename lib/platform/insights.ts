@@ -1,5 +1,5 @@
 // lib/platform/insights.ts — the numbers behind each staff role's console home (docs/design/console-roles.md).
-// Pure calculations first (unit-tested), then loaders. Workspace metadata and REGrow's own data only: never a
+// Pure calculations first (unit-tested), then loaders. Workspace metadata and RE by PX's own data only: never a
 // customer's leads, buyers or documents.
 import { can, STAGES, type Actor, type Db, type Stage } from '@/lib/platform/portal'
 

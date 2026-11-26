@@ -19,17 +19,17 @@ const LINKS = [
 
 export function MarketingHeader() {
   return (
-    <header className="sticky top-0 z-30 bg-surface/90 backdrop-blur border-b border-[var(--border)]">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        <Link href="/" aria-label="REGrow home"><BrandMark /></Link>
+    <header className="sticky top-0 z-30 px-3 pt-3 sm:px-4">
+      <div className="ceramic mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 !rounded-full px-4 sm:px-5">
+        <Link href="/" aria-label="RE by PX home"><BrandMark /></Link>
         <nav aria-label="Main" className="hidden lg:flex items-center gap-1 text-[14px] text-muted">
           {MENUS.map((m) => (
             <div key={m.label} className="relative group">
-              <button type="button" aria-haspopup="true" className="inline-flex items-center gap-1 px-3 py-2 rounded-lg hover:text-foreground focus-visible:text-foreground">
+              <button type="button" aria-haspopup="true" className="inline-flex items-center gap-1 px-3 py-2 rounded-full hover:bg-surface-hover hover:text-foreground focus-visible:text-foreground">
                 {m.label} <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
               <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 transition-opacity absolute left-0 top-full pt-2 w-[380px]">
-                <ul className="rounded-2xl border border-[var(--border)] bg-surface shadow-xl p-2">
+                <ul className="ceramic p-2">
                   {m.items.map((p) => (
                     <li key={p.path}>
                       <Link href={p.path} className="block rounded-xl px-3 py-2.5 hover:bg-surface-hover focus-visible:bg-surface-hover">
@@ -43,12 +43,12 @@ export function MarketingHeader() {
             </div>
           ))}
           {LINKS.map((n) => (
-            <Link key={n.href} href={n.href} className="px-3 py-2 rounded-lg hover:text-foreground">{n.label}</Link>
+            <Link key={n.href} href={n.href} className="px-3 py-2 rounded-full hover:bg-surface-hover hover:text-foreground">{n.label}</Link>
           ))}
         </nav>
         <div className="flex items-center gap-2">
           <Link href="/login" className="hidden sm:inline-flex px-3 py-2 text-[14px] font-medium text-foreground hover:text-[var(--brand)]">Sign in</Link>
-          <Link href="/demo" className="px-4 py-2 text-[14px] font-semibold text-brand-foreground bg-brand hover:bg-brand-hover rounded-lg shadow-sm transition-colors">
+          <Link href="/demo" className="rounded-full bg-[var(--ink)] px-4 py-2 text-[14px] font-semibold text-[#fff] shadow-sm transition-colors hover:bg-brand">
             Book a demo
           </Link>
           <MobileMenu groups={[...MENUS.map((m) => ({ label: m.label, links: m.items.map((p) => ({ href: p.path, label: p.label })) })),

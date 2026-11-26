@@ -38,7 +38,7 @@ async function main() {
 
   const users = [], orgs = []
   const mkUser = async (label) => {
-    const { data, error } = await db.auth.admin.createUser({ email: `${label}-${RUN}@regrow.test`, password: 'Ops-Test-' + RUN + '7', email_confirm: true, user_metadata: { full_name: label } })
+    const { data, error } = await db.auth.admin.createUser({ email: `${label}-${RUN}@repx.test`, password: 'Ops-Test-' + RUN + '7', email_confirm: true, user_metadata: { full_name: label } })
     if (error) throw error
     users.push(data.user.id)
     return { id: data.user.id, profile: (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [data.user.id])).id, email: data.user.email }

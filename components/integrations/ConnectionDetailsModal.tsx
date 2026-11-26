@@ -410,7 +410,7 @@ export function ConnectionDetailsModal({
                     <tr>
                       <th className="py-2.5 px-4">Identifier / Form</th>
                       <th className="py-2.5 px-4">Type</th>
-                      <th className="py-2.5 px-4">Mapped REGrow Project</th>
+                      <th className="py-2.5 px-4">Mapped RE by PX Project</th>
                       <th className="py-2.5 px-4 text-right">Actions</th>
                     </tr>
                   </thead>

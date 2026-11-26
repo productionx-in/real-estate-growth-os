@@ -7,7 +7,7 @@ import { frameAncestors } from '@/lib/plots/embed'
 // /reset-password is public so a person whose reset link expired sees why (and can ask for a new one) instead of
 // being bounced to sign-in; the form itself needs the short recovery session to change anything.
 const PUBLIC_ROUTES = [...MARKETING_PATHS, ...LEGAL_PATHS, '/login', '/auth/callback', '/auth/confirm', '/reset-password']
-// Loaded by visitors of customers' websites, who are never signed in to REGrow.
+// Loaded by visitors of customers' websites, who are never signed in to RE by PX.
 const PUBLIC_WEBSITE_ASSETS = ['/capture.js', '/forms/embed.js', '/forms/view', '/robots.txt', '/sitemap.xml', '/llms.txt']
 
 /** Only marketing pages and published project showrooms may be indexed; everything else says so explicitly. */
@@ -119,7 +119,7 @@ export async function proxy(request: NextRequest) {
       url.pathname = '/select-org'
       return NextResponse.redirect(url)
     }
-    // A shared plot map may be framed only by REGrow and the websites its workspace listed (lib/plots/embed.ts).
+    // A shared plot map may be framed only by RE by PX and the websites its workspace listed (lib/plots/embed.ts).
     // Unknown, unshared or lapsed maps get 'self' only. If the lookup fails, the strict default applies.
     const mapToken = pathname.match(/^\/m\/([A-Za-z0-9_-]{43})$/)?.[1]
     if (mapToken) {

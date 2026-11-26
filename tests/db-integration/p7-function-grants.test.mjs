@@ -40,12 +40,12 @@ async function main() {
     })
     await test('anonymous callers cannot reserve seats', async () => {
       const r = await rpc('reserve_employee_seat_atomic', {
-        p_org_id: crypto.randomUUID(), p_email: 'x@regrow.test', p_role: 'sales_exec', p_expires_at: new Date(Date.now() + 864e5).toISOString(),
+        p_org_id: crypto.randomUUID(), p_email: 'x@repx.test', p_role: 'sales_exec', p_expires_at: new Date(Date.now() + 864e5).toISOString(),
       }, ANON)
       assert.ok([401, 403, 404].includes(r.status), `status ${r.status}`)
     })
     await test('signed-in users still sign in and the RLS helpers still answer for them', async () => {
-      const email = `grants-${RUN}@regrow.test`, password = `Pw-${RUN}-1234567`
+      const email = `grants-${RUN}@repx.test`, password = `Pw-${RUN}-1234567`
       const created = await fetch(`${API}/auth/v1/admin/users`, {
         method: 'POST', headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, email_confirm: true }),

@@ -1,6 +1,6 @@
 // lib/auth/capabilities.ts — the "Roles & permissions" grid (Your team → Roles & permissions). Every row is
 // computed from the same functions the server uses to authorise (lib/auth/permissions.ts and the isAdmin /
-// isManager rules of lib/dal/workspace.ts), so the grid cannot drift from what REGrow actually allows.
+// isManager rules of lib/dal/workspace.ts), so the grid cannot drift from what RE by PX actually allows.
 import type { MemberRole } from '@/types/database'
 import {
   ASSIGNABLE_ROLES, MEMBER_ROLES, canAssignLeads, canCreateLeads, canManageChannelPartners, canManageRouting,

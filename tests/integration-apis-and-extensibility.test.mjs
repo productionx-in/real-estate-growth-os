@@ -8,7 +8,7 @@ import crypto from 'node:crypto'
 
 // Sample keys are derived at run time (deterministic), never written as literals: a literal that looks like a real
 // key trips secret scanners and teaches copy-paste habits. Real keys are px_live_ + 48 hex characters.
-const sampleKey = (n) => 'px_live_' + crypto.createHash('sha256').update(`regrow-sample-key-${n}`).digest('hex').slice(0, 48)
+const sampleKey = (n) => 'px_live_' + crypto.createHash('sha256').update(`repx-sample-key-${n}`).digest('hex').slice(0, 48)
 
 console.log('--- Running Integration APIs & Extensibility (Stage 4H) Tests ---')
 

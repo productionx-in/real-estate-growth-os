@@ -41,7 +41,7 @@ export function IntegrationHub({ orgId, canManage, connections, ready, initialDo
       })
       const out = await res.json().catch(() => ({}))
       const url = out.authorizationUrl ?? out.url
-      if (!res.ok || !url) { toast.error(key === 'meta' ? 'Facebook sign-in is not available yet. REGrow is finishing the setup — try again soon.' : 'Google sign-in is not available yet. REGrow is finishing the setup — try again soon.'); return }
+      if (!res.ok || !url) { toast.error(key === 'meta' ? 'Facebook sign-in is not available yet. RE by PX is finishing the setup — try again soon.' : 'Google sign-in is not available yet. RE by PX is finishing the setup — try again soon.'); return }
       window.location.assign(url)
     } catch { toast.error('Network error. Please try again.') } finally { setBusy(null) }
   }
@@ -176,7 +176,7 @@ function DomainSheet({ orgId, purpose, domains, onChange, onClose, onWebsiteSetu
                               <CopyValue value={r.value} label="the value" />
                             </div>
                           ))}
-                          {email && d.records.length <= 2 && <p className="text-[12px] text-muted">The sending records appear here once REGrow’s mail service is switched on for your workspace — your domain is still verified as yours meanwhile.</p>}
+                          {email && d.records.length <= 2 && <p className="text-[12px] text-muted">The sending records appear here once RE by PX’s mail service is switched on for your workspace — your domain is still verified as yours meanwhile.</p>}
                         </div>
                       </li>
                       <li className="text-[13px] text-foreground"><span className="font-semibold">3. Check</span> — usually ready within minutes.</li>

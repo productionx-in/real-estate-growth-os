@@ -42,7 +42,7 @@ export default async function RewardsPage({ params }: { params: Promise<{ orgSlu
   const claims = await listClaims(org.id, manager ? {} : { profileId: profile.id, teamIds: myTeams })
 
   return (
-    <PageShell title="Rewards" description={manager ? 'Incentives for real results: set a reward, a goal and a deadline. REGrow finds the winners from CRM records; you approve and hand them over.' : 'Rewards you can win from your work in REGrow, and the ones you have won.'}>
+    <PageShell title="Rewards" description={manager ? 'Incentives for real results: set a reward, a goal and a deadline. RE by PX finds the winners from CRM records; you approve and hand them over.' : 'Rewards you can win from your work in RE by PX, and the ones you have won.'}>
       <RewardsClient orgId={org.id} manager={manager} profileId={profile.id} myTeamIds={myTeams}
         programs={visible} progress={progress} claims={claims}
         teams={teams.filter((t) => t.isActive).map((t) => ({ id: t.id, name: t.name }))} teamsEnabled={sales.teamsEnabled} />

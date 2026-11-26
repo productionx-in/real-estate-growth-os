@@ -1,6 +1,6 @@
 // app/refund-policy/page.tsx — Refund & Cancellation Policy. States only what the product enforces today (manual
 // renewals, read-only after expiry, duplicate payments recorded for refund, approval before any refund, credit notes).
-// Commercial terms INFYN Group has not decided yet (lib/legal.ts REFUND_TERMS) appear as marked placeholders.
+// Commercial terms Production X has not decided yet (lib/legal.ts REFUND_TERMS) appear as marked placeholders.
 // Not indexed until the company particulars and terms are confirmed.
 import type { Metadata } from 'next'
 import Link from 'next/link'

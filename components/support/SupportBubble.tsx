@@ -15,16 +15,16 @@ import { cn } from '@/lib/utils/cn'
 type Props = { context: GuideContext; orgSlug?: string; orgName?: string }
 type Msg = { from: 'rio' | 'me'; text: string; links?: GuideLink[]; handoff?: boolean; id?: string; rating?: 1 | -1 }
 
-const GREETING_KEY = 'regrow-rio-greeted'
+const GREETING_KEY = 'repx-rio-greeted'
 const HELLO: Record<GuideContext, string> = {
-  website: 'Hi, I’m Rio 👋 I help real estate teams get more from every lead. Are you a developer or a channel-partner agency? Tell me a bit about your team and I’ll show you how REGrow fits.',
-  auth: 'Hi, I’m Rio 👋 Trouble signing in, or new to REGrow? Ask me.',
+  website: 'Hi, I’m Rio 👋 I help real estate teams get more from every lead. Are you a developer or a channel-partner agency? Tell me a bit about your team and I’ll show you how RE by PX fits.',
+  auth: 'Hi, I’m Rio 👋 Trouble signing in, or new to RE by PX? Ask me.',
   workspace: 'Hi, I’m Rio 👋 Stuck on something, or want to set something up? Tell me what you’re trying to do and I’ll walk you through it.',
 }
 
 export function SupportBubble({ context, orgSlug, orgName }: Props) {
   const pathname = usePathname() ?? '/'
-  const storeKey = `regrow-rio-chat:${context}:${orgSlug ?? ''}`
+  const storeKey = `repx-rio-chat:${context}:${orgSlug ?? ''}`
   // One random id per browser session and context: groups the turns of a conversation for research. No identity.
   const [conversationId] = React.useState(() => {
     if (typeof window === 'undefined') return ''
@@ -109,8 +109,8 @@ export function SupportBubble({ context, orgSlug, orgName }: Props) {
   }
 
   const wa = whatsAppLink(context === 'workspace'
-    ? `Hi REGrow support, I need help with our workspace "${orgName ?? ''}".`
-    : 'Hi REGrow, I would like to know more about REGrow for my real estate business.')
+    ? `Hi RE by PX support, I need help with our workspace "${orgName ?? ''}".`
+    : 'Hi RE by PX, I would like to know more about RE by PX for my real estate business.')
   const email = supportEmail()
   const chips = suggestions(context, pathname)
 
@@ -127,14 +127,14 @@ export function SupportBubble({ context, orgSlug, orgName }: Props) {
     <div className={cn('fixed right-4 z-40 flex flex-col items-end gap-3 md:right-6',
       context === 'workspace' ? 'bottom-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom)+12px)] md:bottom-6' : 'bottom-4 md:bottom-6')}>
       {open && (
-        <div ref={panelRef} role="dialog" aria-label="Rio, REGrow guide"
+        <div ref={panelRef} role="dialog" aria-label="Rio, RE by PX guide"
           className="flex h-[min(560px,calc(100dvh-7rem))] w-[min(370px,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border border-default bg-surface text-foreground shadow-lg">
           {/* header */}
           <div className="flex items-center gap-3 bg-chat-action px-4 py-3 text-chat-action-foreground">
             <span className="grid size-11 shrink-0 place-items-center rounded-full bg-surface"><Parrot className="size-9" animated /></span>
             <div className="min-w-0 flex-1">
               <p className="text-[15px] font-semibold leading-tight">Rio</p>
-              <p className="flex items-center gap-1.5 text-[12px] opacity-90"><span className="size-2 rounded-full bg-[var(--parrot-body)]" aria-hidden="true" />REGrow guide · answers instantly</p>
+              <p className="flex items-center gap-1.5 text-[12px] opacity-90"><span className="size-2 rounded-full bg-[var(--parrot-body)]" aria-hidden="true" />RE by PX guide · answers instantly</p>
             </div>
             <button type="button" aria-label="Close" onClick={() => { setOpen(false); buttonRef.current?.focus() }} className="grid size-10 place-items-center rounded-full hover:bg-chat-action-hover">
               <X className="size-5" aria-hidden="true" />
@@ -185,7 +185,7 @@ export function SupportBubble({ context, orgSlug, orgName }: Props) {
             </button>
           </form>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-default bg-surface px-4 py-2 text-[12px] text-muted">
-            <span>Rio is REGrow’s virtual guide. Chats are saved to improve REGrow — please don’t share passwords or payment details. Want a person?</span>
+            <span>Rio is RE by PX’s virtual guide. Chats are saved to improve RE by PX — please don’t share passwords or payment details. Want a person?</span>
             {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-8 items-center font-medium text-foreground underline-offset-2 hover:underline">WhatsApp</a>}
             {context === 'workspace' && orgSlug
               ? <Link href={`/${orgSlug}/help`} onClick={() => setOpen(false)} className="inline-flex min-h-8 items-center font-medium text-foreground underline-offset-2 hover:underline">Support case</Link>
@@ -200,13 +200,13 @@ export function SupportBubble({ context, orgSlug, orgName }: Props) {
             <X className="size-3" aria-hidden="true" />
           </button>
           <button type="button" onClick={() => { dismissGreeting(); setOpen(true) }} className="text-left">
-            Hi, I’m Rio! Got a question about REGrow? <span className="font-semibold text-brand">Ask me</span>
+            Hi, I’m Rio! Got a question about RE by PX? <span className="font-semibold text-brand">Ask me</span>
           </button>
         </div>
       )}
 
       <button ref={buttonRef} type="button" onClick={() => { dismissGreeting(); setOpen((o) => !o) }}
-        aria-expanded={open} aria-haspopup="dialog" aria-label={open ? 'Close Rio' : 'Ask Rio, the REGrow guide'}
+        aria-expanded={open} aria-haspopup="dialog" aria-label={open ? 'Close Rio' : 'Ask Rio, the RE by PX guide'}
         className="group relative grid size-16 place-items-center rounded-full bg-surface shadow-lg ring-1 ring-[var(--border)] transition-transform duration-200 hover:-translate-y-0.5 hover:scale-105">
         <span className="rio-bob"><Parrot className="size-[52px]" animated /></span>
         {!open && <span className="absolute right-1 top-1 size-3.5 rounded-full border-2 border-[var(--surface)] bg-[var(--parrot-body)]" aria-hidden="true" />}

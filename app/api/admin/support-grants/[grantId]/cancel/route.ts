@@ -11,7 +11,7 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
   const { grantId } = await params
   if (!z.string().uuid().safeParse(grantId).success) return NextResponse.json({ error: 'Invalid request id' }, { status: 400 })
 
-  const result = await endSupportAccess({ grantId, side: 'platform', userId: auth.user.id, profileId: null, label: `${auth.profile.full_name} (REGrow support)` })
+  const result = await endSupportAccess({ grantId, side: 'platform', userId: auth.user.id, profileId: null, label: `${auth.profile.full_name} (RE by PX support)` })
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status })
   const grant = await getGrant(grantId)
   await logPlatformAction({

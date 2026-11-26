@@ -2,7 +2,7 @@
 // to cache). Browser-only. Three are distinct by default (lib/notifications/lead-alerts.ts): a rising chime for a new
 // lead, an urgent triple pulse for "not contacted yet", a soft bell for a follow-up.
 //
-// Never two at once: within 1.5 s of a sound (in this tab or another tab of REGrow) the next one is skipped.
+// Never two at once: within 1.5 s of a sound (in this tab or another tab of RE by PX) the next one is skipped.
 // Browsers only allow sound after the person has interacted with the page; until then, play() quietly does nothing.
 import type { SoundId } from './lead-alerts'
 
@@ -17,8 +17,8 @@ const PATTERNS: Record<SoundId, Note[]> = {
 }
 
 const GAP_MS = 1500
-const SHARED_KEY = 'regrow.alertSound.last'
-const MUTE_KEY = 'regrow.alertSounds'
+const SHARED_KEY = 'repx.alertSound.last'
+const MUTE_KEY = 'repx.alertSounds'
 
 let ctx: AudioContext | null = null
 let lastPlayed = 0

@@ -33,13 +33,13 @@ async function main() {
   const mkMember = async (org, role) => {
     const authId = crypto.randomUUID()
     await db.query(`INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
-      VALUES ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2,'x',now(),now(),now(),'{}','{}')`, [authId, `${role}-${authId.slice(0, 8)}@regrow.test`])
+      VALUES ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2,'x',now(),now(),now(),'{}','{}')`, [authId, `${role}-${authId.slice(0, 8)}@repx.test`])
     const p = await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [authId])
     await db.query('INSERT INTO public.org_members (org_id, profile_id, role) VALUES ($1,$2,$3)', [org, p.id, role])
     return authId
   }
   const set = (org, module, enabled, reason = 'Plan change') =>
-    one(`SELECT public.set_module_entitlement($1,$2,$3,$4,NULL,'REGrow platform team') r`, [org, module, enabled, reason]).then((x) => x.r)
+    one(`SELECT public.set_module_entitlement($1,$2,$3,$4,NULL,'RE by PX platform team') r`, [org, module, enabled, reason]).then((x) => x.r)
 
   console.log('P3b — MODULE ENTITLEMENTS')
   const orgs = []

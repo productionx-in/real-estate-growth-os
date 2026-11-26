@@ -1,4 +1,4 @@
-// tests/db-integration/p51-whatsapp-numbers.test.mjs — several WhatsApp numbers in one workspace, through REGrow's real
+// tests/db-integration/p51-whatsapp-numbers.test.mjs — several WhatsApp numbers in one workspace, through RE by PX's real
 // central webhook route (signed with the app secret) on the local Supabase stack. Meta's Graph API is the only thing
 // replaced. Two numbers of one business account each receive only their own buyers; a reply goes out from the number
 // the conversation is on — including a number connected through Embedded Signup (selectedPhoneNumberId); another

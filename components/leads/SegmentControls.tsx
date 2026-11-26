@@ -12,7 +12,7 @@ async function send(url: string, method: string, body?: unknown): Promise<{ ok: 
     const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined })
     return { ok: res.ok, data: await res.json().catch(() => ({})) }
   } catch {
-    return { ok: false, data: { error: 'Could not reach REGrow. Check your connection and try again.' } }
+    return { ok: false, data: { error: 'Could not reach RE by PX. Check your connection and try again.' } }
   }
 }
 const errorOf = (d: Record<string, unknown>) => (typeof d.error === 'string' ? d.error : 'Something went wrong. Try again.')

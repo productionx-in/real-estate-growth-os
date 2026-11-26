@@ -19,7 +19,7 @@ async function main() {
     const id = crypto.randomUUID()
     await q(`INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
              VALUES ($1, '00000000-0000-0000-0000-000000000000', $2, 'x', now(), '{"provider":"email"}', $3, now(), now(), 'authenticated', 'authenticated')`,
-      [id, `p58-${label}-${RUN}@regrow.test`, JSON.stringify({ full_name: `P58 ${label}` })])
+      [id, `p58-${label}-${RUN}@repx.test`, JSON.stringify({ full_name: `P58 ${label}` })])
     return { authId: id, profileId: (await one('SELECT id FROM public.profiles WHERE auth_user_id = $1', [id])).id }
   }
   const mkOrg = async (label) => (await one(`INSERT INTO public.organisations (name, slug, type) VALUES ($1, $2, 'developer') RETURNING id`, [`P58 ${label} ${RUN}`, `p58-${label}-${RUN}`])).id

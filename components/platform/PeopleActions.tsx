@@ -28,7 +28,7 @@ export function PersonAction({ label, title, description, confirm, url, action, 
       if (after) router.push(after)
       router.refresh()
     } catch {
-      setError('We couldn’t reach REGrow. Refresh the page to see whether the change went through.'); setBusy(false)
+      setError('We couldn’t reach RE by PX. Refresh the page to see whether the change went through.'); setBusy(false)
     }
   }
   return (
@@ -54,7 +54,7 @@ export function PersonAction({ label, title, description, confirm, url, action, 
 
 type Choice = 'deactivate' | 'delete'
 
-/** Facebook-style "Deactivate or delete" for one person's REGrow sign-in account (Platform Owner only). */
+/** Facebook-style "Deactivate or delete" for one person's RE by PX sign-in account (Platform Owner only). */
 export function AccountChoice({ userId, name, email, blocked, workspaces }: { userId: string; name: string; email: string; blocked: boolean; workspaces: string[] }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -73,11 +73,11 @@ export function AccountChoice({ userId, name, email, blocked, workspaces }: { us
       const json = await res.json().catch(() => ({}))
       if (!res.ok) { setError(json.error ?? 'Something went wrong.'); setBusy(false); return }
       setOpen(false); setBusy(false); reset(); router.refresh()
-    } catch { setError('We couldn’t reach REGrow. Refresh the page to see whether the change went through.'); setBusy(false) }
+    } catch { setError('We couldn’t reach RE by PX. Refresh the page to see whether the change went through.'); setBusy(false) }
   }
   if (blocked) {
     return <PersonAction label="Reactivate account" title={`Reactivate ${name}’s account?`} confirm="Reactivate" action="unblock" url={`/api/admin/accounts/${userId}`}
-      description="They can sign in to REGrow again and open the workspaces they still belong to." />
+      description="They can sign in to RE by PX again and open the workspaces they still belong to." />
   }
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset() }}>
@@ -88,7 +88,7 @@ export function AccountChoice({ userId, name, email, blocked, workspaces }: { us
             <legend className="sr-only">What do you want to do?</legend>
             <ChoiceCard name="acct-choice" value="deactivate" checked={choice === 'deactivate'} onSelect={() => setChoice('deactivate')}
               title="Deactivate account" tag="Temporary"
-              body="They are signed out and can’t sign in to REGrow until you reactivate them. Nothing is deleted: their access, history and settings come back exactly as they were." />
+              body="They are signed out and can’t sign in to RE by PX until you reactivate them. Nothing is deleted: their access, history and settings come back exactly as they were." />
             <ChoiceCard name="acct-choice" value="delete" checked={choice === 'delete'} onSelect={() => setChoice('delete')} danger
               title="Permanently delete account" tag="Can’t be undone"
               body="They are removed from every workspace and their sign-in, name and contact details are erased for good." />
@@ -97,7 +97,7 @@ export function AccountChoice({ userId, name, email, blocked, workspaces }: { us
             <div className="space-y-3 rounded-lg border border-danger/40 bg-danger-bg p-3 text-[13px]">
               <p className="font-semibold text-danger">This will be permanently lost</p>
               <ul className="list-disc space-y-1 pl-5">
-                <li>Their REGrow sign-in, name, phone and e-mail address</li>
+                <li>Their RE by PX sign-in, name, phone and e-mail address</li>
                 <li>Their access to {workspaces.length ? workspaces.join(', ') : 'any workspace'}</li>
               </ul>
               <p className="text-muted">Leads, notes and bookings they worked on stay with each customer’s workspace, shown as “Deleted user”. To come back they would need a new invitation.</p>
@@ -147,7 +147,7 @@ export function PersonControls(p: {
   canAccount: boolean; canMember: boolean; orgId?: string; memberId?: string; memberStatus?: string; workspaces?: string[]
 }) {
   if (p.isSelf) return <span className="text-[12px] text-muted">You</span>
-  if (p.staff) return <span className="text-[12px] text-muted">REGrow staff — manage on the Staff page</span>
+  if (p.staff) return <span className="text-[12px] text-muted">RE by PX staff — manage on the Staff page</span>
   return (
     <div className="flex flex-wrap justify-end gap-2">
       {p.canMember && p.orgId && p.memberId && (p.memberStatus === 'active' ? (

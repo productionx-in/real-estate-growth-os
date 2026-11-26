@@ -194,7 +194,7 @@ export function ProductPage({ c }: { c: ProductPageContent }) {
         <div className="rounded-3xl bg-[var(--brand-light)] border border-[var(--border)] p-8 md:p-12 grid gap-8 md:grid-cols-[1.4fr_1fr] items-center">
           <div>
             <h2 id="closing-heading" className="text-[26px] sm:text-[30px] font-bold tracking-tight leading-tight">{c.closing?.heading ?? `See ${PRODUCT_NAME} on your own projects`}</h2>
-            <p className="mt-3 text-[15px] text-muted leading-relaxed">{c.closing?.body ?? 'We set up the demo around your projects, teams and lead sources, and answer what matters to you — including what REGrow does not do.'}</p>
+            <p className="mt-3 text-[15px] text-muted leading-relaxed">{c.closing?.body ?? 'We set up the demo around your projects, teams and lead sources, and answer what matters to you — including what RE by PX does not do.'}</p>
           </div>
           <div className="flex flex-col gap-3">
             <Link href="/demo" className={btnPrimary}>Book a demo</Link>

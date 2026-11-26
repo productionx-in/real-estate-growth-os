@@ -24,7 +24,7 @@ async function main() {
   const mkProfile = async (n) => {
     const id = crypto.randomUUID()
     await db.query(`INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, last_sign_in_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
-      VALUES ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2,'x',now(),now() - interval '2 days',now(),now(),'{}',$3)`, [id, `${n}-${RUN}@regrow.test`, JSON.stringify({ full_name: n })])
+      VALUES ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2,'x',now(),now() - interval '2 days',now(),now(),'{}',$3)`, [id, `${n}-${RUN}@repx.test`, JSON.stringify({ full_name: n })])
     return { auth: id, profile: (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [id])).id }
   }
 
@@ -70,11 +70,11 @@ async function main() {
     // A real account, created the way sign-up does (raw SQL rows lack fields the auth service needs).
     const { createClient } = await import('@supabase/supabase-js')
     const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } }).auth.admin
-    const { data, error } = await admin.createUser({ email: `signin-${RUN}@regrow.test`, password: `Si-Test-${RUN}x9!`, email_confirm: true })
+    const { data, error } = await admin.createUser({ email: `signin-${RUN}@repx.test`, password: `Si-Test-${RUN}x9!`, email_confirm: true })
     if (error) throw error
     await db.query(`UPDATE auth.users SET last_sign_in_at = now() - interval '2 days' WHERE id=$1`, [data.user.id])
     const d = await team.authDetails([data.user.id, crypto.randomUUID()])
-    assert.equal(d.get(data.user.id).email, `signin-${RUN}@regrow.test`)
+    assert.equal(d.get(data.user.id).email, `signin-${RUN}@repx.test`)
     assert.ok(d.get(data.user.id).lastSignInAt)
     assert.equal(d.size, 1, 'an unknown id is simply skipped')
   })

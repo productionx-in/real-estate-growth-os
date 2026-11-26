@@ -66,9 +66,9 @@ async function main() {
 
     let realUser, demoUser, demoOrg
     await test('purge removes demo organisations with their records and demo accounts; real ones are untouched', async () => {
-      realUser = await mkUser(`real-${RUN}@regrow.test`, false)
+      realUser = await mkUser(`real-${RUN}@repx.test`, false)
       demoUser = await mkUser(`demo-${RUN}@example.test`, true)
-      const fakeTag = await mkUser(`tagged-${RUN}@regrow.test`, true) // tagged but not on example.test: not demo
+      const fakeTag = await mkUser(`tagged-${RUN}@repx.test`, true) // tagged but not on example.test: not demo
       await db.query(`INSERT INTO public.org_members (org_id, profile_id, role) VALUES ($1,$2,'owner')`, [realOrg, realUser.profile])
       const realLead = (await one(`INSERT INTO public.leads (org_id, name, phone) VALUES ($1,'Real buyer','9000000001') RETURNING id`, [realOrg])).id
       demoOrg = (await one(`SELECT id FROM public.organisations WHERE slug = $1`, [`demo-${RUN}`])).id

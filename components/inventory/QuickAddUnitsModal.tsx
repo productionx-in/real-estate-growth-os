@@ -66,7 +66,7 @@ export function QuickAddUnitsModal({ projectId, projectCategory, onClose, onSucc
       setDone(`Added ${data.successfulCount} ${data.successfulCount === 1 ? kind.one : kind.many}${data.failedCount ? `; ${data.failedCount} skipped` : ''}.`)
       onSuccess()
     } catch {
-      setError('Could not reach REGrow. Check your connection and try again.')
+      setError('Could not reach RE by PX. Check your connection and try again.')
     } finally { setBusy(false) }
   }
 

@@ -155,7 +155,7 @@ export function PlatformProvisioningModal({ prefill }: { prefill?: ProvisionPref
                     {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}{copied ? 'Copied' : 'Copy link'}
                   </button>
                   <a target="_blank" rel="noopener noreferrer"
-                    href={`https://wa.me/?text=${encodeURIComponent(`Your REGrow workspace "${name}" is ready. Set up your account here: ${provisionResult.inviteUrl}`)}`}
+                    href={`https://wa.me/?text=${encodeURIComponent(`Your RE by PX workspace "${name}" is ready. Set up your account here: ${provisionResult.inviteUrl}`)}`}
                     className="inline-flex min-h-9 items-center rounded-md bg-success px-3 text-[12px] font-medium text-success-foreground hover:opacity-90">
                     Share on WhatsApp
                   </a>

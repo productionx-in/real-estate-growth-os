@@ -1,7 +1,7 @@
-// lib/email/demo-request.ts — the e-mail a person gets the moment they ask for a demo on REGrow's website, and the
-// alert REGrow's sales team gets. The confirmation is written for them: it repeats what they told us, does the
+// lib/email/demo-request.ts — the e-mail a person gets the moment they ask for a demo on RE by PX's website, and the
+// alert RE by PX's sales team gets. The confirmation is written for them: it repeats what they told us, does the
 // arithmetic on their lead flow (leads per salesperson per working day), and says what happens next and what to
-// have ready. Only facts REGrow can stand behind: no response-time promises, no invented statistics.
+// have ready. Only facts RE by PX can stand behind: no response-time promises, no invented statistics.
 import { renderEmail } from '@/lib/email/layout'
 
 export interface DemoRequestDetails {
@@ -11,7 +11,7 @@ export interface DemoRequestDetails {
   companyName: string | null
   companyType: 'developer' | 'channel_partner'
   teamSize: number | null
-  interest: string | null      // e.g. "A product demo · REGrow for Developers"
+  interest: string | null      // e.g. "A product demo · RE for Developers"
   leadVolume: string | null    // "Under 300" | "300–1,000" | "1,000–3,000" | "Over 3,000"
   currentTool: string | null   // "Excel / Google Sheets / WhatsApp", …
   message: string | null
@@ -50,7 +50,7 @@ export function leadMath(volume: string | null, team: number | null): string | n
 }
 
 const TOOL_LINE: Record<string, string> = {
-  'Excel / Google Sheets / WhatsApp': 'You mentioned sheets and WhatsApp today. We’ll show how leads stop slipping through groups and tabs, and how your existing sheet comes into REGrow with a simple import.',
+  'Excel / Google Sheets / WhatsApp': 'You mentioned sheets and WhatsApp today. We’ll show how leads stop slipping through groups and tabs, and how your existing sheet comes into RE by PX with a simple import.',
   'A real estate CRM': 'You already use a real estate CRM. We’ll show how you can bring your leads across with an import and run both side by side while your team switches.',
   'A general-purpose CRM': 'You use a general-purpose CRM today. We’ll show what changes when the system knows projects, units, site visits and channel partners.',
   'No CRM yet': 'You don’t use a CRM yet, so we’ll start simple: where your leads come from, who gets them, and how nobody is forgotten.',
@@ -76,7 +76,7 @@ export function demoConfirmationEmail(d: DemoRequestDetails, links: { site: stri
 
   const paragraphs = [
     `Hi ${first},`,
-    `Thank you for your interest in REGrow${company ? ` for **${company}**` : ''}. We’ve received your request and a member of our team will call you on **${d.phone}** to fix a time that suits you.`,
+    `Thank you for your interest in RE by PX${company ? ` for **${company}**` : ''}. We’ve received your request and a member of our team will call you on **${d.phone}** to fix a time that suits you.`,
     interestLine,
     ...(math ? [math] : []),
     focus,
@@ -85,22 +85,22 @@ export function demoConfirmationEmail(d: DemoRequestDetails, links: { site: stri
     '• where your leads come from (Meta, Google, property portals, your website, walk-ins)',
     '• how a new lead reaches a salesperson today, and who follows up',
     `• ${agency ? 'the developers and projects you sell' : 'the projects you’re selling and roughly how many units'}`,
-    'In the meantime, you can see everything REGrow does on our website.',
+    'In the meantime, you can see everything RE by PX does on our website.',
   ]
   return {
-    subject: `Thanks, ${first} — we’ve received your REGrow ${/migration/i.test(d.interest ?? '') ? 'migration request' : /consultation/i.test(d.interest ?? '') ? 'consultation request' : 'demo request'}`,
+    subject: `Thanks, ${first} — we’ve received your RE by PX ${/migration/i.test(d.interest ?? '') ? 'migration request' : /consultation/i.test(d.interest ?? '') ? 'consultation request' : 'demo request'}`,
     ...renderEmail({
       preheader: `We’ll call you on ${d.phone} to fix a time. Here’s what to expect.`,
       heading: company ? `Your request for ${company}` : 'We’ve received your request',
       paragraphs,
-      cta: { label: 'See what REGrow does', url: `${links.site}/features` },
-      footnote: 'You’re receiving this because this e-mail address was entered on REGrow’s demo form. If that wasn’t you, ignore this e-mail — we won’t contact you again unless you ask.',
-      reason: 'You received this because you asked REGrow for a demo or a call.',
+      cta: { label: 'See what RE by PX does', url: `${links.site}/features` },
+      footnote: 'You’re receiving this because this e-mail address was entered on RE by PX’s demo form. If that wasn’t you, ignore this e-mail — we won’t contact you again unless you ask.',
+      reason: 'You received this because you asked RE by PX for a demo or a call.',
     }),
   }
 }
 
-/** For REGrow's sales team: everything the person told us, and where to act on it. */
+/** For RE by PX's sales team: everything the person told us, and where to act on it. */
 export function demoAlertEmail(d: DemoRequestDetails, links: { console: string }) {
   const company = d.companyName?.trim() || d.name
   const math = leadMath(d.leadVolume, d.teamSize)
@@ -118,7 +118,7 @@ export function demoAlertEmail(d: DemoRequestDetails, links: { console: string }
         d.email ? 'They have been sent a confirmation e-mail.' : 'They gave no e-mail address, so no confirmation was sent — call them.',
       ],
       cta: { label: 'Open in the console', url: links.console },
-      reason: 'Sent to the REGrow sales team for every website request.',
+      reason: 'Sent to the RE by PX sales team for every website request.',
     }),
   }
 }

@@ -1,4 +1,4 @@
-// app/account/notifications/page.tsx — what REGrow e-mails you. Daily reports can be turned off; e-mails about your
+// app/account/notifications/page.tsx — what RE by PX e-mails you. Daily reports can be turned off; e-mails about your
 // account (invitations, sign-in links, billing for owners) always go out.
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -28,7 +28,7 @@ export default async function NotificationSettingsPage() {
           <p className="text-[12px] text-muted">
             E-mails about your account — invitations, sign-in and password links, and billing for owners and admins — are always sent.
           </p>
-          <Link href="/select-org" className="text-[13px] font-medium text-brand hover:underline">Back to REGrow</Link>
+          <Link href="/select-org" className="text-[13px] font-medium text-brand hover:underline">Back to RE by PX</Link>
         </CardContent>
       </Card>
     </main>

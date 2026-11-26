@@ -31,7 +31,7 @@ async function main() {
   const authIds = [], orgIds = []
   const mkOrg = async (name, type) => { const id = (await one(`INSERT INTO public.organisations (name, slug, type) VALUES ($1,$2,$3) RETURNING id`, [`${name} ${RUN}`, `${name.toLowerCase()}-${RUN}`, type])).id; orgIds.push(id); return id }
   const mkUser = async (name, org, role) => {
-    const { data, error } = await service.auth.admin.createUser({ email: `${name.toLowerCase()}-${RUN}@regrow.test`, password: PASSWORD, email_confirm: true, user_metadata: { full_name: name } })
+    const { data, error } = await service.auth.admin.createUser({ email: `${name.toLowerCase()}-${RUN}@repx.test`, password: PASSWORD, email_confirm: true, user_metadata: { full_name: name } })
     if (error) throw error
     authIds.push(data.user.id)
     const id = (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [data.user.id])).id

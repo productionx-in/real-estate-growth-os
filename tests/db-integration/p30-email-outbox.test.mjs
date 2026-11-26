@@ -19,7 +19,7 @@ async function test(name, fn) { try { await fn(); passed++; console.log(`  ✓ $
 async function main() {
   if (!globalThis.WebSocket) globalThis.WebSocket = class UnusedRealtimeTransport {}
   // Mock provider only; a valid sender for most checks. Nothing here can reach a real mailbox.
-  Object.assign(process.env, { EMAIL_PROVIDER: 'mock', EMAIL_FROM_NAME: 'REGrow', EMAIL_FROM_ADDRESS: 'first@regrow-mail-check.com', NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' })
+  Object.assign(process.env, { EMAIL_PROVIDER: 'mock', EMAIL_FROM_NAME: 'RE by PX', EMAIL_FROM_ADDRESS: 'first@repx-mail-check.com', NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' })
   delete process.env.RESEND_API_KEY; delete process.env.EMAIL_REPLY_TO
   const jiti = createJiti(import.meta.url, { alias: { '@': root } })
   const svc = await jiti.import(path.join(root, 'lib/email/service.ts'))
@@ -35,7 +35,7 @@ async function main() {
   const sentTo = (addr) => mail.sentEmails.filter((e) => e.to === addr)
   const mkOrg = async (n) => (await one(`INSERT INTO public.organisations (name, slug, type) VALUES ($1,$2,'developer') RETURNING id`, [`${n} ${RUN}`, `${n.toLowerCase()}-${RUN}`])).id
   const orgA = await mkOrg('OutboxA'); const orgB = await mkOrg('OutboxB')
-  const owner = await service_user(db, `owner-${RUN}@regrow-mail-check.com`) // inviter + Platform Owner for the alert check
+  const owner = await service_user(db, `owner-${RUN}@repx-mail-check.com`) // inviter + Platform Owner for the alert check
   const ownerProfile = (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [owner])).id // invited_by is a profile
   const invite = async (org, email, tokenHash) => (await one(`INSERT INTO public.org_invitations (org_id, email, role, invited_by, token_hash) VALUES ($1,$2,'sales_exec',$3,$4) RETURNING id`, [org, email, ownerProfile, tokenHash])).id
   const q = (key, to, extra = {}) => svc.queueEmail(db, { orgId: orgA, category: 'account', template: 'customer', to, idempotencyKey: key,
@@ -116,42 +116,42 @@ async function main() {
     assert.equal((await row(`held-${RUN}`)).attempts, 0, 'a configuration problem does not use up retries')
     await svc.deliverDue(db)
     assert.equal(mail.sentEmails.length, 0)
-    assert.ok((await one(`SELECT count(*) n FROM public.email_outbox WHERE template='staff.email_health' AND recipient=$1`, [`owner-${RUN}@regrow-mail-check.com`])).n > 0, 'Platform Owner alert queued')
+    assert.ok((await one(`SELECT count(*) n FROM public.email_outbox WHERE template='staff.email_health' AND recipient=$1`, [`owner-${RUN}@repx-mail-check.com`])).n > 0, 'Platform Owner alert queued')
     const health = await svc.emailHealth(db)
     assert.ok(health.counts.held >= 1); assert.ok(health.config.problems.length > 0)
     assert.ok(!JSON.stringify(health).includes(`held-${RUN}@acme-mail.in`), 'admin view masks recipients')
-    process.env.EMAIL_FROM_ADDRESS = 'second@regrow-mail-check.com'
+    process.env.EMAIL_FROM_ADDRESS = 'second@repx-mail-check.com'
     await svc.deliverDue(db)
     assert.equal((await row(`held-${RUN}`)).status, 'sent')
-    assert.equal(sentTo(`held-${RUN}@acme-mail.in`)[0].from, 'REGrow <second@regrow-mail-check.com>')
-    assert.ok(sentTo(`owner-${RUN}@regrow-mail-check.com`).some((e) => /held/.test(e.subject)), 'the alert went out too')
+    assert.equal(sentTo(`held-${RUN}@acme-mail.in`)[0].from, 'RE by PX <second@repx-mail-check.com>')
+    assert.ok(sentTo(`owner-${RUN}@repx-mail-check.com`).some((e) => /held/.test(e.subject)), 'the alert went out too')
   })
 
   await test('sender changes apply at delivery: queued before the change, sent with the new sender; nothing in the row changes', async () => {
     mail.clear()
-    process.env.EMAIL_FROM_ADDRESS = 'before@regrow-mail-check.com'
+    process.env.EMAIL_FROM_ADDRESS = 'before@repx-mail-check.com'
     const id = await q(`sender-${RUN}`, `sender-${RUN}@acme-mail.in`, { sendAfter: new Date(Date.now() + 60_000) })
     const before = await row(`sender-${RUN}`)
-    process.env.EMAIL_FROM_ADDRESS = 'after@regrow-mail-check.com'; process.env.EMAIL_FROM_NAME = 'REGrow Team'; process.env.EMAIL_REPLY_TO = 'help@regrow-mail-check.com'
+    process.env.EMAIL_FROM_ADDRESS = 'after@repx-mail-check.com'; process.env.EMAIL_FROM_NAME = 'RE by PX Team'; process.env.EMAIL_REPLY_TO = 'help@repx-mail-check.com'
     await sql.query(`UPDATE public.email_outbox SET next_attempt_at = now() WHERE id=$1`, [id])
     await svc.deliverDue(db)
     const sent = sentTo(`sender-${RUN}@acme-mail.in`)[0]
-    assert.deepEqual([sent.from, sent.replyTo], ['REGrow Team <after@regrow-mail-check.com>', 'help@regrow-mail-check.com'])
+    assert.deepEqual([sent.from, sent.replyTo], ['RE by PX Team <after@repx-mail-check.com>', 'help@repx-mail-check.com'])
     assert.deepEqual(JSON.stringify(before.payload), JSON.stringify((await row(`sender-${RUN}`)).payload), 'no queued data was touched')
-    process.env.EMAIL_FROM_NAME = 'REGrow'; delete process.env.EMAIL_REPLY_TO
+    process.env.EMAIL_FROM_NAME = 'RE by PX'; delete process.env.EMAIL_REPLY_TO
   })
 
   await test('invitations: the link is stored encrypted, delivered intact, and use the sender at delivery time', async () => {
     mail.clear()
     const raw = crypto.randomBytes(32).toString('hex')
     const inv = await invite(orgA, `invitee-${RUN}@acme-mail.in`, crypto.createHash('sha256').update(raw).digest('hex'))
-    process.env.EMAIL_FROM_ADDRESS = 'invites@regrow-mail-check.com'
+    process.env.EMAIL_FROM_ADDRESS = 'invites@repx-mail-check.com'
     const r = await svc.sendInvitation(db, { orgId: orgA, invitationId: inv, to: `invitee-${RUN}@acme-mail.in`, orgName: 'OutboxA', role: 'Administrator', inviteUrl: `http://localhost:3000/invite/${raw}`, inviterName: 'Asha' })
     assert.equal(r.success, true)
     const stored = await one(`SELECT payload::text p FROM public.email_outbox WHERE template='invitation' AND payload->>'invitationId'=$1`, [inv])
     assert.ok(!stored.p.includes(raw), 'the one-time token is never stored in plain text')
     const m = sentTo(`invitee-${RUN}@acme-mail.in`)[0]
-    assert.ok(m.html.includes(`/invite/${raw}`)); assert.equal(m.from, 'REGrow <invites@regrow-mail-check.com>')
+    assert.ok(m.html.includes(`/invite/${raw}`)); assert.equal(m.from, 'RE by PX <invites@repx-mail-check.com>')
     assert.equal((await one('SELECT delivery_status s FROM public.org_invitations WHERE id=$1', [inv])).s, 'delivered')
   })
 
@@ -160,11 +160,11 @@ async function main() {
     await sql.query(`INSERT INTO public.customer_email_log (org_id, kind, dedupe_key, recipients, status) VALUES ($1,'welcome',$2,1,'sent')`, [orgA, `welcome:${orgA}`])
     const { data } = await db.rpc('enqueue_customer_email', { p_org: orgA, p_kind: 'welcome', p_event_key: `welcome:${orgA}`, p_recipients: [`legacy-${RUN}@acme-mail.in`], p_template: 'customer', p_payload: {} })
     assert.deepEqual(data ?? [], [], 'already-sent event → nothing queued')
-    delete process.env.EMAIL_FROM_ADDRESS; delete process.env.EMAIL_FROM_NAME; process.env.RESEND_FROM_EMAIL = 'Legacy Name <legacy@regrow-mail-check.com>'
+    delete process.env.EMAIL_FROM_ADDRESS; delete process.env.EMAIL_FROM_NAME; process.env.RESEND_FROM_EMAIL = 'Legacy Name <legacy@repx-mail-check.com>'
     const id = await q(`legacy-${RUN}`, `legacy-${RUN}@acme-mail.in`)
     assert.equal((await svc.deliverOne(db, id)).outcome, 'sent')
-    assert.equal(sentTo(`legacy-${RUN}@acme-mail.in`)[0].from, 'Legacy Name <legacy@regrow-mail-check.com>')
-    delete process.env.RESEND_FROM_EMAIL; process.env.EMAIL_FROM_ADDRESS = 'first@regrow-mail-check.com'; process.env.EMAIL_FROM_NAME = 'REGrow'
+    assert.equal(sentTo(`legacy-${RUN}@acme-mail.in`)[0].from, 'Legacy Name <legacy@repx-mail-check.com>')
+    delete process.env.RESEND_FROM_EMAIL; process.env.EMAIL_FROM_ADDRESS = 'first@repx-mail-check.com'; process.env.EMAIL_FROM_NAME = 'RE by PX'
   })
 
   setEmailAdapterForTesting(null)

@@ -1,5 +1,5 @@
 // lib/auth/password-policy.ts — one password rule for every place a password is set.
-// Matches the production Supabase Auth password requirement (lower, upper, digit, symbol), so a password REGrow
+// Matches the production Supabase Auth password requirement (lower, upper, digit, symbol), so a password RE by PX
 // accepts is never then refused by Supabase.
 export const PASSWORD_MIN_LENGTH = 10
 export const PASSWORD_HINT = `At least ${PASSWORD_MIN_LENGTH} characters, with upper- and lower-case letters, a number and a symbol.`

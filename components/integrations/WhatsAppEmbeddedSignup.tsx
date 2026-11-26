@@ -1,5 +1,5 @@
 'use client'
-// components/integrations/WhatsAppEmbeddedSignup.tsx — "Connect WhatsApp" through REGrow's central Meta app.
+// components/integrations/WhatsAppEmbeddedSignup.tsx — "Connect WhatsApp" through RE by PX's central Meta app.
 // The customer signs in to Meta in a popup and picks their own WhatsApp Business Account and number; the server
 // (POST /api/integrations/whatsapp/embedded-signup) finishes the connection. Shows nothing secret: the app id and
 // configuration id are public by design.
@@ -104,7 +104,7 @@ export function WhatsAppEmbeddedSignup({ orgId, connected, canManage, full = fal
 
   if (!canManage) return null
   if (!config?.available) {
-    return <p className="text-[11px] text-subtle">🕒 Adding a number opens soon — REGrow is finishing the WhatsApp setup.</p>
+    return <p className="text-[11px] text-subtle">🕒 Adding a number opens soon — RE by PX is finishing the WhatsApp setup.</p>
   }
   return (
     <>
@@ -113,7 +113,7 @@ export function WhatsAppEmbeddedSignup({ orgId, connected, canManage, full = fal
       </Button>
       {notice && !open && <Alert tone="success" className="mt-2">{notice}</Alert>}
       <Dialog open={open} onOpenChange={(o) => { if (!busy) setOpen(o) }}>
-        <DialogContent title="Connect your WhatsApp Business number" description="You’ll sign in to Meta and choose (or create) your own WhatsApp Business Account and number. REGrow never sees your Facebook password.">
+        <DialogContent title="Connect your WhatsApp Business number" description="You’ll sign in to Meta and choose (or create) your own WhatsApp Business Account and number. RE by PX never sees your Facebook password.">
           <div className="space-y-4">
             <ol className="list-decimal space-y-1 pl-5 text-[13px] text-muted">
               <li>Use a number that is not active in the WhatsApp or WhatsApp Business app, or move it first.</li>

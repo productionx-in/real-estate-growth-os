@@ -44,7 +44,7 @@ export function ShapeEditor({ orgId, versionId, width, height, imageUrl, initial
   orgId: string; versionId: string; width: number; height: number; imageUrl: string
   initialShapes: { id: string; label: string; kind: 'polygon' | 'rect'; points: Pt[]; unitId: string | null }[]
   units: Unit[]; title: string
-  /** REGrow staff drawing for a customer (option c): boundaries and plot numbers only. No units are shown or sent;
+  /** RE by PX staff drawing for a customer (option c): boundaries and plot numbers only. No units are shown or sent;
    *  the server keeps the customer's confirmed links by plot id. */
   drawOnly?: boolean
   /** Where shapes are saved and re-read (default: the workspace route). */

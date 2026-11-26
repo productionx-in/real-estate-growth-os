@@ -1,5 +1,5 @@
 // app/api/admin/organisations/provision/route.ts
-// REGrow Platform Administration: Super Admin Organization & Subscription Provisioning
+// RE by PX Platform Administration: Super Admin Organization & Subscription Provisioning
 import { initSalesStructure } from '@/lib/dal/sales-structure'
 import { appUrl } from '@/lib/site/urls'
 import { NextResponse, type NextRequest } from 'next/server'
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
       shareUrl = inviteUrl
       const sent = await sendInvitation(service, {
         orgId, invitationId, to: normalizedEmail, orgName: name.trim(), role: 'Owner & Primary Administrator',
-        inviteUrl, inviterName: auth.profile?.full_name || 'REGrow Super Admin',
+        inviteUrl, inviterName: auth.profile?.full_name || 'RE by PX Super Admin',
       })
       if (!sent.success) throw new Error(sent.error || 'The invitation e-mail could not be sent.')
       emailDispatched = true

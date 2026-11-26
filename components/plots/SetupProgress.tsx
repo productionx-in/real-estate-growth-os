@@ -7,7 +7,7 @@ import type { SetupView } from '@/lib/plots/setup'
 import { ResolveBlockerButton } from '@/components/plots/ResolveBlockerButton'
 import { cn } from '@/lib/utils/cn'
 
-const OWNER_LABEL = { regrow: 'REGrow team', customer: 'Your team', system: 'Automatic' } as const
+const OWNER_LABEL = { regrow: 'RE by PX team', customer: 'Your team', system: 'Automatic' } as const
 const when = (iso: string) => new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata' }).format(new Date(iso))
 const day = (iso: string) => new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }).format(new Date(iso))
 
@@ -52,7 +52,7 @@ export function SetupProgress({ view, orgId, canAct }: { view: SetupView; orgId:
               <Hourglass aria-hidden className="mt-0.5 size-4 shrink-0 text-warning" />
               <div>
                 <dt className="text-muted">Paused</dt>
-                <dd className="text-foreground">Waiting for your team since {when(view.waitingOnCustomer.raisedAt)}. The REGrow clock restarts when it is done.</dd>
+                <dd className="text-foreground">Waiting for your team since {when(view.waitingOnCustomer.raisedAt)}. The RE by PX clock restarts when it is done.</dd>
               </div>
             </div>
           )}

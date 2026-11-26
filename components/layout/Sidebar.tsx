@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { PRODUCT_NAME } from '@/lib/brand'
+import { ReMark } from '@/components/brand/Logo'
 import { navGroups, isActiveLink, ROLE_LABELS, type NavKey, type OrgType } from '@/lib/navigation/nav'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -23,8 +24,8 @@ import type { MemberRole } from '@/types/database'
 import type { AvailableOrgSummary } from '@/lib/dal/workspace'
 
 /** Dispatched by the header's menu button and the tab bar's "More" to open/close the drawer on phones. */
-export const NAV_TOGGLE_EVENT = 'regrow:toggle-nav'
-const COLLAPSE_KEY = 'regrow:nav-collapsed'
+export const NAV_TOGGLE_EVENT = 'repx:toggle-nav'
+const COLLAPSE_KEY = 'repx:nav-collapsed'
 
 export const NAV_ICONS: Record<NavKey, React.ComponentType<{ className?: string }>> = {
   home: LayoutDashboard, today: ListChecks, leads: Users, visits: CalendarDays, inbox: MessageCircle,
@@ -206,7 +207,7 @@ export function Sidebar({
 
         {/* Collapse (desktop) */}
         <div className={cn('hidden flex-shrink-0 items-center border-t border-default p-2 md:flex', rail ? 'justify-center' : 'justify-between')}>
-          {!rail && <span className="px-2 text-[11px] text-subtle">{PRODUCT_NAME}</span>}
+          {!rail && <span className="inline-flex items-center gap-1.5 px-2 text-[11px] text-subtle"><ReMark className="h-3 w-auto" />{PRODUCT_NAME}</span>}
           <button
             type="button"
             onClick={toggleCollapsed}

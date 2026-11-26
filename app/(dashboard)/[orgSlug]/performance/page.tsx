@@ -49,7 +49,7 @@ export default async function MyPerformancePage({ params, searchParams }: { para
   ]
 
   return (
-    <PageShell title={own ? 'My performance' : `Performance · ${personName}`} description={own ? 'Every call, follow-up, visit and booking moves you forward. Points come only from real work in REGrow.' : 'Their progress, read from what they did in REGrow.'}
+    <PageShell title={own ? 'My performance' : `Performance · ${personName}`} description={own ? 'Every call, follow-up, visit and booking moves you forward. Points come only from real work in RE by PX.' : 'Their progress, read from what they did in RE by PX.'}
       back={own ? undefined : { href: `/${orgSlug}/performance/team`, label: 'Team performance' }}>
       <PerformanceTabs orgSlug={orgSlug} current={own ? 'me' : 'team'} canManage={canManagePerformance(role)} watchesTeam={watchesTeam(role)} sellsPersonally={sellsPersonally(role, sales)} />
       {!p.settings.enabled && (

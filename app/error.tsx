@@ -10,7 +10,7 @@ import { AlertTriangle } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { clientReference, isStaleBuildError } from '@/lib/errors/client'
 
-const RELOAD_KEY = 'regrow:stale-reload-at'
+const RELOAD_KEY = 'repx:stale-reload-at'
 
 export default function RouteError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const [ref] = useState(() => error.digest ?? clientReference())
@@ -43,7 +43,7 @@ export default function RouteError({ error, reset }: { error: Error & { digest?:
         <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-danger-bg">
           <AlertTriangle aria-hidden className="size-6 text-danger" />
         </div>
-        <h1 className="text-[18px] font-semibold text-foreground">{stale ? 'REGrow was updated' : 'Something went wrong on this page'}</h1>
+        <h1 className="text-[18px] font-semibold text-foreground">{stale ? 'RE by PX was updated' : 'Something went wrong on this page'}</h1>
         <p className="mt-2 text-[14px] text-muted">
           {stale ? 'A newer version is available. Reload the page to continue — nothing you saved is lost.'
             : 'Your data is safe. Try again — if it keeps happening, contact support and quote the reference below.'}

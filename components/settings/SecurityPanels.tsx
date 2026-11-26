@@ -64,7 +64,7 @@ export function SignOutOthers() {
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState<string | null>(null)
   async function run() {
-    if (!window.confirm('Sign out of REGrow on every other phone and computer? This device stays signed in.')) return
+    if (!window.confirm('Sign out of RE by PX on every other phone and computer? This device stays signed in.')) return
     setBusy(true)
     const { error } = await createClient().auth.signOut({ scope: 'others' })
     setBusy(false)

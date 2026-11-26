@@ -1,4 +1,4 @@
-// lib/platform/stages.ts — REGrow's own sales pipeline stages: labels and badge tones. Plain data, safe to import from
+// lib/platform/stages.ts — RE by PX's own sales pipeline stages: labels and badge tones. Plain data, safe to import from
 // server pages and client components alike (a constant exported from a 'use client' file is a client reference on the
 // server, not the object — that left every stage badge on the pipeline empty).
 export const STAGE_LABEL: Record<string, string> = {

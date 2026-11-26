@@ -79,7 +79,7 @@ export function LeadAlertSettingsForm({ orgId, initial }: { orgId: string; initi
       <div className={`flex items-start justify-between gap-4 rounded-lg border border-default p-4 ${off ? 'opacity-60' : ''}`}>
         <div>
           <p className="text-[14px] font-medium text-foreground">Play sounds</p>
-          <p className="text-[12px] text-muted">With the alert banners while REGrow is open. Each person can still mute their own device in My notifications.</p>
+          <p className="text-[12px] text-muted">With the alert banners while RE by PX is open. Each person can still mute their own device in My notifications.</p>
         </div>
         <Switch on={s.sounds} label="Play sounds" disabled={off} onChange={(v) => set('sounds', v)} />
       </div>

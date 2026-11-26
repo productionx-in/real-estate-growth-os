@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     if (!platformUser || platformUser.role !== 'super_admin') {
       return NextResponse.json(
         {
-          error: 'Forbidden: Self-service organisation creation is disabled on REGrow. Organisations must be provisioned by a Platform Super Admin.',
+          error: 'Forbidden: Self-service organisation creation is disabled on RE by PX. Organisations must be provisioned by a Platform Super Admin.',
           code: 'CLOSED_SAAS_PROVISIONING_ONLY',
         },
         { status: 403 }

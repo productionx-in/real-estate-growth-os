@@ -1,4 +1,4 @@
-// lib/dal/plot-map-staff.ts — option (c): REGrow staff draw plot boundaries for a customer (20260085).
+// lib/dal/plot-map-staff.ts — option (c): RE by PX staff draw plot boundaries for a customer (20260085).
 // The workspace's owner or admin allows it per project for up to 31 days (default 14) and can withdraw it at any
 // time. While allowed, staff with CAN.plotMapSetup see the project's draft page images and plot outlines — never
 // inventory, prices or buyers — and save through save_plot_map_shapes_as_staff(), which keeps every confirmed link
@@ -37,7 +37,7 @@ export async function grantStaffAccess(orgId: string, projectId: string, profile
     org_id: orgId, project_id: projectId, granted_by: profileId, granted_at: now.toISOString(), expires_at: new Date(now.getTime() + d * 86_400_000).toISOString(),
   })
   if (error) {
-    if (error.code === '23505') return { success: false, error: 'REGrow is already allowed to draw on this project.', status: 409 }
+    if (error.code === '23505') return { success: false, error: 'RE by PX is already allowed to draw on this project.', status: 409 }
     if (/not active/.test(error.message)) return { success: false, error: 'The Interactive Plot Map add-on is not active for this project.', status: 403 }
     if (/another organisation/.test(error.message)) return { success: false, error: 'Project not found.', status: 404 }
     return { success: false, error: 'Could not save.', status: 500 }
@@ -49,7 +49,7 @@ export async function revokeStaffAccess(orgId: string, projectId: string, profil
   const { data, error } = await db().from('plot_map_staff_access').update({ revoked_at: new Date().toISOString(), revoked_by: profileId })
     .eq('org_id', orgId).eq('project_id', projectId).is('revoked_at', null).select('id')
   if (error) return { success: false, error: 'Could not save.', status: 500 }
-  if (!(data ?? []).length) return { success: false, error: 'REGrow is not allowed to draw on this project.', status: 404 }
+  if (!(data ?? []).length) return { success: false, error: 'RE by PX is not allowed to draw on this project.', status: 404 }
   return { success: true, data: null }
 }
 
@@ -104,7 +104,7 @@ export async function staffEditorData(orgId: string, versionId: string): Promise
   }
 }
 
-/** Save a draft's outlines and plot numbers as REGrow staff. Links are the database's business: kept or dropped there. */
+/** Save a draft's outlines and plot numbers as RE by PX staff. Links are the database's business: kept or dropped there. */
 export async function saveShapesAsStaff(orgId: string, versionId: string, staffProfileId: string | null, shapes: Omit<ShapeInput, 'unitId'>[]): Promise<DalResult<{ saved: number; overlaps: number }>> {
   const client = db()
   const { data: v } = await client.from('plot_map_versions').select('id, project_id, status').eq('org_id', orgId).eq('id', versionId).maybeSingle()
@@ -118,14 +118,14 @@ export async function saveShapesAsStaff(orgId: string, versionId: string, staffP
   const payload = clean.map((s) => ({ id: s.id ?? null, label: s.label, kind: s.kind, points: s.points }))
   const { data, error } = await client.rpc('save_plot_map_shapes_as_staff', { p_org: orgId, p_version: versionId, p_actor: staffProfileId, p_shapes: payload as unknown as Json })
   if (error) {
-    if (/has not allowed/.test(error.message)) return { success: false, error: 'The workspace no longer allows REGrow to draw on this project.', status: 403 }
+    if (/has not allowed/.test(error.message)) return { success: false, error: 'The workspace no longer allows RE by PX to draw on this project.', status: 403 }
     if (/not active/.test(error.message)) return { success: false, error: 'The Interactive Plot Map add-on is not active for this project.', status: 403 }
     if (/only a draft/.test(error.message)) return { success: false, error: 'Only a draft version can be edited.', status: 409 }
     return { success: false, error: 'Could not save the plots.', status: 500 }
   }
   // One note a day per version, so the customer knows to review and link.
   await notifyAdmins(orgId, v.project_id, `plot_map:staff_drawn:${versionId}:${new Date().toISOString().slice(0, 10)}`,
-    'REGrow updated your plot boundaries', 'Open the plot map to check the outlines and link each plot to its unit.')
+    'RE by PX updated your plot boundaries', 'Open the plot map to check the outlines and link each plot to its unit.')
   return { success: true, data: { saved: Number(data ?? 0), overlaps: validation.overlaps.length } }
 }
 

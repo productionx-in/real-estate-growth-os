@@ -1,4 +1,4 @@
-// app/platform/people/page.tsx — find any customer's REGrow sign-in account by e-mail and control it: see which
+// app/platform/people/page.tsx — find any customer's RE by PX sign-in account by e-mail and control it: see which
 // workspaces it belongs to, suspend or restore access per workspace, block or unblock sign-in, or delete an account
 // that belongs to no workspace. Platform Owner and platform admin (account actions: Platform Owner only).
 import type { Metadata } from 'next'
@@ -40,7 +40,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
   return (
     <div className="space-y-5">
       <PageHeader title="People"
-        description="Find anyone who uses REGrow by e-mail. Remove them from a workspace, deactivate their account, or permanently delete it. Every action needs a reason and is audited." />
+        description="Find anyone who uses RE by PX by e-mail. Remove them from a workspace, deactivate their account, or permanently delete it. Every action needs a reason and is audited." />
 
       <form className="flex max-w-xl flex-wrap gap-2" role="search">
         <label htmlFor="people-email" className="sr-only">E-mail address</label>
@@ -49,7 +49,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
       </form>
 
       {email && !valid && <Alert tone="warning">Enter a full e-mail address.</Alert>}
-      {valid && !acct && <Alert tone="info">No REGrow account uses {email}.</Alert>}
+      {valid && !acct && <Alert tone="info">No RE by PX account uses {email}.</Alert>}
 
       {acct && (
         <Card>
@@ -59,7 +59,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
               <CardDescription>{acct.email} · account since {when(acct.createdAt)} · last sign-in {when(acct.lastSignIn)}</CardDescription>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {acct.blocked ? <Badge tone="danger">Sign-in blocked</Badge> : <Badge tone="success">Can sign in</Badge>}
-                {acct.staff && <Badge tone="brand">REGrow staff</Badge>}
+                {acct.staff && <Badge tone="brand">RE by PX staff</Badge>}
               </div>
             </div>
           </CardHeader>

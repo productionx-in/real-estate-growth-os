@@ -1,38 +1,41 @@
 // lib/integrations/website/capture-script.ts
 // The website capture script served at /capture.js. A developer adds one tag to their site:
 //
-//   <script src="https://<app>/capture.js" data-regrow-key="<website connection id>" async></script>
+//   <script src="https://<app>/capture.js" data-re-key="<website connection id>" async></script>
 //
 // and then, on every page:
 //   • remembers where the visitor came from — UTM tags, ad click IDs (gclid, fbclid…), landing page and
 //     outside referrer — for the first visit and the latest campaign visit (90 days, this site only);
 //   • when one of the site's own forms is submitted, reads the name, phone, email, message, budget and
-//     unit type from it and sends them, with the visit details, to REGrow (/api/capture).
+//     unit type from it and sends them, with the visit details, to RE by PX (/api/capture).
 //
 // It never stops, delays or changes the site's own form handling; it never reads a form that has a password,
 // card, OTP or ID-number field; and it sends nothing but the fields listed above. Options (on the tag):
-//   data-regrow-forms="marked"  only forms marked data-regrow-form (default: every form with a phone or email)
-//   data-regrow-project="<id>"  the project these enquiries belong to (a form can override it)
-// On a form or field: data-regrow-ignore (skip), data-regrow-field="name|phone|email|notes|budget|unit"
-// (say what a field is), data-regrow-honeypot (a hidden field that only bots fill in).
-// In page code: REGrow.capture({ name, phone, email, notes }), REGrow.attribution(), REGrow.optOut().
+//   data-re-forms="marked"  only forms marked data-re-form (default: every form with a phone or email)
+//   data-re-project="<id>"  the project these enquiries belong to (a form can override it)
+// On a form or field: data-re-ignore (skip), data-re-field="name|phone|email|notes|budget|unit"
+// (say what a field is), data-re-honeypot (a hidden field that only bots fill in).
+// In page code: REbyPX.capture({ name, phone, email, notes }), REbyPX.attribution(), REbyPX.optOut().
+// data-regrow-* attributes and window.REGrow still work for sites installed before the rename.
 //
 // Plain ES5 + the DOM, no dependencies, so it runs on old phones and any site builder.
 
-export const CAPTURE_SCRIPT = String.raw`/*! REGrow website capture */
+export const CAPTURE_SCRIPT = String.raw`/*! RE by PX website capture */
 (function (w, d) {
   'use strict';
-  if (w.REGrow && w.REGrow.__capture) return;
+  if (w.REbyPX && w.REbyPX.__capture) return;
+  function A(el, n) { return el.getAttribute('data-re-' + n) || el.getAttribute('data-regrow-' + n); }
+  function H(el, n) { return el.hasAttribute('data-re-' + n) || el.hasAttribute('data-regrow-' + n); }
   var script = d.currentScript;
-  if (!script) { var all = d.querySelectorAll('script[data-regrow-key]'); script = all[all.length - 1]; }
+  if (!script) { var all = d.querySelectorAll('script[data-re-key],script[data-regrow-key]'); script = all[all.length - 1]; }
   if (!script) return;
-  var KEY = script.getAttribute('data-regrow-key');
+  var KEY = A(script, 'key');
   if (!KEY) return;
   var ENDPOINT;
   try { ENDPOINT = new URL(script.src, w.location.href).origin + '/api/capture'; } catch (e) { return; }
-  var ONLY_MARKED = script.getAttribute('data-regrow-forms') === 'marked';
-  var PROJECT = script.getAttribute('data-regrow-project') || null;
-  var STORE = 'regrow_attr_v1', OPTOUT = 'regrow_optout', TTL = 90 * 864e5;
+  var ONLY_MARKED = A(script, 'forms') === 'marked';
+  var PROJECT = A(script, 'project') || null;
+  var STORE = 'regrow_attr_v1', OPTOUT = 'regrow_optout' /* stored names kept so visitors keep their choices */, TTL = 90 * 864e5;
   var UTM = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
   var CLICK = ['gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid', 'li_fat_id', 'ttclid'];
   var LOADED = Date.now();
@@ -99,8 +102,8 @@ export const CAPTURE_SCRIPT = String.raw`/*! REGrow website capture */
     if (type === 'password') return 'sensitive';
     var h = hint(el);
     if (/cc-|card|cvv|cvc|expiry|otp|one-time|passcode|aadha+r|\bpan\b|\bssn\b|account.?n(o|umber)|ifsc/.test(h)) return 'sensitive';
-    if (el.hasAttribute('data-regrow-honeypot')) return 'honeypot';
-    var explicit = el.getAttribute('data-regrow-field');
+    if (H(el, 'honeypot')) return 'honeypot';
+    var explicit = A(el, 'field');
     if (explicit) return /^(name|phone|email|notes|budget|unit)$/.test(explicit) ? explicit : null;
     if (SKIP_TYPE.test(type)) return null;
     if (type === 'email' || /e-?mail/.test(h)) return 'email';
@@ -126,7 +129,7 @@ export const CAPTURE_SCRIPT = String.raw`/*! REGrow website capture */
     var out = {}, els = form.elements || [], i, el, k, v, hp = false;
     for (i = 0; i < els.length; i++) {
       el = els[i];
-      if (el.disabled || (el.closest && el.closest('[data-regrow-ignore]'))) continue;
+      if (el.disabled || (el.closest && el.closest('[data-re-ignore],[data-regrow-ignore]'))) continue;
       k = classify(el);
       if (k === 'sensitive') return null;
       if (k === 'honeypot') { if (clip(el.value, 10)) hp = true; continue; }
@@ -188,21 +191,21 @@ export const CAPTURE_SCRIPT = String.raw`/*! REGrow website capture */
     try {
       var form = e.target;
       if (!form || String(form.tagName).toUpperCase() !== 'FORM' || optedOut()) return;
-      if (form.closest && form.closest('[data-regrow-ignore]')) return;
-      if (ONLY_MARKED && !form.hasAttribute('data-regrow-form')) return;
+      if (form.closest && form.closest('[data-re-ignore],[data-regrow-ignore]')) return;
+      if (ONLY_MARKED && !H(form, 'form')) return;
       var data = collect(form);
       if (!data) return;
       send(data, {
-        formId: form.getAttribute('data-regrow-form') || form.getAttribute('id') || form.getAttribute('name'),
-        projectId: form.getAttribute('data-regrow-project') || PROJECT,
+        formId: A(form, 'form') || form.getAttribute('id') || form.getAttribute('name'),
+        projectId: A(form, 'project') || PROJECT,
         started: started && started.get(form)
       });
     } catch (err) { /* never break the site */ }
   }, true);
 
-  w.REGrow = {
+  w.REbyPX = w.REGrow = {
     __capture: true,
-    /** For forms that do not submit (e.g. built with JavaScript): REGrow.capture({ name, phone, email, notes }). */
+    /** For forms that do not submit (e.g. built with JavaScript): REbyPX.capture({ name, phone, email, notes }). */
     capture: function (data, opts) {
       if (!data || optedOut()) return false;
       var c = {

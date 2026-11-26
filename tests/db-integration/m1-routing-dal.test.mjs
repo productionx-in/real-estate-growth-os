@@ -36,7 +36,7 @@ async function main() {
     const id = crypto.randomUUID()
     await db.query(`INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
                     VALUES ($1, '00000000-0000-0000-0000-000000000000', $2, 'x', now(), '{"provider":"email"}', '{}', now(), now(), 'authenticated', 'authenticated')`,
-      [id, `m1dal-${label}-${RUN}@regrow.test`])
+      [id, `m1dal-${label}-${RUN}@repx.test`])
     const p = await one('SELECT id FROM public.profiles WHERE auth_user_id = $1', [id])
     return p ? p.id : (await one('INSERT INTO public.profiles (auth_user_id, full_name) VALUES ($1, $2) RETURNING id', [id, label])).id
   }

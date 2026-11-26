@@ -26,7 +26,7 @@ await test('one card per service with a plain status: Connected, Not connected, 
   assert.deepEqual(cards.map((c) => c.key), ['meta', 'whatsapp', 'website', 'email', 'google', 'portals'])
   assert.equal(card(cards, 'meta').status, 'connected'); assert.equal(card(cards, 'meta').detail, '1 account connected')
   assert.equal(card(cards, 'whatsapp').status, 'action_required')
-  assert.equal(card(cards, 'google').status, 'coming_soon', 'REGrow’s Google setup is not finished')
+  assert.equal(card(cards, 'google').status, 'coming_soon', 'RE by PX’s Google setup is not finished')
   assert.equal(card(cards, 'website').status, 'not_connected')
   assert.equal(card(cards, 'portals').status, 'connected')
   for (const c of cards) assert.ok(c.emoji && c.title && c.blurb && c.cta)
@@ -43,7 +43,7 @@ await test('domains: bare domains only; one ownership record; e-mail adds the pr
   const tok = 'b'.repeat(32)
   assert.match(read('lib/dal/domains.ts'), /newToken = \(\) => randomBytes\(16\)\.toString\('hex'\)/)
   assert.doesNotMatch(read('lib/integrations/dns-verify.ts'), /from 'node:/, 'browser-safe: the dashboard imports it')
-  assert.deepEqual(D.recordsFor('website', 'seaview.in', tok).map((r) => [r.type, r.host, r.value]), [['TXT', '_regrow-verify.seaview.in', `regrow-verify=${tok}`]])
+  assert.deepEqual(D.recordsFor('website', 'seaview.in', tok).map((r) => [r.type, r.host, r.value]), [['TXT', '_repx-verify.seaview.in', `repx-verify=${tok}`]])
   const mail = D.recordsFor('email', 'seaview.in', tok, [{ type: 'TXT', name: 'resend._domainkey.seaview.in', value: 'p=MIG…', why: 'Signs your e-mail so inboxes trust it.' }, { type: 'MX', name: 'send.seaview.in', value: 'feedback-smtp.example.com', priority: 10, why: 'Lets bounces come back to the mail service.' }])
   assert.deepEqual(mail.map((r) => r.type), ['TXT', 'TXT', 'MX', 'TXT'])
   assert.equal(mail[2].priority, 10); assert.equal(mail.at(-1).host, '_dmarc.seaview.in'); assert.equal(mail.at(-1).required, false)
@@ -52,13 +52,14 @@ await test('domains: bare domains only; one ownership record; e-mail adds the pr
 await test('the check: exact value only, a wrong value is called out, a failed lookup is "not yet", never an error', async () => {
   const tok = 'a'.repeat(32)
   const dns = (map) => async (h) => { if (map[h] === 'fail') throw new Error('ENOTFOUND'); return (map[h] ?? []).map((v) => [v]) }
-  assert.equal((await D.checkDomain('website', 'a.in', tok, dns({ '_regrow-verify.a.in': [`regrow-verify=${tok}`] }))).verified, true)
-  const wrong = await D.checkDomain('website', 'a.in', tok, dns({ '_regrow-verify.a.in': ['regrow-verify=nope'] }))
+  assert.equal((await D.checkDomain('website', 'a.in', tok, dns({ '_repx-verify.a.in': [`repx-verify=${tok}`] }))).verified, true)
+  assert.equal((await D.checkDomain('website', 'a.in', tok, dns({ '_regrow-verify.a.in': [`regrow-verify=${tok}`] }))).verified, true, 'records added before the rename still verify')
+  const wrong = await D.checkDomain('website', 'a.in', tok, dns({ '_repx-verify.a.in': ['repx-verify=nope'] }))
   assert.equal(wrong.verified, false); assert.match(wrong.problems[0], /does not match/)
-  const none = await D.checkDomain('email', 'a.in', tok, dns({ '_regrow-verify.a.in': 'fail', '_dmarc.a.in': 'fail' }))
+  const none = await D.checkDomain('email', 'a.in', tok, dns({ '_repx-verify.a.in': 'fail', '_dmarc.a.in': 'fail' }))
   assert.equal(none.verified, false); assert.match(none.problems.join(' '), /can’t see the verification record yet/); assert.match(none.problems.join(' '), /DMARC/)
   // Long TXT values come back in chunks.
-  assert.equal((await D.checkDomain('website', 'a.in', tok, async () => [[`regrow-verify=${tok.slice(0, 10)}`, tok.slice(10)]])).verified, true)
+  assert.equal((await D.checkDomain('website', 'a.in', tok, async () => [[`repx-verify=${tok.slice(0, 10)}`, tok.slice(10)]])).verified, true)
 })
 await test('provider records become full host names with a plain reason', () => {
   const r = E.toRecords('seaview.in', { records: [{ record: 'DKIM', name: 'resend._domainkey', type: 'TXT', value: 'p=abc' }, { record: 'SPF', name: 'send', type: 'MX', value: 'feedback-smtp.x', priority: 10 }, { record: 'X', name: 'bad', type: 'A', value: '1.2.3.4' }] })

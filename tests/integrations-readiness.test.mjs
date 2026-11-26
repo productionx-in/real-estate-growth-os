@@ -100,7 +100,7 @@ test('the signup route: managers and above, module-gated, one number per workspa
   assert.match(src, /const ROLES = \['owner', 'admin', 'manager'\] as const/)
   assert.equal((src.match(/authorizeOrgAccess\(orgId, \[\.\.\.ROLES\]\)/g) ?? []).length, 2, 'GET and POST')
   assert.match(src, /requireModule\(orgId, 'integrations'\)/)
-  assert.match(src, /\.neq\('org_id', orgId\)[\s\S]*already connected to another REGrow workspace[\s\S]*status: 409/)
+  assert.match(src, /\.neq\('org_id', orgId\)[\s\S]*already connected to another RE by PX workspace[\s\S]*status: 409/)
   assert.match(src, /credential_ref: encryptCredential\(result\.accessToken\)/)
   assert.match(src, /\.eq\('id', existing\.id\)\.eq\('org_id', orgId\)/)
   assert.match(src, /auditMember\(request, access\.context, orgId, 'integration\.connected'/)

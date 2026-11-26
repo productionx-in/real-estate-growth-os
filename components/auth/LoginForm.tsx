@@ -153,7 +153,7 @@ export function LoginForm({ defaultRedirect }: { defaultRedirect?: string } = {}
           <div>
             <div className="font-semibold text-brand">Closed-SaaS Platform</div>
             <div className="text-[12px] text-brand mt-0.5 leading-relaxed">
-              Public self-service registration is disabled. REGrow workspaces are provisioned by invitation or through our sales team. Please sign in to an existing account.
+              Public self-service registration is disabled. RE by PX workspaces are provisioned by invitation or through our sales team. Please sign in to an existing account.
             </div>
           </div>
         </div>

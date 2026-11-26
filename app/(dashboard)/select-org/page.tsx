@@ -48,7 +48,7 @@ export default async function SelectOrgPage({ searchParams }: { searchParams: Pr
   const preferred = sp.type === 'channel_partner' || sp.type === 'developer' ? sp.type : null
   const decision = resolveWorkspaceDestination(workspaces, sp.redirectTo ?? sp.next, preferred)
   if (decision.kind === 'redirect') redirect(decision.to)
-  // REGrow staff: the internal console is separate from customer workspaces (platform_users, never org_members).
+  // RE by PX staff: the internal console is separate from customer workspaces (platform_users, never org_members).
   const { data: staffRow } = await createServiceClient().from('platform_users').select('id').eq('user_id', user.id).eq('is_active', true).maybeSingle()
   if (decision.kind === 'none' && staffRow) redirect('/platform')
   const canCreate = await canCreateOrganisation(user.id)
@@ -110,7 +110,7 @@ export default async function SelectOrgPage({ searchParams }: { searchParams: Pr
 
           {staffRow && (
             <Link href="/platform" className="mt-5 flex items-center justify-between rounded-xl border border-default p-3.5 text-[14px] font-medium hover:border-brand hover:text-brand">
-              REGrow console (staff) <ArrowRight aria-hidden className="size-4" />
+              RE by PX console (staff) <ArrowRight aria-hidden className="size-4" />
             </Link>
           )}
           <div className="mt-6 border-t border-default pt-4">

@@ -49,8 +49,8 @@ const FEATURES = [
 
 const FAQ = [
   { q: 'How long does setup take?', a: 'We set it up with you: connect your lead sources, create your teams and routing rules, and import your existing leads. How long it takes depends mainly on how many sources you connect and whether they need third-party approval (Meta, Google, portals).' },
-  { q: 'We already use a CRM. Can we move to REGrow?', a: 'Yes. We start with an assessment of your current system and a sample of your data, then plan the import of leads and contacts, project and inventory setup, workflows and team onboarding with you. Many teams run REGrow alongside their current tools during the transition.' },
-  { q: 'What does REGrow include besides lead management?', a: 'Projects and property inventory with holds and bookings, site visits, channel partner sharing and buyer registration, sales analytics, roles and an audit log — in the same platform as your leads.' },
+  { q: 'We already use a CRM. Can we move to RE by PX?', a: 'Yes. We start with an assessment of your current system and a sample of your data, then plan the import of leads and contacts, project and inventory setup, workflows and team onboarding with you. Many teams run RE by PX alongside their current tools during the transition.' },
+  { q: 'What does RE by PX include besides lead management?', a: 'Projects and property inventory with holds and bookings, site visits, channel partner sharing and buyer registration, sales analytics, roles and an audit log — in the same platform as your leads.' },
   { q: 'What happens to a lead when nobody is available?', a: 'It stays unassigned instead of going to someone who is off duty or over their daily limit, and your managers are notified straight away.' },
   { q: 'Who owns the data?', a: 'You do. Channel-partner agencies have their own independent workspace and own their leads.' },
 ]
@@ -64,10 +64,10 @@ export default async function HomePage() {
     <MarketingShell>
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_#eff6ff_0%,_transparent_55%)]" />
+        <div aria-hidden="true" className="hero-mist absolute inset-0" />
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-14 pb-16 md:pt-20 md:pb-24 grid gap-12 md:grid-cols-[1.1fr_1fr] items-center">
           <div>
-            <p className="inline-flex items-center gap-2 text-[13px] font-medium text-[var(--brand)] bg-[var(--brand-light)] border border-blue-200 rounded-full px-3 py-1">
+            <p className="inline-flex items-center gap-2 text-[13px] font-medium text-[var(--brand)] bg-[var(--brand-light)] border border-brand/20 rounded-full px-3 py-1">
               The {PRODUCT_DESCRIPTOR} for developers and channel partners
             </p>
             <h1 className="mt-5 text-[36px] sm:text-[48px] leading-[1.05] font-extrabold tracking-tight">
@@ -87,7 +87,7 @@ export default async function HomePage() {
             </div>
             <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-[var(--foreground-muted)]">
               {['Built for Indian real estate', 'Developers and agencies', 'Set up with you'].map((t) => (
-                <li key={t} className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-600" aria-hidden="true" />{t}</li>
+                <li key={t} className="inline-flex items-center gap-1.5"><Check className="w-4 h-4 text-success" aria-hidden="true" />{t}</li>
               ))}
             </ul>
           </div>
@@ -130,8 +130,8 @@ export default async function HomePage() {
         </div>
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           {LEAKS.map((l) => (
-            <div key={l.title} className="rounded-2xl border border-[var(--border)] p-6 bg-white">
-              <span className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center"><l.icon className="w-5 h-5" aria-hidden="true" /></span>
+            <div key={l.title} className="ceramic lift p-6">
+              <span className="w-10 h-10 rounded-xl bg-danger-bg text-danger flex items-center justify-center"><l.icon className="w-5 h-5" aria-hidden="true" /></span>
               <h3 className="mt-4 text-[17px] font-semibold">{l.title}</h3>
               <p className="mt-2 text-[14px] text-[var(--foreground-muted)] leading-relaxed">{l.body}</p>
             </div>
@@ -140,19 +140,19 @@ export default async function HomePage() {
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" aria-labelledby="how-heading" className="bg-[#0b1220] text-white scroll-mt-16">
+      <section id="how-it-works" aria-labelledby="how-heading" className="band-ink scroll-mt-16 text-[#fff]">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
-          <p className="text-[13px] font-semibold uppercase tracking-wider text-blue-300">How it works</p>
+          <p className="text-[13px] font-semibold uppercase tracking-wider text-[#a5b4fc]">How it works</p>
           <h2 id="how-heading" className="mt-2 text-[30px] sm:text-[36px] font-bold tracking-tight">From form to first call, without anyone forwarding anything</h2>
           <ol className="mt-12 grid gap-6 md:grid-cols-4">
             {STEPS.map((s) => (
-              <li key={s.n} className="rounded-2xl bg-white/5 border border-white/10 p-6">
+              <li key={s.n} className="ceramic-dark lift p-6">
                 <div className="flex items-center gap-3">
-                  <span className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-200 flex items-center justify-center"><s.icon className="w-5 h-5" aria-hidden="true" /></span>
-                  <span className="text-[12px] font-mono text-slate-400">Step {s.n}</span>
+                  <span className="w-9 h-9 rounded-xl bg-[rgb(99_102_241/0.2)] text-[#c7d2fe] flex items-center justify-center"><s.icon className="w-5 h-5" aria-hidden="true" /></span>
+                  <span className="text-[12px] font-mono text-[#94a3b8]">Step {s.n}</span>
                 </div>
                 <h3 className="mt-4 text-[18px] font-semibold">{s.title}</h3>
-                <p className="mt-2 text-[14px] text-slate-300 leading-relaxed">{s.body}</p>
+                <p className="mt-2 text-[14px] text-[#cbd5e1] leading-relaxed">{s.body}</p>
               </li>
             ))}
           </ol>
@@ -168,7 +168,7 @@ export default async function HomePage() {
         <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {pagesIn('product').filter((p) => p.path !== '/features').map((p) => (
             <li key={p.path}>
-              <Link href={p.path} className="group block h-full rounded-2xl border border-[var(--border)] bg-white p-6 hover:border-[var(--brand)] transition-colors">
+              <Link href={p.path} className="ceramic lift group block h-full p-6">
                 <h3 className="text-[17px] font-semibold group-hover:text-[var(--brand)]">{p.label}</h3>
                 <p className="mt-1.5 text-[14px] text-[var(--foreground-muted)] leading-relaxed">{p.blurb}</p>
               </Link>
@@ -193,13 +193,13 @@ export default async function HomePage() {
 
       {/* Audiences */}
       <section aria-labelledby="audiences-heading" className="mx-auto max-w-6xl px-4 sm:px-6 pb-20">
-        <h2 id="audiences-heading" className="sr-only">Who REGrow is for</h2>
+        <h2 id="audiences-heading" className="sr-only">Who RE by PX is for</h2>
         <div className="grid gap-5 md:grid-cols-2">
           {[
-            { href: '/developers', title: 'For developers and builders', body: 'Campaign leads answered, sales teams in control, live inventory by tower and floor, site visits, bookings and the partner network — across every project.', cta: 'REGrow for developers' },
-            { href: '/agencies', title: 'For channel partner agencies', body: 'Your own workspace for buyers and follow-ups, connections with every developer you sell for, shared project inventory and buyer registrations on record.', cta: 'REGrow for agencies' },
+            { href: '/developers', title: 'For developers and builders', body: 'Campaign leads answered, sales teams in control, live inventory by tower and floor, site visits, bookings and the partner network — across every project.', cta: 'RE for developers' },
+            { href: '/agencies', title: 'For channel partner agencies', body: 'Your own workspace for buyers and follow-ups, connections with every developer you sell for, shared project inventory and buyer registrations on record.', cta: 'RE for agencies' },
           ].map((x) => (
-            <Link key={x.href} href={x.href} className="group rounded-3xl border border-[var(--border)] bg-[var(--background)] p-8 hover:border-[var(--brand)] transition-colors">
+            <Link key={x.href} href={x.href} className="ceramic lift group p-8">
               <Building2 className="w-7 h-7 text-[var(--brand)]" aria-hidden="true" />
               <h3 className="mt-4 text-[22px] font-bold tracking-tight">{x.title}</h3>
               <p className="mt-2 text-[15px] text-[var(--foreground-muted)] leading-relaxed">{x.body}</p>
@@ -209,7 +209,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Moving to REGrow */}
+      {/* Moving to RE by PX */}
       <section id="migration" aria-labelledby="migration-heading" className="bg-[var(--background)] border-y border-[var(--border)] scroll-mt-16">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-20 grid gap-10 md:grid-cols-2 items-center">
           <div>
@@ -227,10 +227,10 @@ export default async function HomePage() {
             {[
               ['Assessment first', 'We review your current setup and a sample export, and agree the migration scope in writing.'],
               ['Leads, projects and inventory', 'Leads and contacts imported from your exports; projects and unit inventory set up with you.'],
-              ['A guided transition', 'Workflows configured, teams trained, and REGrow run alongside your current tools until you are ready.'],
+              ['A guided transition', 'Workflows configured, teams trained, and RE by PX run alongside your current tools until you are ready.'],
             ].map(([t, b]) => (
-              <li key={t} className="flex gap-3 bg-white rounded-2xl border border-[var(--border)] p-5">
-                <Check className="w-5 h-5 mt-0.5 text-emerald-600 flex-shrink-0" aria-hidden="true" />
+              <li key={t} className="ceramic flex gap-3 p-5">
+                <Check className="w-5 h-5 mt-0.5 text-success flex-shrink-0" aria-hidden="true" />
                 <div>
                   <p className="text-[15px] font-semibold">{t}</p>
                   <p className="mt-1 text-[14px] text-[var(--foreground-muted)]">{b}</p>
@@ -243,16 +243,16 @@ export default async function HomePage() {
 
       {/* Plans */}
       <section aria-labelledby="price-heading" className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
-        <div className="rounded-3xl bg-gradient-to-br from-[var(--brand)] to-indigo-700 text-white p-8 md:p-12 grid gap-8 md:grid-cols-[1.3fr_1fr] items-center">
+        <div className="rounded-3xl band-ink text-[#fff] p-8 md:p-12 grid gap-8 md:grid-cols-[1.3fr_1fr] items-center">
           <div>
             <h2 id="price-heading" className="text-[28px] sm:text-[34px] font-bold tracking-tight leading-tight">Packages for developers and for agencies</h2>
-            <p className="mt-3 text-[16px] text-blue-100 leading-relaxed">
+            <p className="mt-3 text-[16px] text-[#c7d2fe] leading-relaxed">
               Separate packages for developer sales teams and channel partner agencies, sized to your team. Tell us about your projects and
               team and we will recommend the right package.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-3 md:justify-self-end">
-            <Link href="/pricing" className="inline-flex items-center justify-center px-5 py-3 text-[15px] font-semibold text-[var(--brand)] bg-white hover:bg-blue-50 rounded-xl transition-colors">
+            <Link href="/pricing" className="inline-flex items-center justify-center px-5 py-3 text-[15px] font-semibold text-[var(--brand)] bg-[#fff] hover:bg-brand-light rounded-xl transition-colors">
               See packages
             </Link>
             <Link href="/demo?interest=consultation" className="inline-flex items-center justify-center px-5 py-3 text-[15px] font-semibold text-white border border-white/40 hover:bg-white/10 rounded-xl transition-colors">
@@ -265,9 +265,9 @@ export default async function HomePage() {
       {/* FAQ */}
       <section aria-labelledby="faq-heading" className="mx-auto max-w-3xl px-4 sm:px-6 pb-20">
         <h2 id="faq-heading" className="text-[28px] font-bold tracking-tight text-center">Questions buyers ask us</h2>
-        <div className="mt-8 divide-y divide-[var(--border)] border-y border-[var(--border)]">
+        <div className="mt-8 space-y-3">
           {FAQ.map((f) => (
-            <details key={f.q} className="group py-4">
+            <details key={f.q} className="ceramic group px-5 py-4 transition-shadow open:[box-shadow:0_0_0_1px_rgb(79_70_229/0.15),0_18px_40px_-12px_rgb(11_17_32/0.12)]">
               <summary className="flex items-center justify-between cursor-pointer list-none text-[16px] font-semibold">
                 {f.q}
                 <span className="ml-4 text-[var(--foreground-subtle)] group-open:rotate-45 transition-transform text-[20px] leading-none" aria-hidden="true">+</span>

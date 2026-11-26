@@ -26,10 +26,10 @@ export default async function AlertDefaultsPage({ params }: { params: Promise<{ 
   return (
     <div className="max-w-3xl space-y-4">
       <SettingsHeader title="Notification defaults" scope="org" description="How your team hears about new leads and follow-ups. Each person can still change their own device alerts in My notifications." />
-      <SettingsCard title="Lead alerts" description="Sent by REGrow’s server, so they arrive on time even when nobody has REGrow open — as a banner with a sound in the app, and as a phone or desktop alert where someone turned those on.">
+      <SettingsCard title="Lead alerts" description="Sent by RE by PX’s server, so they arrive on time even when nobody has RE by PX open — as a banner with a sound in the app, and as a phone or desktop alert where someone turned those on.">
         <LeadAlertSettingsForm orgId={org.id} initial={settings.alerts} />
       </SettingsCard>
-      <SettingsCard title="Alerts on devices" description="Every alert always appears in the person’s inbox in REGrow; these switch the phone or desktop alert on or off.">
+      <SettingsCard title="Alerts on devices" description="Every alert always appears in the person’s inbox in RE by PX; these switch the phone or desktop alert on or off.">
         <TeamAlertDefaults orgId={org.id} initial={settings.notifications} />
       </SettingsCard>
       <SettingsCard title="Recent lead alerts" description="The latest 40, newest first. “In app only” means the person has not turned on alerts on any device yet.">

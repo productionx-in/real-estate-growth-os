@@ -1,6 +1,6 @@
 // tests/db-integration/p17-billing.test.mjs — self-serve billing (migration 20260056, lib/dal/billing.ts)
 // against the local Supabase stack. Razorpay itself is replaced by a stub fetch: these checks are about what
-// REGrow does with an order and a payment, never trusting the browser for amounts.
+// RE by PX does with an order and a payment, never trusting the browser for amounts.
 import assert from 'node:assert/strict'
 import crypto from 'node:crypto'
 import path from 'node:path'
@@ -47,7 +47,7 @@ async function main() {
   const mkOrg = async (name, type = 'developer') => (await one(`INSERT INTO public.organisations (name, slug, type) VALUES ($1,$2,$3) RETURNING id`, [name, `${name.toLowerCase().replace(/\W/g, '-')}-${RUN}`, type])).id
   const org = await mkOrg('Billco'), other = await mkOrg('Otherco'), agency = await mkOrg('Agencyco', 'channel_partner')
   try {
-    const { data: u, error } = await service.auth.admin.createUser({ email: `owner-${RUN}@regrow.test`, password: PASSWORD, email_confirm: true, user_metadata: { full_name: 'Bill Owner' } })
+    const { data: u, error } = await service.auth.admin.createUser({ email: `owner-${RUN}@repx.test`, password: PASSWORD, email_confirm: true, user_metadata: { full_name: 'Bill Owner' } })
     if (error) throw error
     authIds.push(u.user.id)
     const owner = (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [u.user.id])).id
@@ -55,7 +55,7 @@ async function main() {
     const sub = () => one('SELECT * FROM public.org_subscriptions WHERE org_id=$1', [org])
     const inv = (id) => one('SELECT * FROM public.org_subscription_invoices WHERE id=$1', [id])
 
-    await test('catalogue: a developer sees REGrow Leads, an agency REGrow for Agencies, at the published prices', async () => {
+    await test('catalogue: a developer sees RE by PX Leads, an agency RE for Agencies, at the published prices', async () => {
       const dev = (await billing.getBillingOverview(org)).plans
       assert.deepEqual(dev.map((p) => [p.code, p.includedSeats, p.monthlyPaise, p.annualPaise, p.seatPaise]), [['leads', 10, 1200000, 12000000, 90000]])
       const cp = (await billing.getBillingOverview(agency)).plans
@@ -154,7 +154,7 @@ async function main() {
 
     await test('billing functions are server-only: a signed-in member cannot call them directly', async () => {
       const c = createClient(SUPABASE_URL, ANON_KEY, clientOpts)
-      await c.auth.signInWithPassword({ email: `owner-${RUN}@regrow.test`, password: PASSWORD })
+      await c.auth.signInWithPassword({ email: `owner-${RUN}@repx.test`, password: PASSWORD })
       const r = await c.rpc('billing_settle_gateway_payment', { p_order_id: orderId, p_payment_id: 'pay_x', p_amount_cents: 1, p_currency: 'INR' })
       assert.ok(r.error, 'settle refused')
       const t = await c.rpc('billing_issue_plan_invoice', { p_org: other, p_plan_code: 'leads', p_cycle: 'monthly', p_actor_profile: owner })
@@ -167,7 +167,7 @@ async function main() {
       const def = (await one(`SELECT pg_get_functiondef('public.provision_organisation_atomic'::regproc) d`)).d
       assert.ok(!def.includes("'trialing'") && def.includes("v_initial_sub_status := 'trial'"))
       const c = createClient(SUPABASE_URL, ANON_KEY, clientOpts)
-      await c.auth.signInWithPassword({ email: `owner-${RUN}@regrow.test`, password: PASSWORD })
+      await c.auth.signInWithPassword({ email: `owner-${RUN}@repx.test`, password: PASSWORD })
       const r = await c.rpc('auth_shares_team', { p_org: other, p_a: owner, p_b: owner })
       assert.equal(r.data, false)
     })

@@ -1,5 +1,5 @@
 // app/(auth)/login/page.tsx — one sign-in for everyone. The public page offers two entry points: developers and
-// builders, and channel partner agencies. REGrow staff use an unlisted address (/login?for=staff, or any /platform link)
+// builders, and channel partner agencies. RE by PX staff use an unlisted address (/login?for=staff, or any /platform link)
 // that is never shown or linked publicly. Hiding it is only tidiness: what anyone can open is always decided on the
 // server by memberships (customers) or platform role plus an authenticator code (staff).
 import { LINK_PROBLEM_MESSAGE, type LinkProblem } from '@/lib/auth/recovery'
@@ -16,7 +16,7 @@ const ICON = { developer: Building2, agency: Handshake, staff: ShieldCheck } as 
 const HEADING: Record<SignInAudience, { title: string; sub: string }> = {
   developer: { title: 'Sign in to your developer workspace', sub: 'Leads, sales teams, projects, inventory and partner agencies.' },
   agency: { title: 'Sign in to your agency workspace', sub: 'Your buyers, your team and the developers you work with.' },
-  staff: { title: 'REGrow team sign-in', sub: 'Internal console. You will be asked for your authenticator code.' },
+  staff: { title: 'RE by PX team sign-in', sub: 'Internal console. You will be asked for your authenticator code.' },
 }
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ for?: string; redirectTo?: string; error?: string }> }) {
@@ -58,7 +58,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       </Suspense>
       {audience !== 'staff' && (
         <p className="mt-6 text-center text-[13px] text-[var(--foreground-muted)]">
-          New to REGrow? <Link href="/demo" className="font-medium text-[var(--brand)] hover:underline">Book a demo</Link>
+          New to RE by PX? <Link href="/demo" className="font-medium text-[var(--brand)] hover:underline">Book a demo</Link>
         </p>
       )}
     </div>

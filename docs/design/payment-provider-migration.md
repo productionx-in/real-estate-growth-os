@@ -43,7 +43,7 @@ correct even if real Razorpay payments exist by the time it ships.
 
 ## 2. Principles
 
-1. **REGrow owns the commercial truth**: prices, contracts, GST, discounts, seats, schedules, lifecycle, entitlements and
+1. **RE by PX owns the commercial truth**: prices, contracts, GST, discounts, seats, schedules, lifecycle, entitlements and
    invoice numbers. A provider only moves money and reports what happened.
 2. **Provider-neutral core, provider-specific edges**: provider code sits behind one adapter interface; nothing above the
    adapter imports a provider module or reads a provider field name.
@@ -101,7 +101,7 @@ owns its verification; the generic handler never parses an unverified body.
 | `mandates` | org, contract, provider, environment, provider mandate/subscription id, method (UPI Autopay / e-NACH / card), max amount, frequency, status (`created`, `pending_authorisation`, `active`, `paused`, `cancelled`, `failed`, `expired`), authorised_at, cancelled_at/by/reason, next charge date |
 | `mandate_charges` | mandate × invoice; pre-debit notification sent at (RBI rule), charge attempt status, retries |
 | `settlements`, `settlement_items` | provider settlement id + UTR, amount, fees, tax on fees, items → payment / refund / dispute adjustments |
-| `reconciliation_runs`, `reconciliation_items` | matched / missing in REGrow / missing at provider / amount mismatch / unsettled after N days; resolution and resolver |
+| `reconciliation_runs`, `reconciliation_items` | matched / missing in RE by PX / missing at provider / amount mismatch / unsettled after N days; resolution and resolver |
 | `gateway_health_checks` | provider × env × time: check type, ok, latency, error |
 
 All tables: RLS on, **no client policies**; read and write only through server routes and SECURITY DEFINER functions
@@ -210,8 +210,8 @@ and finance decides on the contract (no automatic suspension). Fees recorded fro
 
 **Mandates** (later phase): customer owner starts authorisation → provider page (UPI Autopay / e-NACH / card) → webhook
 `active` → before each charge, a pre-debit notification (RBI: at least 24 h before; provider-handled where supported) →
-charge for the **invoice REGrow issued**, amount ≤ mandate max → success settles the invoice; failure → retries per provider
-rules then the normal past-due grace. Cancellation by the customer (in REGrow or their bank/UPI app) or by finance → webhook
+charge for the **invoice RE by PX issued**, amount ≤ mandate max → success settles the invoice; failure → retries per provider
+rules then the normal past-due grace. Cancellation by the customer (in RE by PX or their bank/UPI app) or by finance → webhook
 → `cancelled`; the contract continues on manual renewal. Status changes all audited; mandate never changes prices.
 
 **Failed payments**: attempt `failed`, invoice stays `issued`, customer sees retry; existing 7-day past-due grace applies.
@@ -231,10 +231,10 @@ rules then the normal past-due grace. Cancellation by the customer (in REGrow or
 ## 12. Reconciliation (payment → settlement)
 
 Daily job per provider/env: fetch settlements and items since the last run → match each item to a `payment`, `refund` or
-`dispute` by provider id → compare amounts and fees → produce `reconciliation_items`: matched, missing in REGrow (captured at the
+`dispute` by provider id → compare amounts and fees → produce `reconciliation_items`: matched, missing in RE by PX (captured at the
 provider but not recorded — re-fetch and settle or mark unapplied), missing at provider, amount mismatch, captured but unsettled
 after the expected T+N days. Finance resolves each exception with a note (audited). Bank UTRs stored for matching with the bank
-statement. Fees and GST on fees recorded for accounting. Revenue reports use REGrow invoices, never provider totals.
+statement. Fees and GST on fees recorded for accounting. Revenue reports use RE by PX invoices, never provider totals.
 
 ## 13. Platform Admin — gateway health and payments
 
@@ -266,7 +266,7 @@ providers is reversible by configuration alone.
 
 ## 16. Decisions needed
 
-1. Confirm whether Razorpay live keys are configured in production and whether any Razorpay payments exist outside REGrow.
+1. Confirm whether Razorpay live keys are configured in production and whether any Razorpay payments exist outside RE by PX.
 2. Refund approval threshold, and who (by name/role) may switch the primary provider.
 3. Mandates: which methods first (UPI Autopay, e-NACH, card) — after manual renewals are proven.
 4. Grace extension policy when a provider outage prevented payment.

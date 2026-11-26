@@ -21,7 +21,7 @@ export function ResetPasswordForm() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState(false)
-  // Accounts with two-step verification (all REGrow staff) must enter their authenticator code before Supabase
+  // Accounts with two-step verification (all RE by PX staff) must enter their authenticator code before Supabase
   // lets the password change: the recovery link alone is only the first step (AAL1).
   const [mfaFactor, setMfaFactor] = useState<string | null>(null)
   const [code, setCode] = useState('')

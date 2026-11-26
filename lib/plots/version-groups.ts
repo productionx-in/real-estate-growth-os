@@ -1,7 +1,7 @@
 // lib/plots/version-groups.ts — how the project map page lays out map versions (components/plots/MapDocuments.tsx).
 // Per map (phase): the version buyers and the team see now ("live"), the one being worked on ("in progress"), and the
 // rest folded away ("earlier"). Plus the next step on the in-progress version and who it is waiting on, so the client
-// and the REGrow team never have to read a review history to know whose turn it is. Pure; the server still checks every
+// and the RE by PX team never have to read a review history to know whose turn it is. Pure; the server still checks every
 // step (POST /api/plot-maps/versions/[id]/review).
 
 export interface GroupableVersion { id: string; layoutId: string; versionNo: number; status: string; renderStatus: 'pending' | 'ready' | 'failed' }

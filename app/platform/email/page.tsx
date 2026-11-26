@@ -23,7 +23,7 @@ export default async function EmailHealthPage() {
   const valid = h.config.problems.length === 0
   return (
     <div className="space-y-5">
-      <PageHeader title="E-mail" description="Every e-mail REGrow sends from the app goes through one outbox: queued, retried with backoff, and never dropped. Password-reset and sign-up e-mails are sent by Supabase (its own SMTP settings) and are not listed here." />
+      <PageHeader title="E-mail" description="Every e-mail RE by PX sends from the app goes through one outbox: queued, retried with backoff, and never dropped. Password-reset and sign-up e-mails are sent by Supabase (its own SMTP settings) and are not listed here." />
       <Card className={valid ? '' : 'border-danger/40'}>
         <CardHeader>
           <div>
@@ -60,7 +60,7 @@ export default async function EmailHealthPage() {
               <tbody>
                 {h.attention.map((r) => (
                   <tr key={r.id} className="border-t border-default">
-                    <Td>{r.template}</Td><Td>{r.recipient}</Td><Td>{r.org ?? 'REGrow'}</Td>
+                    <Td>{r.template}</Td><Td>{r.recipient}</Td><Td>{r.org ?? 'RE by PX'}</Td>
                     <Td><Badge tone={r.status === 'held' ? 'warning' : 'danger'}>{r.status}</Badge></Td>
                     <Td className="tabular-nums">{r.attempts}</Td>
                     <Td className="max-w-[260px] truncate text-muted">{r.errorKind ? `${r.errorKind}: ` : ''}{r.error ?? '—'}</Td>

@@ -61,7 +61,7 @@ export default function FeaturesPage() {
               )
             })}
           </dl>
-          <p className="mt-10 text-[14px] text-muted">Not available today: single sign-on, native iOS and Android apps (REGrow is an installable web app), and a built-in dialer.</p>
+          <p className="mt-10 text-[14px] text-muted">Not available today: single sign-on, native iOS and Android apps (RE by PX is an installable web app), and a built-in dialer.</p>
         </div>
       </section>
 

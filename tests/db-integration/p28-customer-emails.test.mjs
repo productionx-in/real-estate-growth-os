@@ -31,7 +31,7 @@ async function main() {
   const count = async (s, p) => Number((await one(s, p)).n)
   // Real-looking addresses: the mock mailer records them (reserved test domains are suppressed by design).
   const mkUser = async (label) => {
-    const { data, error } = await service.auth.admin.createUser({ email: `${label}-${RUN}@regrow-mail-check.com`, password: 'Mail-Test-' + RUN + 'x9', email_confirm: true, user_metadata: { full_name: label } })
+    const { data, error } = await service.auth.admin.createUser({ email: `${label}-${RUN}@repx-mail-check.com`, password: 'Mail-Test-' + RUN + 'x9', email_confirm: true, user_metadata: { full_name: label } })
     if (error) throw error
     return { id: data.user.id, email: data.user.email, profile: (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [data.user.id])).id }
   }
@@ -55,7 +55,7 @@ async function main() {
     assert.deepEqual(to(`Mail Co ${RUN}" is ready`), [admin.email, owner.email].sort())
     assert.deepEqual(to('trial ends in 3 days'), [admin.email, owner.email].sort())
     // A salesperson gets no workspace or billing e-mails — only their own team-member welcome (20260069).
-    assert.deepEqual(mail.sentEmails.filter((e) => e.to === sales.email).map((e) => e.subject), [`Welcome to Mail Co ${RUN} on REGrow`], 'a salesperson gets only their own welcome')
+    assert.deepEqual(mail.sentEmails.filter((e) => e.to === sales.email).map((e) => e.subject), [`Welcome to Mail Co ${RUN} on RE by PX`], 'a salesperson gets only their own welcome')
     const kinds = (await sql.query(`SELECT kind, count(*)::int n FROM public.customer_email_log WHERE org_id=$1 AND status='sent' GROUP BY kind ORDER BY kind`, [org])).rows
     assert.deepEqual(kinds, [{ kind: 'member_joined', n: 2 }, { kind: 'trial_ending', n: 1 }, { kind: 'welcome', n: 1 }])
   })

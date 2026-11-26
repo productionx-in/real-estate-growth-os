@@ -32,8 +32,8 @@ export const CAPABILITIES = {
   website_forms: { id: 'website_forms', name: 'Website forms and embed', status: 'available', summary: 'Enquiry forms for your website and project pages, protected against spam.' },
   csv_import: { id: 'csv_import', name: 'CSV and Excel import', status: 'in_production', summary: 'Import leads from a CSV or Excel export with field mapping and duplicate checks.' },
   api_webhooks: { id: 'api_webhooks', name: 'Lead API and webhooks', status: 'available', summary: 'Send leads from any system through a documented API or inbound webhook.' },
-  meta_leads: { id: 'meta_leads', name: 'Meta lead ads', status: 'needs_setup', summary: 'Leads from Facebook and Instagram lead forms arrive in REGrow as they are submitted.', publicNote: SETUP_NOTE },
-  google_leads: { id: 'google_leads', name: 'Google Ads lead forms', status: 'needs_setup', summary: 'Leads from Google Ads lead form extensions arrive in REGrow.', publicNote: SETUP_NOTE },
+  meta_leads: { id: 'meta_leads', name: 'Meta lead ads', status: 'needs_setup', summary: 'Leads from Facebook and Instagram lead forms arrive in RE by PX as they are submitted.', publicNote: SETUP_NOTE },
+  google_leads: { id: 'google_leads', name: 'Google Ads lead forms', status: 'needs_setup', summary: 'Leads from Google Ads lead form extensions arrive in RE by PX.', publicNote: SETUP_NOTE },
   portal_leads: { id: 'portal_leads', name: 'Property portal leads', status: 'needs_setup', summary: 'Leads from property portals such as 99acres, MagicBricks and Housing.com.', publicNote: 'Needs API access granted by the portal to your account; availability depends on the portal.' },
   whatsapp: { id: 'whatsapp', name: 'WhatsApp Business', status: 'needs_setup', summary: 'Buyer conversations and lead alerts over the WhatsApp Business Platform.', publicNote: 'Needs your WhatsApp Business account connected; message charges apply per Meta’s pricing.' },
   lead_stages: { id: 'lead_stages', name: 'Lead stages and pipeline', status: 'in_production', summary: 'Every lead moves through clear stages from new to booked or lost, with history.' },
@@ -66,12 +66,12 @@ export const CAPABILITIES = {
   // Site visits
   site_visits: { id: 'site_visits', name: 'Site visit scheduling', status: 'available', summary: 'Schedule, reschedule, check in, complete or mark no-show, with a clear status flow.' },
   // Channel partners
-  partner_network: { id: 'partner_network', name: 'Developer–agency partnerships', status: 'available', summary: 'Developers and agencies connect their separate REGrow workspaces with a partner code.' },
+  partner_network: { id: 'partner_network', name: 'Developer–agency partnerships', status: 'available', summary: 'Developers and agencies connect their separate RE by PX workspaces with a partner code.' },
   project_sharing: { id: 'project_sharing', name: 'Project sharing with partners', status: 'available', summary: 'Developers share chosen projects with partner agencies and decide how much inventory they see.' },
   buyer_registration: { id: 'buyer_registration', name: 'Buyer registration', status: 'available', summary: 'Agencies register buyers with a developer; first registration wins and is protected for an agreed period.' },
   registration_review: { id: 'registration_review', name: 'Registration review', status: 'available', summary: 'Developers accept or reject registrations; conflicts with existing leads are detected.' },
   agency_ownership: { id: 'agency_ownership', name: 'Agency data ownership', status: 'in_production', summary: 'Each agency has its own workspace; its buyers and leads stay its own.' },
-  commissions: { id: 'commissions', name: 'Commission tracking', status: 'partial', summary: 'Commission records against channel partner bookings.', publicNote: 'Commission records only; payouts are handled outside REGrow.' },
+  commissions: { id: 'commissions', name: 'Commission tracking', status: 'partial', summary: 'Commission records against channel partner bookings.', publicNote: 'Commission records only; payouts are handled outside RE by PX.' },
   // Analytics
   funnel: { id: 'funnel', name: 'Sales funnel', status: 'available', summary: 'Lead-to-visit-to-booking funnel with stage conversion rates.' },
   channel_performance: { id: 'channel_performance', name: 'Source performance', status: 'available', summary: 'Leads, site visits, bookings and booking value by lead source.' },
@@ -79,7 +79,7 @@ export const CAPABILITIES = {
   // Platform and security
   tenant_isolation: { id: 'tenant_isolation', name: 'Organisation data isolation', status: 'in_production', summary: 'Each company’s data is separated in the database itself, not just hidden in the app.' },
   audit_log: { id: 'audit_log', name: 'Audit log', status: 'available', summary: 'Owners and admins see who changed what in their workspace.' },
-  support_access: { id: 'support_access', name: 'Customer-approved support access', status: 'available', summary: 'REGrow support sees your data only with your time-limited, audited permission.' },
+  support_access: { id: 'support_access', name: 'Customer-approved support access', status: 'available', summary: 'RE by PX support sees your data only with your time-limited, audited permission.' },
   online_payments: { id: 'online_payments', name: 'Online subscription payments', status: 'partial', summary: 'Subscription invoices with GST.', publicNote: 'Online payment of invoices is being set up.' },
   automation: { id: 'automation', name: 'Workflow automation', status: 'partial', summary: 'Automated actions on lead events.', publicNote: 'Limited set of automated actions.' },
   sso: { id: 'sso', name: 'Single sign-on', status: 'not_available', summary: '' },

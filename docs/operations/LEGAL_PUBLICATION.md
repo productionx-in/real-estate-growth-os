@@ -4,7 +4,7 @@ Pages: `/privacy`, `/terms`, `/refund-policy`, `/contact`. All read their facts 
 `LEGAL.confirmed` is `true` they show a "Draft" notice, render every unknown fact as **[to be confirmed: …]**, send
 `noindex`, are left out of the sitemap, and the Organization structured data carries no legal name or contact point.
 
-## What INFYN Group must supply (never guessed in code)
+## What Production X must supply (never guessed in code)
 
 | Field in `lib/legal.ts` | What | Source |
 |---|---|---|

@@ -34,7 +34,7 @@ await test('while prices are unpublished, the knowledge holds no amount and tell
   assert.match(doc, /public prices are not published yet/)
 })
 
-await test('links: only real REGrow pages survive (website, or this workspace), max 3, no duplicates', () => {
+await test('links: only real RE by PX pages survive (website, or this workspace), max 3, no duplicates', () => {
   const L = (href) => ({ label: 'x', href })
   assert.deepEqual(A.allowedLinks([L('/demo'), L('https://evil.example'), L('/nope'), L('//evil.example'), L('/demo')], 'website').map((l) => l.href), ['/demo'])
   assert.deepEqual(A.allowedLinks([L('/acme/leads/import'), L('/other/leads'), L('/acme/secret'), L('/pricing')], 'workspace', 'acme').map((l) => l.href), ['/acme/leads/import', '/pricing'])
@@ -94,7 +94,7 @@ await test('endpoint: works without any AI key (offline guide answers); validate
 await test('offline guide understands everyday wording', () => {
   const a = (q, c) => G.answer(q, c, 'acme')?.id ?? null
   assert.equal(a('Prices ?', 'auth'), 'price')
-  assert.equal(a('How is Regrow different from others', 'auth'), 'different')
+  assert.equal(a('How is RE by PX different from others', 'auth'), 'different')
   assert.equal(a('how long does onboarding take', 'website'), 'setup')
   assert.equal(a('How do I add salespeople', 'workspace'), 'w-team')
   assert.equal(a('is it expensive', 'website'), 'price')

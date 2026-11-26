@@ -27,14 +27,14 @@ function field(attrs, value = '') {
     name: a.name ?? '', id: a.id ?? '', value, disabled: false, labels: a.label ? [{ textContent: a.label }] : [],
     options: a.options, selectedIndex: a.selectedIndex ?? 0,
     getAttribute: (k) => (k in a ? a[k] : null), hasAttribute: (k) => k in a,
-    closest: (sel) => (sel === '[data-regrow-ignore]' && 'data-regrow-ignore' in a ? {} : null),
+    closest: (sel) => (sel.split(',').some((x) => x.slice(1, -1) in a) ? {} : null),
   }
 }
 function form(fields, attrs = {}) {
   const f = {
     tagName: 'FORM', elements: fields,
     getAttribute: (k) => (k in attrs ? attrs[k] : null), hasAttribute: (k) => k in attrs,
-    closest: (sel) => (sel === '[data-regrow-ignore]' && 'data-regrow-ignore' in attrs ? {} : null),
+    closest: (sel) => (sel.split(',').some((x) => x.slice(1, -1) in attrs) ? {} : null),
   }
   for (const el of fields) el.form = f
   return f
@@ -44,7 +44,7 @@ function browser({ url = 'https://skylinetowers.in/', referrer = '', tagAttrs = 
   const beacons = []
   const u = new URL(url)
   const storage = { ...store }
-  const tag = { src: 'https://app.regrow.in/capture.js', getAttribute: (k) => ({ 'data-regrow-key': KEY, ...tagAttrs })[k] ?? null }
+  const tag = { src: 'https://re.productionx.in/capture.js', getAttribute: (k) => ({ 'data-re-key': KEY, ...tagAttrs })[k] ?? null }
   const document = {
     currentScript: tag, referrer, title: 'Skyline Towers — 3 BHK',
     querySelectorAll: () => [tag],
@@ -62,7 +62,7 @@ function browser({ url = 'https://skylinetowers.in/', referrer = '', tagAttrs = 
   const submit = (f) => { for (const fn of listeners.submit ?? []) fn({ target: f }) }
   const focus = (el) => { for (const fn of listeners.focusin ?? []) fn({ target: el }) }
   const sent = async () => Promise.all(beacons.map(async (b) => ({ endpoint: b.endpoint, type: b.blob.type, body: JSON.parse(await b.blob.text()) })))
-  return { window, storage, submit, focus, sent, REGrow: window.REGrow }
+  return { window, storage, submit, focus, sent, REbyPX: window.REbyPX, REGrow: window.REGrow }
 }
 const enquiryForm = (extra = []) => form([
   field({ name: 'your-name', label: 'Full name' }, 'Priya Sharma'),
@@ -81,7 +81,7 @@ console.log('WEBSITE CAPTURE')
   const b = browser({ url: 'https://skylinetowers.in/3bhk?utm_source=google&utm_campaign=diwali&gclid=abc123' })
   b.submit(enquiryForm())
   const [s] = await b.sent()
-  assert.equal(s.endpoint, 'https://app.regrow.in/api/capture')
+  assert.equal(s.endpoint, 'https://re.productionx.in/api/capture')
   assert.equal(s.type, 'text/plain')
   assert.deepEqual(
     { name: s.body.name, phone: s.body.phone, email: s.body.email, notes: s.body.notes, budget: s.body.budget, key: s.body.key },
@@ -119,6 +119,7 @@ console.log('WEBSITE CAPTURE')
   b.submit(form([field({ name: 'name' }, 'Ravi'), field({ type: 'tel', name: 'phone' }, '9845012345'), field({ name: 'otp' }, '123456')]))
   b.submit(form([field({ name: 'q', type: 'search' }, 'flats')])) // a search box: no phone or email
   b.submit(form(enquiryForm().elements, { 'data-regrow-ignore': '' }))
+  b.submit(form(enquiryForm().elements, { 'data-re-ignore': '' }))
   assert.equal((await b.sent()).length, 0)
   passed++; console.log('  ✓ never reads forms with a password, card or OTP field, forms without a phone/email, or ignored forms')
 }
@@ -147,16 +148,17 @@ console.log('WEBSITE CAPTURE')
 
 {
   const b = browser()
-  assert.equal(b.REGrow.capture({ name: 'Meera', message: 'Call me' }), false, 'needs a phone or email')
-  assert.equal(b.REGrow.capture({ name: 'Meera', phone: '9845012347', message: 'Call me' }), true)
-  b.REGrow.optOut()
-  assert.equal(b.REGrow.capture({ name: 'Meera', phone: '9845012348' }), false)
+  assert.equal(b.REbyPX.capture({ name: 'Meera', message: 'Call me' }), false, 'needs a phone or email')
+  assert.equal(b.REbyPX.capture({ name: 'Meera', phone: '9845012347', message: 'Call me' }), true)
+  assert.equal(b.REGrow, b.REbyPX, 'old installs still reach the same API')
+  b.REbyPX.optOut()
+  assert.equal(b.REbyPX.capture({ name: 'Meera', phone: '9845012348' }), false)
   b.submit(enquiryForm())
   const sent = await b.sent()
   assert.equal(sent.length, 1)
   assert.deepEqual([sent[0].body.notes, sent[0].body.formId], ['Call me', 'script'])
   assert.equal(b.storage.regrow_attr_v1, undefined, 'opting out clears the stored visit details')
-  passed++; console.log('  ✓ REGrow.capture() for JavaScript forms; REGrow.optOut() stops capture and clears stored details')
+  passed++; console.log('  ✓ REbyPX.capture() for JavaScript forms (window.REGrow kept for old installs); REbyPX.optOut() stops capture and clears stored details')
 }
 
 {

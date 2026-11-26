@@ -1,4 +1,4 @@
-# Rio: REGrow's guide, its AI providers and its memory
+# Rio: RE by PX's guide, its AI providers and its memory
 
 Rio is the parrot chat on the website, the sign-in pages and inside every workspace. On the website it acts as a
 senior sales consultant, in workspaces it does technical support and customer success, and it hands over to a
@@ -43,15 +43,15 @@ Privacy by design:
 - **Workspace conversations are never shown or exported.** Staff never read customer business data. Using them for
   training would need customers' consent in the Terms and Privacy Policy first; that decision rests with the owner
   and legal counsel.
-- The chat tells people that conversations are saved to improve REGrow and asks them not to share passwords or
+- The chat tells people that conversations are saved to improve RE by PX and asks them not to share passwords or
   payment details.
 - The tables have row-level security on and no client grants. Only the Platform Owner can export, and every export
   is written to the platform audit log.
 
-**Founder action:** add Rio's chat storage to the Privacy Policy (purpose: improving REGrow's service and
+**Founder action:** add Rio's chat storage to the Privacy Policy (purpose: improving RE by PX's service and
 assistant; retention period; contact for deletion requests) before relying on it at scale.
 
-## Building REGrow's own intelligence later
+## Building RE by PX's own intelligence later
 
 Storing conversations does not train a model by itself. It builds the labelled dataset you need to train one.
 

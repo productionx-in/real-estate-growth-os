@@ -11,7 +11,7 @@
 //   payment_failed   a payment attempt failed
 //   workspace_state  the workspace became read-only, deactivated, in grace, or active again
 //   plot_map_*       Interactive Plot Map set-up: activated, action needed (sent back, QA problems, a blocker waiting
-//                    on the customer), published, and delayed (the current REGrow step is past its service time)
+//                    on the customer), published, and delayed (the current RE by PX step is past its service time)
 //
 // Each e-mail has a dedupe key in customer_email_log, written before sending, so a retry or an overlapping run can
 // never send it twice. Events are looked at for 2–3 days only, so turning e-mail on later doesn't send old news.
@@ -146,7 +146,7 @@ export async function collectPlotMapEmails(db: Db, now = Date.now()): Promise<Pe
     const pn = await projectName(b.project_id)
     out.push({ orgId: b.org_id, kind: 'plot_map_action_needed', key: `plot_map_blocker:${b.id}`, args: (name, slug) => ({ orgName: name, projectName: pn, what: b.reason, urlPath: mapPath(slug, b.project_id) }) })
   }
-  // Delays: the current REGrow or system step is past its service time (at most one e-mail per project per day).
+  // Delays: the current RE by PX or system step is past its service time (at most one e-mail per project per day).
   const { data: running } = await db.from('project_addons').select('org_id, project_id, status, valid_until').eq('addon', 'plot_maps').eq('status', 'active')
   if ((running ?? []).length) {
     const { setupFacts } = await import('@/lib/dal/plot-map-setup')

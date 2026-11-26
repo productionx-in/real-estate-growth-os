@@ -27,7 +27,7 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // 'create' = new to REGrow; 'signin' = already has an account with this e-mail.
+  // 'create' = new to RE by PX; 'signin' = already has an account with this e-mail.
   const [mode, setMode] = useState<'create' | 'signin'>('create')
 
   useEffect(() => {
@@ -208,14 +208,14 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
       ) : mode === 'signin' ? (
         <form onSubmit={handleSignInAndAccept} className="space-y-4 pt-1">
           <div className="p-3 rounded-lg bg-surface-muted border border-[var(--border)] text-[12px] text-[var(--foreground-muted)]">
-            You already have a REGrow account with <strong className="text-[var(--foreground)]">{invitation.email}</strong>. Sign in to join {invitation.orgName}.
+            You already have a RE by PX account with <strong className="text-[var(--foreground)]">{invitation.email}</strong>. Sign in to join {invitation.orgName}.
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
               <label htmlFor="invite-password" className="block text-[12px] font-medium text-[var(--foreground)]">Password</label>
               <Link href="/login" className="text-[12px] text-[var(--brand)] hover:underline">Forgot password?</Link>
             </div>
-            <PasswordInput id="invite-password" autoComplete="current-password" required autoFocus value={password} disabled={loading} onChange={(e) => setPassword(e.target.value)} placeholder="Your REGrow password" />
+            <PasswordInput id="invite-password" autoComplete="current-password" required autoFocus value={password} disabled={loading} onChange={(e) => setPassword(e.target.value)} placeholder="Your RE by PX password" />
           </div>
           <button type="submit" disabled={loading || !password}
             className="btn-primary w-full py-2.5 px-4 text-[13px] font-semibold text-brand-foreground bg-[var(--brand)] rounded-md hover:bg-[var(--brand-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60">
@@ -223,7 +223,7 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
             <span>Sign in &amp; join {invitation.orgName}</span>
           </button>
           <p className="text-center text-[12px] text-[var(--foreground-muted)]">
-            New to REGrow?{' '}
+            New to RE by PX?{' '}
             <button type="button" onClick={() => { setMode('create'); setError(null); setPassword('') }} className="font-medium text-[var(--brand)] hover:underline">Create your account instead</button>
           </p>
         </form>
@@ -283,7 +283,7 @@ export function AcceptInviteForm({ invitation, token }: AcceptInviteFormProps) {
             <span>Set Password &amp; Join {invitation.orgName}</span>
           </button>
           <p className="text-center text-[12px] text-[var(--foreground-muted)]">
-            Already have a REGrow account?{' '}
+            Already have a RE by PX account?{' '}
             <button type="button" onClick={() => { setMode('signin'); setError(null); setPassword('') }} className="font-medium text-[var(--brand)] hover:underline">Sign in to accept</button>
           </p>
         </form>

@@ -10,7 +10,7 @@ HTTPS (`/api/jobs/run`), which needs the setup in `JOB_WORKER_SETUP.md`.
 | `regrow-billing-periods` | every 15 min | Ends expired trials and periods, applies billing holds and grace |
 | `regrow-payments-poll` | every 10 min | Confirms pending checkouts with the gateway, polls submitted refunds, retries failed signed webhooks |
 | `regrow-payments-health` | every 5 min | Checks each enabled gateway's API, then raises or resolves payment alerts (e-mailed to the Platform Owner and finance) |
-| `regrow-payments-reconcile` | 21:30 daily (03:00 IST) | Compares gateway settlements with REGrow's records |
+| `regrow-payments-reconcile` | 21:30 daily (03:00 IST) | Compares gateway settlements with RE by PX's records |
 | `regrow-payments-mandates` | hourly at :07 | UPI AutoPay cycles. Does nothing while recurring payments are disabled. |
 
 ## Health check (read-only, Supabase SQL editor)

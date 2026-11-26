@@ -71,6 +71,6 @@ test('account e-mails: trial started in the welcome, plan active, team-member we
   assert.match(customerEmails.welcome({ orgName: 'Skyline', url: 'https://x.example.org', trialEndsAt: '2026-12-05T00:00:00Z', plan: 'Growth' }).text, /free trial has started on the Growth plan\. It runs until 5 Dec 2026/)
   assert.match(customerEmails.plan_active({ orgName: 'Skyline', plan: 'Growth', seats: 10, renewsAt: '2027-11-21T00:00:00Z', url: 'https://x.example.org' }).text, /on the Growth plan with 10 seats/)
   const j = customerEmails.member_joined({ orgName: 'Skyline', firstName: 'Asha', role: 'sales_exec', url: 'https://x.example.org' })
-  assert.match(j.subject, /Welcome to Skyline on REGrow/); assert.match(j.text, /as sales exec\. New leads assigned to you/)
+  assert.match(j.subject, /Welcome to Skyline on RE by PX/); assert.match(j.text, /as sales exec\. New leads assigned to you/)
 })
 console.log(`\nDaily reports: ${passed} checks passed.`)

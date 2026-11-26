@@ -27,14 +27,14 @@ await test('detects bearer tokens, provider keys, JWTs, private keys and assigne
   const value = alnum(40)
   const cases = {
     'bearer-literal': j('curl -H "Authorization: Bear', 'er ', value, '"'),
-    'regrow-api-key': j("const k = 'px_li", 've_', hex(48), "'"),
+    'repx-api-key': j("const k = 'px_li", 've_', hex(48), "'"),
     'razorpay-key': j("rz = 'rzp_li", 've_', alnum(14), "'"),
     'jwt': j('t = "ey', 'JhbGciOiJIUzI1NiJ9.ey', 'Jpc3MiOiJyZWFsLXByb2plY3QifQ.', alnum(30), '"'),
     'private-key': j('-----BEGIN ', 'PRIVATE KEY-----'),
     'assigned-secret': j("const RESEND_API_KEY = '", alnum(32), "'"),
     'github-token': j('gh', 'p_', alnum(36)),
     'url-credentials': j('postgres://admin:', alnum(16), '@db.example.org:5432/x'),
-    'otpauth-uri': j('otp', 'auth://totp/REGrow:a?secret=', 'JBSWY3DPEHPK3PXPJBSWY3DP', '&issuer=x'),
+    'otpauth-uri': j('otp', 'auth://totp/REbyPX:a?secret=', 'JBSWY3DPEHPK3PXPJBSWY3DP', '&issuer=x'),
   }
   for (const [rule, line] of Object.entries(cases)) {
     const found = scanText('src/example.ts', line)

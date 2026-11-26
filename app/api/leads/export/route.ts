@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
       ...Object.fromEntries(fieldDefs.map((f) => [columnFor(f.label), displayValue(f, lead.field_values?.[f.key])])),
     }))
 
-    // Exports take customer contact data out of REGrow, so every one is recorded.
+    // Exports take customer contact data out of RE by PX, so every one is recorded.
     await auditMember(request, auth, org.id, 'lead.exported', { type: 'lead_export' }, {
       rows: rows.length,
       filters,

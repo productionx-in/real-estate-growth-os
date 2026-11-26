@@ -10,7 +10,7 @@ const c: ProductPageContent = {
   eyebrow: 'For real estate developers and builders',
   h1: 'Run every project’s sales — leads, teams, inventory and partners — from one system',
   intro:
-    'Your marketing team buys the leads, your sales team works them, your channel partners bring more, and your inventory changes every day. REGrow connects all of it, so you can see what is happening across every project and act before a lead or a unit slips.',
+    'Your marketing team buys the leads, your sales team works them, your channel partners bring more, and your inventory changes every day. RE by PX connects all of it, so you can see what is happening across every project and act before a lead or a unit slips.',
   primaryCta: { label: 'Book a developer demo', href: '/demo?plan=leads' },
   outcomes: [
     { title: 'Every campaign lead answered', body: 'Leads from your website, imports and connected ad, portal and WhatsApp accounts are assigned in seconds, with escalation if nobody calls.' },
@@ -18,7 +18,7 @@ const c: ProductPageContent = {
     { title: 'Inventory that sales and partners trust', body: 'Live availability by tower and floor, holds with expiry, bookings that update stock, and full history.' },
   ],
   workflow: {
-    heading: 'A developer’s week in REGrow',
+    heading: 'A developer’s week in RE by PX',
     steps: [
       { title: 'Launch or campaign', body: 'Set up the project, its structure and units; connect the lead sources for the campaign.' },
       { title: 'Leads arrive and are routed', body: 'Each enquiry goes to the right project team and the next salesperson in the rotation.' },
@@ -34,9 +34,9 @@ const c: ProductPageContent = {
     { heading: 'Channel partners and performance', ids: ['project_sharing', 'registration_review', 'funnel', 'channel_performance'] },
   ],
   faq: [
-    { q: 'We sell through our own team and through channel partners. Does REGrow handle both?', a: 'Yes. Your team works leads in your workspace; partner agencies work in theirs and register buyers with you for the projects you share.' },
+    { q: 'We sell through our own team and through channel partners. Does RE by PX handle both?', a: 'Yes. Your team works leads in your workspace; partner agencies work in theirs and register buyers with you for the projects you share.' },
     { q: 'Can we run several projects with different teams?', a: 'Yes. Teams and routing rules can be set per project, source or campaign.' },
-    { q: 'Do we need to replace our current tools on day one?', a: 'No. We start with an assessment and a planned transition; many teams run REGrow alongside their current tools at first.' },
+    { q: 'Do we need to replace our current tools on day one?', a: 'No. We start with an assessment and a planned transition; many teams run RE by PX alongside their current tools at first.' },
   ],
   related: [
     { href: '/inventory-management', label: 'Inventory management', body: 'Projects, towers, floors and units.' },

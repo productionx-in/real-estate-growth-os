@@ -34,7 +34,7 @@ tables changes no customer data.
    nothing sets the unit back to `available` when one is cancelled. The map must not invent this rule. It reflects
    `inventory_items.status`, so this gap must be closed in the sales workflow (separate PR, listed below) and the map
    will follow automatically.
-7. **Staff-assisted mapping conflicts with the access rules.** Support grants are read-only. REGrow staff drawing
+7. **Staff-assisted mapping conflicts with the access rules.** Support grants are read-only. RE by PX staff drawing
    plots and linking inventory need write access to the customer's map. **Owner decision needed (§6).**
 
 ## 2. Principles
@@ -129,18 +129,18 @@ path becomes an optional import format (an SVG becomes a version's shapes) and i
   document `ready`, an approval row, or `published_version_id` set. Staff cannot tick a stage done; they can only
   record a blocker or an assignment.
 - **Estimates** come from configurable service levels (`SLA` in `lib/plots/setup.ts`):
-  - REGrow and system stages have a planned time: processing 1 h; mapping 6 h + 0.04 h per plot + 1 h per extra
+  - RE by PX and system stages have a planned time: processing 1 h; mapping 6 h + 0.04 h per plot + 1 h per extra
     page, ×1.3 for PNG/JPG and ×1.25 when outlines average more than 8 points; QA 3 h + 0.01 h per plot. Plots are the
     drawn plots, or the project's unit count before anything is drawn.
   - Customer stages have no service level. They carry a stated assumption of one working day each, shown as such.
   - Counted in business hours: Mon–Sat 10:00–19:00 IST (`BUSINESS`). Public holidays are **not** excluded yet.
   - **The clock pauses only while an open blocker waits on the customer.** The pause, since when, and the reason are
-    shown. Blockers waiting on REGrow do not pause it.
+    shown. Blockers waiting on RE by PX do not pause it.
   - Recomputed on every page load from the records. History-based estimates (after 10+ completed set-ups) are later work.
   - The UI shows "expected ready around <date>", never a countdown. Progress = completed stages ÷ 8.
 - **Records** (20260084): `plot_map_versions.rendered_at`; `plot_map_setup_blockers` (stage, waiting on customer or
-  REGrow, reason; never edited, resolved once, same organisation as the project); `plot_map_setup_assignments`
-  (one REGrow team member per project). Server-only tables: RLS on, no client grants.
+  RE by PX, reason; never edited, resolved once, same organisation as the project); `plot_map_setup_assignments`
+  (one RE by PX team member per project). Server-only tables: RLS on, no client grants.
 - **Customer view** (`components/plots/SetupProgress.tsx`) on the project's map page, for owners, admins and managers
   until the map is published: current stage and who it is with, the 8 stages, expected ready date, last updated, and
   anything needed from the workspace with a **Mark as done** button (`POST /api/plot-maps/setup/blockers/[id]`;
@@ -154,7 +154,7 @@ path becomes an optional import format (an SVG becomes a version's shapes) and i
     on them, QA passed (ready for approval), QA failed, sent back, published.
   - E-mail from the hourly customer e-mail job (`collectPlotMapEmails`): `plot_map_activated`,
     `plot_map_action_needed` (blocker, QA failed, sent back), `plot_map_published`, and `plot_map_delayed` (at most one
-    per project per day while a REGrow or system stage is past its planned time).
+    per project per day while a RE by PX or system stage is past its planned time).
 - **Embedding** (`lib/plots/embed.ts`): a shared map lists up to 10 of the workspace's websites (https only). The public
   page `/m/<token>` is sent with `Content-Security-Policy: frame-ancestors 'self' <sites>` from `proxy.ts`, via
   `plot_map_embed_origins(token)`, which returns sites only for a shared, published map whose add-on is active.
@@ -174,22 +174,22 @@ path becomes an optional import format (an SVG becomes a version's shapes) and i
 Platform staff may not read or change customer data without a support grant, and grants are read-only for at most
 24 hours. Options:
 
-- **(a) Self-serve only.** The customer draws and links; REGrow staff see only setup metadata.
+- **(a) Self-serve only.** The customer draws and links; RE by PX staff see only setup metadata.
 - **(b) Scoped "map setup" grant.** This would be a new grant type:
   - The customer approves it for one project.
   - It is valid for up to 14 days and revocable.
   - It allows writes **only** to that project's plot-map tables, plus reading that project's unit numbers and
     statuses.
   - Every action is audited.
-- **(c) REGrow draws, customer links.** Staff draw shapes and labels on a version (no inventory access); the customer
+- **(c) RE by PX draws, customer links.** Staff draw shapes and labels on a version (no inventory access); the customer
   confirms the links.
 
-**Decided (owner, 2026-11-22): (c).** REGrow staff draw boundaries and plot numbers on a draft version, with no access
+**Decided (owner, 2026-11-22): (c).** RE by PX staff draw boundaries and plot numbers on a draft version, with no access
 to inventory, prices or buyers. The customer confirms every inventory link, approves and publishes. (b) may be added
 later for customers who want a fully managed service.
 
 **Built (PR E2, 20260085):**
-- The workspace's owner or admin allows it per project on the map page ("Let REGrow draw the plot boundaries"):
+- The workspace's owner or admin allows it per project on the map page ("Let RE by PX draw the plot boundaries"):
   14 days by default, at most 31, one open permission at a time, withdrawable at any time. The add-on must be active.
   Each permission is kept as history (`plot_map_staff_access`); it is only ever withdrawn, never edited. Audited.
 - Staff with `plotMapSetup` (MFA) open the project from `/platform/plot-maps` and draw on draft versions in the
@@ -218,7 +218,7 @@ later for customers who want a fully managed service.
 | C | Editor and linking with validation; save draft. | 20260082 |
 | D | Review, approval, publish switch; public map on versions; public API, image route; enquiry and site-visit requests; embed; auto refresh. | 20260083 |
 | E1 | Setup tracker, estimate engine, operations console, notifications and e-mails, embed domains. | 20260084 |
-| E2 | Option (c): REGrow staff draw boundaries on a draft version with the customer's opt-in, no inventory access. | 20260085 |
+| E2 | Option (c): RE by PX staff draw boundaries on a draft version with the customer's opt-in, no inventory access. | 20260085 |
 | (separate) | Sales: booking and blocking cancellation releasing the unit under the existing rules (closes gap 6). | — |
 | F | OCR suggestions (after the provider decision). | — |
 

@@ -44,7 +44,7 @@ async function main() {
   const mkProfile = async (n) => {
     const id = crypto.randomUUID()
     await db.query(`INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
-      VALUES ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2,'x',now(),now(),now(),'{}',$3)`, [id, `${n}-${RUN}@regrow.test`, JSON.stringify({ full_name: n })])
+      VALUES ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2,'x',now(),now(),now(),'{}',$3)`, [id, `${n}-${RUN}@repx.test`, JSON.stringify({ full_name: n })])
     return (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [id])).id
   }
 

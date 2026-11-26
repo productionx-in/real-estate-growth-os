@@ -27,7 +27,7 @@ async function main() {
   const keys = webpush.generateVAPIDKeys()
   process.env.VAPID_PUBLIC_KEY = keys.publicKey
   process.env.VAPID_PRIVATE_KEY = keys.privateKey
-  process.env.NEXT_PUBLIC_APP_URL = 'https://app.regrow.test'
+  process.env.NEXT_PUBLIC_APP_URL = 'https://re.productionx.in'
   const push = await jiti.import(path.join(root, 'lib/notifications/push.ts'))
 
   const calls = []
@@ -45,7 +45,7 @@ async function main() {
   try {
     const uid = crypto.randomUUID()
     await db.query(`INSERT INTO auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, role, aud)
-                    VALUES ($1,'00000000-0000-0000-0000-000000000000',$2,'x',now(),'{"provider":"email"}','{}',now(),now(),'authenticated','authenticated')`, [uid, `push-${RUN}@regrow.test`])
+                    VALUES ($1,'00000000-0000-0000-0000-000000000000',$2,'x',now(),'{"provider":"email"}','{}',now(),now(),'authenticated','authenticated')`, [uid, `push-${RUN}@repx.test`])
     const profile = (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [uid])).id
     const org = (await one(`INSERT INTO public.organisations (name, slug, type) VALUES ($1,$2,'developer') RETURNING id`, [`Push ${RUN}`, `push-${RUN}`])).id
     const ep = (n) => `https://push.example.test/${RUN}/${n}`
@@ -69,7 +69,7 @@ async function main() {
       const r = await push.pushAdapter.deliver(notif)
       assert.equal(r.status, 'sent')
       assert.equal(calls.length, 2)
-      assert.equal(calls[0].payload.url, `https://app.regrow.test/push-${RUN}/leads/${notif.lead_id}`)
+      assert.equal(calls[0].payload.url, `https://re.productionx.in/push-${RUN}/leads/${notif.lead_id}`)
       assert.equal(calls[0].payload.title, 'New lead: Rohan')
       const rows = (await db.query(`SELECT last_success_at FROM public.push_subscriptions WHERE profile_id=$1`, [profile])).rows
       assert.ok(rows.every((x) => x.last_success_at))

@@ -1,4 +1,4 @@
-// app/api/plot-maps/activation-request/route.ts — a workspace owner or admin asks REGrow to activate (or renew) the
+// app/api/plot-maps/activation-request/route.ts — a workspace owner or admin asks RE by PX to activate (or renew) the
 // Interactive Plot Map add-on for one project. It only records a `pending` request: activation itself is a Platform
 // Owner action (app/api/admin/project-addons). Never changes an active or suspended entitlement. Audited.
 import { NextResponse, type NextRequest } from 'next/server'

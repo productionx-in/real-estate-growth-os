@@ -10,7 +10,7 @@ const c: ProductPageContent = {
   eyebrow: 'Real estate CRM and lead management',
   h1: 'A real estate CRM that makes sure every buyer gets a call back',
   intro:
-    'REGrow brings every enquiry into one inbox, sends it to the right salesperson in seconds and keeps the follow-ups, site visits and bookings that come after it on track — with projects and inventory in the same system.',
+    'RE by PX brings every enquiry into one inbox, sends it to the right salesperson in seconds and keeps the follow-ups, site visits and bookings that come after it on track — with projects and inventory in the same system.',
   definition: {
     question: 'What is a real estate CRM?',
     answer:
@@ -42,14 +42,14 @@ const c: ProductPageContent = {
       heading: 'Why a real-estate-specific CRM',
       paragraphs: [
         'Property buyers compare several projects at once, enquire through ads, portals, websites and partners, and take weeks or months to decide. A general CRM records contacts; a real estate CRM also has to know the project and unit, the site visit, the channel partner who brought the buyer, and the inventory that is still available.',
-        'REGrow is built around that journey, so salespeople spend their time on calls and visits rather than on keeping records in step.',
+        'RE by PX is built around that journey, so salespeople spend their time on calls and visits rather than on keeping records in step.',
       ],
     },
   ],
   faq: [
     { q: 'Is there a limit on the number of leads?', a: 'Lead allowances depend on the package. Enquiries from connected sources are always saved, so a buyer enquiry is never lost.' },
-    { q: 'Can salespeople use REGrow on their phones?', a: 'Yes. REGrow works in any phone browser and can be installed to the home screen, with push notifications for new leads. There is no separate native app.' },
-    { q: 'Does REGrow include a dialer or call recording?', a: 'No. Salespeople call from their own phones and log the outcome in REGrow.' },
+    { q: 'Can salespeople use RE by PX on their phones?', a: 'Yes. RE by PX works in any phone browser and can be installed to the home screen, with push notifications for new leads. There is no separate native app.' },
+    { q: 'Does RE by PX include a dialer or call recording?', a: 'No. Salespeople call from their own phones and log the outcome in RE by PX.' },
     { q: 'Can we bring our existing leads?', a: 'Yes, from a CSV or Excel export. Migration starts with an assessment of your data and current system.' },
   ],
   related: [

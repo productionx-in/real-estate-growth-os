@@ -288,7 +288,7 @@ export function MetaConnectWizardModal({
                   <ShieldCheck className="w-4 h-4 text-brand" />
                   Official Single-App Multi-Tenant Integration
                 </p>
-                REGrow maintains a single verified Meta developer application. Each real estate
+                RE by PX maintains a single verified Meta developer application. Each real estate
                 company securely connects its own Facebook Pages and business accounts. Leads submitted
                 by customers flow directly and exclusively into your private organisation workspace.
               </div>
@@ -334,7 +334,7 @@ export function MetaConnectWizardModal({
                     <div className="text-[12px]">
                       <p className="font-semibold text-foreground">Select Permitted Pages & Forms</p>
                       <p className="text-subtle">
-                        REGrow detects your lead generation forms and lets you route each form to
+                        RE by PX detects your lead generation forms and lets you route each form to
                         the appropriate property project.
                       </p>
                     </div>
@@ -362,7 +362,7 @@ export function MetaConnectWizardModal({
             <div className="space-y-4">
               <div className="space-y-3">
                 <h3 className="text-[14px] font-bold text-foreground">
-                  Permissions Requested by REGrow
+                  Permissions Requested by RE by PX
                 </h3>
                 <p className="text-[12px] text-muted">
                   To automatically import buyer leads, Meta requires you to approve specific access
@@ -375,7 +375,7 @@ export function MetaConnectWizardModal({
                     <div>
                       <p className="font-semibold text-success">Read Lead Form Submissions</p>
                       <p className="text-success">
-                        Allows REGrow to retrieve contact info (name, phone, email) when buyers
+                        Allows RE by PX to retrieve contact info (name, phone, email) when buyers
                         submit a Facebook or Instagram Lead Ad form.
                       </p>
                     </div>
@@ -386,7 +386,7 @@ export function MetaConnectWizardModal({
                     <div>
                       <p className="font-semibold text-success">View Managed Pages</p>
                       <p className="text-success">
-                        Allows REGrow to list your business Pages so you can select which project
+                        Allows RE by PX to list your business Pages so you can select which project
                         Pages to link.
                       </p>
                     </div>
@@ -413,15 +413,15 @@ export function MetaConnectWizardModal({
                 </h4>
                 <ul className="text-[12px] text-muted space-y-1.5 list-disc list-inside">
                   <li>
-                    REGrow will <strong>NEVER</strong> post to your Facebook timeline or
+                    RE by PX will <strong>NEVER</strong> post to your Facebook timeline or
                     Instagram feed.
                   </li>
                   <li>
-                    REGrow will <strong>NEVER</strong> read your personal messages or private
+                    RE by PX will <strong>NEVER</strong> read your personal messages or private
                     photos.
                   </li>
                   <li>
-                    REGrow will <strong>NEVER</strong> ask for or store your Facebook password.
+                    RE by PX will <strong>NEVER</strong> ask for or store your Facebook password.
                   </li>
                   <li>
                     Your connection credentials are encrypted using secure vault storage and are never
@@ -551,7 +551,7 @@ export function MetaConnectWizardModal({
             <div className="space-y-4">
               <div>
                 <h3 className="text-[14px] font-bold text-foreground mb-1">
-                  Map Lead Forms to REGrow Projects
+                  Map Lead Forms to RE by PX Projects
                 </h3>
                 <p className="text-[12px] text-muted">
                   Assign each Meta lead form to the specific development project it belongs to.

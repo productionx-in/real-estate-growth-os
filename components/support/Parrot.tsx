@@ -1,5 +1,5 @@
 'use client'
-// components/support/Parrot.tsx — Rio, REGrow's guide: a round, front-facing parrot whose body is a chat bubble.
+// components/support/Parrot.tsx — Rio, RE by PX's guide: a round, front-facing parrot whose body is a chat bubble.
 // Original artwork (not a third-party logo). Colours come from --parrot-* tokens in globals.css. It blinks and
 // waves (CSS in globals.css, "rio-"), and keeps still for people who prefer reduced motion.
 import { useId } from 'react'

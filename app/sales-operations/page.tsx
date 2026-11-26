@@ -10,7 +10,7 @@ const c: ProductPageContent = {
   eyebrow: 'Real estate sales operations',
   h1: 'Lead distribution and follow-up your sales managers can trust',
   intro:
-    'REGrow decides who gets each lead with rules your managers can read, shares leads fairly across the team, and makes sure no enquiry waits unanswered — with the numbers to prove it.',
+    'RE by PX decides who gets each lead with rules your managers can read, shares leads fairly across the team, and makes sure no enquiry waits unanswered — with the numbers to prove it.',
   definition: {
     question: 'What is real estate lead distribution?',
     answer:

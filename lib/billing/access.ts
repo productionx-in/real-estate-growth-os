@@ -1,6 +1,6 @@
 // lib/billing/access.ts — who may manage billing. Owners and admins; and, while a workspace is read-only only
 // because its trial or paid period ended (billing hold, migration 20260059), the members whose real role is
-// owner or admin, so that they can pay and lift the hold. A suspension by REGrow staff never grants this.
+// owner or admin, so that they can pay and lift the hold. A suspension by RE by PX staff never grants this.
 import { NextResponse } from 'next/server'
 import { authenticateCaller, type AuthContext } from '@/lib/auth/tenant'
 import { createServiceClient } from '@/lib/supabase/server'

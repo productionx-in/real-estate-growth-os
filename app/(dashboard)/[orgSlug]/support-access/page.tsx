@@ -1,4 +1,4 @@
-// Support access: owners and admins decide whether REGrow support may look at this workspace, for how long,
+// Support access: owners and admins decide whether RE by PX support may look at this workspace, for how long,
 // and can end it at any time. Every request, decision and view is also in the audit log.
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -27,7 +27,7 @@ export default async function SupportAccessPage({ params }: { params: Promise<{ 
   const past = grants.filter((g) => !open.includes(g))
 
   return (
-    <PageShell title="Support access" description="REGrow support can see your workspace only when you allow it — read-only, for a limited time, and you can end it whenever you like.">
+    <PageShell title="Support access" description="RE by PX support can see your workspace only when you allow it — read-only, for a limited time, and you can end it whenever you like.">
       <div className="max-w-3xl space-y-5">
         <Alert tone="info" title="What support can see">
           Your team, lead counts by status and integration health — enough to diagnose a problem. They cannot change anything, cannot sign in as anyone, and never see passwords or connection secrets. Each view is recorded in your <Link href={`/${orgSlug}/audit-log?area=support`} className="text-brand underline-offset-4 hover:underline">audit log</Link>.
@@ -36,7 +36,7 @@ export default async function SupportAccessPage({ params }: { params: Promise<{ 
         <section aria-label="Open requests and active access" className="space-y-3">
           <h2 className="text-[13px] font-semibold">Needs your attention</h2>
           {open.length === 0 ? (
-            <Card><EmptyState icon={ShieldCheck} title="Nothing open" description="When REGrow support asks to look at your workspace, the request appears here for you to approve or deny." /></Card>
+            <Card><EmptyState icon={ShieldCheck} title="Nothing open" description="When RE by PX support asks to look at your workspace, the request appears here for you to approve or deny." /></Card>
           ) : open.map((g) => (
             <Card key={g.id} className="space-y-2 p-4 text-[13px]">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -47,7 +47,7 @@ export default async function SupportAccessPage({ params }: { params: Promise<{ 
               <p className="text-[12px] text-subtle">
                 {g.status === 'pending'
                   ? `Asked ${when(g.created_at)} for ${duration(g.duration_minutes)} of read-only access, starting when you approve.`
-                  : `Access until ${when(g.expires_at)}.${g.emergency ? ` Granted in an emergency by REGrow without your approval: ${g.decision_note ?? ''}` : ''}`}
+                  : `Access until ${when(g.expires_at)}.${g.emergency ? ` Granted in an emergency by RE by PX without your approval: ${g.decision_note ?? ''}` : ''}`}
               </p>
               <CustomerGrantActions grantId={g.id} status={g.status === 'pending' ? 'pending' : 'live'} />
             </Card>

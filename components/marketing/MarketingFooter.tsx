@@ -14,12 +14,12 @@ export function MarketingFooter() {
     { title: 'Company', links: [{ href: '/pricing', label: 'Pricing' }, { href: '/demo', label: 'Book a demo' }, { href: '/contact', label: 'Contact' }, { href: '/login', label: 'Sign in' }, { href: '/privacy', label: 'Privacy Policy' }, { href: '/terms', label: 'Terms of Service' }, { href: '/refund-policy', label: 'Refund & Cancellation' }] },
   ]
   return (
-    <footer className="bg-[#0b1220] text-slate-400">
+    <footer className="band-ink text-[#94a3b8]">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12 grid gap-10 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
         <div>
-          <BrandMark inverted />
+          <BrandMark tagline />
           <p className="mt-3 text-[13px] max-w-xs leading-relaxed">
-            {PRODUCT_NAME} is the {PRODUCT_DESCRIPTOR.toLowerCase()} for real estate developers and channel partner agencies: leads, sales teams,
+            {PRODUCT_NAME} is the real estate growth OS for real estate developers and channel partner agencies: leads, sales teams,
             projects and inventory, site visits, bookings and partner workflows in one platform.
           </p>
         </div>
@@ -35,7 +35,7 @@ export function MarketingFooter() {
       <div className="border-t border-white/10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-5 text-[12px] flex flex-col sm:flex-row gap-2 justify-between">
           <span>© {new Date().getFullYear()} {COMPANY_NAME}. All rights reserved.</span>
-          <span>{PRODUCT_NAME} by {COMPANY_NAME}</span>
+          <span className="uppercase tracking-[0.18em] text-[11px]">{PRODUCT_DESCRIPTOR}</span>
         </div>
       </div>
     </footer>

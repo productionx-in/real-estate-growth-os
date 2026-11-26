@@ -1,5 +1,5 @@
 // lib/integrations/dns-verify.ts — proving a workspace owns a domain, and checking its e-mail records, in plain steps
-// (20260103). One TXT record proves ownership: _regrow-verify.<domain> = regrow-verify=<token>. For e-mail we also
+// (20260103). One TXT record proves ownership: _repx-verify.<domain> = repx-verify=<token>. For e-mail we also
 // look for SPF and DMARC records and say, in plain words, what is missing. The DNS lookup is passed in, so tests run
 // without a network. Safe in the browser too (the dashboard shows DNS_HELP); tokens are made on the server
 // (lib/dal/domains.ts).
@@ -16,8 +16,11 @@ export function cleanDomain(input: string): string | null {
   return d && !d.startsWith('*.') ? d : null
 }
 
-export const VERIFY_HOST = (domain: string) => `_regrow-verify.${domain}`
-export const VERIFY_VALUE = (token: string) => `regrow-verify=${token}`
+export const VERIFY_HOST = (domain: string) => `_repx-verify.${domain}`
+export const VERIFY_VALUE = (token: string) => `repx-verify=${token}`
+// Records added before the rename (old prefix) still verify.
+const LEGACY_HOST = (domain: string) => `_regrow-verify.${domain}`
+const LEGACY_VALUE = (token: string) => `regrow-verify=${token}`
 
 /** The records to add, in the order to add them. Sending records (DKIM, SPF, MX on a "send" subdomain) come from the
  * e-mail provider when the domain is registered with it (lib/email/domains.ts) and are passed in as `provider`. */
@@ -36,8 +39,8 @@ export interface CheckResult { verified: boolean; dmarc: boolean; problems: stri
 /** Looks the ownership (and, for e-mail, DMARC) records up. Never throws: a failed lookup counts as "not found yet". */
 export async function checkDomain(purpose: DomainPurpose, domain: string, token: string, resolveTxt: TxtResolver): Promise<CheckResult> {
   const txt = async (host: string) => (await resolveTxt(host).catch(() => [] as string[][])).map((chunks) => chunks.join(''))
-  const [own, dmarc] = await Promise.all([txt(VERIFY_HOST(domain)), purpose === 'email' ? txt(`_dmarc.${domain}`) : Promise.resolve([])])
-  const verified = own.some((v) => v.trim() === VERIFY_VALUE(token))
+  const [own, legacy, dmarc] = await Promise.all([txt(VERIFY_HOST(domain)), txt(LEGACY_HOST(domain)), purpose === 'email' ? txt(`_dmarc.${domain}`) : Promise.resolve([])])
+  const verified = own.some((v) => v.trim() === VERIFY_VALUE(token)) || legacy.some((v) => v.trim() === LEGACY_VALUE(token))
   const hasDmarc = dmarc.some((v) => /^v=DMARC1\b/i.test(v.trim()))
   const problems: string[] = []
   if (!verified) problems.push(own.length ? 'The verification record is there but its value does not match. Copy it again exactly.' : 'We can’t see the verification record yet. DNS changes can take a few minutes, sometimes up to a few hours.')

@@ -1,6 +1,6 @@
 // tests/db-integration/p22-payments.test.mjs — provider-independent payments (migration 20260060, lib/payments/*)
 // against the local Supabase stack. Razorpay and Cashfree are replaced by fake servers built from their published
-// API shapes (tests/fixtures/cashfree.mjs); everything REGrow does with them runs for real: checkout attempts,
+// API shapes (tests/fixtures/cashfree.mjs); everything RE by PX does with them runs for real: checkout attempts,
 // confirmations, signed webhooks, idempotency, unapplied money, provider switching, refunds with approvals, credit
 // notes, disputes, reconciliation, health, verified outages, GST split and UPI AutoPay mandates.
 import assert from 'node:assert/strict'
@@ -71,7 +71,7 @@ async function main() {
 
   const users = [], orgs = []
   const mkUser = async (label) => {
-    const { data, error } = await db.auth.admin.createUser({ email: `${label}-${RUN}@regrow.test`, password: PASSWORD, email_confirm: true, user_metadata: { full_name: label } })
+    const { data, error } = await db.auth.admin.createUser({ email: `${label}-${RUN}@repx.test`, password: PASSWORD, email_confirm: true, user_metadata: { full_name: label } })
     if (error) throw error
     users.push(data.user.id)
     return { id: data.user.id, profile: (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [data.user.id])).id, email: data.user.email }
@@ -347,7 +347,7 @@ async function main() {
       assert.deepEqual([c1.invoices, c1.scheduled, c1.notified, c1.submitted], [1, 1, 1, 0], JSON.stringify(c1))
       const renewal = await one(`SELECT * FROM public.org_subscription_invoices WHERE org_id=$1 AND invoice_type='renewal' AND status='issued'`, [orgB])
       assert.equal(Number(renewal.subtotal_cents), 1200000, 'contracted price, unchanged')
-      assert.equal(sent.length, 1); assert.match(sent[0].subject, /Upcoming REGrow payment of ₹14,160/)
+      assert.equal(sent.length, 1); assert.match(sent[0].subject, /Upcoming RE by PX payment of ₹14,160/)
       const ch = await one('SELECT * FROM public.payment_mandate_charges WHERE invoice_id=$1', [renewal.id])
       assert.ok(new Date(ch.charge_after) - new Date(ch.pre_debit_notified_at) >= 24 * 3_600_000 - 1000)
       assert.match(await rpcErr('payment_mandate_charge_submit', { p_charge: ch.id, p_provider_charge_id: 'early', p_now: new Date().toISOString() }), /notice period/)

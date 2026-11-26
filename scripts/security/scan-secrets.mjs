@@ -25,7 +25,7 @@ export const RULES = [
   { id: 'stripe-key', re: /\b(?:sk|rk)_live_[A-Za-z0-9]{20,}/ },
   { id: 'slack-token', re: /\bxox[abpors]-[A-Za-z0-9-]{10,}/ },
   { id: 'meta-token', re: /\bEAA[A-Za-z0-9]{40,}/ },
-  { id: 'regrow-api-key', re: /\bpx_live_[A-Za-z0-9]{12,}/ },
+  { id: 'repx-api-key', re: /\bpx_live_[A-Za-z0-9]{12,}/ },
   { id: 'bearer-literal', re: /\b[Bb]earer\s+(?!\$\{|<|\.\.\.)(?![^\s'"`]*(?:YOUR|your|EXAMPLE|example|xxxx|XXXX))[A-Za-z0-9._~+/-]{20,}=*/ },
   { id: 'assigned-secret', re: /\b[A-Za-z_]*(?:SECRET|TOKEN|PASSWORD|API_KEY|PRIVATE_KEY|SERVICE_ROLE_KEY)[A-Za-z_]*\s*[:=]\s*['"`]([A-Za-z0-9._~+/=-]{24,})['"`]/ },
   { id: 'otpauth-uri', re: /otpauth:\/\/[th]otp\/[^\s'"`]*secret=[A-Z2-7]{16,}/i },

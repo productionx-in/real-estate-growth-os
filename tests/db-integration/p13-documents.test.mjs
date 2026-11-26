@@ -26,7 +26,7 @@ async function main() {
   const mkProfile = async (n, phone = null) => {
     const id = crypto.randomUUID()
     await db.query(`INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
-      VALUES ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2,'x',now(),now(),now(),'{}',$3)`, [id, `${n.split(' ')[0].toLowerCase()}-${RUN}@regrow.test`, JSON.stringify({ full_name: n })])
+      VALUES ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2,'x',now(),now(),now(),'{}',$3)`, [id, `${n.split(' ')[0].toLowerCase()}-${RUN}@repx.test`, JSON.stringify({ full_name: n })])
     const pid = (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [id])).id
     if (phone) await db.query('UPDATE public.profiles SET phone=$2 WHERE id=$1', [pid, phone])
     return { pid, uid: id }
@@ -40,7 +40,7 @@ async function main() {
     const manager = await mkProfile('Meera Manager')
     // Created through the auth service (as real users are), so their email can be looked up for {{agent.email}}.
     const { data: created, error: authErr } = await createServiceClient().auth.admin.createUser({
-      email: `asha-${RUN}@regrow.test`, password: crypto.randomBytes(12).toString('hex') + 'Aa1!', email_confirm: true, user_metadata: { full_name: 'Asha Menon' },
+      email: `asha-${RUN}@repx.test`, password: crypto.randomBytes(12).toString('hex') + 'Aa1!', email_confirm: true, user_metadata: { full_name: 'Asha Menon' },
     })
     assert.equal(authErr, null, authErr?.message)
     asha = { uid: created.user.id, pid: (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [created.user.id])).id }

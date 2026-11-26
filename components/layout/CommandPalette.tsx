@@ -15,7 +15,7 @@ import type { MemberRole, LeadStatus } from '@/types/database'
 import { isManagement } from '@/lib/auth/permissions'
 
 /** Fired by the header's search button. */
-export const PALETTE_OPEN_EVENT = 'regrow:open-palette'
+export const PALETTE_OPEN_EVENT = 'repx:open-palette'
 
 interface Option {
   id: string

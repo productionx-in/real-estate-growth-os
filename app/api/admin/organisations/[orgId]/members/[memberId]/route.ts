@@ -17,7 +17,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const parsed = Body.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Check the request' }, { status: 400 })
   const { data: profile } = await createServiceClient().from('profiles').select('full_name').eq('auth_user_id', a.auth.user.id).maybeSingle()
-  const r = await setMemberAccess({ userId: a.auth.user.id, role: a.auth.platformUser.role, label: profile?.full_name || a.auth.user.email || 'REGrow staff' },
+  const r = await setMemberAccess({ userId: a.auth.user.id, role: a.auth.platformUser.role, label: profile?.full_name || a.auth.user.email || 'RE by PX staff' },
     orgId, memberId, parsed.data.action, parsed.data.reason)
   if (!r.success) return NextResponse.json({ error: r.error }, { status: r.status })
   return NextResponse.json(r.data)

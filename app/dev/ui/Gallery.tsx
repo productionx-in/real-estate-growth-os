@@ -40,7 +40,7 @@ export function Gallery() {
     <main className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-default bg-surface px-6 py-3">
         <div>
-          <h1 className="text-[15px] font-semibold">REGrow design system</h1>
+          <h1 className="text-[15px] font-semibold">RE by PX design system</h1>
           <p className="text-[12px] text-muted">components/ui · tokens in app/globals.css · not available in production</p>
         </div>
         <Button variant="secondary" size="sm" onClick={() => setDark((d) => !d)} aria-pressed={dark}>

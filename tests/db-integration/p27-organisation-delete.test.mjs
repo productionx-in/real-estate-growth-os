@@ -22,7 +22,7 @@ async function main() {
   const one = async (s, p) => (await sql.query(s, p)).rows[0]
   const count = async (s, p) => Number((await one(s, p)).n)
   const mkUser = async (label) => {
-    const { data, error } = await db.auth.admin.createUser({ email: `${label}-${RUN}@regrow.test`, password: 'Del-Test-' + RUN + 'x9', email_confirm: true, user_metadata: { full_name: label } })
+    const { data, error } = await db.auth.admin.createUser({ email: `${label}-${RUN}@repx.test`, password: 'Del-Test-' + RUN + 'x9', email_confirm: true, user_metadata: { full_name: label } })
     if (error) throw error
     return { id: data.user.id, profile: (await one('SELECT id FROM public.profiles WHERE auth_user_id=$1', [data.user.id])).id }
   }

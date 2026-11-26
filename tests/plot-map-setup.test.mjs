@@ -55,7 +55,7 @@ test('stages complete only from recorded steps, in order; progress is completed 
   assert.equal(done.completed, 8); assert.equal(done.current, null); assert.equal(done.estimate, null)
 })
 
-test('REGrow stages get a due time and can be overdue; customer stages never get a countdown', () => {
+test('RE by PX stages get a due time and can be overdue; customer stages never get a countdown', () => {
   const facts = { ...base, activatedAt: '2026-11-16T04:30:00Z', firstUploadAt: '2026-11-16T04:30:00Z', firstRenderedAt: '2026-11-16T04:30:00Z' } // Mon 10:00 IST
   const early = S.setupView(facts, ist('2026-11-16T12:00:00'))
   assert.equal(early.current.key, 'mapped'); assert.ok(early.currentDue); assert.equal(early.overdue, false)
@@ -74,7 +74,7 @@ test('the clock pauses only while a blocker waits on the customer, and the pause
   const resolved = { ...facts, blockers: [{ ...blocked.blockers[0], resolvedAt: ist('2026-11-18T11:00:00').toISOString() }] }
   assert.equal(S.setupView(resolved, ist('2026-11-18T12:00:00')).overdue, false, 'paused time does not count')
   const ours = { ...facts, blockers: [{ ...blocked.blockers[0], waitingOn: 'regrow' }] }
-  assert.equal(S.setupView(ours, ist('2026-11-18T12:00:00')).overdue, true, 'waiting on REGrow does not pause the clock')
+  assert.equal(S.setupView(ours, ist('2026-11-18T12:00:00')).overdue, true, 'waiting on RE by PX does not pause the clock')
 })
 
 test('the database: derived stages, immutable blockers, project ownership, server-only tables', () => {
