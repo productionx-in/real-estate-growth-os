@@ -28,6 +28,8 @@ export const CAN = {
   salesAll: ['super_admin', 'sales_manager', 'auditor'],
   supportRead: ['super_admin', 'platform_admin', 'support_agent', 'auditor'],
   supportWrite: ['super_admin', 'platform_admin', 'support_agent'],
+  /** Public website visitor flow (site_pageviews): aggregate counts only, never customer data. */
+  website: ['super_admin', 'sales_manager', 'auditor'],
 } as const satisfies Record<string, readonly StaffRole[]>
 export const can = (role: StaffRole, what: keyof typeof CAN) => (CAN[what] as readonly StaffRole[]).includes(role)
 

@@ -47,10 +47,10 @@ test('role matrix: sales never touches support or customer records; support neve
   const roles = ['super_admin', 'platform_admin', 'finance_admin', 'sales_manager', 'sales_rep', 'support_agent', 'auditor']
   const row = (r) => Object.keys(P.CAN).filter((k) => P.can(r, k))
   assert.deepEqual(row('sales_rep'), ['dashboard', 'organisations', 'salesRead', 'salesWrite'])
-  assert.deepEqual(row('sales_manager'), ['dashboard', 'organisations', 'salesRead', 'salesWrite', 'salesAll'])
+  assert.deepEqual(row('sales_manager'), ['dashboard', 'organisations', 'salesRead', 'salesWrite', 'salesAll', 'website'], 'managers see website analytics (aggregate counts)')
   assert.deepEqual(row('support_agent'), ['dashboard', 'organisations', 'plotMapSetup', 'supportRead', 'supportWrite'], 'support also runs map set-ups (metadata only)')
   assert.deepEqual(row('finance_admin'), ['dashboard', 'organisations'])
-  assert.deepEqual(row('auditor'), ['dashboard', 'organisations', 'salesRead', 'salesAll', 'supportRead'], 'auditors read, never write')
+  assert.deepEqual(row('auditor'), ['dashboard', 'organisations', 'salesRead', 'salesAll', 'supportRead', 'website'], 'auditors read, never write')
   for (const r of roles) assert.equal(P.can(r, 'staff'), r === 'super_admin', r)
   for (const r of roles) assert.ok(P.ROLE_LABEL[r], r)
 })
