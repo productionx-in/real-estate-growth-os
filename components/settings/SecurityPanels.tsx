@@ -2,6 +2,7 @@
 // components/settings/SecurityPanels.tsx — change your password (lib/auth/password-policy.ts) and sign out of every
 // other device. Both act only on the signed-in person's own account, through Supabase Auth in the browser.
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { PASSWORD_HINT, passwordProblem } from '@/lib/auth/password-policy'
@@ -75,6 +76,72 @@ export function SignOutOthers() {
       <p className="text-[13px] text-muted">Lost a phone, or signed in on a shared computer? Sign out everywhere except here.</p>
       {done && <Alert tone={done.startsWith('Done') ? 'success' : 'danger'}>{done}</Alert>}
       <Button variant="secondary" onClick={run} loading={busy}>Sign out other devices</Button>
+    </div>
+  )
+}
+
+/** Turning two-step verification off: the current code is asked again, so an unattended device can't do it. */
+export function TwoStepOff({ lockedByWorkspace }: { lockedByWorkspace: boolean }) {
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const [code, setCode] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  if (lockedByWorkspace) return <p className="text-[12px] text-muted">Your workspace requires it, so it can’t be turned off.</p>
+  if (!open) return <Button variant="secondary" onClick={() => setOpen(true)}>Turn off</Button>
+  async function run(e: React.FormEvent) {
+    e.preventDefault()
+    setBusy(true); setError(null)
+    const supabase = createClient()
+    const { data } = await supabase.auth.mfa.listFactors()
+    const factor = data?.totp.find((f) => f.status === 'verified')
+    if (!factor) { setBusy(false); router.refresh(); return }
+    const { error: codeError } = await supabase.auth.mfa.challengeAndVerify({ factorId: factor.id, code: code.trim() })
+    if (codeError) { setBusy(false); setError('That code didn’t match. Try the newest code from your authenticator app.'); return }
+    const { error: offError } = await supabase.auth.mfa.unenroll({ factorId: factor.id })
+    setBusy(false)
+    if (offError) { setError('Couldn’t turn it off. Please try again.'); return }
+    router.refresh()
+  }
+  return (
+    <form onSubmit={run} className="w-full space-y-3">
+      <Field label="Code from your authenticator app" hint="To confirm it’s you.">
+        <Input value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" autoFocus placeholder="123456" />
+      </Field>
+      {error && <Alert tone="danger">{error}</Alert>}
+      <div className="flex gap-2">
+        <Button type="submit" variant="danger" loading={busy} disabled={code.length !== 6}>Turn off two-step verification</Button>
+        <Button type="button" variant="ghost" onClick={() => { setOpen(false); setCode(''); setError(null) }}>Cancel</Button>
+      </div>
+    </form>
+  )
+}
+
+/** Owners and admins: require two-step verification for every member of the workspace. */
+export function RequireTwoStep({ orgId, initial, selfHasIt }: { orgId: string; initial: boolean; selfHasIt: boolean }) {
+  const router = useRouter()
+  const [on, setOn] = useState(initial)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  async function change(next: boolean) {
+    if (next && !window.confirm('Everyone in this workspace will have to set up an authenticator app the next time they open it. Continue?')) return
+    setBusy(true); setError(null)
+    const res = await fetch('/api/settings/workspace', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orgId, section: 'security', value: { requireTwoStep: next } }) })
+    const out = await res.json().catch(() => ({}))
+    setBusy(false)
+    if (!res.ok) { setError(out.error ?? 'Couldn’t save. Please try again.'); return }
+    setOn(next); router.refresh()
+  }
+  return (
+    <div className="space-y-3">
+      <label className="flex items-start justify-between gap-4">
+        <span className="text-[13px] text-foreground">Require two-step verification for everyone
+          <span className="block text-[12px] text-muted">Members without it are asked to set it up before they can use the workspace.</span>
+        </span>
+        <input type="checkbox" role="switch" className="mt-1 size-5 accent-[var(--brand)]" checked={on} disabled={busy || (!on && !selfHasIt)} onChange={(e) => change(e.target.checked)} aria-label="Require two-step verification for everyone" />
+      </label>
+      {!on && !selfHasIt && <p className="text-[12px] text-muted">Turn it on for your own account first.</p>}
+      {error && <Alert tone="danger">{error}</Alert>}
     </div>
   )
 }

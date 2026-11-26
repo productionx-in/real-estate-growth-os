@@ -6,6 +6,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import type { MemberRole } from '@/types/database'
 import { canSeeLead, type LeadViewer } from '@/lib/auth/permissions'
 import { resolveLeadViewer } from '@/lib/dal/viewer'
+import { readTwoStep, twoStepNeed, TWO_STEP_MESSAGES } from '@/lib/auth/two-step'
 
 export interface AuthContext {
   user: {
@@ -16,6 +17,18 @@ export interface AuthContext {
     id: string
     full_name: string
   }
+  /** Whether this session entered a two-step code (AAL2). */
+  twoStep?: boolean
+}
+
+/** Refuses members of a workspace that requires two-step verification until they have set it up. */
+async function workspaceTwoStepBlock(orgId: string, auth: AuthContext): Promise<NextResponse | null> {
+  if (auth.twoStep) return null
+  const db = createServiceClient() as unknown as { from: (t: 'org_settings') => { select: (c: 'security') => { eq: (k: 'org_id', v: string) => { maybeSingle: () => PromiseLike<{ data: unknown }> } } } }
+  const { data } = await db.from('org_settings').select('security').eq('org_id', orgId).maybeSingle()
+  const sec = (data as { security?: { requireTwoStep?: unknown } } | null)?.security
+  if (twoStepNeed({ current: 'aal1', hasFactor: false }, sec?.requireTwoStep === true) !== 'enrol') return null
+  return NextResponse.json({ error: TWO_STEP_MESSAGES.enrol, code: 'TWO_STEP_SETUP_REQUIRED' }, { status: 403 })
 }
 
 export interface TenantContext extends AuthContext {
@@ -77,6 +90,12 @@ export async function authenticateCaller(): Promise<
     }
   }
 
+  // Two-step verification: an account with an authenticator must have entered its code this session.
+  const twoStep = await readTwoStep(supabase)
+  if (twoStepNeed(twoStep, false) === 'verify') {
+    return { success: false, response: NextResponse.json({ error: TWO_STEP_MESSAGES.verify, code: 'TWO_STEP_REQUIRED' }, { status: 401 }) }
+  }
+
   const service = createServiceClient()
   let { data: profile } = await service
     .from('profiles')
@@ -113,6 +132,7 @@ export async function authenticateCaller(): Promise<
     auth: {
       user: { id: user.id, email: user.email },
       profile: { id: profile.id, full_name: profile.full_name },
+      twoStep: twoStep.current === 'aal2',
     },
   }
 }
@@ -171,6 +191,9 @@ export async function authorizeOrgAccess(
       ),
     }
   }
+
+  const twoStepBlock = await workspaceTwoStepBlock(orgId, auth)
+  if (twoStepBlock) return { success: false, response: twoStepBlock }
 
   return {
     success: true,
@@ -249,6 +272,9 @@ export async function authorizeProjectAccess(
       ),
     }
   }
+
+  const twoStepBlock = await workspaceTwoStepBlock(project.org_id, auth)
+  if (twoStepBlock) return { success: false, response: twoStepBlock }
 
   return {
     success: true,
@@ -333,6 +359,9 @@ export async function authorizeInventoryAccess(
       ),
     }
   }
+
+  const twoStepBlock = await workspaceTwoStepBlock(item.org_id, auth)
+  if (twoStepBlock) return { success: false, response: twoStepBlock }
 
   return {
     success: true,
@@ -428,6 +457,9 @@ export async function authorizeLeadAccess(
       response: NextResponse.json({ error: 'Lead not found' }, { status: 404 }),
     }
   }
+
+  const twoStepBlock = await workspaceTwoStepBlock(lead.org_id, auth)
+  if (twoStepBlock) return { success: false, response: twoStepBlock }
 
   return {
     success: true,

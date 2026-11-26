@@ -95,11 +95,18 @@ export interface WhatsAppSettings {
   workDays: number[]
 }
 
-export interface WorkspaceSettings { leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings; notifications: TeamDefaults; visits: VisitSettings; matching: MatchingSettings; whatsapp: WhatsAppSettings; alerts: LeadAlertSettings }
+/** Workspace security (20260106). */
+export interface SecuritySettings {
+  /** Every member must use two-step verification (an authenticator app code at each sign-in). */
+  requireTwoStep: boolean
+}
+
+export interface WorkspaceSettings { security: SecuritySettings; leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings; notifications: TeamDefaults; visits: VisitSettings; matching: MatchingSettings; whatsapp: WhatsAppSettings; alerts: LeadAlertSettings }
 export type SettingsSection = keyof WorkspaceSettings
 
 // The reasons Indian sales teams record most often; a workspace edits, reorders or replaces them.
 export const DEFAULT_SETTINGS: WorkspaceSettings = {
+  security: { requireTwoStep: false },
   leads: {
     lostReasons: ['Budget does not match', 'Location does not suit', 'Bought elsewhere', 'Plan postponed', 'Home loan not approved', 'Stopped responding', 'Chose a ready-to-move home'],
     junkReasons: ['Wrong or invalid number', 'Duplicate enquiry', 'Not looking to buy', 'Broker or agent', 'Spam or test'],
@@ -150,6 +157,9 @@ function reasons(input: unknown, label: string, errors: Errors, key: string): st
 export function normaliseSection<S extends SettingsSection>(section: S, input: unknown, current?: WorkspaceSettings): { value: WorkspaceSettings[S]; errors: Errors } {
   const errors: Errors = {}
   const o = (input && typeof input === 'object' && !Array.isArray(input) ? input : {}) as Record<string, unknown>
+  if (section === 'security') {
+    return { value: { requireTwoStep: o.requireTwoStep === true } as WorkspaceSettings[S], errors }
+  }
   if (section === 'alerts') {
     const r = normaliseLeadAlerts(o)
     return { value: r.value as WorkspaceSettings[S], errors: r.errors }
@@ -286,7 +296,7 @@ function statusLabelsFrom(v: unknown, errors: Record<string, string>): Record<Un
 }
 
 /** A stored row (possibly partial or from an older version) merged over the defaults; never throws. */
-export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown; notifications?: unknown; visits?: unknown; matching?: unknown; whatsapp?: unknown; alerts?: unknown } | null | undefined): WorkspaceSettings {
+export function settingsFromRow(row: { security?: unknown; leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown; notifications?: unknown; visits?: unknown; matching?: unknown; whatsapp?: unknown; alerts?: unknown } | null | undefined): WorkspaceSettings {
   const merge = <S extends SettingsSection>(s: S, stored: unknown): WorkspaceSettings[S] => {
     if (!stored || typeof stored !== 'object' || Array.isArray(stored) || !Object.keys(stored).length) return DEFAULT_SETTINGS[s]
     const { value } = normaliseSection(s, { ...DEFAULT_SETTINGS[s], ...(stored as object) })
@@ -294,6 +304,7 @@ export function settingsFromRow(row: { leads?: unknown; inventory?: unknown; rep
   }
   const stored = (row?.fields && typeof row.fields === 'object' ? row.fields : {}) as { lead?: unknown }
   return {
+    security: merge('security', row?.security),
     leads: merge('leads', row?.leads), inventory: merge('inventory', row?.inventory), reports: merge('reports', row?.reports),
     lists: merge('lists', row?.lists),
     // Field definitions are read as stored (they were checked when saved); malformed entries are dropped.
