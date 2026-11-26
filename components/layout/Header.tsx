@@ -9,6 +9,7 @@ import { Bell, ChevronRight, Menu, Search, LogOut, Compass, Settings, Mail } fro
 import { NAV_TOGGLE_EVENT } from '@/components/layout/Sidebar'
 import { PALETTE_OPEN_EVENT } from '@/components/layout/CommandPalette'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { DutyToggle } from '@/components/routing/DutyToggle'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -53,7 +54,6 @@ export function Header({ orgId, orgName, orgSlug = '', orgType = 'developer', ro
   const subCrumb = here && pathname !== here.href ? SUBPAGE_LABELS[sub] : undefined
 
   const name = profile?.full_name || 'Your account'
-  const initials = (profile?.full_name || 'U').split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase()
 
   return (
     <header
@@ -122,7 +122,7 @@ export function Header({ orgId, orgName, orgSlug = '', orgType = 'developer', ro
             aria-label={`Account: ${name}`}
             className="flex items-center gap-2 rounded-full p-0.5 transition-colors hover:bg-surface-hover md:rounded-lg md:py-1 md:pl-1 md:pr-2"
           >
-            <span className="flex size-8 items-center justify-center rounded-full bg-brand text-[12px] font-semibold text-brand-foreground">{initials}</span>
+            <UserAvatar name={profile?.full_name} src={profile?.avatar_url} size={32} />
             <span className="hidden max-w-32 truncate text-[13px] font-medium text-foreground lg:block">{name}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-64">

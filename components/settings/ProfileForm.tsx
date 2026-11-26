@@ -1,10 +1,11 @@
 'use client'
 // components/settings/ProfileForm.tsx — your own name and phone (app/api/account/profile).
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Alert, Button, Field, Input } from '@/components/ui'
 
-export function ProfileForm({ initial, email, roleLabel }: { initial: { fullName: string; phone: string }; email: string; roleLabel: string }) {
+export function ProfileForm({ initial, email, roleLabel, avatarUrl = null }: { initial: { fullName: string; phone: string }; email: string; roleLabel: string; avatarUrl?: string | null }) {
   const router = useRouter()
   const [v, setV] = useState(initial)
   const [busy, setBusy] = useState(false)
@@ -24,9 +25,7 @@ export function ProfileForm({ initial, email, roleLabel }: { initial: { fullName
   return (
     <form onSubmit={save} className="space-y-4">
       <div className="flex items-center gap-3">
-        <span aria-hidden className="grid size-12 place-items-center rounded-full bg-brand text-[15px] font-semibold text-brand-foreground">
-          {(v.fullName || email).slice(0, 1).toUpperCase()}
-        </span>
+        <UserAvatar name={v.fullName || email} src={avatarUrl} size={48} />
         <div>
           <p className="text-[14px] font-semibold text-foreground">{v.fullName || 'Your name'}</p>
           <p className="text-[12px] text-muted">{email} · {roleLabel}</p>
