@@ -9,7 +9,7 @@ import { safeRedirectPath } from '@/lib/auth/safe-redirect'
 import { appUrl } from '@/lib/site/urls'
 import { PasswordInput } from '@/components/auth/PasswordInput'
 
-export function LoginForm({ defaultRedirect }: { defaultRedirect?: string } = {}) {
+export function LoginForm({ defaultRedirect, staff = false }: { defaultRedirect?: string; staff?: boolean } = {}) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = safeRedirectPath(searchParams.get('redirectTo'), defaultRedirect ? safeRedirectPath(defaultRedirect) : undefined)
@@ -218,7 +218,7 @@ export function LoginForm({ defaultRedirect }: { defaultRedirect?: string } = {}
       {/* Accounts are created by invitation only; say so plainly for people looking for a sign-up link. */}
       <p className="flex items-start gap-2 border-t border-default pt-4 text-[12px] leading-relaxed text-muted">
         <Shield aria-hidden className="mt-0.5 size-3.5 flex-shrink-0 text-subtle" />
-        <span>New here? Your company&apos;s admin adds you — look for the invitation email to set your password.</span>
+        <span>{staff ? 'Staff accounts are created by the Platform Owner. Ask them for an invitation.' : <>New here? Your company&apos;s admin adds you — look for the invitation email to set your password.</>}</span>
       </p>
     </form>
   )

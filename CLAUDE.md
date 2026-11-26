@@ -42,3 +42,7 @@ Invoke by name when the task is known (`/ui-ux-pro-max`, `/postgres-patterns`). 
   `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` from `npx supabase status -o env`.
 - CI: `.github/workflows/phase1-database-validation.yml` (clean reset of every migration, then all suites).
 - Tests import real code via `jiti`; never weaken an assertion to get green.
+
+## Communication
+
+- Keep chat replies short and to the point; spend tokens on the work, not on narration.

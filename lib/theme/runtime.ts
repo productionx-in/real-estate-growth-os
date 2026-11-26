@@ -13,7 +13,7 @@ import { MARKETING_PATHS } from '@/lib/site/urls'
 export function themeRuntime(lightPaths: string[] = MARKETING_PATHS) {
   const KEY = 'repx-theme'
   const PREFS = ['sun', 'system', 'light', 'dark']
-  const LIGHT_ONLY = [/^\/privacy(\/|$)/, /^\/terms(\/|$)/, /^\/refund-policy(\/|$)/, /^\/contact(\/|$)/, /^\/p\//, /^\/d\//, /^\/forms(\/|$)/] // plus every marketing page (lightPaths)
+  const LIGHT_ONLY = [/^\/privacy(\/|$)/, /^\/terms(\/|$)/, /^\/refund-policy(\/|$)/, /^\/contact(\/|$)/, /^\/p\//, /^\/d\//, /^\/forms(\/|$)/, /^\/login(\/|$)/, /^\/register(\/|$)/, /^\/reset-password(\/|$)/, /^\/invite(\/|$)/] // plus every marketing page (lightPaths)
 
   // Representative coordinates for common timezones; others are estimated from the UTC offset.
   const ZONES: Record<string, [number, number]> = {
