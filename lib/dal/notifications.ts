@@ -11,15 +11,24 @@ export interface InboxItem {
   lead_id: string | null
   /** Set for plot map notifications: the project whose map they are about. */
   project_id?: string | null
+  /** For celebrations: what kind (reward, trophy, level, mission, target, credit, achievement), from the dedupe key. */
+  topic?: string | null
   created_at: string
   read_at: string | null
+}
+
+const TOPICS = ['reward', 'trophy', 'level', 'mission', 'target', 'credit', 'achievement'] as const
+/** The celebration's topic from its dedupe key ("reward:…", "trophy:…"); nothing else from the key leaves the server. */
+export function topicOf(dedupe: unknown): string | null {
+  const head = typeof dedupe === 'string' ? dedupe.split(':')[0] : ''
+  return (TOPICS as readonly string[]).includes(head) ? head : null
 }
 
 export async function getInbox(orgId: string, profileId: string, limit = 30):
   Promise<{ success: true; data: { items: InboxItem[]; unread: number } } | { success: false; error: string; status: number }> {
   const service = createServiceClient()
   const [items, unread] = await Promise.all([
-    service.from('notifications').select('id, type, title, body, lead_id, data, created_at, read_at')
+    service.from('notifications').select('id, type, title, body, lead_id, data, dedupe_key, created_at, read_at')
       .eq('org_id', orgId).eq('recipient_profile_id', profileId)
       .order('created_at', { ascending: false }).limit(Math.min(Math.max(limit, 1), 100)),
     service.from('notifications').select('id', { count: 'exact', head: true })
@@ -27,9 +36,9 @@ export async function getInbox(orgId: string, profileId: string, limit = 30):
   ])
   if (items.error || unread.error) return { success: false, error: 'Failed to load notifications', status: 500 }
   // Only the link target leaves the server from the notification's data: a project id, for plot map notifications.
-  const shaped = ((items.data ?? []) as (InboxItem & { data?: unknown })[]).map(({ data, ...n }) => {
+  const shaped = ((items.data ?? []) as (InboxItem & { data?: unknown; dedupe_key?: unknown })[]).map(({ data, dedupe_key, ...n }) => {
     const pid = data && typeof data === 'object' ? (data as { project_id?: unknown }).project_id : null
-    return { ...n, project_id: typeof pid === 'string' && /^[0-9a-f-]{36}$/.test(pid) ? pid : null }
+    return { ...n, project_id: typeof pid === 'string' && /^[0-9a-f-]{36}$/.test(pid) ? pid : null, topic: n.type === 'achievement' ? topicOf(dedupe_key) : null }
   })
   return { success: true, data: { items: shaped as InboxItem[], unread: unread.count ?? 0 } }
 }

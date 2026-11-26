@@ -60,7 +60,8 @@ test('API and page: settings checked on the server; a reaction only on an item t
   assert.match(react, /if \(!canSeeFeed\(s, manager\) \|\| !s\.feed\.reactions\)/)
   assert.match(react, /if \(!items\.some\(\(i\) => i\.key === itemKey\)\)/)
   assert.match(page, /if \(!canSeeFeed\(s, manager\)\)/)
-  assert.ok(!/\p{Extended_Pictographic}/u.test(read('components/feed/ActivityFeed.tsx')), 'icons, not emoji')
+  // Reactions read as emoji, each with a text name for screen readers.
+  assert.match(read('components/feed/ActivityFeed.tsx'), /aria-label=\{`\$\{REACTIONS\[k\]\}/)
 })
 test('database: reactions are server-only, members only, one of each kind per person per item', () => {
   const sql = read('supabase/migrations/20260101_activity_feed.sql')
