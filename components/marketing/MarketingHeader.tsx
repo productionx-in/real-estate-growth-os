@@ -15,6 +15,7 @@ const LINKS = [
   { href: '/inventory-management', label: 'Inventory' },
   { href: '/resources', label: 'Resources' },
   { href: '/pricing', label: 'Pricing' },
+  { href: '/tour', label: 'Tour' },
 ]
 
 export function MarketingHeader() {
