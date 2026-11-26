@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
     // webpack frees memory it no longer needs as it goes, and fewer build workers run side by side.
     webpackMemoryOptimizations: true,
     cpus: 2,
+    // Client router cache: a page visited in the last 30 s (3 min for static pages) is shown again instantly when the
+    // person switches back to it from the sidebar, instead of waiting on the server. Saving anything calls
+    // router.refresh(), which clears this cache, so people still see their own changes straight away.
+    staleTimes: { dynamic: 30, static: 180 },
   },
   webpack(config, { dev }) {
     // The difference on Vercel is the restored build cache: production builds there resumed webpack's on-disk cache

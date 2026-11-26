@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { GitMerge, Pencil, AlertTriangle, ExternalLink, Layers, MessageCircle, Radio } from 'lucide-react'
-import { getLeadById, getLeadActivities } from '@/lib/dal/leads'
+import { getWorkspaceLead, getLeadActivities } from '@/lib/dal/leads'
 import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { PageShell } from '@/components/layout/PageShell'
@@ -101,7 +101,8 @@ export default async function LeadDetailPage({ params }: PageProps) {
   const { orgSlug, leadId } = await params
   const { org, role, profile, isAdmin } = await getVerifiedWorkspace(orgSlug)
 
-  const lead = await getLeadById(leadId)
+  // Read through the server (the role check below decides visibility): Viewers have no direct database reads.
+  const lead = await getWorkspaceLead(org.id, leadId)
   if (!lead || lead.org_id !== org.id) notFound()
 
   // Server-authoritative visibility (lib/auth/permissions.ts): outside the whole-organisation roles, only
