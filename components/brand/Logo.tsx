@@ -1,41 +1,43 @@
-// components/brand/Logo.tsx — the RE by PX "Forward Vector" monogram and the "RE | by PX" lockup.
-// Colours come from --logo-ink / --logo-signal (app/globals.css), so the mark follows the theme and turns
-// white-on-indigo inside dark bands (.band-ink) without a variant prop. `tone="white"` forces the mono-white mark.
-import { PRODUCT_DESCRIPTOR, PRODUCT_NAME } from '@/lib/brand'
+// components/brand/Logo.tsx — the RE squircle (v2 kit, "Folded Interlocking RE"): Electric Indigo rounded square with a
+// white RE. The logo stands alone; Production X appears only as a quiet endorsement (PxMark) in footers.
+import { useId } from 'react'
 import { cn } from '@/lib/utils/cn'
 
-const R_PATH = 'M10 12 H39 C49.5 12 56 18.5 56 28.5 C56 36.8 51.2 42.6 43.8 44.3 L57 68 H43.2 L31.2 45.5 H22 V68 H10 Z M22 23 V35 H37.5 C41.8 35 44.5 32.5 44.5 29 C44.5 25.5 41.8 23 37.5 23 Z'
-
-export function ReMark({ className = 'h-7 w-auto', tone, title }: { className?: string; tone?: 'white'; title?: string }) {
-  const ink = tone === 'white' ? '#fff' : 'var(--logo-ink)'
-  const signal = tone === 'white' ? '#fff' : 'var(--logo-signal)'
+export function ReLogo({ size = 36, flat = false, className, title = 'RE' }: { size?: number; flat?: boolean; className?: string; title?: string }) {
+  const gradId = useId()
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="8 10 104 60" className={className} role={title ? 'img' : undefined}
-      aria-label={title} aria-hidden={title ? undefined : true} focusable="false">
-      <path fill={ink} fillRule="evenodd" d={R_PATH} />
-      <path fill={ink} d="M65 12 H110 V23 H77 V57 H110 V68 H65 Z" />
-      <path fill={signal} d="M77 34.5 H106 L100 45.5 H77 Z" />
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width={size} height={size} className={cn('shrink-0', className)}
+      role="img" aria-label={title}>
+      {!flat && (
+        <defs>
+          <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#5348F5" />
+            <stop offset="52%" stopColor="#4338CA" />
+            <stop offset="100%" stopColor="#2E268A" />
+          </linearGradient>
+        </defs>
+      )}
+      <rect width="512" height="512" rx="118" fill={flat ? '#4338CA' : `url(#${gradId})`} />
+      <path fill="#FFFFFF" fillRule="evenodd" d="M92 154 H188 C224 154 246 176 246 210 C246 237 230 257 205 264 L256 358 H206 L160 270 H136 V358 H92 Z M136 194 V232 H184 C198 232 206 224 206 213 C206 202 198 194 184 194 Z" />
+      <path fill="rgba(49,46,129,0.22)" d="M160 270 H205 L219 296 H173 Z" />
+      <path fill="#FFFFFF" d="M276 154 H416 V194 H316 V236 H400 V276 H316 V318 H416 V358 H278 L254 316 V196 Z" />
+      <path fill="rgba(49,46,129,0.22)" d="M276 154 H316 L276 200 L254 196 Z" />
     </svg>
   )
 }
 
-/** The full lockup: RE monogram, a hairline, "by PX"; optionally the REAL ESTATE GROWTH OS descriptor underneath. */
-export function Logo({ className, tagline = false, size = 'md' }: { className?: string; tagline?: boolean; size?: 'sm' | 'md' }) {
-  return (
-    <span className={cn('inline-flex select-none flex-col items-start', className)} role="img" aria-label={PRODUCT_NAME}>
-      <span className="inline-flex items-center gap-2.5" aria-hidden>
-        <ReMark className={size === 'sm' ? 'h-[22px] w-auto' : 'h-[27px] w-auto'} />
-        <span className="h-5 w-px" style={{ backgroundColor: 'var(--logo-rule)' }} />
-        <span className="inline-flex items-baseline gap-1 leading-none">
-          <span className="text-[12px] font-medium" style={{ color: 'var(--logo-muted)' }}>by</span>
-          <span className="text-[14px] font-bold tracking-tight" style={{ color: 'var(--logo-ink)' }}>PX</span>
-        </span>
-      </span>
-      {tagline && (
-        <span aria-hidden className="mt-1.5 text-[9px] font-semibold uppercase tracking-[0.18em]" style={{ color: 'var(--logo-muted)' }}>
-          {PRODUCT_DESCRIPTOR}
-        </span>
-      )}
-    </span>
-  )
+/** Small marks (sidebar footer, console rail): the same squircle, sized by class. */
+export function ReMark({ className = 'size-5' }: { className?: string; tone?: 'white'; title?: string }) {
+  return <ReLogo size={20} className={className} />
+}
+
+/** Production X endorsement mark: `dark` on dark grounds (warm white + orange), `ink` on light grounds. */
+export function PxMark({ variant = 'ink', height = 14, className }: { variant?: 'dark' | 'ink'; height?: number; className?: string }) {
+  // eslint-disable-next-line @next/next/no-img-element -- tiny static SVG from /public
+  return <img src={variant === 'dark' ? '/brand/px-mark-on-dark.svg' : '/brand/px-mark-mono-ink.svg'} alt="Production X" height={height} width={Math.round(height * 0.97)} style={{ height, width: 'auto' }} className={className} />
+}
+
+/** Backwards-compatible name: the logo now stands alone (no "by PX" lockup). */
+export function Logo({ size = 36, className }: { size?: number; className?: string; tagline?: boolean }) {
+  return <ReLogo size={size} className={className} />
 }

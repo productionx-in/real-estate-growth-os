@@ -71,7 +71,7 @@ function Rail({ groups, onNavigate }: { groups: ConsoleNavGroup[]; onNavigate?: 
 function Brand() {
   return (
     <Link href="/platform" className="flex items-center gap-2.5 px-6 py-5">
-      <ReMark tone="white" className="h-6 w-auto" />
+      <ReMark className="size-7" />
       <span className="text-[13px] font-semibold uppercase tracking-wider text-rail-strong">Console</span>
     </Link>
   )

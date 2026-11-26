@@ -1,10 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="64" height="64" role="img" aria-label="RE by PX Favicon">
-  <title>RE by PX Favicon</title>
-  <rect width="512" height="512" rx="112" fill="#0B1120"/>
-  <g transform="translate(49.6, 118.4) scale(3.44)">
-  <path fill="#FFFFFF" fill-rule="evenodd" d="M10 12 H39 C49.5 12 56 18.5 56 28.5 C56 36.8 51.2 42.6 43.8 44.3 L57 68 H43.2 L31.2 45.5 H22 V68 H10 Z M22 23 V35 H37.5 C41.8 35 44.5 32.5 44.5 29 C44.5 25.5 41.8 23 37.5 23 Z"/>
-  <path fill="#FFFFFF" d="M65 12 H110 V23 H77 V57 H110 V68 H65 Z"/>
-  <path fill="#6366F1" d="M77 34.5 H106 L100 45.5 H77 Z"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="64" height="64" role="img" aria-label="RE Favicon">
+  <title>RE Favicon</title>
+  <defs>
+    <linearGradient id="reIndigoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5348F5"/>
+      <stop offset="52%" stop-color="#4338CA"/>
+      <stop offset="100%" stop-color="#2E268A"/>
+    </linearGradient>
+    <linearGradient id="reSpecular" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="118" fill="url(#reIndigoGrad)"/>
+  <rect x="3" y="3" width="506" height="506" rx="115" fill="none" stroke="url(#reSpecular)" stroke-width="6"/>
+  <!-- Interlocking R -->
+  <path fill="#FFFFFF" fill-rule="evenodd" d="M92 154 H188 C224 154 246 176 246 210 C246 237 230 257 205 264 L256 358 H206 L160 270 H136 V358 H92 Z M136 194 V232 H184 C198 232 206 224 206 213 C206 202 198 194 184 194 Z"/>
+  <!-- Subtle dimensional fold crease on R leg -->
+  <path fill="rgba(49,46,129,0.22)" d="M160 270 H205 L219 296 H173 Z"/>
+  <!-- Interlocking Folded E -->
+  <path fill="#FFFFFF" d="M276 154 H416 V194 H316 V236 H400 V276 H316 V318 H416 V358 H278 L254 316 V196 Z"/>
+  <!-- Subtle dimensional fold highlight on E upper bevel -->
+  <path fill="rgba(49,46,129,0.22)" d="M276 154 H316 L276 200 L254 196 Z"/>
 </svg>

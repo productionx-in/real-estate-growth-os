@@ -25,7 +25,8 @@ console.log('SITE URLS')
 await test('no production domain is written into app/, components/ or lib/', () => {
   const offenders = []
   for (const f of ['app', 'components', 'lib'].flatMap((d) => walk(path.join(root, d)))) {
-    const src = fs.readFileSync(f, 'utf8')
+    // The parent company's own site (lib/brand.ts COMPANY_URL) is an outside link, not this app's address.
+    const src = fs.readFileSync(f, 'utf8').replace("export const COMPANY_URL = 'https://productionx.in'", '')
     if (/https?:\/\/(?:[a-z0-9-]+\.)*(?:productionx\.(?:com|in)|regrow[a-z]*\.(?:com|in|app)\b|[a-z0-9-]+\.vercel\.app)/i.test(src)) offenders.push(path.relative(root, f))
   }
   assert.deepEqual(offenders, [])

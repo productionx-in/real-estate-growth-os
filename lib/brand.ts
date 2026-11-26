@@ -10,6 +10,8 @@
 export const PRODUCT_NAME = 'RE by PX'
 export const PRODUCT_SHORT_NAME = 'RE'
 export const COMPANY_NAME = 'Production X'
+/** The parent company's own website (an outside link, not this app's address). */
+export const COMPANY_URL = 'https://productionx.in'
 export const PRODUCT_FULL_NAME = PRODUCT_NAME
 export const PRODUCT_DESCRIPTOR = 'Real Estate Growth OS'
 export const COPYRIGHT = `© ${new Date().getFullYear()} ${COMPANY_NAME}. All rights reserved.`

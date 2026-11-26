@@ -207,7 +207,7 @@ export function Sidebar({
 
         {/* Collapse (desktop) */}
         <div className={cn('hidden flex-shrink-0 items-center border-t border-default p-2 md:flex', rail ? 'justify-center' : 'justify-between')}>
-          {!rail && <span className="inline-flex items-center gap-1.5 px-2 text-[11px] text-subtle"><ReMark className="h-3 w-auto" />{PRODUCT_NAME}</span>}
+          {!rail && <span className="inline-flex items-center gap-1.5 px-2 text-[11px] text-subtle"><ReMark className="size-4" />{PRODUCT_NAME}</span>}
           <button
             type="button"
             onClick={toggleCollapsed}

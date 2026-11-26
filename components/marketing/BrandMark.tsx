@@ -1,6 +1,6 @@
-// components/marketing/BrandMark.tsx — the site header/footer lockup (see components/brand/Logo.tsx).
-import { Logo } from '@/components/brand/Logo'
+// components/marketing/BrandMark.tsx — the site header/footer logo: the RE squircle alone (components/brand/Logo.tsx).
+import { ReLogo } from '@/components/brand/Logo'
 
-export function BrandMark({ tagline = false }: { inverted?: boolean; tagline?: boolean }) {
-  return <Logo tagline={tagline} />
+export function BrandMark({ size = 36, className }: { size?: number; className?: string; inverted?: boolean; tagline?: boolean }) {
+  return <ReLogo size={size} className={className} />
 }

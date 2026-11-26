@@ -28,7 +28,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </div>
       ) : (
         <div className="mb-6">
-          <h1 className="text-xl font-semibold text-[var(--foreground)]">Sign in to RE by PX</h1>
+          <h1 className="text-xl font-semibold text-[var(--foreground)]">Sign in to RE</h1>
           <p className="mt-1 text-sm text-[var(--foreground-muted)]">Developers, builders and channel partner agencies — one sign-in, straight to your workspace.</p>
         </div>
       )}
