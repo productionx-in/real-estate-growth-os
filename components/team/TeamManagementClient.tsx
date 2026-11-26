@@ -1,5 +1,6 @@
 'use client'
 // components/team/TeamManagementClient.tsx
+import { UserAvatar } from '@/components/ui/user-avatar'
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -274,9 +275,7 @@ export function TeamManagementClient({
                   <tr key={m.id} className={`transition-colors ${isDeactivated ? 'opacity-60 bg-surface-muted/50' : 'hover:bg-[var(--surface-hover)]'}`}>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-brand-foreground text-[11px] font-bold ${isDeactivated ? 'bg-strong' : 'bg-[var(--brand)]'}`}>
-                          {m.name.slice(0, 2).toUpperCase()}
-                        </div>
+                        <UserAvatar name={m.name} src={m.avatar_url} size={32} className={isDeactivated ? 'opacity-50 grayscale' : undefined} />
                         <div>
                           <p className="font-semibold text-[var(--foreground)] leading-tight">
                             {m.name}
