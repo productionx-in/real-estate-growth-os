@@ -77,8 +77,8 @@ export default function HomePage() {
               <Link href="/demo" className="inline-flex items-center justify-center gap-2 px-5 py-3 text-[15px] font-semibold text-white bg-[var(--brand)] hover:bg-[var(--brand-hover)] rounded-xl shadow-sm transition-colors">
                 Book a 20-minute demo <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </Link>
-              <Link href="/features" className="inline-flex items-center justify-center px-5 py-3 text-[15px] font-semibold text-[var(--foreground)] bg-white border border-[var(--border-strong)] hover:bg-[var(--surface-hover)] rounded-xl transition-colors">
-                Explore the product
+              <Link href="/tour" className="inline-flex items-center justify-center px-5 py-3 text-[15px] font-semibold text-[var(--foreground)] bg-white border border-[var(--border-strong)] hover:bg-[var(--surface-hover)] rounded-xl transition-colors">
+                Take the 2-minute tour
               </Link>
             </div>
             <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-[var(--foreground-muted)]">

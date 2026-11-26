@@ -32,6 +32,7 @@ export const SITE_PAGES: SitePage[] = [
   { path: '/resources/channel-partner-buyer-registration', label: 'Guide: channel partner buyer registration', group: 'resources', priority: 0.6, blurb: 'A fair, auditable way to register buyers and settle conflicts.', cluster: 'channel partner CRM' },
   { path: '/resources/real-estate-lead-response-time', label: 'Guide: lead response time', group: 'resources', priority: 0.6, blurb: 'Why the first call decides the site visit, and how to measure it.', cluster: 'real estate lead management' },
   { path: '/pricing', label: 'Pricing', group: 'company', priority: 0.7, blurb: 'Packages for developers and agencies.' },
+  { path: '/tour', label: 'Product tour', group: 'company', priority: 0.7, blurb: 'Click through RE with sample data — no sign-up.' },
   { path: '/demo', label: 'Book a demo', group: 'company', priority: 0.7, blurb: 'See RE on your own projects.' },
   { path: '/leakage-audit', label: 'Free lead-leakage audit', group: 'company', priority: 0.6, blurb: 'Measure response time from your own export.' },
 ]
