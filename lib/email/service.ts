@@ -15,6 +15,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { getEmailAdapter, type EmailErrorKind } from '@/lib/email/adapter'
 import { getEmailConfig, maskAddress, sanitizeError } from '@/lib/email/config'
 import { renderTemplate, TemplateError } from '@/lib/email/templates'
+import { orgSender } from '@/lib/dal/domains'
 import { encryptCredential } from '@/lib/integrations/crypto'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -88,8 +89,11 @@ async function attempt(db: Db, row: Row, worker: string): Promise<SendResult> {
   }
   if ('skip' in rendered) return fail('skipped', rendered.skip)
 
-  // 3. Send, with the outbox key as the provider's idempotency key.
+  // 3. Send, with the outbox key as the provider's idempotency key. Buyer-facing e-mail goes from the workspace's own
+  // verified domain when it has one (20260103); otherwise from REGrow's configured sender.
+  const own = rendered.fromOwn && row.org_id ? await orgSender(db, row.org_id).catch(() => null) : null
   const result = await getEmailAdapter().sendEmail({
+    ...(own ? { from: own } : {}),
     to: row.recipient, subject: rendered.subject, html: rendered.html, text: rendered.text,
     ...(rendered.replyTo ? { replyTo: rendered.replyTo } : {}), idempotencyKey: row.idempotency_key,
   })

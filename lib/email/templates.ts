@@ -22,7 +22,8 @@ import { ownerEmailContent, type OwnerEmailKind } from '@/lib/listings/owner-ema
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = SupabaseClient<any, 'public', any>
-export interface Rendered { subject: string; html: string; text?: string; replyTo?: string }
+/** fromOwn: a buyer-facing e-mail, sent from the workspace's own verified domain when it has one (20260103). */
+export interface Rendered { subject: string; html: string; text?: string; replyTo?: string; fromOwn?: boolean }
 export type RenderResult = Rendered | { skip: string }
 export interface RenderContext { db: Db; orgId: string | null }
 type Payload = Record<string, unknown>
@@ -90,7 +91,8 @@ const RENDERERS: Record<string, (p: Payload, ctx: RenderContext) => Promise<Rend
   // A buyer's site-visit confirmation or reminder. Re-checked at delivery: a moved or cancelled visit is skipped.
   async site_visit(p, { db, orgId }) {
     const { renderSiteVisit } = await import('@/lib/jobs/site-visit-notify')
-    return renderSiteVisit(db, orgId, p)
+    const r = await renderSiteVisit(db, orgId, p)
+    return 'skip' in r ? r : { ...r, fromOwn: true }
   },
 
   'payments.alerts'(p) {
@@ -146,7 +148,7 @@ const RENDERERS: Record<string, (p: Payload, ctx: RenderContext) => Promise<Rend
     const orgName = str(org?.name) || 'the sender'
     const subject = personalise(c.subject, first).slice(0, 200)
     return {
-      subject,
+      subject, fromOwn: true,
       replyTo: typeof biz?.email === 'string' ? biz.email : undefined,
       ...renderEmail({
         preheader: subject,
@@ -175,7 +177,7 @@ const RENDERERS: Record<string, (p: Payload, ctx: RenderContext) => Promise<Rend
     const agency = str(org?.name) || 'our agency'
     const c = ownerEmailContent(kind, listingFromRow(row, true), { agent: str(agent?.full_name) || agency, agentPhone: typeof agent?.phone === 'string' ? agent.phone : null, agency })
     return {
-      subject: c.subject,
+      subject: c.subject, fromOwn: true,
       replyTo: typeof biz?.email === 'string' ? biz.email : undefined,
       ...renderEmail({ preheader: c.subject, heading: c.heading, paragraphs: c.paragraphs, reason: `You received this from ${agency} about the property you listed with them.` }),
     }

@@ -15,7 +15,7 @@ export interface SendEmailOptions {
   subject: string
   html: string
   text?: string
-  /** Overrides the configured sender. Only for tests and the provider's own checks; workflows never set it. */
+  /** Overrides the configured sender: tests, the provider's own checks, and buyer-facing e-mail from a workspace's own verified domain (lib/dal/domains.ts orgSender). */
   from?: string
   /** Where replies go. Defaults to the configured EMAIL_REPLY_TO. */
   replyTo?: string

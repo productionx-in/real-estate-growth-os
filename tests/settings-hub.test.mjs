@@ -60,10 +60,14 @@ test('profile changes only your own name and phone; password and sign-out act on
   assert.match(sec, /signOut\(\{ scope: 'others' \}\)/)
 })
 
-test('the account menu offers Settings to everyone; the integration reference moved to the Integration Centre', () => {
+test('the account menu offers Settings to everyone; Integrations shows customers a plain dashboard, not platform settings', () => {
   const header = read('components/layout/Header.tsx')
   assert.match(header, /href=\{`\/\$\{orgSlug\}\/settings`\}><Settings aria-hidden \/> Settings/)
-  assert.match(read('app/(dashboard)/[orgSlug]/integrations/page.tsx'), /<IntegrationReadinessPanel \/>/)
+  // Owner's decision (simple integrations): customers see statuses and one-click connects; the platform's setting
+  // names stay in the Platform console (app/platform/integrations).
+  const page = read('app/(dashboard)/[orgSlug]/integrations/page.tsx')
+  assert.doesNotMatch(page, /IntegrationReadinessPanel/)
+  assert.match(page, /integrationReadiness\(\)\.map\(\(r\) => \[r\.key, r\.ready\]\)/, 'yes/no only')
 })
 
 console.log(`\nSettings hub: ${passed} checks passed.`)
