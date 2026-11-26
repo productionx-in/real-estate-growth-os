@@ -1,7 +1,7 @@
 // lib/dal/leads.ts
 // Data Access Layer — server-only lead queries.
 // All queries run through the authenticated Supabase client so RLS applies.
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import type { LeadFormValues } from '@/lib/validations/lead'
 import type { LeadStatus, Json } from '@/types/database'
 
@@ -17,6 +17,24 @@ export async function getLeadById(leadId: string) {
     .eq('id', leadId)
     .single()
 
+  if (error) return null
+  return data
+}
+
+/** One lead of a workspace, read through the server. Only for pages that have already verified the workspace member
+ *  and apply their own role check (leadScopeOf / canWorkLead) before showing it: roles without direct database reads
+ *  (Viewer) see leads only this way. Scoped to the organisation, so another workspace's lead is never returned. */
+export async function getWorkspaceLead(orgId: string, leadId: string) {
+  const { data, error } = await createServiceClient()
+    .from('leads')
+    .select(`
+      *,
+      project:projects(id, name, slug),
+      assignee:profiles!leads_assigned_to_fkey(id, full_name, avatar_url)
+    `)
+    .eq('id', leadId)
+    .eq('org_id', orgId)
+    .maybeSingle()
   if (error) return null
   return data
 }
