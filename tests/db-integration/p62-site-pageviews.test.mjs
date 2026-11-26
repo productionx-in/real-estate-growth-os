@@ -48,12 +48,10 @@ async function main() {
         await q(`SET LOCAL ROLE ${role}`)
         await assert.rejects(q(`SELECT * FROM public.site_pageviews`), /permission denied/)
       } finally { await q('ROLLBACK') }
-      await q('BEGIN')
-      try {
-        await q(`SET LOCAL ROLE ${role}`)
-        await assert.rejects(q(ins('visit_id, path', `'abcdefgh12', '/'`)), /permission denied/)
-        await assert.rejects(q(`SELECT public.purge_site_pageviews()`), /permission denied/)
-      } finally { await q('ROLLBACK') }
+      for (const sql of [ins('visit_id, path', `'abcdefgh12', '/'`), `SELECT public.purge_site_pageviews()`]) {
+        await q('BEGIN')
+        try { await q(`SET LOCAL ROLE ${role}`); await assert.rejects(q(sql), /permission denied/) } finally { await q('ROLLBACK') }
+      }
     }
   })
   await q(`DELETE FROM public.site_pageviews WHERE visit_id = $1`, [visit])
