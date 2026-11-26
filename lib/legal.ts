@@ -13,11 +13,11 @@ export const LEGAL = {
   cin: null as string | null,
   /** Registered office address, as on the certificate of incorporation. */
   registeredAddress: null as string | null,
-  /** Where privacy requests and complaints go. */
-  privacyEmail: null as string | null,
+  /** Where privacy requests and complaints go. One address for everything (supplied by the owner, 26 Nov 2026). */
+  privacyEmail: 're@productionx.in' as string | null,
   /** General enquiries / sales and customer support contact points. */
-  salesEmail: null as string | null,
-  supportEmail: null as string | null,
+  salesEmail: 're@productionx.in' as string | null,
+  supportEmail: 're@productionx.in' as string | null,
   phone: null as string | null,
   /** Grievance officer (DPDP Act 2023 / IT Rules): name and email. */
   grievanceOfficer: null as { name: string; email: string } | null,

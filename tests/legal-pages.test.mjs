@@ -20,10 +20,12 @@ console.log('LEGAL PAGES')
 
 test('no company fact is assumed: unconfirmed values are null and the pages say so', () => {
   if (!L.LEGAL.confirmed) {
-    for (const k of ['legalName', 'cin', 'registeredAddress', 'privacyEmail', 'supportEmail', 'salesEmail', 'phone', 'grievanceOfficer', 'jurisdictionCity']) {
+    for (const k of ['legalName', 'cin', 'registeredAddress', 'phone', 'grievanceOfficer', 'jurisdictionCity']) {
       assert.equal(L.LEGAL[k], null, `${k} must stay null until Production X supplies it`)
     }
-    assert.ok(L.missingLegalFacts().length >= 7)
+    // Supplied by the owner: one contact address for support, sales and privacy.
+    for (const k of ['privacyEmail', 'supportEmail', 'salesEmail']) assert.equal(L.LEGAL[k], 're@productionx.in', k)
+    assert.ok(L.missingLegalFacts().length >= 4)
   }
   assert.equal(L.legalEntity(), L.LEGAL.legalName ?? 'Production X', 'the trading name is used until the registered name is confirmed')
 })

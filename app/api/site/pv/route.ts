@@ -1,6 +1,7 @@
 // app/api/site/pv/route.ts — page-view beacon for the public website (components/marketing/SiteBeacon.tsx).
 // Public and unauthenticated by design: validated (lib/site/pageview.ts), bots ignored, rate-limited per address,
-// stored without the address. Always answers 204 so the page never waits on it or learns anything from it.
+// stored without the address. Nothing personal is kept, so browsers that send privacy signals (Brave sends Global
+// Privacy Control on every request) are counted like any other — otherwise those visits would vanish. Always answers 204 so the page never waits on it or learns anything from it.
 import { NextResponse, type NextRequest } from 'next/server'
 import { parsePageview, isBot } from '@/lib/site/pageview'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -10,7 +11,7 @@ const done = () => new NextResponse(null, { status: 204 })
 
 export async function POST(request: NextRequest) {
   const ua = request.headers.get('user-agent')
-  if (isBot(ua) || request.headers.get('sec-gpc') === '1' || request.headers.get('dnt') === '1') return done()
+  if (isBot(ua)) return done()
   const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown'
   const limit = await checkDistributedRateLimit({ key: `site-pv:${ip}`, limit: 60, windowMs: 60_000 })
   if (!limit.allowed) return done()

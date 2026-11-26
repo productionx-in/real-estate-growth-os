@@ -13,7 +13,7 @@ export function vapidPublicKey(): string | null {
 function vapidConfig() {
   const publicKey = vapidPublicKey()
   const privateKey = process.env.VAPID_PRIVATE_KEY?.trim()
-  const subject = process.env.VAPID_SUBJECT?.trim() || 'mailto:alerts@productionx.in'
+  const subject = process.env.VAPID_SUBJECT?.trim() || 'mailto:re@productionx.in'
   return publicKey && privateKey ? { publicKey, privateKey, subject } : null
 }
 
