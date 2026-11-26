@@ -254,21 +254,36 @@ export async function getLeaderboard(orgId: string, window: { from: Date; to: Da
 export interface AchievementView {
   key: string; title: string; description: string; metric: AchievementMetric; threshold: number; window: 'all' | 'week' | 'month'
   xp: number; icon: string; custom: boolean; active: boolean; rewardNote: string | null
-  unlockedAt: string | null; times: number; progress: number
+  /** First unlock; times = how many windows it was won in (a weekly challenge can be won every week). */
+  unlockedAt: string | null; times: number
+  /** Towards the threshold in the current window: all time, this week, or this month (workspace time zone). */
+  progress: number
+  /** A weekly or monthly one already won in the current week or month. */
+  doneThisPeriod: boolean
 }
 
-export async function getAchievements(orgId: string, profileId: string | null): Promise<AchievementView[]> {
-  const [{ data: defs }, { data: unlocks }, totals] = await Promise.all([
+export async function getAchievements(orgId: string, profileId: string | null, now = new Date()): Promise<AchievementView[]> {
+  const tz = await orgTimezone(orgId)
+  const win = { week: periodWindow('week', now, tz), month: periodWindow('month', now, tz) }
+  const [{ data: defs }, { data: unlocks }, rows] = await Promise.all([
     db().from('achievement_defs').select('key, title, description, metric, threshold, window_kind, xp, icon, reward_note, active').eq('org_id', orgId),
     profileId ? db().from('achievement_unlocks').select('key, unlocked_at').eq('org_id', orgId).eq('profile_id', profileId).order('unlocked_at') : Promise.resolve({ data: [] }),
-    profileId ? events(orgId, null, null, profileId).then((r) => tally(r).get(profileId) ?? empty()) : Promise.resolve(empty()),
+    profileId ? events(orgId, null, null, profileId) : Promise.resolve([] as EventRow[]),
   ])
+  const within = (w: { from: Date; to: Date }) => rows.filter((r) => { const t = new Date(r.occurred_at).getTime(); return t >= w.from.getTime() && t < w.to.getTime() })
+  const totals: Record<'all' | 'week' | 'month', Totals> = {
+    all: (profileId && tally(rows).get(profileId)) || empty(),
+    week: (profileId && tally(within(win.week)).get(profileId)) || empty(),
+    month: (profileId && tally(within(win.month)).get(profileId)) || empty(),
+  }
   const own = new Map(((defs ?? []) as { key: string; title: string; description: string; metric: AchievementMetric; threshold: number | string; window_kind: 'all' | 'week' | 'month'; xp: number; icon: string; reward_note: string | null; active: boolean }[]).map((d) => [d.key, d]))
   const u = (unlocks ?? []) as { key: string; unlocked_at: string }[]
-  const view = (key: string, base: Omit<AchievementView, 'unlockedAt' | 'times' | 'progress' | 'key'>): AchievementView => {
+  const view = (key: string, base: Omit<AchievementView, 'unlockedAt' | 'times' | 'progress' | 'key' | 'doneThisPeriod'>): AchievementView => {
     const mine = u.filter((x) => x.key === key)
-    const have = (totals as Record<string, number>)[base.metric] ?? 0
-    return { key, ...base, unlockedAt: mine[0]?.unlocked_at ?? null, times: mine.length, progress: Math.min(1, have / base.threshold) }
+    const have = (totals[base.window] as Record<string, number>)[base.metric] ?? 0
+    const current = base.window === 'all' ? null : win[base.window]
+    const doneThisPeriod = !!current && mine.some((x) => { const t = new Date(x.unlocked_at).getTime(); return t >= current.from.getTime() && t < current.to.getTime() })
+    return { key, ...base, unlockedAt: mine[0]?.unlocked_at ?? null, times: mine.length, progress: doneThisPeriod ? 1 : Math.min(1, have / base.threshold), doneThisPeriod }
   }
   const out: AchievementView[] = []
   for (const b of BUILTIN_ACHIEVEMENTS) {

@@ -18,6 +18,7 @@ import { PageShell } from '@/components/layout/PageShell'
 import { Card, CardContent, EmptyState, Tilt, Input } from '@/components/ui'
 import { PerformanceTabs } from '@/components/performance/PerformanceTabs'
 import { fmtDeals } from '@/lib/sales/deal-credit'
+import { latestWinners, periodLabel, type Trophy } from '@/lib/dal/trophies'
 import { cn } from '@/lib/utils/cn'
 
 export const metadata: Metadata = { title: 'Leaderboard' }
@@ -115,6 +116,17 @@ export default async function LeaderboardPage({ params, searchParams }: { params
   const visible = managers || everyoneSees ? rows : rows.filter((r) => r.profileId === profile.id)
   const podium = managers || everyoneSees ? rows.slice(0, 3) : []
   const tzLabel = tz === 'Asia/Kolkata' ? 'India time' : tz
+  // Last finished week's and month's trophy winners (20260099), where the board is visible to this person.
+  const winners = managers || everyoneSees ? await latestWinners(org.id) : null
+  const placed = (ts: Trophy[]) => ts.filter((t) => t.scope === 'person').map((t) => `${['', 'Gold', 'Silver', 'Bronze'][t.place]} ${t.name}`).join(' · ')
+  const winnerLine = winners && (winners.week.length || winners.month.length) ? (
+    <p className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-muted">
+      <Crown className="size-3.5 text-warning" aria-hidden />
+      {winners.week.length > 0 && <span><span className="font-medium text-foreground">{periodLabel(winners.week[0])}:</span> {placed(winners.week)}</span>}
+      {winners.month.length > 0 && <span><span className="font-medium text-foreground">{periodLabel(winners.month[0])}:</span> {placed(winners.month)}</span>}
+      <Link href={`/${orgSlug}/performance/achievements`} className="font-medium text-brand hover:underline">Trophies</Link>
+    </p>
+  ) : null
 
   return (
     <PageShell title="Leaderboard" description={`Friendly competition: points for real work, ranked ${label.toLowerCase()} (${tzLabel}).`}>
@@ -159,6 +171,7 @@ export default async function LeaderboardPage({ params, searchParams }: { params
             </Card>
           )}
 
+          {winnerLine}
           {podium.length > 0 && (
             <section aria-label="Top three" className="mb-5 grid grid-cols-3 items-end gap-2 sm:gap-4">
               {[1, 0, 2].map((i) => {

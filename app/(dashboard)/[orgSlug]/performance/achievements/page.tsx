@@ -8,7 +8,10 @@ import { sellsPersonally, watchesTeam } from '@/lib/sales/structure'
 import { getSalesStructure } from '@/lib/dal/sales-structure'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { Gift } from 'lucide-react'
+import { Gift, Trophy as TrophyIcon } from 'lucide-react'
+import { latestWinners, periodLabel, trophiesFor, type Trophy } from '@/lib/dal/trophies'
+import { fmtDeals } from '@/lib/sales/deal-credit'
+import { cn } from '@/lib/utils/cn'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { getAchievements } from '@/lib/dal/performance'
 import { METRICS, canManagePerformance } from '@/lib/performance/rules'
@@ -35,14 +38,21 @@ export default async function AchievementsPage({ params }: { params: Promise<{ o
   // Team structure: each team's milestones (its current members' all-time work). A team lead sees their teams.
   const teamList = sales.teamsEnabled ? (await listTeamStructure(org.id)).filter((t) => t.isActive && (watchesTeam(role) && role !== 'team_lead' ? true : t.leader?.id === profile.id || t.members.some((m) => m.id === profile.id))) : []
   const teamAch = teamList.length ? await teamPerformance(org.id, teamList, { from: new Date(0), to: new Date() }) : null
-  const unlocked = all.filter((a) => a.unlockedAt).sort((a, b) => (b.unlockedAt ?? '').localeCompare(a.unlockedAt ?? ''))
-  const locked = all.filter((a) => !a.unlockedAt).sort((a, b) => b.progress - a.progress)
+  // Weekly challenges and monthly achievements start again each period; the rest are once only.
+  const challenges = all.filter((a) => a.window === 'week'), monthly = all.filter((a) => a.window === 'month')
+  const once = all.filter((a) => a.window === 'all')
+  const unlocked = once.filter((a) => a.unlockedAt).sort((a, b) => (b.unlockedAt ?? '').localeCompare(a.unlockedAt ?? ''))
+  const locked = once.filter((a) => !a.unlockedAt).sort((a, b) => b.progress - a.progress)
+  // Trophies: a seller's own and their teams'; a manager who does not sell sees the latest winners.
+  const myTeamIds = teamList.filter((t) => t.members.some((m) => m.id === profile.id) || t.leader?.id === profile.id).map((t) => t.id)
+  const cabinet = mine ? await trophiesFor(org.id, profile.id, myTeamIds) : null
+  const winners = mine ? null : await latestWinners(org.id)
   const criteria = (a: (typeof all)[number]) => a.metric === 'revenue'
     ? `Close ₹${a.threshold.toLocaleString('en-IN')} of bookings${WINDOW[a.window]}`
     : `${a.threshold.toLocaleString('en-IN')} ${(a.threshold === 1 ? ONE[a.metric] : METRIC_TEXT[a.metric]) ?? a.metric}${WINDOW[a.window]}`
 
   return (
-    <PageShell title="Achievements" description={mine ? `${unlocked.length} of ${all.length} unlocked. Each one comes from real work — keep going for the rest.` : 'What your team has earned. Every badge comes from real work in REGrow.'}>
+    <PageShell title="Achievements" description={mine ? `${unlocked.length} of ${once.length} badges unlocked. Each one comes from real work — keep going for the rest.` : 'What your team has earned. Every badge comes from real work in REGrow.'}>
       <PerformanceTabs orgSlug={orgSlug} current="achievements" canManage={canManagePerformance(role)} watchesTeam={watchesTeam(role)} sellsPersonally={sellsPersonally(role, sales)} />
       {team && (
         <section aria-labelledby="team-unlocks" className="surface-raised mb-8 rounded-2xl border border-default bg-surface p-5">
@@ -57,6 +67,49 @@ export default async function AchievementsPage({ params }: { params: Promise<{ o
               ))}
             </ul>
           )}
+        </section>
+      )}
+      {cabinet && (
+        <section aria-labelledby="cabinet" className="mb-8">
+          <h2 id="cabinet" className="mb-3 text-[14px] font-semibold text-foreground">Trophy cabinet</h2>
+          {cabinet.length === 0
+            ? <p className="surface-raised rounded-2xl border border-default bg-surface p-5 text-[13px] text-muted">Finish a week or a month in the top three of the leaderboard to win a trophy. They are awarded the day after it ends.</p>
+            : <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">{cabinet.map((t) => <TrophyCard key={t.id} t={t} />)}</div>}
+        </section>
+      )}
+      {winners && (winners.week.length > 0 || winners.month.length > 0) && (
+        <section aria-labelledby="winners" className="mb-8">
+          <h2 id="winners" className="mb-3 text-[14px] font-semibold text-foreground">Latest trophy winners</h2>
+          <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">{[...winners.week, ...winners.month].map((t) => <TrophyCard key={t.id} t={t} showName />)}</div>
+        </section>
+      )}
+      {challenges.length > 0 && (
+        <section aria-labelledby="challenges" className="mb-8">
+          <h2 id="challenges" className="text-[14px] font-semibold text-foreground">This week’s challenges</h2>
+          <p className="mb-3 text-[12px] text-muted">They start again every Monday{mine ? ` · ${challenges.filter((a) => a.doneThisPeriod).length} of ${challenges.length} done this week` : ''}.</p>
+          <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {challenges.map((a) => (
+              <div key={a.key}>
+                <Medal icon={a.icon} title={a.title.replace(/^Weekly challenge: /, '')} description={a.description || criteria(a)} unlocked={mine && a.doneThisPeriod} progress={mine ? a.progress : 0} xp={a.xp} times={a.times} />
+                {team && <p className="mt-1.5 text-center text-[11px] text-muted">{team.holders.get(a.key) ? `Won ${team.holders.get(a.key)} ${team.holders.get(a.key) === 1 ? 'time' : 'times'} by the team` : 'Not won yet'}</p>}
+                {a.rewardNote && <p className="mt-1.5 flex items-center justify-center gap-1 text-center text-[11px] text-muted"><Gift className="size-3" aria-hidden /> {a.rewardNote}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      {monthly.length > 0 && (
+        <section aria-labelledby="monthly" className="mb-8">
+          <h2 id="monthly" className="text-[14px] font-semibold text-foreground">This month</h2>
+          <p className="mb-3 text-[12px] text-muted">Monthly achievements start again on the 1st.</p>
+          <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {monthly.map((a) => (
+              <div key={a.key}>
+                <Medal icon={a.icon} title={a.title} description={a.description || criteria(a)} unlocked={mine && a.doneThisPeriod} progress={mine ? a.progress : 0} xp={a.xp} times={a.times} />
+                {a.rewardNote && <p className="mt-1.5 flex items-center justify-center gap-1 text-center text-[11px] text-muted"><Gift className="size-3" aria-hidden /> {a.rewardNote}</p>}
+              </div>
+            ))}
+          </div>
         </section>
       )}
       {mine && unlocked.length > 0 && (
@@ -109,5 +162,21 @@ export default async function AchievementsPage({ params }: { params: Promise<{ o
       </section>
       <p className="mt-6 text-[12px] text-subtle">Rewards beyond points are only what your workspace has written next to a badge; REGrow promises none itself.</p>
     </PageShell>
+  )
+}
+
+const PLACE = { 1: { label: 'Gold', tone: 'text-warning' }, 2: { label: 'Silver', tone: 'text-muted' }, 3: { label: 'Bronze', tone: 'text-danger' } } as const
+
+/** One trophy: place, period, and the frozen winning numbers. */
+function TrophyCard({ t, showName = false }: { t: Trophy; showName?: boolean }) {
+  const p = PLACE[t.place]
+  return (
+    <div className="surface-raised flex flex-col items-center rounded-2xl border border-default bg-surface p-4 text-center">
+      <span className={cn('grid size-12 place-items-center rounded-full bg-surface-muted', p.tone)}><TrophyIcon className="size-6" aria-hidden /></span>
+      <p className="mt-2 text-[13px] font-semibold text-foreground">{p.label}{t.scope === 'team' ? ' · team' : ''}</p>
+      <p className="text-[12px] text-muted">{periodLabel(t)}</p>
+      {(showName || t.scope === 'team') && <p className="mt-1 truncate text-[12px] font-medium text-foreground" title={t.name}>{t.name}</p>}
+      <p className="mt-1 text-[11px] text-subtle">{t.xp.toLocaleString('en-IN')} XP{t.closed ? ` · ${fmtDeals(t.closed)} deals` : ''}</p>
+    </div>
   )
 }
