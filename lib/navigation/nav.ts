@@ -7,7 +7,7 @@ import { canCreateLeads } from '@/lib/auth/permissions'
 
 export type NavKey =
   | 'home' | 'today' | 'leads' | 'visits' | 'inbox' | 'sales' | 'routing' | 'speed' | 'projects' | 'inventory'
-  | 'documents' | 'analytics' | 'integrations' | 'team' | 'settings' | 'billing' | 'audit' | 'support' | 'partners' | 'help' | 'listings' | 'campaigns' | 'performance' | 'calendar' | 'teams'
+  | 'documents' | 'analytics' | 'integrations' | 'team' | 'settings' | 'billing' | 'audit' | 'support' | 'partners' | 'help' | 'listings' | 'campaigns' | 'performance' | 'calendar' | 'teams' | 'rewards'
 
 export interface NavLink {
   key: NavKey
@@ -53,6 +53,8 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
   const team = L('team', 'Team', '/team')
   // Teams (20260097): leaders, members, projects and team comparison, for the people who run or lead teams.
   const teams = L('teams', 'Teams', '/teams')
+  // Rewards (20260100): programmes to win and rewards won, for everyone who sells; managers run them.
+  const rewards = L('rewards', 'Rewards', '/rewards')
   // Points, targets, missions, achievements and the team leaderboard (lib/performance/*), for everyone who sells.
   const performance = L('performance', 'Performance', '/performance')
   // Channel partner network: owners, admins and managers of either side (the page and API check again).
@@ -69,12 +71,12 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
     groups = [{ items: [home, ...(agency ? [listings] : []), projects, inventory, documents, analytics] }]
   } else if (role === 'sales_exec') {
     groups = [
-      { items: [home, today, L('leads', 'My leads', '/leads'), calendar, visits, inbox, performance] },
+      { items: [home, today, L('leads', 'My leads', '/leads'), calendar, visits, inbox, performance, rewards] },
       { title: 'Selling', items: [L('sales', 'Sales', '/sales'), ...(agency ? [listings] : []), inventory] },
     ]
   } else if (role === 'team_lead') {
     groups = [
-      { items: [home, today, L('leads', 'Team leads', '/leads'), calendar, visits, inbox, performance, teams] },
+      { items: [home, today, L('leads', 'Team leads', '/leads'), calendar, visits, inbox, performance, rewards, teams] },
       { title: 'Selling', items: [L('sales', 'Sales', '/sales'), ...(agency ? [listings] : []), inventory] },
     ]
   } else if (role === 'post_sales') {
@@ -84,7 +86,7 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
     ]
   } else if (orgType === 'channel_partner') {
     groups = [
-      { items: [home, today, L('leads', 'Referred leads', '/leads'), calendar, visits, inbox, listings, L('sales', 'Deals & commissions', '/sales'), partners, campaigns, performance] },
+      { items: [home, today, L('leads', 'Referred leads', '/leads'), calendar, visits, inbox, listings, L('sales', 'Deals & commissions', '/sales'), partners, campaigns, performance, rewards] },
       { title: 'Agency', items: [teams, team, ...(isAdmin(role) ? adminLinks : [])] },
     ]
   } else if (role === 'manager') {
@@ -92,14 +94,14 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
       { items: [home, today, L('leads', 'Leads', '/leads'), calendar, visits, inbox] },
       { title: 'Sales', items: [L('sales', 'Sales', '/sales'), partners, campaigns, L('routing', 'Lead routing', '/routing'), L('speed', 'Speed to lead', '/speed-to-lead')] },
       { title: 'Portfolio', items: [projects, inventory, documents] },
-      { title: 'Insights', items: [performance, teams, analytics, team] },
+      { title: 'Insights', items: [performance, rewards, teams, analytics, team] },
     ]
   } else {
     groups = [
       { items: [home, today, L('leads', 'Leads', '/leads'), calendar, visits, inbox] },
       { title: 'Sales', items: [L('sales', 'Sales & partners', '/sales'), partners, campaigns, L('routing', 'Lead routing', '/routing'), L('speed', 'Speed to lead', '/speed-to-lead')] },
       { title: 'Portfolio', items: [projects, inventory, documents] },
-      { title: 'Insights', items: [performance, teams, analytics] },
+      { title: 'Insights', items: [performance, rewards, teams, analytics] },
       { title: 'Workspace', items: [L('integrations', 'Integrations', '/integrations'), team, ...adminLinks] },
     ]
   }
