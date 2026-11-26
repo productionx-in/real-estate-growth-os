@@ -192,7 +192,7 @@ export function InventoryTable({
     <>
       <div className="border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--surface)] shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="data-table w-full text-left text-xs">
             <thead>
               <tr className="border-b border-[var(--border)] bg-[var(--surface-hover)]">
                 {renderSortHeader('Unit / Plot #', 'unit_number')}

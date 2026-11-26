@@ -7,6 +7,7 @@ import { X, Mail, Shield, Check, Copy, AlertCircle, Loader2 } from 'lucide-react
 import type { MemberRole } from '@/types/database'
 import type { SeatUsage } from '@/lib/dal/subscriptions'
 import { ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/lib/auth/permissions'
+import { ModalShell } from '@/components/ui/modal-shell'
 
 interface InviteMemberModalProps {
   isOpen: boolean
@@ -86,8 +87,7 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
   }
 
   return (
-    <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl max-w-md w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
+    <ModalShell onClose={handleReset} label="Invite a team member" size="md" className="p-6">
         <button
           type="button"
           onClick={handleReset}
@@ -239,7 +239,6 @@ export function InviteMemberModal({ isOpen, onClose, orgSlug, seatUsage }: Invit
             </div>
           </form>
         )}
-      </div>
-    </div>
+      </ModalShell>
   )
 }

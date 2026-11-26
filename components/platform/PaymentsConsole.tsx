@@ -110,7 +110,7 @@ export function PaymentsConsole({ overview, role, userId }: { overview: Payments
         </CardHeader>
         <CardContent className="overflow-x-auto">
           {overview.refunds.length === 0 ? <p className="text-[13px] text-muted">No refunds yet.</p> : (
-            <table className="w-full min-w-[720px] text-[13px]">
+            <table className="data-table w-full min-w-[720px] text-[13px]">
               <thead><tr className="text-left text-muted border-b border-default"><th className="py-2 font-medium">Requested</th><th className="font-medium">Amount</th><th className="font-medium">Reason</th><th className="font-medium">Approvals</th><th className="font-medium">Status</th><th /></tr></thead>
               <tbody>
                 {overview.refunds.map((r) => {

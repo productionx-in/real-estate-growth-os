@@ -197,7 +197,7 @@ export default async function LeaderboardPage({ params, searchParams }: { params
 
           <Card>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[680px] text-left text-[13px]">
+              <table className="data-table w-full min-w-[680px] text-left text-[13px]">
                 <thead className="text-[12px] text-muted">
                   <tr className="border-b border-default">
                     <th className="px-4 py-2.5 font-medium">Rank</th><th className="px-2 py-2.5 font-medium">Salesperson</th>

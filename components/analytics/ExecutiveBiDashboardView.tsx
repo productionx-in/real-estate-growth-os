@@ -1,144 +1,48 @@
-// components/analytics/ExecutiveBiDashboardView.tsx
+// components/analytics/ExecutiveBiDashboardView.tsx — Reports → Overview: inventory, conversion and channels at a glance,
+// all drawn with the shared chart kit (components/ui/chart.tsx), each chart switchable to a table of the same numbers.
 'use client'
 
-import React from 'react'
 import type { ExecutiveBiSummary } from '@/lib/dal/analytics'
+import { BarList, ChartFrame, StatTile } from '@/components/ui/chart'
 
 interface ExecutiveBiDashboardProps {
   analytics: ExecutiveBiSummary
   orgName: string
 }
 
+const cr = (n: number) => (n >= 1e7 ? `₹${(n / 1e7).toFixed(2)} Cr` : n >= 1e5 ? `₹${(n / 1e5).toFixed(1)} L` : `₹${Math.round(n).toLocaleString('en-IN')}`)
+const nice = (s: string) => s.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
+
 export function ExecutiveBiDashboardView({ analytics, orgName }: ExecutiveBiDashboardProps) {
-  const { funnel, salesVelocityDays, channels, inventoryAbsorption } = analytics
-
+  const { funnel, salesVelocityDays, channels, inventoryAbsorption: inv } = analytics
+  const funnelRows = funnel.map((f, i) => ({ label: f.stage, value: f.count, hint: i ? `${f.conversionRateFromPrevious}% of the step before` : undefined, tone: 1 as const }))
+  const channelRows = [...channels].sort((a, b) => b.leadCount - a.leadCount).map((c) => ({ label: nice(c.channel), value: c.leadCount, hint: `${c.bookingCount} booked · ${cr(c.bookingValue)}`, tone: 2 as const }))
+  const unitRows = [
+    { label: 'Available', value: inv.availableUnits, tone: 2 as const },
+    { label: 'On hold', value: inv.blockedUnits, tone: 3 as const },
+    { label: 'Booked', value: inv.bookedUnits, tone: 1 as const },
+    { label: 'Sold', value: inv.soldUnits, tone: 4 as const },
+  ]
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-default pb-5">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Developer Analytics & Business Intelligence
-          </h1>
-          <p className="mt-1 text-sm text-subtle">
-            Executive performance metrics, marketing attribution, conversion velocity, and inventory absorption for {orgName}.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-bg text-accent border border-accent-border">
-            Real-Time Analytics
-          </span>
-        </div>
+    <div className="space-y-6">
+      <p className="text-[13px] text-muted">📊 How {orgName} is doing, all time.</p>
+      <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile label="Enquiries" value={(funnel[0]?.count ?? 0).toLocaleString('en-IN')} hint="From every source" />
+        <StatTile label="Units booked or sold" value={`${inv.absorptionRate}%`} hint={`${inv.bookedUnits + inv.soldUnits} of ${inv.totalUnits} units`} tone={2} />
+        <StatTile label="Days from enquiry to booking" value={salesVelocityDays === null ? '—' : salesVelocityDays} hint={salesVelocityDays === null ? 'Shows after the first booking' : 'Average'} />
+        <StatTile label="Inventory value" value={cr(inv.totalInventoryValue)} hint={`${cr(inv.soldInventoryValue)} sold`} />
       </div>
-
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-surface p-5 rounded-lg border border-default shadow-xs">
-          <div className="text-xs font-medium text-subtle uppercase tracking-wider">
-            Total Inventory Value
-          </div>
-          <div className="mt-2 text-2xl font-bold text-foreground">
-            ₹{(inventoryAbsorption.totalInventoryValue / 10000000).toFixed(2)} Cr
-          </div>
-          <div className="mt-1 text-xs text-subtle">
-            Sold: ₹{(inventoryAbsorption.soldInventoryValue / 10000000).toFixed(2)} Cr
-          </div>
-        </div>
-
-        <div className="bg-surface p-5 rounded-lg border border-default shadow-xs">
-          <div className="text-xs font-medium text-subtle uppercase tracking-wider">
-            Absorption Rate
-          </div>
-          <div className="mt-2 text-2xl font-bold text-accent">
-            {inventoryAbsorption.absorptionRate}%
-          </div>
-          <div className="mt-1 text-xs text-subtle">
-            {inventoryAbsorption.bookedUnits + inventoryAbsorption.soldUnits} / {inventoryAbsorption.totalUnits} Units Booked
-          </div>
-        </div>
-
-        <div className="bg-surface p-5 rounded-lg border border-default shadow-xs">
-          <div className="text-xs font-medium text-subtle uppercase tracking-wider">
-            Sales Velocity
-          </div>
-          <div className="mt-2 text-2xl font-bold text-warning">
-            {salesVelocityDays === null ? '—' : `${salesVelocityDays} Days`}
-          </div>
-          <div className="mt-1 text-xs text-subtle">
-            {salesVelocityDays === null ? 'No bookings yet to measure' : 'Avg lead enquiry to booking'}
-          </div>
-        </div>
-
-        <div className="bg-surface p-5 rounded-lg border border-default shadow-xs">
-          <div className="text-xs font-medium text-subtle uppercase tracking-wider">
-            Total Enquiries
-          </div>
-          <div className="mt-2 text-2xl font-bold text-success">
-            {funnel[0]?.count || 0}
-          </div>
-          <div className="mt-1 text-xs text-subtle">
-            Across Meta, Google, Portals & CPs
-          </div>
-        </div>
-      </div>
-
-      {/* Funnel & Absorption Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Sales Conversion Funnel */}
-        <div className="bg-surface p-6 rounded-lg border border-default shadow-xs space-y-4">
-          <h2 className="text-base font-semibold text-foreground">
-            Sales Conversion Funnel
-          </h2>
-          <div className="space-y-3">
-            {funnel.map((item, idx) => (
-              <div key={idx} className="space-y-1">
-                <div className="flex justify-between text-xs font-medium text-muted">
-                  <span>{item.stage}</span>
-                  <span>
-                    {item.count} ({item.conversionRateFromPrevious}% step conv)
-                  </span>
-                </div>
-                <div className="w-full bg-surface-hover rounded-full h-3 overflow-hidden">
-                  <div
-                    className="bg-accent h-3 rounded-full transition-all"
-                    style={{
-                      width: `${Math.max(5, (item.count / (funnel[0]?.count || 1)) * 100)}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Marketing Channel Breakdown */}
-        <div className="bg-surface p-6 rounded-lg border border-default shadow-xs space-y-4">
-          <h2 className="text-base font-semibold text-foreground">
-            Channel Sourcing & Attribution
-          </h2>
-          <div className="divide-y divide-default max-h-72 overflow-y-auto">
-            {channels.length === 0 ? (
-              <p className="text-xs text-subtle italic py-4">No channel data recorded yet</p>
-            ) : (
-              channels.map((ch, idx) => (
-                <div key={idx} className="py-2.5 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-semibold text-foreground capitalize">{ch.channel.replace(/_/g, ' ')}</span>
-                    <span className="text-subtle ml-2">{ch.leadCount} leads</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-medium text-foreground">
-                      ₹{(ch.bookingValue / 100000).toFixed(1)} L
-                    </span>
-                    <span className="text-success ml-2 font-medium">
-                      ({ch.bookingCount} bookings)
-                    </span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ChartFrame title="Conversion funnel" description="How many leads reach each step." rows={funnelRows} valueLabel="Leads">
+          <BarList rows={funnelRows} max={funnel[0]?.count} empty="No leads yet." />
+        </ChartFrame>
+        <ChartFrame title="Where leads come from" description="Leads by source, with bookings and their value." rows={channelRows} valueLabel="Leads">
+          <BarList rows={channelRows} empty="No sources recorded yet." />
+        </ChartFrame>
+        <ChartFrame title="Inventory" description="Units by status, across all projects." rows={unitRows} valueLabel="Units"
+          legend={unitRows.map((r) => ({ label: r.label, tone: r.tone }))} className="lg:col-span-2">
+          <BarList rows={unitRows} max={inv.totalUnits} empty="No units yet." />
+        </ChartFrame>
       </div>
     </div>
   )

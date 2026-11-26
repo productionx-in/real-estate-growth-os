@@ -25,7 +25,7 @@ function History({ rows, side }: { rows: UnitRequestView[]; side: 'developer' | 
   if (!rows.length) return null
   return (
     <div className="overflow-x-auto rounded-lg border border-default bg-surface">
-      <table className="w-full min-w-[620px] text-left text-[13px]">
+      <table className="data-table w-full min-w-[620px] text-left text-[13px]">
         <thead><tr className="border-b border-default text-[12px] text-muted"><th className="px-3 py-2 font-medium">Buyer</th><th className="px-3 py-2 font-medium">{side === 'developer' ? 'Agency' : 'Developer'}</th><th className="px-3 py-2 font-medium">Unit</th><th className="px-3 py-2 font-medium">Status</th><th className="px-3 py-2 font-medium">Held until / reason</th></tr></thead>
         <tbody>
           {rows.map((r) => (

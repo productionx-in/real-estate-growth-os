@@ -13,6 +13,7 @@ import {
   Check,
 } from 'lucide-react'
 import type { IntegrationConnectionRecord } from '@/lib/integrations/types'
+import { ModalShell } from '@/components/ui/modal-shell'
 
 interface ProjectOption {
   id: string
@@ -109,8 +110,7 @@ export function PortalIntegrationModal({
   }
 
   return (
-    <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
-      <div className="bg-surface rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-default">
+    <ModalShell onClose={onClose} label="Connect a property portal" size="lg" className="flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-default bg-surface-muted/50">
           <div className="flex items-center space-x-3">
@@ -294,7 +294,6 @@ export function PortalIntegrationModal({
             Close
           </button>
         </div>
-      </div>
-    </div>
+      </ModalShell>
   )
 }

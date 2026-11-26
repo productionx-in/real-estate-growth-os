@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import type { IntegrationConnectionRecord } from '@/lib/integrations/types'
 import { STANDARD_REAL_ESTATE_TEMPLATES } from '@/lib/integrations/whatsapp/templates'
+import { ModalShell } from '@/components/ui/modal-shell'
 
 interface ProjectOption {
   id: string
@@ -143,8 +144,7 @@ export function WhatsAppWizardModal({
   }
 
   return (
-    <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
-      <div className="bg-surface rounded-2xl shadow-2xl border border-default w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+    <ModalShell onClose={onClose} label="Connect WhatsApp" size="xl" className="overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-6 py-5 border-b border-default flex items-center justify-between bg-surface-muted/50">
           <div className="flex items-center gap-3">
@@ -482,7 +482,6 @@ export function WhatsAppWizardModal({
             Close
           </button>
         </div>
-      </div>
-    </div>
+      </ModalShell>
   )
 }

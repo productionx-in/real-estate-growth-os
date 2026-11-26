@@ -182,7 +182,7 @@ export function TeamManagementClient({
             </p>
           </div>
 
-          <table className="w-full text-[13px]">
+          <table className="data-table w-full text-[13px]">
             <thead>
               <tr className="border-b border-[var(--border)] bg-[var(--surface-hover)] text-[11px] uppercase tracking-wide text-[var(--foreground-muted)]">
                 <th className="text-left font-medium px-5 py-2.5">Invited Email</th>
@@ -252,7 +252,7 @@ export function TeamManagementClient({
         {notice && <div className={`border-b border-default px-5 py-2.5 text-[12px] ${notice.tone === 'success' ? 'text-success' : 'text-danger'}`} role="status">{notice.text}</div>}
 
         {shown.length > 0 ? (
-          <table className="w-full text-[13px]">
+          <table className="data-table w-full text-[13px]">
             <thead>
               <tr className="border-b border-[var(--border)] bg-[var(--surface-hover)] text-[11px] uppercase tracking-wide text-[var(--foreground-muted)]">
                 <th className="text-left font-medium px-5 py-3">Member</th>

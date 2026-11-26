@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Select } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import { X, UserX, AlertTriangle, Loader2 } from 'lucide-react'
+import { ModalShell } from '@/components/ui/modal-shell'
 
 interface ActiveMemberOption {
   profileId: string
@@ -72,8 +73,7 @@ export function DeactivateMemberModal({
   }
 
   return (
-    <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl max-w-md w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
+    <ModalShell onClose={onClose} label="Deactivate member" size="md" className="p-6">
         <button
           type="button"
           onClick={onClose}
@@ -177,7 +177,6 @@ export function DeactivateMemberModal({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </ModalShell>
   )
 }

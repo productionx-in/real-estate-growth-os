@@ -62,7 +62,7 @@ export function TeamTargets({ orgId, month, people }: { orgId: string; month: st
         <p className="p-6 text-center text-[13px] text-muted">No salespeople yet. Targets are for managers, team leads and sales executives.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-[13px]">
+          <table className="data-table w-full min-w-[720px] text-[13px]">
             <thead className="text-left text-[11px] uppercase tracking-wide text-muted">
               <tr className="border-b border-default"><th className="px-5 py-2.5 font-medium">Person</th><th className="px-5 py-2.5 font-medium">Site visits done</th><th className="px-5 py-2.5 font-medium">Bookings</th><th className="px-5 py-2.5 font-medium">Booking value</th><th className="px-5 py-2.5" /></tr>
             </thead>

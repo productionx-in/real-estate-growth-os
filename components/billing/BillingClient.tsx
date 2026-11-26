@@ -239,7 +239,7 @@ export function BillingClient({ orgId, orgSlug, orgName, overview, payOnline }: 
           <p className="surface-raised rounded-2xl border border-dashed border-default bg-surface p-6 text-center text-[13px] text-muted">No invoices yet.</p>
         ) : (
           <div className="surface-raised overflow-x-auto rounded-2xl border border-default bg-surface">
-            <table className="w-full text-[13px]">
+            <table className="data-table w-full text-[13px]">
               <thead><tr className="border-b border-default text-left text-[12px] text-muted">
                 <th className="px-4 py-2.5 font-medium">Invoice</th><th className="px-4 py-2.5 font-medium">For</th>
                 <th className="px-4 py-2.5 font-medium">Date</th><th className="px-4 py-2.5 text-right font-medium">Total (incl. GST)</th>

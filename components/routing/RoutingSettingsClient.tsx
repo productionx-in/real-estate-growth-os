@@ -244,7 +244,7 @@ export function RoutingSettingsClient({ orgId, orgSlug, data, loadError }: {
           <p className="text-[12px] text-[var(--foreground-muted)]">Nothing routed by rules yet.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-[12px]">
+            <table className="data-table w-full text-[12px]">
               <thead>
                 <tr className="text-left text-[var(--foreground-muted)] border-b border-[var(--border)]">
                   <th className="py-2 pr-3 font-medium">When</th>
@@ -341,7 +341,7 @@ function TeamCard({ team, orgId, members, busy, run, q }: {
       {team.team_members.length === 0 ? (
         <p className="px-3 py-3 text-[12px] text-[var(--foreground-muted)]">No members. Add salespeople below.</p>
       ) : (
-        <table className="w-full text-[12px]">
+        <table className="data-table w-full text-[12px]">
           <thead>
             <tr className="text-left text-[var(--foreground-muted)]">
               <th className="px-3 py-2 font-medium">Member</th>

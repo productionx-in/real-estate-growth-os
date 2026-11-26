@@ -211,7 +211,7 @@ export default async function MyDashboardPage({ searchParams }: PageProps) {
               View all →
             </Link>
           </div>
-          <table className="w-full text-[13px]">
+          <table className="data-table w-full text-[13px]">
             <thead>
               <tr className="border-b border-[var(--border)] bg-[var(--surface-hover)]">
                 <th className="text-left px-4 py-2.5 font-medium text-[var(--foreground-muted)]">Lead</th>

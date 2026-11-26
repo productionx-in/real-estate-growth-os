@@ -91,6 +91,12 @@
   --danger-bg: var(--red-50);
   --danger-foreground: var(--gray-0);
   --accent: var(--violet-700);
+  /* Chart series (components/ui/chart.tsx): distinct in hue and lightness, 3:1+ against the surface. */
+  --chart-1: #2563eb;
+  --chart-2: #059669;
+  --chart-3: #d97706;
+  --chart-4: #7c3aed;
+  --chart-5: #e11d48;
   --accent-bg: var(--violet-50);
   --accent-border: var(--violet-200);
   --accent-foreground: var(--gray-0);
@@ -209,6 +215,11 @@
   --danger-bg: rgb(248 113 113 / 0.12);
   --danger-foreground: var(--gray-950);
   --accent: var(--violet-300);
+  --chart-1: #60a5fa;
+  --chart-2: #34d399;
+  --chart-3: #fbbf24;
+  --chart-4: #a78bfa;
+  --chart-5: #fb7185;
   --accent-bg: rgb(167 139 250 / 0.14);
   --accent-border: rgb(167 139 250 / 0.32);
   --accent-foreground: var(--gray-950);
@@ -532,6 +543,19 @@ svg[data-animated] .rio-wing { transform-box: fill-box; transform-origin: 10% 20
 .medal-lit { animation: medal-glow 2.8s ease-in-out infinite; }
 @keyframes bar-rise { from { transform: scaleY(0); } to { transform: none; } }
 .stagger-bar { animation: bar-rise var(--duration-slow) var(--ease-out) both; }
+@keyframes bar-grow { from { transform: scaleX(0); } to { transform: none; } }
+.stagger-bar-x { animation: bar-grow var(--duration-slow) var(--ease-out) both; }
+
+/* The one table design (components/ui/table.tsx). Applied to every data table; alignment and padding stay with each
+   cell. Header: a soft band in muted small type; rows: quiet dividers and a hover tint; numbers line up. */
+.data-table { font-size: 13px; border-collapse: separate; border-spacing: 0; }
+.data-table > thead > tr > th { background: var(--surface-muted); color: var(--foreground-muted); font-size: 12px; font-weight: 500;
+  letter-spacing: 0; text-transform: none; white-space: nowrap; border-bottom: 1px solid var(--border); vertical-align: bottom; }
+.data-table > tbody > tr > td { border-bottom: 1px solid var(--border); vertical-align: middle; }
+.data-table > tbody > tr:last-child > td { border-bottom: 0; }
+.data-table > tbody > tr { transition: background-color var(--duration-fast, 120ms) var(--ease-out); }
+.data-table > tbody > tr:hover { background: var(--surface-hover); }
+.data-table .num, .data-table td.tabular-nums { font-variant-numeric: tabular-nums; }
 @keyframes podium-rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 .podium-step { animation: podium-rise 520ms var(--ease-spring) both; }
 

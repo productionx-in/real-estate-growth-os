@@ -285,7 +285,7 @@ function SharedProjectsList({ p, orgId }: { p: PartnershipView; orgId: string })
                 <p className="text-[13px] text-muted">No units listed.</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-[13px]">
+                  <table className="data-table w-full text-left text-[13px]">
                     <thead className="text-[12px] text-subtle">
                       <tr><th className="py-1 pr-3 font-medium">Unit</th><th className="py-1 pr-3 font-medium">Configuration</th><th className="py-1 pr-3 font-medium">Status</th>{s.visibility === 'availability_and_price' && <th className="py-1 font-medium">Price</th>}</tr>
                     </thead>
@@ -362,7 +362,7 @@ function DeveloperQueue({ orgId, rows, orgSlug }: { orgId: string; rows: Develop
       ))}
       {rest.length > 0 && (
         <div className="overflow-x-auto rounded-lg border border-default bg-surface">
-          <table className="w-full text-left text-[13px]">
+          <table className="data-table w-full text-left text-[13px]">
             <thead className="text-[12px] text-subtle"><tr>
               <th className="px-3 py-2 font-medium">Buyer</th><th className="px-3 py-2 font-medium">Agency</th><th className="px-3 py-2 font-medium">Project</th>
               <th className="px-3 py-2 font-medium">Status</th><th className="px-3 py-2 font-medium">Protected until</th>
@@ -393,7 +393,7 @@ function AgencyRegistrations({ rows, orgSlug }: { rows: AgencyRegistrationView[]
         <EmptyState title="No registrations yet" description="Open one of your leads and choose “Register with developer” to register the buyer for a shared project." />
       ) : (
         <div className="overflow-x-auto rounded-lg border border-default bg-surface">
-          <table className="w-full text-left text-[13px]">
+          <table className="data-table w-full text-left text-[13px]">
             <thead className="text-[12px] text-subtle"><tr>
               <th className="px-3 py-2 font-medium">Buyer</th><th className="px-3 py-2 font-medium">Developer</th><th className="px-3 py-2 font-medium">Project</th>
               <th className="px-3 py-2 font-medium">Status</th><th className="px-3 py-2 font-medium">Protected until</th>

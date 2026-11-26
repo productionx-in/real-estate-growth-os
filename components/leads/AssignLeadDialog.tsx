@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { X, UserCircle, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { ASSIGNABLE_ROLES } from '@/lib/auth/permissions'
+import { ModalShell } from '@/components/ui/modal-shell'
 
 interface TeamMember {
   profileId: string
@@ -100,21 +101,9 @@ export function AssignLeadDialog({
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className="modal-backdrop fixed inset-0 bg-overlay backdrop-blur-[1px] z-40"
-        onClick={onClose}
-        aria-hidden="true"
-      />
 
       {/* Dialog */}
-      <div
-        className="modal-host fixed inset-0 z-50 flex items-center justify-center p-4"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="assign-dialog-title"
-      >
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-xl w-full max-w-sm">
+      <ModalShell onClose={onClose} label="Assign lead" size="sm">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
             <div>
@@ -229,8 +218,7 @@ export function AssignLeadDialog({
               {isPending ? 'Assigning…' : 'Assign'}
             </button>
           </div>
-        </div>
-      </div>
+        </ModalShell>
     </>
   )
 }

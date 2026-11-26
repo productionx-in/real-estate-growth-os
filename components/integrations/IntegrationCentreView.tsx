@@ -259,7 +259,7 @@ export function IntegrationCentreView({
         </div>
 
         <div className="surface-raised bg-surface border border-default rounded-2xl overflow-hidden">
-          <table className="w-full text-left text-[12px]">
+          <table className="data-table w-full text-left text-[12px]">
             <thead className="bg-surface-muted/80 border-b border-default text-muted font-semibold">
               <tr>
                 <th className="py-3 px-5">Lead Form / Identifier</th>

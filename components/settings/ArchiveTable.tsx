@@ -34,7 +34,7 @@ export function ArchiveTable({ orgId, orgSlug, leads}: { orgId: string; orgSlug:
     <div className="space-y-3">
       {msg && <Alert tone={msg.tone}>{msg.text} {msg.href && <a href={msg.href} className="font-medium underline">Open the lead</a>}</Alert>}
       <div className="surface-raised overflow-x-auto rounded-2xl border border-default bg-surface">
-        <table className="w-full min-w-[640px] text-[13px]">
+        <table className="data-table w-full min-w-[640px] text-[13px]">
           <thead className="bg-surface-muted text-left text-[11px] font-semibold uppercase tracking-wide text-subtle">
             <tr><th className="px-4 py-2.5">Lead</th><th className="px-4 py-2.5">Deleted</th><th className="px-4 py-2.5">Erased in</th><th className="px-4 py-2.5 text-right">Action</th></tr>
           </thead>

@@ -95,7 +95,7 @@ function TargetsSection({ orgId, targets, people, teams, history, onSaved }: { o
         {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
         {targets.length === 0 ? <p className="text-[13px] text-muted">No targets yet.</p> : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-[13px]">
+            <table className="data-table w-full min-w-[640px] text-left text-[13px]">
               <thead className="text-[12px] text-muted"><tr className="border-b border-default"><th className="py-2 font-medium">For</th><th className="py-2 font-medium">Activity</th><th className="py-2 font-medium">Period</th><th className="py-2 font-medium">Dates</th><th className="py-2 text-right font-medium">Target</th><th className="py-2" /></tr></thead>
               <tbody className="divide-y divide-[var(--border)]">
                 {targets.map((t) => (

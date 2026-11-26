@@ -8,6 +8,7 @@ import { Alert, Button, Field, Input, Select } from '@/components/ui'
 import { validateImportRows, type ValidationSummary } from '@/lib/import/validator'
 import { MAX_QUICK_ADD, buildRows, defaultSpec, generateUnits, previewNumbers, type NumberingSpec, type SharedDetails } from '@/lib/inventory/quick-add'
 import type { ProjectCategory } from '@/types/database'
+import { ModalShell } from '@/components/ui/modal-shell'
 
 const FACINGS = ['East', 'West', 'North', 'South', 'North-East', 'North-West', 'South-East', 'South-West']
 const UNITS = [['sqft', 'sq ft'], ['sqyd', 'sq yd'], ['acres', 'acres'], ['guntas', 'guntas'], ['cents', 'cents']] as const
@@ -73,9 +74,7 @@ export function QuickAddUnitsModal({ projectId, projectCategory, onClose, onSucc
   const ready = check ? check.validRowsCount : generated.units.length
 
   return (
-    <div className="modal-host fixed inset-0 z-50 flex items-end justify-center bg-overlay p-0 sm:items-center sm:p-4" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-labelledby="quick-add-title" onClick={(e) => e.stopPropagation()}
-        className="max-h-[92dvh] w-full max-w-2xl overflow-y-auto rounded-t-2xl bg-surface shadow-xl sm:rounded-2xl">
+    <ModalShell onClose={onClose} label="Quick add units" size="lg" className="overflow-y-auto">
         <div className="sticky top-0 flex items-start justify-between gap-3 border-b border-default bg-surface px-5 py-4">
           <div>
             <h2 id="quick-add-title" className="flex items-center gap-2 text-[16px] font-semibold"><Layers aria-hidden className="size-4 text-brand" /> Add many {kind.many}</h2>
@@ -196,7 +195,6 @@ export function QuickAddUnitsModal({ projectId, projectCategory, onClose, onSucc
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </ModalShell>
   )
 }

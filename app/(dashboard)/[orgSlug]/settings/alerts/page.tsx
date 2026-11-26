@@ -37,7 +37,7 @@ export default async function AlertDefaultsPage({ params }: { params: Promise<{ 
           <p className="text-[13px] text-muted">No lead alerts yet. They appear here as leads arrive.</p>
         ) : (
           <div className="-mx-1 overflow-x-auto">
-            <table className="w-full min-w-[560px] text-left text-[13px]">
+            <table className="data-table w-full min-w-[560px] text-left text-[13px]">
               <thead className="text-[12px] text-muted">
                 <tr><th className="px-1 py-2 font-medium">When</th><th className="px-1 py-2 font-medium">Alert</th><th className="px-1 py-2 font-medium">To</th><th className="px-1 py-2 font-medium">Device alert</th><th className="px-1 py-2 font-medium">Seen</th></tr>
               </thead>

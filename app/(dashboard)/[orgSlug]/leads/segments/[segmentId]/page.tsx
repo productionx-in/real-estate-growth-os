@@ -74,7 +74,7 @@ export default async function SegmentPage({ params }: { params: Promise<{ orgSlu
             description={dynamicSeg ? 'Leads join on their own as soon as they match.' : scoped ? 'None of the leads in this list are yours.' : 'Add leads from their pages.'} /></Card>
         ) : (
           <div className="surface-raised overflow-x-auto rounded-2xl border border-default bg-surface">
-            <table className="w-full min-w-[640px] text-[13px]">
+            <table className="data-table w-full min-w-[640px] text-[13px]">
               <thead className="bg-surface-muted text-left text-[12px] text-muted">
                 <tr><th className="px-3 py-2 font-medium">Lead</th><th className="px-3 py-2 font-medium">Stage</th><th className="px-3 py-2 font-medium">Source</th><th className="px-3 py-2 font-medium">Project</th><th className="px-3 py-2 font-medium">Owner</th><th className="px-3 py-2 font-medium">Added</th>{manage && !dynamicSeg && <th className="px-3 py-2"><span className="sr-only">Actions</span></th>}</tr>
               </thead>

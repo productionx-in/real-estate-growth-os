@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { FacebookIcon } from '@/components/icons/FacebookIcon'
 import type { MetaPageAsset, MetaLeadFormAsset } from '@/lib/integrations/types'
+import { ModalShell } from '@/components/ui/modal-shell'
 
 interface ProjectOption {
   id: string
@@ -223,8 +224,7 @@ export function MetaConnectWizardModal({
   }
 
   return (
-    <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <ModalShell onClose={onClose} label="Connect Facebook lead forms" size="lg" className="flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-surface-muted/50">
           <div className="flex items-center gap-2.5">
@@ -741,8 +741,7 @@ export function MetaConnectWizardModal({
             </button>
           )}
         </div>
-      </div>
-    </div>
+      </ModalShell>
   )
 }
 

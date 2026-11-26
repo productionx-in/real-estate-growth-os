@@ -31,6 +31,7 @@ import {
   type HierarchyNodeType,
 } from '@/lib/validations/hierarchy'
 import type { HierarchyNodeWithStats, HierarchyTreeResult } from '@/lib/dal/hierarchy'
+import { ModalShell } from '@/components/ui/modal-shell'
 
 interface HierarchyManagerProps {
   projectId: string
@@ -665,8 +666,7 @@ export function HierarchyManager({
 
       {/* MODAL: Add / Edit Hierarchy Node */}
       {isModalOpen && (
-        <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
-          <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <ModalShell onClose={() => setIsModalOpen(false)} label="Project structure" size="md" className="overflow-hidden">
             {/* Modal Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)] bg-[var(--surface-muted)]">
               <div>
@@ -811,14 +811,12 @@ export function HierarchyManager({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+          </ModalShell>
       )}
 
       {/* CONFIRMATION DIALOG: Safe Delete Node */}
       {deleteConfirmNode && (
-        <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
-          <div className="w-full max-w-sm bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-xl overflow-hidden p-5 space-y-4">
+        <ModalShell onClose={() => setDeleteConfirmNode(null)} label="Delete from project structure" size="sm" className="overflow-hidden p-5 space-y-4">
             <div className="w-10 h-10 rounded-full bg-danger-bg text-danger flex items-center justify-center mx-auto">
               <Trash2 className="w-5 h-5" />
             </div>
@@ -857,8 +855,7 @@ export function HierarchyManager({
                 Delete Node
               </button>
             </div>
-          </div>
-        </div>
+          </ModalShell>
       )}
     </div>
   )
