@@ -104,7 +104,7 @@ export function WhatsAppEmbeddedSignup({ orgId, connected, canManage, full = fal
 
   if (!canManage) return null
   if (!config?.available) {
-    return <p className="text-[11px] text-subtle">Connecting your own WhatsApp number opens once REGrow’s Meta app is approved.</p>
+    return <p className="text-[11px] text-subtle">🕒 Adding a number opens soon — REGrow is finishing the WhatsApp setup.</p>
   }
   return (
     <>

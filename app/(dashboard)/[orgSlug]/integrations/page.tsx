@@ -6,9 +6,10 @@ import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { getProjectsByOrg } from '@/lib/dal/projects'
 import { getIntegrationConnections, getProjectMappings } from '@/lib/dal/integrations'
 import { IntegrationCentreView } from '@/components/integrations/IntegrationCentreView'
-import { IntegrationReadinessPanel } from '@/components/integrations/IntegrationReadinessPanel'
+import { integrationReadiness } from '@/lib/integrations/readiness'
+import { listDomains } from '@/lib/dal/domains'
 
-export const metadata: Metadata = { title: 'Integration Centre' }
+export const metadata: Metadata = { title: 'Integrations' }
 export const dynamic = 'force-dynamic'
 
 interface PageProps {
@@ -24,11 +25,15 @@ export default async function IntegrationsPage({ params }: PageProps) {
     redirect(`/${orgSlug}`)
   }
 
-  const [connectionsRes, mappingsRes, rawProjects] = await Promise.all([
+  const [connectionsRes, mappingsRes, rawProjects, domains] = await Promise.all([
     getIntegrationConnections(org.id),
     getProjectMappings(org.id),
     getProjectsByOrg(org.id),
+    listDomains(org.id).catch(() => []),
   ])
+  // Yes/no only: never a setting's name or value reaches the page.
+  const readiness = Object.fromEntries(integrationReadiness().map((r) => [r.key, r.ready]))
+  const ready = { meta_lead_ads: !!readiness.meta_lead_ads, whatsapp_cloud: !!readiness.whatsapp_cloud, google_ads: !!readiness.google_ads }
 
   const schemaAvailable = connectionsRes.schemaAvailable && mappingsRes.schemaAvailable
   const schemaError = connectionsRes.error || mappingsRes.error
@@ -55,8 +60,8 @@ export default async function IntegrationsPage({ params }: PageProps) {
 
   return (
     <PageShell
-      title="Integration Centre"
-      description="Connect your marketing channels, Meta Lead Ads accounts, and configure automated lead routing to projects."
+      title="Integrations"
+      description="Connect Facebook, WhatsApp, your website, e-mail and portals in a few clicks. New leads start arriving on their own."
     >
       <IntegrationCentreView
         org={{
@@ -70,9 +75,9 @@ export default async function IntegrationsPage({ params }: PageProps) {
         canManage={canManage}
         schemaAvailable={schemaAvailable}
         schemaError={schemaError}
+        ready={ready}
+        domains={domains}
       />
-      {/* Moved here from Settings: how each lead source connects (reference for admins). */}
-      <div className="mt-6"><IntegrationReadinessPanel /></div>
     </PageShell>
   )
 }
