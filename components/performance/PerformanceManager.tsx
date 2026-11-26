@@ -218,6 +218,21 @@ function SettingsSection({ orgId, initial, onSaved }: { orgId: string; initial: 
             ))}
           </div>
         </div>
+
+        <div>
+          <p className="mb-2 text-[13px] font-semibold text-foreground">Activity feed</p>
+          <p className="mb-2 text-[12px] text-muted">Bookings, achievements, targets reached, trophies and rewards as they happen. Customer names are never shown.</p>
+          <div className="flex flex-wrap items-center gap-4 text-[13px]">
+            <label className="flex items-center gap-2"><Switch on={s.feed.enabled} label="Show the activity feed" onChange={(v) => setS({ ...s, feed: { ...s.feed, enabled: v } })} /> Show the feed</label>
+            <label className="flex items-center gap-2">Who sees it
+              <Select className="h-9 w-auto" value={s.feed.visibleTo} disabled={!s.feed.enabled} onChange={(e) => setS({ ...s, feed: { ...s.feed, visibleTo: e.target.value as 'everyone' | 'managers' } })}>
+                <option value="everyone">Everyone who sells</option><option value="managers">Owners, admins and managers only</option>
+              </Select>
+            </label>
+            <label className="flex items-center gap-2"><Switch on={s.feed.showAmounts} label="Show booking values to colleagues" onChange={(v) => setS({ ...s, feed: { ...s.feed, showAmounts: v } })} /> Booking values</label>
+            <label className="flex items-center gap-2"><Switch on={s.feed.reactions} label="Allow reactions" onChange={(v) => setS({ ...s, feed: { ...s.feed, reactions: v } })} /> Reactions</label>
+          </div>
+        </div>
         {msg && <Alert tone={msg.tone}>{msg.text}</Alert>}
         <Button onClick={save} loading={busy}>Save points, levels and missions</Button>
       </CardContent>
