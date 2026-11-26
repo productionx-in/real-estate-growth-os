@@ -1,0 +1,76 @@
+# Weekly encrypted backup of the production database (free-plan substitute for Supabase's managed backups).
+# Saves roles, schema and data as SQL with the Supabase CLI, encrypts them with BACKUP_PASSPHRASE (AES-256, gpg),
+# and keeps the encrypted file as a workflow artifact for 30 days. Restore steps: docs/operations/BACKUP_RECOVERY.md.
+# Read-only against production. Needs two repository secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL     — Supabase → Connect → Session pooler connection string (port 5432, with the DB password)
+#   BACKUP_PASSPHRASE   — a long random passphrase; keep a copy in your password manager (without it, no restore)
+name: Database backup
+
+on:
+  schedule:
+    - cron: '37 21 * * 0' # Sundays 21:37 UTC = Mondays 03:07 IST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - name: Check secrets
+        id: ready
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::notice::Backup skipped: add the SUPABASE_DB_URL and BACKUP_PASSPHRASE repository secrets to turn it on."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Supabase CLI
+        if: steps.ready.outputs.ok == 'true'
+        uses: supabase/setup-cli@v3
+        with:
+          version: 2.122.1
+
+      - name: Dump roles, schema and data
+        if: steps.ready.outputs.ok == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p backup
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/roles.sql --role-only
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/data.sql --data-only --use-copy
+          # Sanity checks: a dump that lost the core tables is a failed backup, not a quiet success.
+          grep -q 'CREATE TABLE.*"leads_all"\|CREATE TABLE.*leads_all' backup/schema.sql
+          grep -q 'COPY "public"."organisations"\|COPY public.organisations' backup/data.sql
+          ls -l backup
+
+      - name: Encrypt
+        if: steps.ready.outputs.ok == 'true'
+        run: |
+          set -euo pipefail
+          STAMP=$(date -u +%Y%m%d-%H%M)
+          echo "STAMP=$STAMP" >> "$GITHUB_ENV"
+          tar -czf - -C backup . | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 3 \
+            --symmetric --cipher-algo AES256 -o "re-db-$STAMP.tar.gz.gpg" 3<<<"$BACKUP_PASSPHRASE"
+          rm -rf backup
+          ls -l "re-db-$STAMP.tar.gz.gpg"
+
+      - name: Keep encrypted backup (30 days)
+        if: steps.ready.outputs.ok == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: re-db-${{ env.STAMP }}
+          path: re-db-${{ env.STAMP }}.tar.gz.gpg
+          retention-days: 30
+          if-no-files-found: error

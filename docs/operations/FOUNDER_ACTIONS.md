@@ -24,6 +24,8 @@ The production address is **https://re.productionx.in** (live). URLs below use i
       `https://re.productionx.in/**` (keep the old address too until nobody uses it).
 - [x] Contact address: re@productionx.in (support, sales and privacy; shown on Contact, Privacy and the chat assistant).
 - [ ] Verify productionx.in as the sending domain in Resend (section 5); replies go to re@productionx.in.
+- [ ] Weekly database backup: add GitHub secrets `SUPABASE_DB_URL` (Session pooler string) and `BACKUP_PASSPHRASE`,
+      then run Actions → Database backup once (see `BACKUP_RECOVERY.md`).
 - [ ] Confirm every *required* row in `ENVIRONMENT.md` (Supabase URL and keys, etc.) is set for Production.
 
 ## 2. Meta Lead Ads (Facebook & Instagram)

@@ -16,6 +16,45 @@ the automation account. Check in Supabase → Database → Backups:
 
 Write the answers here when confirmed.
 
+## Weekly backup on the free plan (GitHub Actions)
+
+Until the Supabase Pro plan (daily managed backups), `.github/workflows/db-backup.yml` saves the production database
+every Monday 03:07 IST, and on demand (GitHub → Actions → Database backup → Run workflow). It is read-only against
+production. Each run stores one encrypted file, `re-db-YYYYMMDD-HHMM.tar.gz.gpg`, kept for 30 days as a workflow
+artifact. It contains roles, schema and data (including sign-in accounts); it does **not** contain Storage files.
+
+**Turn it on (owner, once):** GitHub → repository → Settings → Secrets and variables → Actions → New repository secret:
+
+| Secret | Value |
+|---|---|
+| `SUPABASE_DB_URL` | Supabase → Connect → **Session pooler** connection string (port 5432), with the database password filled in. The session pooler works from GitHub's IPv4 runners; the direct `db.…supabase.co` address does not. |
+| `BACKUP_PASSPHRASE` | A long random value (`openssl rand -base64 32`). Store it in your password manager: the backups cannot be opened without it. |
+
+Then run the workflow once by hand and check it finishes green with an artifact. Until both secrets exist, the
+scheduled run is skipped with a notice (never a failure).
+
+**Open a backup:** download the artifact, then
+
+```bash
+gpg --decrypt re-db-YYYYMMDD-HHMM.tar.gz.gpg | tar -xzf - -C ./restore
+```
+
+**Restore into a new project (e.g. the move to Mumbai)** — never over production:
+
+1. Create the new Supabase project in `ap-south-1` and copy its Session pooler connection string.
+2. Load the files in order, in one transaction:
+
+   ```bash
+   psql --single-transaction --variable ON_ERROR_STOP=1 \
+     --file restore/roles.sql --file restore/schema.sql \
+     --command 'SET session_replication_role = replica' \
+     --file restore/data.sql --dbname "$NEW_DB_URL"
+   ```
+
+3. Copy Storage files separately (Storage buckets are not in the dump).
+4. Point Vercel at the new project (Supabase URL and keys), set `vercel.json` `regions` to `bom1` in the same
+   release, re-enter Auth URL settings, SMTP and secrets, then check sign-in, leads and invoices.
+
 ## Before every risky change
 
 Merging a PR that contains a migration applies it to production. Before merging:
