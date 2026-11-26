@@ -99,7 +99,7 @@ export function publicCapability(id: CapabilityId): Capability {
 /** Short label for statuses that need qualifying on a public page (null = no label needed). */
 export function statusLabel(status: CapabilityStatus): string | null {
   switch (status) {
-    case 'needs_setup': return 'Needs your account connected'
+    case 'needs_setup': return 'Connect your account'
     case 'partial': return 'Partial'
     case 'planned': return 'Planned'
     default: return null
