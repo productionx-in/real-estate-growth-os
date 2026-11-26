@@ -122,19 +122,19 @@ export function RoutingSettingsClient({ orgId, orgSlug, data, loadError }: {
 
       {/* Teams */}
       <section className={card} aria-labelledby="teams-heading">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <h2 id="teams-heading" className="text-[13px] font-semibold text-[var(--foreground)] flex items-center gap-2">
             <Users className="w-4 h-4" /> Teams
           </h2>
           <form
-            className="flex items-center gap-2"
+            className="flex min-w-0 flex-1 items-center justify-end gap-2 sm:flex-none"
             onSubmit={async (e) => {
               e.preventDefault()
               if (!newTeam.trim()) return
               if (await run('POST', '/api/routing/teams', { orgId, name: newTeam.trim() })) setNewTeam('')
             }}
           >
-            <input className={input} placeholder="New team name" value={newTeam} maxLength={80}
+            <input className={`${input} min-w-0 flex-1 sm:w-44 sm:flex-none`} placeholder="New team name" value={newTeam} maxLength={80}
               onChange={(e) => setNewTeam(e.target.value)} aria-label="New team name" />
             <button type="submit" className={btnPrimary} disabled={busy || !newTeam.trim()}>
               <Plus className="w-3.5 h-3.5 inline -mt-0.5" /> Add team
