@@ -66,7 +66,7 @@ async function main() {
     })
     await test('the invited email is matched case-insensitively', async () => {
       const upper = await mkAuthUser(`ravi-${RUN}@repx.test`, true)
-      const token = await invite(org, owner.profileId, `Ravi-${RUN}@ReGrow.test`)
+      const token = await invite(org, owner.profileId, `Ravi-${RUN}@RePx.test`)
       const r = await dal.acceptEmployeeInvitation(token, upper.profileId, upper.authId)
       assert.equal(r.success, true, r.error)
     })
