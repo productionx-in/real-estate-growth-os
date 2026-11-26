@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="84 146 340 220" width="680" height="440" role="img" aria-label="RE Standalone Mark (White)">
+  <title>RE Standalone Mark (White)</title>
+  <!-- Interlocking R -->
+  <path fill="#FFFFFF" fill-rule="evenodd" d="M92 154 H188 C224 154 246 176 246 210 C246 237 230 257 205 264 L256 358 H206 L160 270 H136 V358 H92 Z M136 194 V232 H184 C198 232 206 224 206 213 C206 202 198 194 184 194 Z"/>
+  <!-- Subtle dimensional fold crease on R leg -->
+  <path fill="rgba(199,210,254,0.35)" d="M160 270 H205 L219 296 H173 Z"/>
+  <!-- Interlocking Folded E -->
+  <path fill="#FFFFFF" d="M276 154 H416 V194 H316 V236 H400 V276 H316 V318 H416 V358 H278 L254 316 V196 Z"/>
+  <!-- Subtle dimensional fold highlight on E upper bevel -->
+  <path fill="rgba(199,210,254,0.35)" d="M276 154 H316 L276 200 L254 196 Z"/>
+</svg>

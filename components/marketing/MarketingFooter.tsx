@@ -1,6 +1,7 @@
 // components/marketing/MarketingFooter.tsx — every public page linked, from the page map.
 import Link from 'next/link'
-import { COMPANY_NAME, PRODUCT_DESCRIPTOR, PRODUCT_NAME } from '@/lib/brand'
+import { COMPANY_NAME, COMPANY_URL, PRODUCT_DESCRIPTOR, PRODUCT_NAME } from '@/lib/brand'
+import { PxMark } from '@/components/brand/Logo'
 import { pagesIn } from '@/lib/marketing/site-pages'
 import { BrandMark } from './BrandMark'
 
@@ -17,7 +18,7 @@ export function MarketingFooter() {
     <footer className="band-ink text-[#94a3b8]">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12 grid gap-10 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
         <div>
-          <BrandMark tagline />
+          <BrandMark size={32} />
           <p className="mt-3 text-[13px] max-w-xs leading-relaxed">
             {PRODUCT_NAME} is the real estate growth OS for real estate developers and channel partner agencies: leads, sales teams,
             projects and inventory, site visits, bookings and partner workflows in one platform.
@@ -34,7 +35,10 @@ export function MarketingFooter() {
       </div>
       <div className="border-t border-white/10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-5 text-[12px] flex flex-col sm:flex-row gap-2 justify-between">
-          <span>© {new Date().getFullYear()} {COMPANY_NAME}. All rights reserved.</span>
+          <a href={COMPANY_URL} target="_blank" rel="noopener" className="inline-flex items-center gap-2 hover:text-[#e2e8f0]">
+            <PxMark variant="dark" height={18} />
+            <span>A {COMPANY_NAME} product · © {new Date().getFullYear()} {COMPANY_NAME}. All rights reserved.</span>
+          </a>
           <span className="uppercase tracking-[0.18em] text-[11px]">{PRODUCT_DESCRIPTOR}</span>
         </div>
       </div>
