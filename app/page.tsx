@@ -1,12 +1,11 @@
-// app/page.tsx — Public front page. Signed-in users go straight to their workspace.
+// app/page.tsx — Public front page, served static from the edge. Signed-in users are sent to their workspace by proxy.ts
+// before this page renders, so it never reads the session itself.
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import {
   ArrowRight, BellRing, Building2, CalendarClock, Check, ClipboardList, Inbox, Lock, MessageCircleWarning,
   Repeat, ShieldCheck, Shuffle, UserCheck, Users,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
 import { PRODUCT_NAME } from '@/lib/brand'
 import { PRODUCT_DESCRIPTOR } from '@/lib/brand'
 import { pagesIn } from '@/lib/marketing/site-pages'
@@ -55,10 +54,7 @@ const FAQ = [
   { q: 'Who owns the data?', a: 'You do. Channel-partner agencies have their own independent workspace and own their leads.' },
 ]
 
-export default async function HomePage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user) redirect('/select-org')
+export default function HomePage() {
 
   return (
     <MarketingShell>

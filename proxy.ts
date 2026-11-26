@@ -7,7 +7,7 @@ import { frameAncestors } from '@/lib/plots/embed'
 // /reset-password is public so a person whose reset link expired sees why (and can ask for a new one) instead of
 // being bounced to sign-in; the form itself needs the short recovery session to change anything.
 const PUBLIC_ROUTES = [...MARKETING_PATHS, ...LEGAL_PATHS, '/login', '/staff', '/auth/callback', '/auth/confirm', '/reset-password']
-// Loaded by visitors of customers' websites, who are never signed in to RE by PX.
+// Loaded by visitors of customers' websites, who are never signed in to RE.
 const PUBLIC_WEBSITE_ASSETS = ['/capture.js', '/forms/embed.js', '/forms/view', '/robots.txt', '/sitemap.xml', '/llms.txt']
 
 /** Only marketing pages and published project showrooms may be indexed; everything else says so explicitly. */
@@ -94,16 +94,10 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  let user = null
-  try {
-    const { data } = await supabase.auth.getUser()
-    user = data?.user ?? null
-  } catch (error) {
-    console.error('Failed to get user session:', error)
-  }
-
-  // Allow public routes and invite verification
-  if (
+  // Public pages, API routes and public files never need the session here: API routes authenticate their own callers,
+  // and public pages only care whether someone is signed in on '/' and '/login' (to send them to their workspace).
+  // Calling the Auth server costs a round trip, so skip it unless the answer changes what happens next.
+  const isPublic =
     isApiRoute ||
     isInviteRoute ||
     PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith('/auth/')) ||
@@ -111,15 +105,28 @@ export async function proxy(request: NextRequest) {
     /^\/d\/[A-Za-z0-9_-]{43}$/.test(pathname) || // documents shared with buyers (the link is the key)
     /^\/m\/[A-Za-z0-9_-]{43}$/.test(pathname) || // plot maps shared with buyers (the link is the key)
     /^\/u\/[0-9a-f-]{36}$/.test(pathname) || // marketing e-mail unsubscribe (the link is the key; nothing private is shown)
-    /^\/u\/[0-9a-f-]{36}$/.test(pathname) || // marketing e-mail unsubscribe (the link is the key; nothing private is shown)
     /^\/p\/[a-z0-9-]{1,80}$/.test(pathname) // a project's public showroom: the page itself shows only published microsites
-  ) {
-    if (user && pathname === '/login') {
+  const hasSessionCookie = request.cookies.getAll().some((c) => /^sb-.+-auth-token/.test(c.name))
+  const needsUser = hasSessionCookie && (!isPublic || pathname === '/' || pathname === '/login')
+
+  let user = null
+  if (needsUser) {
+    try {
+      const { data } = await supabase.auth.getUser()
+      user = data?.user ?? null
+    } catch (error) {
+      console.error('Failed to get user session:', error)
+    }
+  }
+
+  // Allow public routes and invite verification
+  if (isPublic) {
+    if (user && (pathname === '/login' || pathname === '/')) {
       const url = request.nextUrl.clone()
       url.pathname = '/select-org'
       return NextResponse.redirect(url)
     }
-    // A shared plot map may be framed only by RE by PX and the websites its workspace listed (lib/plots/embed.ts).
+    // A shared plot map may be framed only by RE and the websites its workspace listed (lib/plots/embed.ts).
     // Unknown, unshared or lapsed maps get 'self' only. If the lookup fails, the strict default applies.
     const mapToken = pathname.match(/^\/m\/([A-Za-z0-9_-]{43})$/)?.[1]
     if (mapToken) {

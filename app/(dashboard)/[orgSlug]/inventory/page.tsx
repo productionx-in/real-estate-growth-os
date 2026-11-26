@@ -1,5 +1,6 @@
 // app/(dashboard)/[orgSlug]/inventory/page.tsx
 import type { Metadata } from 'next'
+import { allRows } from '@/lib/supabase/all-rows'
 import { createServiceClient } from '@/lib/supabase/server'
 import { PageShell } from '@/components/layout/PageShell'
 import { OrgInventoryExplorer } from '@/components/inventory/OrgInventoryExplorer'
@@ -18,12 +19,28 @@ export default async function OrgInventoryPage({ params }: PageProps) {
   const { org, isManager } = await getVerifiedWorkspace(orgSlug)
   const service = createServiceClient()
 
-  // Fetch all projects for this org
-  const { data: projectsData } = await service
-    .from('projects')
-    .select('id, name, slug, code, category')
-    .eq('org_id', org.id)
-    .order('name', { ascending: true })
+  // Projects and every inventory item (paged past the API's 1,000-row limit), read in parallel.
+  const [{ data: projectsData }, inventoryItems] = await Promise.all([
+    service
+      .from('projects')
+      .select('id, name, slug, code, category')
+      .eq('org_id', org.id)
+      .order('name', { ascending: true }),
+    allRows((from, to) => service
+      .from('inventory_items')
+      .select(`
+        *,
+        project:projects(id, name, slug, code, category),
+        hierarchy_node:project_hierarchy_nodes(id, name, node_type)
+      `)
+      .eq('org_id', org.id)
+      .order('created_at', { ascending: false })
+      .order('id')
+      .range(from, to)).catch((error) => {
+      console.error('Error fetching org inventory:', error)
+      return []
+    }),
+  ])
 
   const projects = (projectsData ?? []).map((p) => ({
     id: p.id,
@@ -32,23 +49,6 @@ export default async function OrgInventoryPage({ params }: PageProps) {
     code: p.code,
     category: (p.category as ProjectCategory) || 'apartments',
   }))
-
-  // Fetch all inventory items across all projects in the org
-  const { data: inventoryData, error } = await service
-    .from('inventory_items')
-    .select(`
-      *,
-      project:projects(id, name, slug, code, category),
-      hierarchy_node:project_hierarchy_nodes(id, name, node_type)
-    `)
-    .eq('org_id', org.id)
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    console.error('Error fetching org inventory:', error)
-  }
-
-  const inventoryItems = inventoryData ?? []
 
   return (
     <PageShell

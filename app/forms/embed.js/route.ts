@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       var projectId = container.getAttribute('data-project-id') || '';
       var title = container.getAttribute('data-title') || 'Enquire Now';
       var buttonText = container.getAttribute('data-button') || 'Schedule Site Visit';
-      var theme = container.getAttribute('data-theme') || '#2563eb';
+      var theme = container.getAttribute('data-theme') || '#4338CA';
       var formLoadTime = Date.now();
 
       if (!connectionId) {

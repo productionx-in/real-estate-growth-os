@@ -43,7 +43,9 @@ await test('workspace setting: off by default; only a real true turns it on; old
 await test('server enforcement: every authorised API refuses a session that still owes its code or set-up', () => {
   const t = read('lib/auth/tenant.ts')
   assert.match(t, /twoStepNeed\(twoStep, false\) === 'verify'[\s\S]{0,200}TWO_STEP_REQUIRED/)
-  assert.equal((t.match(/await workspaceTwoStepBlock\(/g) ?? []).length, 4, 'org, project, inventory and lead authorisation')
+  // Each of the four authorisations starts the workspace rule read alongside its membership lookup and refuses on it.
+  assert.equal((t.match(/= workspaceTwoStepBlock\(/g) ?? []).length, 4, 'org, project, inventory and lead authorisation')
+  assert.equal((t.match(/const twoStepBlock = await twoStepPending\n\s*if \(twoStepBlock\) return \{ success: false, response: twoStepBlock \}/g) ?? []).length, 4, 'each refuses when the rule blocks')
   assert.match(t, /TWO_STEP_SETUP_REQUIRED/)
   assert.match(read('supabase/migrations/20260106_workspace_two_step.sql'), /ADD COLUMN IF NOT EXISTS security JSONB/)
 })

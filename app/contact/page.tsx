@@ -20,7 +20,8 @@ export const metadata: Metadata = {
   alternates: { canonical: '/contact' },
 }
 
-export const dynamic = 'force-dynamic'
+// Static and cached at the edge; the demo-form connection id is read at build time and refreshed hourly.
+export const revalidate = 3600
 
 export default function ContactPage() {
   return (

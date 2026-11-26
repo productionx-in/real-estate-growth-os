@@ -3,6 +3,7 @@
 // Strictly tenant-isolated via org_id.
 
 import { createServiceClient } from '@/lib/supabase/server'
+import { allRows } from '@/lib/supabase/all-rows'
 
 export interface FunnelStageMetric {
   stage: string
@@ -48,30 +49,15 @@ export async function getExecutiveBiAnalytics(
   const service = createServiceClient()
 
   try {
-    // 1. Fetch leads count
-    let leadsQuery = service.from('leads').select('id, source, created_at').eq('org_id', orgId)
-    if (projectId) leadsQuery = leadsQuery.eq('project_id', projectId)
-    const { data: leads } = await leadsQuery
-
-    // 2. Fetch site visits count
-    let visitsQuery = service.from('site_visits').select('id, status, created_at, lead_id').eq('org_id', orgId)
-    if (projectId) visitsQuery = visitsQuery.eq('project_id', projectId)
-    const { data: visits } = await visitsQuery
-
-    // 3. Fetch blockings count
-    let blockingsQuery = service.from('inventory_blockings').select('id, status').eq('org_id', orgId)
-    if (projectId) blockingsQuery = blockingsQuery.eq('project_id', projectId)
-    const { data: blockings } = await blockingsQuery
-
-    // 4. Fetch bookings
-    let bookingsQuery = service.from('bookings').select('id, total_amount, created_at, lead_id').eq('org_id', orgId)
-    if (projectId) bookingsQuery = bookingsQuery.eq('project_id', projectId)
-    const { data: bookings } = await bookingsQuery
-
-    // 5. Fetch inventory items
-    let invQuery = service.from('inventory_items').select('id, status, base_rate, total_price').eq('org_id', orgId)
-    if (projectId) invQuery = invQuery.eq('project_id', projectId)
-    const { data: units } = await invQuery
+    // Every row (not just the first 1,000 the API returns per request), with the five tables read in parallel.
+    const scoped = <Q extends { eq: (c: string, v: string) => Q }>(q: Q) => (projectId ? q.eq('project_id', projectId) : q)
+    const [leads, visits, blockings, bookings, units] = await Promise.all([
+      allRows((f, t) => scoped(service.from('leads').select('id, source, created_at').eq('org_id', orgId)).order('id').range(f, t)),
+      allRows((f, t) => scoped(service.from('site_visits').select('id, status, created_at, lead_id').eq('org_id', orgId)).order('id').range(f, t)),
+      allRows((f, t) => scoped(service.from('inventory_blockings').select('id, status').eq('org_id', orgId)).order('id').range(f, t)),
+      allRows((f, t) => scoped(service.from('bookings').select('id, total_amount, created_at, lead_id').eq('org_id', orgId)).order('id').range(f, t)),
+      allRows((f, t) => scoped(service.from('inventory_items').select('id, status, base_rate, total_price').eq('org_id', orgId)).order('id').range(f, t)),
+    ])
 
     const totalLeads = leads?.length || 0
     const totalVisits = visits?.length || 0

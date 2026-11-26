@@ -85,7 +85,7 @@ export function PricingPlans() {
                       : <Check className="w-4 h-4 mt-0.5 text-emerald-600 flex-shrink-0" aria-hidden="true" />}
                     <span className={f.soon ? 'text-[var(--foreground-muted)]' : ''}>
                       {f.text}
-                      {f.soon && <span className="ml-1.5 text-[11px] font-semibold uppercase tracking-wide text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-px">Coming soon</span>}
+                      {f.soon && <span className="ml-1.5 text-[11px] font-semibold uppercase tracking-wide text-warning bg-warning-bg border border-warning/25 rounded px-1.5 py-px">Coming soon</span>}
                     </span>
                   </li>
                 ))}
