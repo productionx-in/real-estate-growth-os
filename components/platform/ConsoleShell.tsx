@@ -9,6 +9,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   Bot, Building2, ChevronDown, CreditCard, LayoutDashboard, LifeBuoy, LogOut, Menu, PlusCircle, ScrollText, ShieldCheck, TrendingUp, UserCog, Users, Mail, Plug, Puzzle, MapPinned, X,
   type LucideIcon,
+  Globe,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { createClient } from '@/lib/supabase/client'
@@ -16,13 +17,13 @@ import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { AppearanceMenu } from '@/components/theme/AppearanceMenu'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
-export type ConsoleIcon = 'dashboard' | 'organisations' | 'provision' | 'sales' | 'support' | 'payments' | 'audit' | 'staff' | 'people' | 'email' | 'integrations' | 'addons' | 'assistant' | 'maps'
+export type ConsoleIcon = 'dashboard' | 'organisations' | 'provision' | 'sales' | 'support' | 'payments' | 'audit' | 'staff' | 'people' | 'email' | 'integrations' | 'addons' | 'assistant' | 'maps' | 'website'
 export interface ConsoleNavItem { href: string; label: string; icon: ConsoleIcon; badge?: number; badgeTone?: 'alert' | 'info' }
 export interface ConsoleNavGroup { label: string; items: ConsoleNavItem[] }
 
 const ICONS: Record<ConsoleIcon, LucideIcon> = {
   dashboard: LayoutDashboard, organisations: Building2, provision: PlusCircle, sales: TrendingUp,
-  support: LifeBuoy, payments: CreditCard, audit: ScrollText, staff: UserCog, people: Users, email: Mail, integrations: Plug, addons: Puzzle, assistant: Bot, maps: MapPinned,
+  support: LifeBuoy, payments: CreditCard, audit: ScrollText, staff: UserCog, people: Users, email: Mail, integrations: Plug, addons: Puzzle, assistant: Bot, maps: MapPinned, website: Globe,
 }
 
 function isActive(pathname: string, href: string) {

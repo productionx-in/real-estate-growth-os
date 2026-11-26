@@ -8,6 +8,7 @@ import { siteUrl } from '@/lib/site/urls'
 import { THEME_BOOT_SCRIPT } from '@/lib/theme/runtime'
 import { ThemeController } from '@/components/theme/ThemeController'
 import { DeploymentRibbon } from '@/components/layout/DemoBanner'
+import { Analytics } from '@vercel/analytics/next'
 
 const SITE = siteUrl()
 
@@ -59,6 +60,7 @@ export default function RootLayout({
         <DeploymentRibbon />
         <AuthLinkCatcher />
         {children}
+        <Analytics />
       </body>
     </html>
   )
