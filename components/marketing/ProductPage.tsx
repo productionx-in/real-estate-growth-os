@@ -130,13 +130,11 @@ export function ProductPage({ c }: { c: ProductPageContent }) {
                     const cap = publicCapability(id)
                     const label = statusLabel(cap.status)
                     return (
-                      <li key={id} className="flex gap-3 rounded-xl border border-[var(--border)] bg-surface p-4">
+                      <li key={id} className="ceramic flex gap-3 p-4">
                         <Check className="w-5 h-5 mt-0.5 text-success flex-shrink-0" aria-hidden="true" />
                         <div>
-                          <p className="text-[15px] font-semibold">
-                            {cap.name}
-                            {label && <span className="ml-2 align-middle text-[11px] font-semibold uppercase tracking-wide text-warning-foreground bg-warning-bg rounded px-1.5 py-px">{label}</span>}
-                          </p>
+                          <p className="text-[15px] font-semibold">{cap.name}</p>
+                          {label && <span className={`mt-1.5 inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${cap.status === 'needs_setup' ? 'border-warning/25 bg-warning-bg text-warning' : 'border-default bg-surface-muted text-muted'}`}>{cap.status === 'needs_setup' ? 'Connect your account' : label}</span>}
                           <p className="mt-1 text-[14px] text-muted leading-relaxed">{cap.summary}</p>
                           {cap.publicNote && <p className="mt-1 text-[13px] text-subtle">{cap.publicNote}</p>}
                         </div>

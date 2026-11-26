@@ -1,7 +1,7 @@
 // app/features/page.tsx — Platform overview: the hub that links every product area (topical map for search and AI).
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, CheckCircle2, CircleDashed, Plug } from 'lucide-react'
 import { PRODUCT_DESCRIPTOR, PRODUCT_NAME } from '@/lib/brand'
 import { CAPABILITIES, statusLabel, type CapabilityStatus } from '@/lib/marketing/capabilities'
 import { pagesIn } from '@/lib/marketing/site-pages'
@@ -46,21 +46,38 @@ export default function FeaturesPage() {
         </ul>
       </section>
 
-      <section aria-labelledby="all-heading" className="bg-[var(--background)] border-y border-[var(--border)]">
+      <section aria-labelledby="all-heading" className="border-y border-[var(--border)]">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16">
           <h2 id="all-heading" className="text-[26px] font-bold tracking-tight">Every capability, and what it needs</h2>
-          <p className="mt-3 max-w-2xl text-[15px] text-muted">Capabilities marked “Needs your account connected” work after you authorise your own Meta, Google, WhatsApp or portal account. “Partial” means only the part described is available.</p>
-          <dl className="mt-8 grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+          <p className="mt-3 max-w-2xl text-[15px] text-muted">Most features work from day one. Ones marked “Connect your account” start once you sign in with your own Meta, Google, WhatsApp or portal account — we set it up with you. “Partial” means only the part described is available.</p>
+          <div className="mt-6 flex flex-wrap gap-2 text-[12px]" aria-hidden="true">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-success/20 bg-success-bg px-2.5 py-1 font-medium text-success"><CheckCircle2 className="size-3.5" /> Ready to use — no label</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-warning/25 bg-warning-bg px-2.5 py-1 font-medium text-warning"><Plug className="size-3.5" /> Connect your account</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-default bg-surface px-2.5 py-1 font-medium text-muted"><CircleDashed className="size-3.5" /> Partial</span>
+          </div>
+          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {caps.map((cap) => {
               const label = statusLabel(cap.status)
+              const tone = cap.status === 'needs_setup'
+                ? { icon: Plug, cls: 'border-warning/25 bg-warning-bg text-warning', text: 'Connect your account' }
+                : label ? { icon: CircleDashed, cls: 'border-default bg-surface-muted text-muted', text: label }
+                : null
               return (
-                <div key={cap.id}>
-                  <dt className="text-[15px] font-semibold">{cap.name}{label && <span className="ml-2 align-middle text-[11px] font-semibold uppercase tracking-wide text-warning-foreground bg-warning-bg rounded px-1.5 py-px">{label}</span>}</dt>
-                  <dd className="mt-1 text-[14px] text-muted leading-relaxed">{cap.summary}{'publicNote' in cap && cap.publicNote ? ` ${cap.publicNote}` : ''}</dd>
-                </div>
+                <li key={cap.id} className="ceramic lift flex flex-col p-5">
+                  <div className="flex flex-col items-start gap-2">
+                    <h3 className="text-[15px] font-semibold leading-snug text-foreground">{cap.name}</h3>
+                    {tone && (
+                      <span className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${tone.cls}`}>
+                        <tone.icon className="size-3" aria-hidden="true" />{tone.text}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-2 text-[14px] leading-relaxed text-muted">{cap.summary}</p>
+                  {'publicNote' in cap && cap.publicNote ? <p className="mt-auto pt-3 text-[12px] leading-relaxed text-subtle">{cap.publicNote}</p> : null}
+                </li>
               )
             })}
-          </dl>
+          </ul>
           <p className="mt-10 text-[14px] text-muted">Not available today: single sign-on, native iOS and Android apps (RE by PX is an installable web app), and a built-in dialer.</p>
         </div>
       </section>
