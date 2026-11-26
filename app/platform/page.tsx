@@ -1,5 +1,5 @@
 // app/platform/page.tsx — console home, built per role (docs/design/console-roles.md). Live figures only;
-// workspace metadata and RE by PX's own data, never a customer's leads, buyers or documents.
+// workspace metadata and RE’s own data, never a customer's leads, buyers or documents.
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import {

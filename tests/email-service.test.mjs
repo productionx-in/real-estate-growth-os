@@ -22,10 +22,10 @@ const withEnv = async (vars, fn) => {
 
 console.log('E-MAIL SERVICE')
 await test('sender, reply-to and provider come only from configuration; new names win, legacy names still work', async () => {
-  const c1 = cfg.getEmailConfig({ EMAIL_PROVIDER: 'resend', RESEND_API_KEY: 're_x123456', EMAIL_FROM_NAME: 'RE by PX', EMAIL_FROM_ADDRESS: 'hello@productionx.in', EMAIL_REPLY_TO: 'support@productionx.in', VERCEL_ENV: 'production' })
-  assert.deepEqual([c1.provider, c1.from, c1.replyTo, c1.problems], ['resend', 'RE by PX <hello@productionx.in>', 'support@productionx.in', []])
-  const legacy = cfg.getEmailConfig({ RESEND_API_KEY: 're_x123456', RESEND_FROM_EMAIL: 'RE by PX Team <team@productionx.in>', RESEND_REPLY_TO: 'help@productionx.in', VERCEL_ENV: 'production' })
-  assert.deepEqual([legacy.provider, legacy.from, legacy.replyTo, legacy.source.from], ['resend', 'RE by PX Team <team@productionx.in>', 'help@productionx.in', 'RESEND_FROM_EMAIL'])
+  const c1 = cfg.getEmailConfig({ EMAIL_PROVIDER: 'resend', RESEND_API_KEY: 're_x123456', EMAIL_FROM_NAME: 'RE', EMAIL_FROM_ADDRESS: 'hello@productionx.in', EMAIL_REPLY_TO: 'support@productionx.in', VERCEL_ENV: 'production' })
+  assert.deepEqual([c1.provider, c1.from, c1.replyTo, c1.problems], ['resend', 'RE <hello@productionx.in>', 'support@productionx.in', []])
+  const legacy = cfg.getEmailConfig({ RESEND_API_KEY: 're_x123456', RESEND_FROM_EMAIL: 'RE Team <team@productionx.in>', RESEND_REPLY_TO: 'help@productionx.in', VERCEL_ENV: 'production' })
+  assert.deepEqual([legacy.provider, legacy.from, legacy.replyTo, legacy.source.from], ['resend', 'RE Team <team@productionx.in>', 'help@productionx.in', 'RESEND_FROM_EMAIL'])
   const both = cfg.getEmailConfig({ RESEND_API_KEY: 're_x123456', RESEND_FROM_EMAIL: 'old@productionx.in', EMAIL_FROM_ADDRESS: 'new@productionx.in', VERCEL_ENV: 'production' })
   assert.equal(both.fromAddress, 'new@productionx.in')
 })
@@ -50,7 +50,7 @@ await test('Resend: idempotency key, configured sender at send time, timeout, an
       process.env.EMAIL_FROM_ADDRESS = 'second@productionx.in' // changed while running: the next send uses it
       await adapter.getEmailAdapter().sendEmail({ to: 'x@company.in', subject: 's', html: 'h' })
       assert.equal(calls[0].headers['Idempotency-Key'], 'invite:1:abc')
-      assert.deepEqual([calls[0].body.from, calls[0].body.reply_to, calls[1].body.from], ['RE by PX <first@productionx.in>', 'support@productionx.in', 'RE by PX <second@productionx.in>'])
+      assert.deepEqual([calls[0].body.from, calls[0].body.reply_to, calls[1].body.from], ['RE <first@productionx.in>', 'support@productionx.in', 'RE <second@productionx.in>'])
       for (const [status, msg, kind] of [[429, 'rate', 'transient'], [503, 'down', 'transient'], [401, 'bad key', 'config'], [422, 'The domain is not verified', 'config'], [422, 'Invalid `to` field', 'permanent']])
         assert.equal(adapter.classifyResend(status, msg), kind, `${status} ${msg}`)
       process.env.EMAIL_PROVIDER_TIMEOUT_MS = '60'

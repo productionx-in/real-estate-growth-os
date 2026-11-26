@@ -26,7 +26,7 @@ await test('one card per service with a plain status: Connected, Not connected, 
   assert.deepEqual(cards.map((c) => c.key), ['meta', 'whatsapp', 'website', 'email', 'google', 'portals'])
   assert.equal(card(cards, 'meta').status, 'connected'); assert.equal(card(cards, 'meta').detail, '1 account connected')
   assert.equal(card(cards, 'whatsapp').status, 'action_required')
-  assert.equal(card(cards, 'google').status, 'coming_soon', 'RE by PX’s Google setup is not finished')
+  assert.equal(card(cards, 'google').status, 'coming_soon', 'RE’s Google setup is not finished')
   assert.equal(card(cards, 'website').status, 'not_connected')
   assert.equal(card(cards, 'portals').status, 'connected')
   for (const c of cards) assert.ok(c.emoji && c.title && c.blurb && c.cta)

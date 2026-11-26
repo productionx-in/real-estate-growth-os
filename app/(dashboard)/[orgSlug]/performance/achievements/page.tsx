@@ -52,7 +52,7 @@ export default async function AchievementsPage({ params }: { params: Promise<{ o
     : `${a.threshold.toLocaleString('en-IN')} ${(a.threshold === 1 ? ONE[a.metric] : METRIC_TEXT[a.metric]) ?? a.metric}${WINDOW[a.window]}`
 
   return (
-    <PageShell title="Achievements" description={mine ? `${unlocked.length} of ${once.length} badges unlocked. Each one comes from real work — keep going for the rest.` : 'What your team has earned. Every badge comes from real work in RE by PX.'}>
+    <PageShell title="Achievements" description={mine ? `${unlocked.length} of ${once.length} badges unlocked. Each one comes from real work — keep going for the rest.` : 'What your team has earned. Every badge comes from real work in RE.'}>
       <PerformanceTabs orgSlug={orgSlug} current="achievements" canManage={canManagePerformance(role)} watchesTeam={watchesTeam(role)} sellsPersonally={sellsPersonally(role, sales)} />
       {team && (
         <section aria-labelledby="team-unlocks" className="surface-raised mb-8 rounded-2xl border border-default bg-surface p-5">
@@ -160,7 +160,7 @@ export default async function AchievementsPage({ params }: { params: Promise<{ o
           ))}
         </div>
       </section>
-      <p className="mt-6 text-[12px] text-subtle">Rewards beyond points are only what your workspace has written next to a badge; RE by PX promises none itself.</p>
+      <p className="mt-6 text-[12px] text-subtle">Rewards beyond points are only what your workspace has written next to a badge; RE promises none itself.</p>
     </PageShell>
   )
 }

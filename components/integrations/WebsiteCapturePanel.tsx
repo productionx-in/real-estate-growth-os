@@ -119,7 +119,7 @@ export function WebsiteCapturePanel({ orgId, projects, onSaved }: {
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Project (optional)">
               <Select value={projectId} onChange={(e) => setProjectId(e.target.value)}>
-                <option value="">Let RE by PX route it</option>
+                <option value="">Let RE route it</option>
                 {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </Select>
             </Field>

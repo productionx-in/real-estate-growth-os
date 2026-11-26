@@ -55,7 +55,7 @@ async function main() {
     assert.deepEqual(to(`Mail Co ${RUN}" is ready`), [admin.email, owner.email].sort())
     assert.deepEqual(to('trial ends in 3 days'), [admin.email, owner.email].sort())
     // A salesperson gets no workspace or billing e-mails — only their own team-member welcome (20260069).
-    assert.deepEqual(mail.sentEmails.filter((e) => e.to === sales.email).map((e) => e.subject), [`Welcome to Mail Co ${RUN} on RE by PX`], 'a salesperson gets only their own welcome')
+    assert.deepEqual(mail.sentEmails.filter((e) => e.to === sales.email).map((e) => e.subject), [`Welcome to Mail Co ${RUN} on RE`], 'a salesperson gets only their own welcome')
     const kinds = (await sql.query(`SELECT kind, count(*)::int n FROM public.customer_email_log WHERE org_id=$1 AND status='sent' GROUP BY kind ORDER BY kind`, [org])).rows
     assert.deepEqual(kinds, [{ kind: 'member_joined', n: 2 }, { kind: 'trial_ending', n: 1 }, { kind: 'welcome', n: 1 }])
   })

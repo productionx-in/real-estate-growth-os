@@ -52,7 +52,7 @@ export function SubscriptionSeatMeter({ seatUsage, isAdmin }: SubscriptionSeatMe
           {isAdmin && isLimitReached && (
             <button
               type="button"
-              onClick={() => alert('Subscription Upgrade: Contact RE by PX support or sales representative to expand seat allowances.')}
+              onClick={() => alert('Subscription Upgrade: Contact RE support or sales representative to expand seat allowances.')}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium text-brand-foreground bg-[var(--brand)] hover:bg-[var(--brand-hover)] transition-colors shadow-2xs"
             >
               <span>Add Seats</span>

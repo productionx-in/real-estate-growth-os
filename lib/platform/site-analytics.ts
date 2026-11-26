@@ -1,4 +1,4 @@
-// lib/platform/site-analytics.ts — Website analytics for RE by PX staff: how visitors arrive, move through the public
+// lib/platform/site-analytics.ts — Website analytics for RE staff: how visitors arrive, move through the public
 // site and reach "Book a demo" (site_pageviews, 20260105). summarise() is pure and unit-tested; loadSiteAnalytics()
 // reads with the service client and is only called from the platform console after its own role check.
 

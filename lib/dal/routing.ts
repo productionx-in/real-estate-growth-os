@@ -1,5 +1,5 @@
 // lib/dal/routing.ts
-// Data access for teams, team membership, routing rules and on-duty status (RE by PX Lead Engine, M1).
+// Data access for teams, team membership, routing rules and on-duty status (RE Lead Engine, M1).
 // Every query is scoped by orgId; the database additionally enforces same-organisation integrity
 // (enforce_routing_tenant_integrity) and active-membership rules, so a wrong id can never cross tenants.
 import { createServiceClient } from '@/lib/supabase/server'

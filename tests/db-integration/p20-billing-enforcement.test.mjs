@@ -180,7 +180,7 @@ async function main() {
       assert.equal((await one('SELECT billing_hold FROM public.organisations WHERE id=$1', [dev])).billing_hold, true)
     })
 
-    await test('a suspension by RE by PX staff is never lifted by a payment, and gives no billing access', async () => {
+    await test('a suspension by RE staff is never lifted by a payment, and gives no billing access', async () => {
       // Staff take over the held workspace: the hold is cleared, so a later payment does not reopen it.
       await one(`SELECT public.set_organisation_lifecycle($1,'active','restored by staff',NULL,'platform')`, [dev])
       await one(`SELECT public.set_organisation_lifecycle($1,'suspended','policy review',NULL,'platform')`, [dev])

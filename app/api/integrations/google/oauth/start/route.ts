@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         {
           error: 'google_app_not_configured',
           message:
-            'Central RE by PX Google Developer App is not yet configured. The following environment variables must be configured on the server: ' +
+            'Central RE Google Developer App is not yet configured. The following environment variables must be configured on the server: ' +
             config.missing.join(', '),
           missing: config.missing,
         },

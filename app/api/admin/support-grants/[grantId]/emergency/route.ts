@@ -22,7 +22,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (!parsed.success) return NextResponse.json({ error: 'Invalid request', details: parsed.error.flatten() }, { status: 400 })
 
   const result = await emergencySupportAccess({
-    grantId, userId: auth.user.id, label: `${auth.profile.full_name} (RE by PX super admin)`, reason: parsed.data.reason, minutes: parsed.data.minutes,
+    grantId, userId: auth.user.id, label: `${auth.profile.full_name} (RE super admin)`, reason: parsed.data.reason, minutes: parsed.data.minutes,
   })
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status })
 

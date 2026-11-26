@@ -1,5 +1,5 @@
 'use client'
-// Two-step verification for RE by PX staff. Every console screen needs an MFA-verified session (AAL2).
+// Two-step verification for RE staff. Every console screen needs an MFA-verified session (AAL2).
 // First visit: scan a QR code into an authenticator app and confirm a code. Later visits: enter a code.
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -9,7 +9,7 @@ import { Alert, Button, Card, CardContent, Field, Input, Spinner } from '@/compo
 
 type Step = { kind: 'loading' } | { kind: 'enrol'; factorId: string; qr: string; secret: string } | { kind: 'verify'; factorId: string }
 
-export function MfaGate({ intro = 'The RE by PX console needs two-step verification.' }: { intro?: string } = {}) {
+export function MfaGate({ intro = 'The RE console needs two-step verification.' }: { intro?: string } = {}) {
   const router = useRouter()
   const [step, setStep] = useState<Step>({ kind: 'loading' })
   const [code, setCode] = useState('')
@@ -25,7 +25,7 @@ export function MfaGate({ intro = 'The RE by PX console needs two-step verificat
       if (verified) return setStep({ kind: 'verify', factorId: verified.id })
       // Remove abandoned, never-verified factors before starting again.
       for (const f of data.all.filter((f) => f.status !== 'verified')) await supabase.auth.mfa.unenroll({ factorId: f.id })
-      const { data: enrolled, error: enrolError } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'RE by PX console' })
+      const { data: enrolled, error: enrolError } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'RE console' })
       if (enrolError || !enrolled) return setError('Could not start two-step verification setup.')
       setStep({ kind: 'enrol', factorId: enrolled.id, qr: enrolled.totp.qr_code, secret: enrolled.totp.secret })
     })()

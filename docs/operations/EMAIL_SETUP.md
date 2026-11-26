@@ -1,6 +1,6 @@
 # E-mail setup (Resend)
 
-RE by PX sends two kinds of e-mail:
+RE sends two kinds of e-mail:
 
 - **Its own messages:** invitations, site-visit confirmations, payment alerts. These use Resend (`lib/email/adapter.ts`).
 - **Supabase Auth messages:** password reset and e-mail confirmation.
@@ -19,7 +19,7 @@ instead of pretending the e-mail was sent.
 | Variable | Value |
 |---|---|
 | `RESEND_API_KEY` | the key from step 1 (mark it Sensitive) |
-| `RESEND_FROM_EMAIL` | `RE by PX <noreply@productionx.in>` |
+| `RESEND_FROM_EMAIL` | `RE <noreply@productionx.in>` |
 
 Then redeploy. Invitations from Platform → Provision customer and from a workspace's Team page will now be delivered.
 
@@ -34,7 +34,7 @@ Supabase → Authentication → Emails (SMTP settings), enable custom SMTP:
 | Username | `resend` |
 | Password | a Resend API key (create a separate one for Supabase) |
 | Sender e-mail | `noreply@productionx.in` |
-| Sender name | `RE by PX` |
+| Sender name | `RE` |
 
 ## 4. Check
 - Provision a test customer to an inbox you control. The success screen must say the invitation *has been sent*,

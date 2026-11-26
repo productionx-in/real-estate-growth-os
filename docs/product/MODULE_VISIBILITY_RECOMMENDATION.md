@@ -5,7 +5,7 @@
 ## Where we are today
 
 - `lib/auth/entitlements.ts` holds five **plan modules** (sales, inventory, routing, integrations, analytics) in
-  `org_module_entitlements`. Only RE by PX staff change them, from the Platform console, because they follow the
+  `org_module_entitlements`. Only RE staff change them, from the Platform console, because they follow the
   customer's plan and billing.
 - When a module is off, the server refuses its API routes (`requireModule` returns 403 with
   `MODULE_DISABLED`) and the navigation drops its pages (`MODULE_OF_SEGMENT`). `tests/entitlements-guard.test.mjs`
@@ -13,7 +13,7 @@
 - The layout also hides navigation for features a workspace has switched off in its own settings (for example
   *Teams* when team structure is off, 20260097/#121). That is the pattern the recommendation builds on.
 
-The ask: a customer (owner or admin) wants to switch off parts of RE by PX they do not use, so their team sees a
+The ask: a customer (owner or admin) wants to switch off parts of RE they do not use, so their team sees a
 simpler app, without changing what they pay for.
 
 ## Recommendation

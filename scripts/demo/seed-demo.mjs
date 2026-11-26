@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// scripts/demo/seed-demo.mjs — creates, resets or removes the RE by PX DEMO / TEST environment.
+// scripts/demo/seed-demo.mjs — creates, resets or removes the RE DEMO / TEST environment.
 //
 // STAGING ONLY. The script refuses to run unless every one of these holds:
 //   • the Supabase URL is a local stack (127.0.0.1 / localhost) or a <ref>.supabase.co project, and is not the
@@ -114,7 +114,7 @@ async function enrolAuthenticator(email, password) {
   const client = createClient(SUPABASE_URL, ANON_KEY, opts)
   const { error: signInErr } = await client.auth.signInWithPassword({ email, password })
   if (signInErr) throw new Error(`sign-in ${email}: ${signInErr.message}`)
-  const { data: enrol, error: enrolErr } = await client.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'RE by PX demo authenticator' })
+  const { data: enrol, error: enrolErr } = await client.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'RE demo authenticator' })
   if (enrolErr) throw new Error(`enrol ${email}: ${enrolErr.message}`)
   const { data: ch, error: chErr } = await client.auth.mfa.challenge({ factorId: enrol.id })
   if (chErr) throw new Error(`challenge ${email}: ${chErr.message}`)
@@ -334,7 +334,7 @@ async function seedAll(password) {
     await insert('platform_users', { user_id: data.user.id, role, is_active: true, mfa_enforced: true })
     const factor = await enrolAuthenticator(email, password)
     staffIds[role] = data.user.id
-    credentials.push({ email, role, org: 'RE by PX internal (platform)', name: fullName, ...factor })
+    credentials.push({ email, role, org: 'RE internal (platform)', name: fullName, ...factor })
   }
 
   // Internal sales pipeline (fictional prospects) and support cases from the demo customers.
@@ -361,10 +361,10 @@ async function seedAll(password) {
   await insert('support_case_messages', [
     { case_id: cases[0].id, author_kind: 'customer', author_user: null, author_label: 'Arjun Mehta (Demo)', body: 'We want our partners to see Tower B availability but not prices. (demo)' },
     { case_id: cases[1].id, author_kind: 'customer', author_user: null, author_label: 'Neha Kapoor (Demo)', body: 'The developer has not reviewed our registration yet. (demo)' },
-    { case_id: cases[1].id, author_kind: 'staff', author_user: staffIds.support_agent, author_label: 'RE by PX Support', body: 'We have asked the developer to review it. (demo)', internal: false },
-    { case_id: cases[1].id, author_kind: 'staff', author_user: staffIds.support_agent, author_label: 'RE by PX Support', body: 'Internal note: no product fault found. (demo)', internal: true },
+    { case_id: cases[1].id, author_kind: 'staff', author_user: staffIds.support_agent, author_label: 'RE Support', body: 'We have asked the developer to review it. (demo)', internal: false },
+    { case_id: cases[1].id, author_kind: 'staff', author_user: staffIds.support_agent, author_label: 'RE Support', body: 'Internal note: no product fault found. (demo)', internal: true },
     { case_id: cases[2].id, author_kind: 'customer', author_user: null, author_label: 'Sameer Khan (Demo)', body: 'Could you send an invoice copy? (demo)' },
-    { case_id: cases[2].id, author_kind: 'staff', author_user: staffIds.support_agent, author_label: 'RE by PX Support', body: 'Trials are free, so there is no invoice yet. (demo)', internal: false },
+    { case_id: cases[2].id, author_kind: 'staff', author_user: staffIds.support_agent, author_label: 'RE Support', body: 'Trials are free, so there is no invoice yet. (demo)', internal: false },
   ])
 
   return credentials
@@ -374,10 +374,10 @@ function writeCredentials(credentials, password) {
   fs.mkdirSync(outDir, { recursive: true, mode: 0o700 })
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || '(the staging app URL)'
   const lines = [
-    '# RE by PX DEMO / TEST logins — PRIVATE, STAGING ONLY',
+    '# RE DEMO / TEST logins — PRIVATE, STAGING ONLY',
     '',
     `Generated ${new Date().toISOString()} for ${isLocal ? 'the local stack' : `Supabase project ${ref}`}. Sign in at ${appUrl}/login.`,
-    'Do not share outside the test team. Never publish on the RE by PX website. These accounts exist only in this staging database.',
+    'Do not share outside the test team. Never publish on the RE website. These accounts exist only in this staging database.',
     '',
     `Temporary password for every account: \`${password}\``,
     '',
@@ -387,7 +387,7 @@ function writeCredentials(credentials, password) {
     '',
     '## Authenticator secrets (internal staff only)',
     '',
-    'The RE by PX console requires an authenticator code. Add each secret to an authenticator app (manual entry, TOTP, 6 digits, 30 s),',
+    'The RE console requires an authenticator code. Add each secret to an authenticator app (manual entry, TOTP, 6 digits, 30 s),',
     'or scan the otpauth URI with a QR generator you trust offline. A reset creates new secrets.',
     '',
     ...credentials.filter((c) => c.secret).map((c) => `- **${c.email}** — secret \`${c.secret}\`\n  - \`${c.uri}\``),

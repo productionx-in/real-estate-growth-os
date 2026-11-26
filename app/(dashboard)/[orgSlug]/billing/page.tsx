@@ -39,7 +39,7 @@ export default async function BillingPage({ params }: { params: Promise<{ orgSlu
         <Card>
           <CardHeader>
             <CardTitle>What’s included</CardTitle>
-            <p className="text-[12px] text-muted">{org.type === 'channel_partner' ? 'Channel partner agency' : 'Developer'} workspace. Leads, follow-ups, team and settings are always included; these modules depend on your plan. To change them, write to your RE by PX account manager.</p>
+            <p className="text-[12px] text-muted">{org.type === 'channel_partner' ? 'Channel partner agency' : 'Developer'} workspace. Leads, follow-ups, team and settings are always included; these modules depend on your plan. To change them, write to your RE account manager.</p>
           </CardHeader>
           <CardContent>
             <ul className="grid gap-2 sm:grid-cols-2">

@@ -5,7 +5,7 @@ const c: ProductPageContent = {
   path: '/integrations',
   metaTitle: 'Real Estate CRM Integrations: Lead Sources, Forms, API and WhatsApp',
   metaDescription:
-    'Lead sources that connect to RE by PX and what each needs: forms, import and API work straight away; Meta, Google, WhatsApp and portals need your own accounts.',
+    'Lead sources that connect to RE and what each needs: forms, import and API work straight away; Meta, Google, WhatsApp and portals need your own accounts.',
   breadcrumb: 'Integrations',
   eyebrow: 'Integrations',
   h1: 'Bring every enquiry into one place — with no surprises about setup',
@@ -29,9 +29,9 @@ const c: ProductPageContent = {
     },
   ],
   faq: [
-    { q: 'Do I need a developer to connect sources?', a: 'No. Website forms are embedded with a snippet, and platform connections are authorised from inside RE by PX. We do the setup with you.' },
-    { q: 'Is there an API?', a: 'Yes. Leads can be sent to RE by PX through a documented API with your workspace’s API key, or an inbound webhook.' },
-    { q: 'Which property portals are supported?', a: 'RE by PX can receive leads from portals such as 99acres, MagicBricks and Housing.com where the portal grants API or lead-delivery access to your account. Availability depends on the portal.' },
+    { q: 'Do I need a developer to connect sources?', a: 'No. Website forms are embedded with a snippet, and platform connections are authorised from inside RE. We do the setup with you.' },
+    { q: 'Is there an API?', a: 'Yes. Leads can be sent to RE through a documented API with your workspace’s API key, or an inbound webhook.' },
+    { q: 'Which property portals are supported?', a: 'RE can receive leads from portals such as 99acres, MagicBricks and Housing.com where the portal grants API or lead-delivery access to your account. Availability depends on the portal.' },
   ],
   related: [
     { href: '/real-estate-crm', label: 'Real estate CRM', body: 'What happens to a lead once it arrives.' },

@@ -1,4 +1,4 @@
-// tests/db-integration/p23-internal-portal.test.mjs — RE by PX's internal experiences against the local Supabase stack
+// tests/db-integration/p23-internal-portal.test.mjs — RE’s internal experiences against the local Supabase stack
 // (migration 20260061, lib/platform/portal.ts): Internal Sales (own vs all prospects, assignment rules, website
 // requests imported once), Internal Support (cases, internal notes hidden from customers, cross-organisation
 // isolation), staff accounts (Platform Owner only, never yourself, always one owner), audit, and no client access.
@@ -91,7 +91,7 @@ async function main() {
     assert.ok(await count(`SELECT count(*) n FROM public.platform_audit_logs WHERE target_entity_id=$1 AND action LIKE 'sales.%'`, [pA]) >= 3)
   })
 
-  await test('sales: website demo requests (RE by PX’s own form connection) import once; only managers or the owner', async () => {
+  await test('sales: website demo requests (RE’s own form connection) import once; only managers or the owner', async () => {
     const px = await mkOrg('Production X')
     const conn = (await one(`INSERT INTO public.integration_connections (org_id, provider, name, status) VALUES ($1,'website_webhook','Website demo form','connected') RETURNING id`, [px])).id
     for (const [name, company] of [['Ravi', `Company: Lotus Estates ${RUN} (Developer / builder)\nSales team size: 12\nRequest: A migration assessment`], ['Meera', `Company: Prime Brokers ${RUN} (Channel-partner agency)\nSales team size: 4`]]) {

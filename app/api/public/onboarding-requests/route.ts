@@ -1,5 +1,5 @@
 // app/api/public/onboarding-requests/route.ts
-// RE by PX: Deliberately Restricted Public Prospect Onboarding Endpoint
+// RE: Deliberately Restricted Public Prospect Onboarding Endpoint
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { DatabaseRateLimitAdapter } from '@/lib/integrations/webhooks/rate-limiter'

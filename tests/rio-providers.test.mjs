@@ -93,7 +93,7 @@ await test('every turn is stored whoever answers (AI or offline); export is Plat
   assert.match(exp, /staffActor\('staff'\)/); assert.match(exp, /action: 'assistant\.exported'/)
   assert.match(read('lib/support/memory.ts'), /\.in\('context', \['website', 'auth'\]\)/)
   assert.match(read('supabase/migrations/20260064_assistant_interactions.sql'), /REVOKE ALL ON public\.%I FROM PUBLIC, anon, authenticated/)
-  assert.match(read('components/support/SupportBubble.tsx'), /Chats are saved to improve RE by PX/)
+  assert.match(read('components/support/SupportBubble.tsx'), /Chats are saved to improve RE/)
 })
 
 console.log(`\nRio providers & memory: ${passed} checks passed.`)

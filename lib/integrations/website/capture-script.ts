@@ -7,7 +7,7 @@
 //   • remembers where the visitor came from — UTM tags, ad click IDs (gclid, fbclid…), landing page and
 //     outside referrer — for the first visit and the latest campaign visit (90 days, this site only);
 //   • when one of the site's own forms is submitted, reads the name, phone, email, message, budget and
-//     unit type from it and sends them, with the visit details, to RE by PX (/api/capture).
+//     unit type from it and sends them, with the visit details, to RE (/api/capture).
 //
 // It never stops, delays or changes the site's own form handling; it never reads a form that has a password,
 // card, OTP or ID-number field; and it sends nothing but the fields listed above. Options (on the tag):
@@ -20,7 +20,7 @@
 //
 // Plain ES5 + the DOM, no dependencies, so it runs on old phones and any site builder.
 
-export const CAPTURE_SCRIPT = String.raw`/*! RE by PX website capture */
+export const CAPTURE_SCRIPT = String.raw`/*! RE website capture */
 (function (w, d) {
   'use strict';
   if (w.REbyPX && w.REbyPX.__capture) return;

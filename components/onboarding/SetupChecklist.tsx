@@ -25,7 +25,7 @@ export function SetupChecklist({ orgId, steps }: { orgId: string; steps: SetupSt
       <div className="flex items-start gap-3">
         <span className="w-9 h-9 rounded-xl bg-brand-light text-brand flex items-center justify-center flex-shrink-0"><Rocket className="w-5 h-5" aria-hidden="true" /></span>
         <div className="flex-1 min-w-0">
-          <h2 id="setup-heading" className="text-[14px] font-semibold">Get RE by PX ready for your team <span className="text-[var(--foreground-muted)] font-normal">· {done} of {required.length} done</span></h2>
+          <h2 id="setup-heading" className="text-[14px] font-semibold">Get RE ready for your team <span className="text-[var(--foreground-muted)] font-normal">· {done} of {required.length} done</span></h2>
           <div className="mt-2 h-1.5 rounded-full bg-[var(--surface-hover)] overflow-hidden" role="progressbar" aria-valuenow={done} aria-valuemin={0} aria-valuemax={required.length}>
             <div className="h-full bg-brand rounded-full transition-all" style={{ width: `${(done / required.length) * 100}%` }} />
           </div>

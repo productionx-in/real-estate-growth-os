@@ -1,7 +1,7 @@
 'use client'
 // components/plots/PlotEnquiryForm.tsx — on the public plot map, a buyer asks about an available plot or asks for a
 // site visit. Sent to POST /api/public/plot-maps/[token]/enquiry, which creates (or matches) a lead in the developer's
-// RE by PX workspace through the normal lead intake; the team schedules any visit in the site-visit workflow.
+// RE workspace through the normal lead intake; the team schedules any visit in the site-visit workflow.
 // Nothing about other buyers is ever shown here.
 import { useState } from 'react'
 import { CalendarDays, Send } from 'lucide-react'

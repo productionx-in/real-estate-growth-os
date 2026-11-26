@@ -1,5 +1,5 @@
 // tests/db-integration/m1-lead-routing.test.mjs
-// RE by PX M1 — real-database tests for migrations 20260037 (active membership everywhere) and
+// RE M1 — real-database tests for migrations 20260037 (active membership everywhere) and
 // 20260038 (teams & lead routing). Routing logic lives in the database trigger, so these tests exercise
 // the production code path directly by inserting leads exactly as the application does.
 import assert from 'node:assert/strict'

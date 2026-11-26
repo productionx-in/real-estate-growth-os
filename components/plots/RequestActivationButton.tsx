@@ -1,6 +1,6 @@
 'use client'
-// components/plots/RequestActivationButton.tsx — a workspace owner/admin asks RE by PX to activate (or renew) the
-// Interactive Plot Map for one project (POST /api/plot-maps/activation-request). Activation itself is RE by PX's.
+// components/plots/RequestActivationButton.tsx — a workspace owner/admin asks RE to activate (or renew) the
+// Interactive Plot Map for one project (POST /api/plot-maps/activation-request). Activation itself is RE’s.
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Alert, Button } from '@/components/ui'

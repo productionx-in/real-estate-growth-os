@@ -1,4 +1,4 @@
-// app/manifest.ts — installable app (PWA) manifest, so salespeople can add RE by PX to their home screen.
+// app/manifest.ts — installable app (PWA) manifest, so salespeople can add RE to their home screen.
 import type { MetadataRoute } from 'next'
 import { PRODUCT_NAME } from '@/lib/brand'
 

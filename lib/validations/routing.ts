@@ -1,5 +1,5 @@
 // lib/validations/routing.ts
-// Input validation for teams, team membership, routing rules and on-duty status (RE by PX Lead Engine, M1).
+// Input validation for teams, team membership, routing rules and on-duty status (RE Lead Engine, M1).
 import { z } from 'zod'
 
 export const LEAD_SOURCES = [

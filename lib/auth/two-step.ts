@@ -3,7 +3,7 @@
 //   everywhere (authenticateCaller) until the code is entered (the workspace layout shows the code screen).
 // - A workspace can require it for everyone (org_settings.security.requireTwoStep, 20260106): members without it are
 //   sent to set it up before anything in that workspace opens or answers.
-// The RE by PX console has always required it for staff (lib/auth/platform.ts); this is the customer side.
+// The RE console has always required it for staff (lib/auth/platform.ts); this is the customer side.
 
 export type TwoStepNeed = 'verify' | 'enrol' | null
 

@@ -1,4 +1,4 @@
-// lib/support/prospect.ts — a callback request Rio collected in chat, saved as a prospect in RE by PX's internal Sales
+// lib/support/prospect.ts — a callback request Rio collected in chat, saved as a prospect in RE’s internal Sales
 // pipeline (staff console → Sales), exactly like the website demo form. Only with the visitor's agreement and
 // only name, phone, company and what they told us; never a customer workspace.
 import crypto from 'node:crypto'

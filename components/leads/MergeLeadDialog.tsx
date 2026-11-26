@@ -53,7 +53,7 @@ export function MergeLeadDialog({ orgId, leadId, leadName, suggested }: { orgId:
       <DialogContent title={`Merge a duplicate into ${leadName}`} description="Its history moves here. The duplicate is kept as a link to this lead and closed; nothing is deleted.">
         <div className="space-y-3">
           {suggested && (
-            <p className="text-[12px] text-muted">RE by PX flagged a likely duplicate; it is selected below. You can search for another.</p>
+            <p className="text-[12px] text-muted">RE flagged a likely duplicate; it is selected below. You can search for another.</p>
           )}
           <label className="relative block">
             <span className="sr-only">Find the duplicate</span>
@@ -83,7 +83,7 @@ export function MergeLeadDialog({ orgId, leadId, leadName, suggested }: { orgId:
   )
 }
 
-/** On a lead RE by PX flagged as a duplicate: merge it into its original in one step (with a confirmation). */
+/** On a lead RE flagged as a duplicate: merge it into its original in one step (with a confirmation). */
 export function MergeIntoOriginalButton({ leadId, originalId, originalHref }: { leadId: string; originalId: string; originalHref: string }) {
   const router = useRouter()
   const [busy, setBusy] = React.useState(false)

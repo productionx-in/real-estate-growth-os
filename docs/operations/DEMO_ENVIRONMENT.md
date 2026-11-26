@@ -1,12 +1,12 @@
-# RE by PX demo / test environment (STAGING ONLY)
+# RE demo / test environment (STAGING ONLY)
 
-Fifteen demo accounts across three fictional customer workspaces and the internal RE by PX console, with realistic
+Fifteen demo accounts across three fictional customer workspaces and the internal RE console, with realistic
 fictional data, for walking through every user journey. **Never run any of this against production.** The seed refuses
 production on its own (below), but the first line of defence is that nobody points it there.
 
 This file is safe to commit: it contains **no passwords and no authenticator secrets**. Those are written only to the
 private login sheet the seed generates in `.demo-credentials/` (git-ignored, file mode 600). Share that sheet only with
-the test team, privately. Never publish it on the RE by PX website.
+the test team, privately. Never publish it on the RE website.
 
 ## 1. What has to be provisioned (not available yet)
 
@@ -14,7 +14,7 @@ the test team, privately. Never publish it on the RE by PX website.
 19 November 2026). It is empty: the steps below give it the schema and the demo data.** Do not reuse the temporary
 password that appeared in Git history (`SECRET_SCANNING.md`); choose a new one for `DEMO_PASSWORD`.
 
-Before that project existed, there was no staging Supabase project. The only RE by PX project is production (`rtbvzqwwhefyyuhpoznu`); the seed
+Before that project existed, there was no staging Supabase project. The only RE project is production (`rtbvzqwwhefyyuhpoznu`); the seed
 refuses it. To run the demo you need, once:
 
 | # | Item | Who | Notes |
@@ -33,7 +33,7 @@ In the **staging** project's SQL editor (check the project name in the header fi
 
 ```sql
 insert into public.deployment_environment (kind, project_ref, note)
-values ('staging', '<staging project ref>', 'RE by PX staging — demo data allowed');
+values ('staging', '<staging project ref>', 'RE staging — demo data allowed');
 ```
 
 The table accepts one row, rejects the production reference, and cannot be written by the service role, signed-in
@@ -94,7 +94,7 @@ two-step verification; internal staff must enter an authenticator code (secrets 
 
 ### Customer workspaces
 
-RE by PX has two organisation types: `developer` and `channel_partner`. A channel-partner firm and an agency are both
+RE has two organisation types: `developer` and `channel_partner`. A channel-partner firm and an agency are both
 `channel_partner`; they are separate organisations and cannot see each other's data. "Admin" maps to the **owner**
 role (full control, including team and plan), "Manager" to **manager**, "Sales" to **sales_exec**.
 
@@ -110,7 +110,7 @@ role (full control, including team and plan), "Manager" to **manager**, "Sales" 
 | agency.manager@example.test | manager | Growth Realty Agency Demo | dashboard | All Growth leads, can submit registrations |
 | agency.sales@example.test | sales_exec | Growth Realty Agency Demo | dashboard | Own assigned Growth leads plus unassigned enquiries |
 
-### Internal RE by PX staff (console at `/platform`)
+### Internal RE staff (console at `/platform`)
 
 | Email | Platform role | Sees | Cannot |
 |---|---|---|---|

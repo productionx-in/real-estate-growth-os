@@ -47,9 +47,9 @@ async function main() {
 
   await test('a new team member gets their own welcome; owners get "plan active"', async () => {
     mail.clear(); await customerLifecycleEmails({}, service)
-    assert.deepEqual(to(`Welcome to ${name} on RE by PX`), [sales.email])
-    assert.deepEqual(to('Your RE by PX plan is active').filter((e) => e === owner.email), [owner.email])
-    assert.equal(to('Your RE by PX plan is active').includes(sales.email), false, 'salespeople get no billing e-mails')
+    assert.deepEqual(to(`Welcome to ${name} on RE`), [sales.email])
+    assert.deepEqual(to('Your RE plan is active').filter((e) => e === owner.email), [owner.email])
+    assert.equal(to('Your RE plan is active').includes(sales.email), false, 'salespeople get no billing e-mails')
   })
 
   await test('the preference is the owner’s own: they can turn it off, nobody else can', async () => {

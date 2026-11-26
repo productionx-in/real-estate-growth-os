@@ -1,4 +1,4 @@
-// app/platform/integrations/page.tsx — is RE by PX's central integration set-up complete?
+// app/platform/integrations/page.tsx — is RE’s central integration set-up complete?
 // One central Meta app (Lead Ads + WhatsApp Cloud API) and one Google Cloud app serve every workspace. This page shows
 // which platform settings are present (names and yes/no only — never a value), the URLs to register with Meta and
 // Google, the steps outside the code, and how many workspaces are connected per provider (counts only, no customer data).
@@ -29,7 +29,7 @@ export default async function PlatformIntegrationsPage() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Integrations" description="RE by PX runs one central Meta app and one Google app for every workspace; customers only authorise their own pages, ad accounts and WhatsApp numbers. Settings are read from the hosting environment — only their names and whether they are set are shown here." />
+      <PageHeader title="Integrations" description="RE runs one central Meta app and one Google app for every workspace; customers only authorise their own pages, ad accounts and WhatsApp numbers. Settings are read from the hosting environment — only their names and whether they are set are shown here." />
 
       <Card>
         <CardHeader><div><CardTitle>Register these URLs</CardTitle><CardDescription>Paste them into the Meta app and the Google Cloud OAuth client.</CardDescription></div></CardHeader>

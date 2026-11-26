@@ -49,8 +49,8 @@ const FEATURES = [
 
 const FAQ = [
   { q: 'How long does setup take?', a: 'We set it up with you: connect your lead sources, create your teams and routing rules, and import your existing leads. How long it takes depends mainly on how many sources you connect and whether they need third-party approval (Meta, Google, portals).' },
-  { q: 'We already use a CRM. Can we move to RE by PX?', a: 'Yes. We start with an assessment of your current system and a sample of your data, then plan the import of leads and contacts, project and inventory setup, workflows and team onboarding with you. Many teams run RE by PX alongside their current tools during the transition.' },
-  { q: 'What does RE by PX include besides lead management?', a: 'Projects and property inventory with holds and bookings, site visits, channel partner sharing and buyer registration, sales analytics, roles and an audit log — in the same platform as your leads.' },
+  { q: 'We already use a CRM. Can we move to RE?', a: 'Yes. We start with an assessment of your current system and a sample of your data, then plan the import of leads and contacts, project and inventory setup, workflows and team onboarding with you. Many teams run RE alongside their current tools during the transition.' },
+  { q: 'What does RE include besides lead management?', a: 'Projects and property inventory with holds and bookings, site visits, channel partner sharing and buyer registration, sales analytics, roles and an audit log — in the same platform as your leads.' },
   { q: 'What happens to a lead when nobody is available?', a: 'It stays unassigned instead of going to someone who is off duty or over their daily limit, and your managers are notified straight away.' },
   { q: 'Who owns the data?', a: 'You do. Channel-partner agencies have their own independent workspace and own their leads.' },
 ]
@@ -193,7 +193,7 @@ export default async function HomePage() {
 
       {/* Audiences */}
       <section aria-labelledby="audiences-heading" className="mx-auto max-w-6xl px-4 sm:px-6 pb-20">
-        <h2 id="audiences-heading" className="sr-only">Who RE by PX is for</h2>
+        <h2 id="audiences-heading" className="sr-only">Who RE is for</h2>
         <div className="grid gap-5 md:grid-cols-2">
           {[
             { href: '/developers', title: 'For developers and builders', body: 'Campaign leads answered, sales teams in control, live inventory by tower and floor, site visits, bookings and the partner network — across every project.', cta: 'RE for developers' },
@@ -209,7 +209,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Moving to RE by PX */}
+      {/* Moving to RE */}
       <section id="migration" aria-labelledby="migration-heading" className="bg-[var(--background)] border-y border-[var(--border)] scroll-mt-16">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-20 grid gap-10 md:grid-cols-2 items-center">
           <div>
@@ -227,7 +227,7 @@ export default async function HomePage() {
             {[
               ['Assessment first', 'We review your current setup and a sample export, and agree the migration scope in writing.'],
               ['Leads, projects and inventory', 'Leads and contacts imported from your exports; projects and unit inventory set up with you.'],
-              ['A guided transition', 'Workflows configured, teams trained, and RE by PX run alongside your current tools until you are ready.'],
+              ['A guided transition', 'Workflows configured, teams trained, and RE run alongside your current tools until you are ready.'],
             ].map(([t, b]) => (
               <li key={t} className="ceramic flex gap-3 p-5">
                 <Check className="w-5 h-5 mt-0.5 text-success flex-shrink-0" aria-hidden="true" />

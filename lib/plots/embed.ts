@@ -31,7 +31,7 @@ export function parseEmbedDomains(inputs: string[]): { ok: true; origins: string
   return { ok: true, origins: out }
 }
 
-/** The frame-ancestors directive for a public map: RE by PX itself plus the listed sites that are still valid. */
+/** The frame-ancestors directive for a public map: RE itself plus the listed sites that are still valid. */
 export function frameAncestors(origins: readonly string[] | null | undefined): string {
   const ok = (origins ?? []).filter((o) => normaliseEmbedDomain(o) === o).slice(0, MAX_EMBED_DOMAINS)
   return ["frame-ancestors 'self'", ...ok].join(' ')

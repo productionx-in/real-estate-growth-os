@@ -67,7 +67,7 @@ async function main() {
     (await one(`INSERT INTO public.org_members (org_id, profile_id, role, status) VALUES ($1,$2,$3,$4) RETURNING id`, [org, u.profileId, role, status])).id
   const member = (org, u) => one('SELECT id, role, status, lifecycle_saved_role, lifecycle_suspended FROM public.org_members WHERE org_id=$1 AND profile_id=$2', [org, u.profileId])
   const lifecycle = (org, state, reason = 'Test change') =>
-    one(`SELECT public.set_organisation_lifecycle($1, $2, $3, NULL, 'platform', 'RE by PX platform team') AS r`, [org, state, reason]).then((x) => x.r)
+    one(`SELECT public.set_organisation_lifecycle($1, $2, $3, NULL, 'platform', 'RE platform team') AS r`, [org, state, reason]).then((x) => x.r)
 
   console.log('P1 — ORGANISATION LIFECYCLE, AUDIT TRAIL, SESSIONS, TEAM PRIVILEGES')
   const createdOrgs = []
@@ -147,7 +147,7 @@ async function main() {
       assert.equal(ev.n, 8)
       const a = await one(`SELECT actor_kind, actor_label, metadata FROM public.org_audit_logs
         WHERE org_id=$1 AND action='organisation.lifecycle_changed' ORDER BY created_at, id LIMIT 1`, [org])
-      assert.deepEqual([a.actor_kind, a.actor_label, a.metadata.from, a.metadata.to, a.metadata.reason], ['platform', 'RE by PX platform team', 'active', 'suspended', 'Invoice overdue'])
+      assert.deepEqual([a.actor_kind, a.actor_label, a.metadata.from, a.metadata.to, a.metadata.reason], ['platform', 'RE platform team', 'active', 'suspended', 'Invoice overdue'])
     })
     await test('only the service role can change lifecycle or revoke sessions', async () => {
       for (const fn of ['public.set_organisation_lifecycle(uuid,text,text,uuid,text,text)', 'public.revoke_user_sessions(uuid)']) {

@@ -4,7 +4,7 @@ Status: **proposal**, nothing built. Roadmap item: Module 8 of the product brief
 
 ## The problem
 
-Developers and agencies both use RE by PX, but as unconnected workspaces:
+Developers and agencies both use RE, but as unconnected workspaces:
 
 - A developer keeps "channel partners" as **records inside its own workspace** (`channel_partners`: firm,
   RERA, PAN, bank details, default commission). Deals, bookings and commissions point at those records.

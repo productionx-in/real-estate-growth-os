@@ -1,5 +1,5 @@
 // app/api/integrations/whatsapp/embedded-signup/route.ts — connect a workspace's own WhatsApp Business number
-// through RE by PX's central Meta app (Embedded Signup). Managers, admins and owners of the workspace only.
+// through RE’s central Meta app (Embedded Signup). Managers, admins and owners of the workspace only.
 // GET  → whether signup is available here and the public ids the Facebook JS SDK needs (no secret).
 // POST → finish the signup: exchange the code, subscribe webhooks, register the number, store the token encrypted.
 import { NextResponse, type NextRequest } from 'next/server'
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   const cfg = embeddedSignupConfig()
   const appSecret = process.env.META_APP_SECRET
   if (!cfg.available || !cfg.appId || !appSecret) {
-    return NextResponse.json({ error: 'WhatsApp sign-up is not available yet. RE by PX is finishing its Meta app set-up.' }, { status: 503 })
+    return NextResponse.json({ error: 'WhatsApp sign-up is not available yet. RE is finishing its Meta app set-up.' }, { status: 503 })
   }
 
   const service = createServiceClient()
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     const m = (c.metadata ?? {}) as Record<string, unknown>
     return m.wabaId === input.wabaId || phoneNumberIdOf(m) === input.phoneNumberId
   })
-  if (taken) return NextResponse.json({ error: 'This WhatsApp number is already connected to another RE by PX workspace.' }, { status: 409 })
+  if (taken) return NextResponse.json({ error: 'This WhatsApp number is already connected to another RE workspace.' }, { status: 409 })
 
   let result
   try {

@@ -46,7 +46,7 @@ export async function requireModule(orgId: string, module: ModuleKey): Promise<N
   const modules = await getModules(orgId)
   if (modules[module]) return null
   return NextResponse.json(
-    { error: `${MODULES[module]} is not included in this workspace’s plan. Contact your RE by PX account manager.`, code: 'MODULE_DISABLED', module },
+    { error: `${MODULES[module]} is not included in this workspace’s plan. Contact your RE account manager.`, code: 'MODULE_DISABLED', module },
     { status: 403 }
   )
 }

@@ -29,7 +29,7 @@ export const SETTINGS: SettingsGroup[] = [
   {
     key: 'you', title: 'You', description: 'Your own profile, appearance, sign-in and alerts. Only you.',
     pages: [
-      { key: 'profile', label: 'Profile & preferences', description: 'Name, phone and how RE by PX looks for you.', path: '/settings/profile', audience: 'everyone', keywords: ['name', 'phone', 'theme', 'dark mode', 'appearance'] },
+      { key: 'profile', label: 'Profile & preferences', description: 'Name, phone and how RE looks for you.', path: '/settings/profile', audience: 'everyone', keywords: ['name', 'phone', 'theme', 'dark mode', 'appearance'] },
       { key: 'security', label: 'Sign-in & security', description: 'Password, two-step verification and signed-in devices.', path: '/settings/security', audience: 'everyone', keywords: ['password', 'mfa', '2fa', 'otp', 'sessions', 'sign out'] },
       { key: 'notifications', label: 'My notifications', description: 'Which alerts reach your devices, quiet hours, daily and weekly e-mails.', path: '/settings/notifications', audience: 'everyone', keywords: ['email', 'push', 'alerts', 'daily report', 'digest', 'weekly', 'quiet hours', 'do not disturb', 'mute'] },
     ],
@@ -43,7 +43,7 @@ export const SETTINGS: SettingsGroup[] = [
       { key: 'report-settings', label: 'Report settings', description: 'When your financial year and week start, for report periods.', path: '/settings/reports', audience: 'admins', keywords: ['financial year', 'fiscal year', 'fy', 'quarter', 'week', 'april', 'reports'] },
       { key: 'archive', label: 'Archive', description: 'Deleted leads, kept for 30 days — restore anything deleted by mistake.', path: '/settings/archive', audience: 'admins', keywords: ['deleted', 'restore', 'undo', 'recycle bin', 'trash'] },
       { key: 'audit', label: 'Audit log', description: 'Who changed what in the workspace.', path: '/audit-log', audience: 'admins', keywords: ['history', 'activity', 'log'] },
-      { key: 'support', label: 'Support access', description: 'Let RE by PX support look at your workspace for a limited time.', path: '/support-access', audience: 'admins', keywords: ['help', 'grant', 'support'] },
+      { key: 'support', label: 'Support access', description: 'Let RE support look at your workspace for a limited time.', path: '/support-access', audience: 'admins', keywords: ['help', 'grant', 'support'] },
     ],
   },
   {
@@ -52,7 +52,7 @@ export const SETTINGS: SettingsGroup[] = [
       { key: 'team', label: 'Team members & roles', description: 'Invite people, change roles, last sign-in, reset e-mails, monthly targets.', path: '/team', audience: 'managers', keywords: ['invite', 'users', 'roles', 'permissions', 'deactivate', 'seats'] },
       { key: 'sales-structure', label: 'Sales structure', description: 'Whether the owner also sells, and teams with their own leaders, projects and leaderboards.', path: '/settings/sales', audience: 'admins', keywords: ['owner', 'teams', 'team structure', 'sales team', 'manager', 'leaderboard', 'who gets leads', 'squads'] },
       { key: 'teams', label: 'Teams', description: 'Teams with a leader, their people and their projects; team-wise performance and leaderboards.', path: '/teams', audience: 'managers', keywords: ['teams', 'squads', 'team lead', 'leader', 'project team', 'group'] },
-      { key: 'roles', label: 'Roles & permissions', description: 'What each role can do, straight from the rules RE by PX enforces.', path: '/settings/roles', audience: 'managers', keywords: ['permissions', 'access', 'roles', 'who can', 'rights', 'privileges'] },
+      { key: 'roles', label: 'Roles & permissions', description: 'What each role can do, straight from the rules RE enforces.', path: '/settings/roles', audience: 'managers', keywords: ['permissions', 'access', 'roles', 'who can', 'rights', 'privileges'] },
       { key: 'sign-ins', label: 'Sign-in activity', description: 'When each person signed in, from which device, and whether they used two-step verification.', path: '/settings/sign-ins', audience: 'admins', keywords: ['login', 'log in', 'sign in', 'login history', 'devices', 'ip address', 'security', 'activity', 'sessions'] },
       { key: 'alert-defaults', label: 'Notification defaults', description: 'Which alerts reach the team’s devices unless they choose otherwise.', path: '/settings/alerts', audience: 'admins', keywords: ['push', 'alerts', 'notification rules', 'defaults', 'mute'] },
     ],

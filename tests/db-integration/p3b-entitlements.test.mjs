@@ -39,7 +39,7 @@ async function main() {
     return authId
   }
   const set = (org, module, enabled, reason = 'Plan change') =>
-    one(`SELECT public.set_module_entitlement($1,$2,$3,$4,NULL,'RE by PX platform team') r`, [org, module, enabled, reason]).then((x) => x.r)
+    one(`SELECT public.set_module_entitlement($1,$2,$3,$4,NULL,'RE platform team') r`, [org, module, enabled, reason]).then((x) => x.r)
 
   console.log('P3b — MODULE ENTITLEMENTS')
   const orgs = []

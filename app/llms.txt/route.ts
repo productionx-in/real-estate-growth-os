@@ -1,4 +1,4 @@
-// app/llms.txt/route.ts — a plain-text description of RE by PX for AI assistants and answer engines (llms.txt
+// app/llms.txt/route.ts — a plain-text description of RE for AI assistants and answer engines (llms.txt
 // convention): who we are, what the product does, each capability with its honest status, and where to read more.
 // Generated from the same sources as the website (brand, capability register, page map), so it never drifts.
 import { COMPANY_NAME, PRODUCT_DESCRIPTOR, PRODUCT_NAME } from '@/lib/brand'

@@ -1,4 +1,4 @@
-// lib/support/guide.ts — Rio's knowledge: short, true answers about RE by PX with a link to where it's done.
+// lib/support/guide.ts — Rio's knowledge: short, true answers about RE with a link to where it's done.
 // Answers only state what the product and the website already state (see tests/website-claims.test.mjs);
 // anything else hands over to a person. Pure functions, unit-tested in tests/support-bubble.test.mjs.
 
@@ -10,17 +10,17 @@ interface Entry { id: string; contexts: GuideContext[]; keys: string[]; text: st
 // `{org}` is replaced with the workspace slug.
 const KB: Entry[] = [
   // ── Website ────────────────────────────────────────────────────────────────────────────────────
-  { id: 'what', contexts: ['website', 'auth'], chip: 'What is RE by PX?', keys: ['what is re by px', 'what does re by px', 'what is re ', 'about re by px', 're by px do', 'explain re by px', 'about re', 'production x', 'overview', 'features', 'what can it do', 'real estate crm'],
-    text: 'RE by PX brings every lead into one place, gives it to the right salesperson straight away, and tracks follow-ups, site visits, inventory, bookings and channel partners — built for real estate developers and agencies.',
+  { id: 'what', contexts: ['website', 'auth'], chip: 'What is RE?', keys: ['what is re by px', 'what does re by px', 'what is re ', 'about re by px', 're by px do', 'explain re by px', 'about re', 'production x', 'overview', 'features', 'what can it do', 'real estate crm'],
+    text: 'RE brings every lead into one place, gives it to the right salesperson straight away, and tracks follow-ups, site visits, inventory, bookings and channel partners — built for real estate developers and agencies.',
     links: [{ label: 'See all features', href: '/features' }, { label: 'Book a demo', href: '/demo' }] },
   { id: 'demo', contexts: ['website', 'auth'], chip: 'Book a demo', keys: ['demo', 'walkthrough', 'show me', 'call', 'meeting', 'presentation'],
-    text: 'A demo is a short call where we show RE by PX on your own lead flow. Leave your details and the team will reach out to fix a time.',
+    text: 'A demo is a short call where we show RE on your own lead flow. Leave your details and the team will reach out to fix a time.',
     links: [{ label: 'Book a demo', href: '/demo' }] },
   { id: 'price', contexts: ['website', 'auth'], chip: 'Pricing', keys: ['price', 'pricing', 'cost', 'plan', 'how much', 'subscription', 'charge', 'rate', 'fee', 'package', 'expensive', 'afford', 'budget', 'quote'],
     text: 'Plans and what each includes are on the pricing page. The team confirms the right plan for your team size in the demo.',
     links: [{ label: 'View plans', href: '/pricing' }, { label: 'Book a demo', href: '/demo' }] },
   { id: 'trial', contexts: ['website', 'auth'], chip: 'Can I try it?', keys: ['trial', 'free', 'sign up', 'signup', 'register', 'try', 'create account', 'start'],
-    text: 'RE by PX is set up for you rather than by self sign-up: after a short demo we create your workspace and send your admin an invitation, so your data starts clean and private.',
+    text: 'RE is set up for you rather than by self sign-up: after a short demo we create your workspace and send your admin an invitation, so your data starts clean and private.',
     links: [{ label: 'Book a demo', href: '/demo' }] },
   { id: 'sources', contexts: ['website', 'auth'], chip: 'Where do leads come from?', keys: ['source', 'sources', 'facebook', 'meta', 'google', 'portal', '99acres', 'magicbricks', 'housing', 'integration', 'integrations', 'connect', 'website form', 'import'],
     text: 'Ready to use: website forms, walk-ins and referrals, CSV import, and webhooks/API. With your own business account or API access: Meta lead forms, Google Ads lead forms, WhatsApp Business, 99acres, MagicBricks and Housing.com.',
@@ -39,12 +39,12 @@ const KB: Entry[] = [
     links: [{ label: 'Sales analytics', href: '/sales-analytics' }] },
   { id: 'migrate', contexts: ['website', 'auth'], keys: ['migrate', 'migration', 'switch', 'move from', 'excel', 'sheet', 'spreadsheet', 'existing crm'],
     text: 'You can bring your existing leads across from spreadsheets or another CRM with a CSV import, and we help map the columns.',
-    links: [{ label: 'Moving to RE by PX', href: '/migration' }] },
+    links: [{ label: 'Moving to RE', href: '/migration' }] },
   { id: 'who', contexts: ['website', 'auth'], keys: ['developer', 'developers', 'agency', 'agencies', 'builder', 'builders', 'who is it for'],
-    text: 'RE by PX has a workspace for developers (projects, inventory, sales team, partners) and one for agencies and channel partners (your buyers, your team, the developers you work with).',
+    text: 'RE has a workspace for developers (projects, inventory, sales team, partners) and one for agencies and channel partners (your buyers, your team, the developers you work with).',
     links: [{ label: 'For developers', href: '/developers' }, { label: 'For agencies', href: '/agencies' }] },
-  { id: 'different', contexts: ['website', 'auth'], chip: 'Why RE by PX?', keys: ['different', 'difference', 'why re by px', 'why should', 'better', 'compare', 'comparison', 'versus', 'vs', 'unique', 'special', 'alternative', 'competitor', 'other crm', 'advantage', 'benefit'],
-    text: 'What sets RE by PX apart: routing rules you can read in plain language; a fair rotation you can tune (bigger share for senior closers, daily caps, off-duty for site visits); returning buyers go back to the salesperson who knows them; managers see why every lead went to whom; agencies keep their own workspace and buyers; and leads, inventory, site visits, bookings and channel partners live in one platform — set up with you.',
+  { id: 'different', contexts: ['website', 'auth'], chip: 'Why RE?', keys: ['different', 'difference', 'why re by px', 'why should', 'better', 'compare', 'comparison', 'versus', 'vs', 'unique', 'special', 'alternative', 'competitor', 'other crm', 'advantage', 'benefit'],
+    text: 'What sets RE apart: routing rules you can read in plain language; a fair rotation you can tune (bigger share for senior closers, daily caps, off-duty for site visits); returning buyers go back to the salesperson who knows them; managers see why every lead went to whom; agencies keep their own workspace and buyers; and leads, inventory, site visits, bookings and channel partners live in one platform — set up with you.',
     links: [{ label: 'See all features', href: '/features' }, { label: 'Book a demo', href: '/demo' }] },
   { id: 'setup', contexts: ['website', 'auth'], keys: ['setup', 'set up', 'onboarding', 'how long', 'implementation', 'go live', 'get started', 'start using'],
     text: 'We set it up with you: connect your lead sources, create your teams and routing rules, and import your existing leads. How long it takes depends mainly on how many sources you connect and whether they need third-party approval (Meta, Google, portals).',
@@ -62,7 +62,7 @@ const KB: Entry[] = [
     text: 'Duplicates are merged, and when the same phone number enquires again it goes back to the salesperson who already knows that buyer.',
     links: [] },
   { id: 'security', contexts: ['website', 'auth', 'workspace'], keys: ['secure', 'security', 'privacy', 'data', 'safe', 'gdpr', 'dpdp', 'who can see'],
-    text: 'Each company’s data is kept separate. RE by PX staff cannot open your records unless your admin approves time-limited support access, and every such access is logged.',
+    text: 'Each company’s data is kept separate. RE staff cannot open your records unless your admin approves time-limited support access, and every such access is logged.',
     links: [{ label: 'Privacy', href: '/privacy' }] },
   { id: 'leak', contexts: ['website', 'auth'], keys: ['leak', 'leakage', 'losing leads', 'missed leads', 'audit'],
     text: 'The lead leakage audit shows where enquiries slip through today and what that costs.',
@@ -73,13 +73,13 @@ const KB: Entry[] = [
 
   // ── Sign-in ──────────────────────────────────────────────────────────────────────────────────────
   { id: 'forgot', contexts: ['auth', 'workspace'], chip: 'Forgot password', keys: ['forgot', 'password', 'reset', 'cannot login', "can't login", 'cant login', 'locked'],
-    text: 'On the sign-in page choose “Forgot password?”, enter your work e-mail and follow the link we send. If no e-mail arrives, ask your company’s RE by PX admin to invite you again.',
+    text: 'On the sign-in page choose “Forgot password?”, enter your work e-mail and follow the link we send. If no e-mail arrives, ask your company’s RE admin to invite you again.',
     links: [{ label: 'Go to sign-in', href: '/login' }] },
   { id: 'noaccount', contexts: ['auth'], chip: 'I don’t have an account', keys: ['no account', 'not registered', 'not found', "don't have", 'dont have', 'invite', 'invitation', 'access'],
-    text: 'Accounts are created by invitation: your company’s RE by PX owner or admin adds you from Team, and you get a link to set your password. If your company isn’t on RE by PX yet, book a demo.',
+    text: 'Accounts are created by invitation: your company’s RE owner or admin adds you from Team, and you get a link to set your password. If your company isn’t on RE yet, book a demo.',
     links: [{ label: 'Book a demo', href: '/demo' }] },
   { id: 'twostep', contexts: ['auth', 'workspace'], keys: ['two step', '2fa', 'authenticator', 'otp', 'code', 'mfa'],
-    text: 'Two-step verification uses an authenticator app (Google Authenticator, Microsoft Authenticator…). Set it up under Account security; if you lost your phone, ask your admin or RE by PX support.',
+    text: 'Two-step verification uses an authenticator app (Google Authenticator, Microsoft Authenticator…). Set it up under Account security; if you lost your phone, ask your admin or RE support.',
     links: [{ label: 'Account security', href: '/account/security' }] },
 
   // ── Workspace ────────────────────────────────────────────────────────────────────────────────────
@@ -126,7 +126,7 @@ const KB: Entry[] = [
     text: 'Plan & billing shows your plan, seats, invoices and renewal. Owners can pay or change the plan there.',
     links: [{ label: 'Plan & billing', href: '/{org}/billing' }] },
   { id: 'w-access', contexts: ['workspace'], keys: ['support access', 'give access', 'allow support', 'grant'],
-    text: 'If RE by PX support needs to look at your records, your admin approves it under Support access — it is time-limited and logged.',
+    text: 'If RE support needs to look at your records, your admin approves it under Support access — it is time-limited and logged.',
     links: [{ label: 'Support access', href: '/{org}/support-access' }] },
   { id: 'w-problem', contexts: ['workspace'], chip: 'Report a problem', keys: ['problem', 'issue', 'bug', 'error', 'not working', 'broken', 'help', 'support', 'complaint', 'ticket'],
     text: 'Open a support case from Help & support — describe what happened and our team replies there. You can follow every reply on the same page.',

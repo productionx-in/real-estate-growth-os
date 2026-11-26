@@ -28,7 +28,7 @@ export default async function OrganizationSettingsPage({ params }: { params: Pro
       <SettingsHeader title="Organisation" scope="org" description="Your workspace’s name, type of business and address." />
       <SettingsCard title="Details">
         <dl className="divide-y divide-[var(--border)]">
-          {row('Name', <span className="font-semibold">{org.name}</span>, 'To rename the workspace, contact RE by PX support.')}
+          {row('Name', <span className="font-semibold">{org.name}</span>, 'To rename the workspace, contact RE support.')}
           {row('Type of business', type.label, type.hint)}
           {row('Workspace address', <span className="font-mono">/{org.slug}</span>)}
           {row('Plan', <span className="capitalize">{org.plan ?? '—'}</span>)}

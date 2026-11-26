@@ -25,7 +25,7 @@ test('the arithmetic: leads per salesperson per month and per working day', () =
 })
 test('the confirmation is personal: first name, company, their phone, their tool, the next step', () => {
   const e = demoConfirmationEmail(base, { site: 'https://site.example.org' })
-  assert.match(e.subject, /^Thanks, Ravi — we’ve received your RE by PX demo request$/)
+  assert.match(e.subject, /^Thanks, Ravi — we’ve received your RE demo request$/)
   for (const s of ['Hi Ravi', 'Skyline Developers', '+91 98765 43210', '30–100 new leads per salesperson', 'sheets and WhatsApp', 'the projects you’re selling'])
     assert.ok(e.text.includes(s), s)
   assert.ok(e.text.includes('https://site.example.org/features'))
@@ -35,7 +35,7 @@ test('agencies, migrations and consultations each get their own wording', () => 
   assert.match(a.subject, /migration request/); assert.match(a.text, /your buyers stay yours/); assert.match(a.text, /run both side by side/); assert.match(a.text, /developers and projects you sell/)
   assert.match(demoConfirmationEmail({ ...base, interest: 'A consultation about our sales process' }, { site: 'https://s.example.org' }).subject, /consultation request/)
 })
-test('no promises RE by PX cannot keep, and nothing unsafe from the form gets into the HTML', () => {
+test('no promises RE cannot keep, and nothing unsafe from the form gets into the HTML', () => {
   const e = demoConfirmationEmail({ ...base, name: '<b>Evil</b>', companyName: '<script>x</script>' }, { site: 'https://s.example.org' })
   assert.doesNotMatch(e.text, /within \d+ (hours|minutes)|guarantee|%/i)
   assert.doesNotMatch(e.html, /<script>x|<b>Evil/)

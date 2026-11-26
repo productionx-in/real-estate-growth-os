@@ -117,7 +117,7 @@ export function weeklyDigestEmail(o: { orgName: string; firstName: string; range
         ...(w.people.length ? ['**By person** (new leads · answered · site visits done)', ...w.people.slice(0, 15).map((p) => `• ${p.name}: ${p.newAssigned} · ${p.answered} · ${p.visitsDone}`)] : []),
       ],
       cta: { label: 'Open reports', url: o.url },
-      reason: 'You get this each Monday as an owner, admin or manager of a RE by PX workspace. Turn it off in Settings → My notifications.',
+      reason: 'You get this each Monday as an owner, admin or manager of a RE workspace. Turn it off in Settings → My notifications.',
     }),
   }
 }

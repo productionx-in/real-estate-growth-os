@@ -10,7 +10,7 @@ const c: ProductPageContent = {
   eyebrow: 'Real estate sales analytics',
   h1: 'Know which sources, teams and projects are actually selling',
   intro:
-    'Because leads, visits, bookings and inventory live in one system, RE by PX’s reports come from the work itself — not from a spreadsheet someone updates on Friday.',
+    'Because leads, visits, bookings and inventory live in one system, RE’s reports come from the work itself — not from a spreadsheet someone updates on Friday.',
   definition: {
     question: 'Which sales metrics matter most for a real estate developer?',
     answer:

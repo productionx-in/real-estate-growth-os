@@ -1,5 +1,5 @@
 // tests/brand.test.mjs
-// Branding phase 1 (BRANDING_MIGRATION_PLAN classes A–C): user-visible copy says RE by PX.
+// Branding phase 1 (BRANDING_MIGRATION_PLAN classes A–C): user-visible copy says RE.
 // Imports the real lib/brand.ts and the real email adapter, and guards against regressions.
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
@@ -22,12 +22,12 @@ console.log('BRANDING (real lib/brand.ts, lib/email/adapter.ts)')
 const brand = await jiti.import(path.join(root, 'lib/brand.ts'))
 
 await test('product and company names', () => {
-  assert.equal(brand.PRODUCT_NAME, 'RE by PX')
+  assert.equal(brand.PRODUCT_NAME, 'RE')
   assert.equal(brand.COMPANY_NAME, 'Production X')
-  assert.equal(brand.PRODUCT_FULL_NAME, 'RE by PX')
+  assert.equal(brand.PRODUCT_FULL_NAME, 'RE')
 })
 
-await test('invitation email copy uses RE by PX (real adapter, network stubbed)', async () => {
+await test('invitation email copy uses RE (real adapter, network stubbed)', async () => {
   const { ResendEmailAdapter } = await jiti.import(path.join(root, 'lib/email/adapter.ts'))
   const sent = []
   const realFetch = globalThis.fetch
@@ -46,18 +46,18 @@ await test('invitation email copy uses RE by PX (real adapter, network stubbed)'
   }
   assert.equal(sent.length, 1)
   const email = sent[0]
-  assert.match(email.from, /^RE by PX </)
-  assert.equal(email.subject, 'Asha invited you to Acme Developers on RE by PX')
-  assert.match(email.html, /RE by PX/)
-  assert.match(email.text, /Join Acme Developers on RE by PX/)
-  assert.match(email.text, /RE by PX/)
+  assert.match(email.from, /^RE </)
+  assert.equal(email.subject, 'Asha invited you to Acme Developers on RE')
+  assert.match(email.html, /RE/)
+  assert.match(email.text, /Join Acme Developers on RE/)
+  assert.match(email.text, /RE/)
   for (const field of ['from', 'subject', 'html', 'text']) {
     assert.ok(!/regrow|infyn/i.test(email[field] || ''), `${field} must not use the retired brand`)
   }
 })
 
 // The retired brand may only survive in stable technical contracts that customers' sites, stored data or server
-// configuration depend on (see lib/brand.ts). Everything a person can read says RE by PX / Production X.
+// configuration depend on (see lib/brand.ts). Everything a person can read says RE / Production X.
 const RETIRED = /regrow|infyn/i
 const ALLOWED_RETIRED = [
   /data-regrow-|w(indow)?\.REGrow\b/,                // website embed: old attributes and global still read

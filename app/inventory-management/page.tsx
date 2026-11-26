@@ -10,7 +10,7 @@ const c: ProductPageContent = {
   eyebrow: 'Real estate inventory management',
   h1: 'One current inventory for every project, tower, floor and unit',
   intro:
-    'RE by PX keeps your property inventory in one place, structured the way your projects are built. Sales teams, managers and channel partners see the same availability, units are held and booked through controlled steps, and every change is recorded.',
+    'RE keeps your property inventory in one place, structured the way your projects are built. Sales teams, managers and channel partners see the same availability, units are held and booked through controlled steps, and every change is recorded.',
   definition: {
     question: 'What is real estate inventory management software?',
     answer:
@@ -23,7 +23,7 @@ const c: ProductPageContent = {
     { title: 'Partners see what you choose', body: 'Share a project with partner agencies and decide whether they see nothing, availability only, or availability with prices.' },
   ],
   workflow: {
-    heading: 'How inventory works in RE by PX',
+    heading: 'How inventory works in RE',
     intro: 'From project setup to a sold unit, each step is a controlled action rather than an edit to a shared sheet.',
     steps: [
       { title: 'Set up the project', body: 'Create the project with its category (apartments, villas, plots, commercial or mixed use), RERA number, approvals, dates, amenities and specifications.' },
@@ -43,7 +43,7 @@ const c: ProductPageContent = {
     {
       heading: 'Built for how Indian developers structure projects',
       paragraphs: [
-        'An apartment project is phases, towers and floors; a plotted development is phases, streets and plots; a commercial project mixes offices, retail and showrooms. RE by PX lets each project take its own shape instead of forcing every project into the same template, and keeps the unit attributes that matter for each category — carpet and super built-up area for apartments, plot dimensions, road width and corner plots for plotted developments.',
+        'An apartment project is phases, towers and floors; a plotted development is phases, streets and plots; a commercial project mixes offices, retail and showrooms. RE lets each project take its own shape instead of forcing every project into the same template, and keeps the unit attributes that matter for each category — carpet and super built-up area for apartments, plot dimensions, road width and corner plots for plotted developments.',
         'Inventory is part of the same system as leads, site visits and bookings, so a booking updates availability and a salesperson can see what is available while talking to the buyer.',
       ],
     },
@@ -55,11 +55,11 @@ const c: ProductPageContent = {
     },
   ],
   faq: [
-    { q: 'Can we import our existing inventory sheet?', a: 'Yes. Bulk import validates every row — duplicates, missing fields and invalid values are reported before anything is saved. During onboarding we help map your sheet to RE by PX’s fields.' },
+    { q: 'Can we import our existing inventory sheet?', a: 'Yes. Bulk import validates every row — duplicates, missing fields and invalid values are reported before anything is saved. During onboarding we help map your sheet to RE’s fields.' },
     { q: 'Which statuses can a unit have?', a: 'Available, on hold, blocked, booked and sold. Changes follow allowed transitions and are recorded in the unit’s history.' },
-    { q: 'Does RE by PX handle plotted developments and commercial projects?', a: 'Yes. Projects can be apartments, villas and gated communities, plotted developments, commercial or mixed use, and each keeps the attributes relevant to its category.' },
+    { q: 'Does RE handle plotted developments and commercial projects?', a: 'Yes. Projects can be apartments, villas and gated communities, plotted developments, commercial or mixed use, and each keeps the attributes relevant to its category.' },
     { q: 'Can channel partners see our inventory?', a: 'Only for projects you share with them, and only at the visibility you choose: none, availability only, or availability with prices.' },
-    { q: 'Does RE by PX manage payment schedules and demand letters?', a: 'RE by PX records bookings and the booking amount received. Post-sales collections such as payment schedules and demand letters are not part of RE by PX today.' },
+    { q: 'Does RE manage payment schedules and demand letters?', a: 'RE records bookings and the booking amount received. Post-sales collections such as payment schedules and demand letters are not part of RE today.' },
   ],
   related: [
     { href: '/site-visits-and-bookings', label: 'Site visits & bookings', body: 'From a scheduled visit to a held and booked unit.' },

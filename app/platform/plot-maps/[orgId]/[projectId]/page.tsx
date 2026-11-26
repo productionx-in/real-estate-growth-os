@@ -1,5 +1,5 @@
-// app/platform/plot-maps/[orgId]/[projectId]/page.tsx — RE by PX staff: the map versions of a project whose workspace
-// allows RE by PX to draw (option c, 20260085). Names, versions and plot counts only; drafts open in the drawing editor.
+// app/platform/plot-maps/[orgId]/[projectId]/page.tsx — RE staff: the map versions of a project whose workspace
+// allows RE to draw (option c, 20260085). Names, versions and plot counts only; drafts open in the drawing editor.
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -26,7 +26,7 @@ export default async function StaffProjectMapPage({ params }: { params: Promise<
     return (
       <div className="space-y-4">
         <PageHeader title="Draw plot boundaries" />
-        <Alert tone="info">This workspace has not allowed RE by PX to draw on this project, or the permission has ended. The customer can allow it on the project’s plot map page.</Alert>
+        <Alert tone="info">This workspace has not allowed RE to draw on this project, or the permission has ended. The customer can allow it on the project’s plot map page.</Alert>
         <Link href="/platform/plot-maps" className="text-[13px] font-medium text-brand hover:underline">Back to map set-ups</Link>
       </div>
     )

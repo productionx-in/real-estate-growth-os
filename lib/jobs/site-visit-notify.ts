@@ -38,7 +38,7 @@ export function visitEmail(o: {
       heading,
       paragraphs,
       cta: o.meetingLink ? { label: 'Join the online meeting', url: o.meetingLink } : undefined,
-      footnote: `Sent by ${o.orgName} using RE by PX.`,
+      footnote: `Sent by ${o.orgName} using RE.`,
     }),
   }
 }

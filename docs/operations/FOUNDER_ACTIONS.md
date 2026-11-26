@@ -28,7 +28,7 @@ The production address is **https://re.productionx.in** (live). URLs below use i
 
 ## 2. Meta Lead Ads (Facebook & Instagram)
 
-One central RE by PX app at developers.facebook.com, owned by Production X's business portfolio.
+One central RE app at developers.facebook.com, owned by Production X's business portfolio.
 
 - [ ] Business verification of the business portfolio that owns the app (legal name, address, documents).
 - [ ] Create the app (type *Business*); add **Facebook Login for Business** and **Webhooks**.
@@ -62,14 +62,14 @@ Same Meta app as above.
 - [ ] Google Cloud project owned by Production X: OAuth consent screen (External), with app name, logo, privacy and terms
       URLs and authorised domain; submit for **verification** (Google Ads scope is sensitive).
 - [ ] Credentials → OAuth client (*Web application*), redirect URI `https://re.productionx.in/api/integrations/google/callback`.
-- [ ] Google Ads **manager account** → API Center → apply for a **Basic access** developer token (describe RE by PX
+- [ ] Google Ads **manager account** → API Center → apply for a **Basic access** developer token (describe RE
       as a lead-management tool reading lead-form submissions).
 - [ ] Set in Vercel: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (secret), `GOOGLE_DEVELOPER_TOKEN` (secret);
       optional `GOOGLE_WEBHOOK_KEY`, `GOOGLE_REDIRECT_URI` (only if it differs from the one above).
 
-## 5. Email (sending from RE by PX and from customers' own domains)
+## 5. Email (sending from RE and from customers' own domains)
 
-- [ ] Resend account owned by Production X; verify RE by PX's sending domain there (DNS records at your registrar).
+- [ ] Resend account owned by Production X; verify RE’s sending domain there (DNS records at your registrar).
 - [ ] Create a **production API key** with sending + domain access (customers' own domains are registered through
       it from *Integrations → Email domain*).
 - [ ] Set in Vercel: `RESEND_API_KEY` (secret), `EMAIL_PROVIDER=resend`, `EMAIL_FROM_ADDRESS` (on the verified
@@ -88,7 +88,7 @@ Same Meta app as above.
 
 - [ ] Property portals (99acres, MagicBricks, Housing): the customer's portal account manager turns on lead push to
       the workspace's webhook URL shown in *Integrations*.
-- [ ] Customer website and email domains: the customer adds the DNS records RE by PX shows them; RE by PX checks them
+- [ ] Customer website and email domains: the customer adds the DNS records RE shows them; RE checks them
       automatically.
 
 ## 8. Decisions and approvals

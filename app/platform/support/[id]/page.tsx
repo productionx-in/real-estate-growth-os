@@ -40,7 +40,7 @@ export default async function SupportCasePage({ params }: { params: Promise<{ id
         <CardContent className="space-y-3">
           {c.messages.map((m: { id: string; author_kind: string; author_label: string | null; body: string; internal: boolean; created_at: string }) => (
             <div key={m.id} className={`rounded-xl border p-3 text-[13px] ${m.internal ? 'border-dashed border-warning bg-warning-bg' : m.author_kind === 'staff' ? 'border-default bg-surface-muted' : 'border-default'}`}>
-              <p className="font-medium">{m.author_label ?? (m.author_kind === 'staff' ? 'RE by PX support' : 'Customer')} {m.internal && <Badge tone="warning">Internal note</Badge>} <span className="font-normal text-subtle">{when(m.created_at)}</span></p>
+              <p className="font-medium">{m.author_label ?? (m.author_kind === 'staff' ? 'RE support' : 'Customer')} {m.internal && <Badge tone="warning">Internal note</Badge>} <span className="font-normal text-subtle">{when(m.created_at)}</span></p>
               <p className="mt-1 whitespace-pre-wrap">{m.body}</p>
             </div>
           ))}

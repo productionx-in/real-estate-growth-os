@@ -1,4 +1,4 @@
-// lib/site/urls.ts — every absolute URL RE by PX produces comes from here, so a domain change is a configuration
+// lib/site/urls.ts — every absolute URL RE produces comes from here, so a domain change is a configuration
 // change, never a code change. No domain is written into the code.
 //
 // Sources, in order:

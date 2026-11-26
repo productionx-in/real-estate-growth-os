@@ -60,7 +60,7 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
   const mine = grants.filter((g) => g.requested_by === access.userId)
   const myLive = mine.find((g) => isGrantLive(g))
   const myPending = mine.find((g) => g.status === 'pending')
-  const overview = myLive ? await getSupportOverview(orgId, { userId: access.userId, label: `${access.label} (RE by PX support)` }) : null
+  const overview = myLive ? await getSupportOverview(orgId, { userId: access.userId, label: `${access.label} (RE support)` }) : null
 
   return (
     <div className="space-y-5">
@@ -106,7 +106,7 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
         <div className="grid gap-5 lg:grid-cols-2">
           {(isSuper || access.role === 'platform_admin') && (
             <Card>
-              <CardHeader><div><CardTitle>Details</CardTitle><CardDescription>Change how this customer appears in RE by PX.</CardDescription></div></CardHeader>
+              <CardHeader><div><CardTitle>Details</CardTitle><CardDescription>Change how this customer appears in RE.</CardDescription></div></CardHeader>
               <CardContent><RenameOrg orgId={org.id} name={org.name} /></CardContent>
             </Card>
           )}
@@ -243,7 +243,7 @@ export default async function PlatformOrgPage({ params }: { params: Promise<{ or
             <div>
               <CardTitle>People</CardTitle>
               <CardDescription>
-                Who can use this workspace. Suspend someone’s access here, or {isSuper ? 'block their sign-in to RE by PX altogether' : 'ask the Platform Owner to block their sign-in'}.
+                Who can use this workspace. Suspend someone’s access here, or {isSuper ? 'block their sign-in to RE altogether' : 'ask the Platform Owner to block their sign-in'}.
                 Every change needs a reason and shows in the customer’s audit log.
               </CardDescription>
             </div>

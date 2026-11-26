@@ -1,6 +1,6 @@
 // lib/integrations/google/config.ts
-// Central RE by PX Google Developer App & Google Ads Configuration.
-// RE by PX operates a central Google Cloud OAuth client for customer tenants.
+// Central RE Google Developer App & Google Ads Configuration.
+// RE operates a central Google Cloud OAuth client for customer tenants.
 // Manages OAuth endpoints, app credentials, Google Ads scopes, and webhook parameters.
 import { appUrl } from '@/lib/site/urls'
 

@@ -1,6 +1,6 @@
 # Security overview
 
-How RE by PX protects customer data, and what the owner must keep up. The design rules are in `CLAUDE.md`
+How RE protects customer data, and what the owner must keep up. The design rules are in `CLAUDE.md`
 ("Non-negotiables"); this file is the operating view.
 
 ## Controls in place (enforced in code and tested)
@@ -18,7 +18,7 @@ How RE by PX protects customer data, and what the owner must keep up. The design
 - **Secrets.**
   - Secrets are held only in Vercel environment variables (marked Sensitive) and Supabase Vault, never in code.
   - Integration credentials are encrypted with `ENCRYPTION_KEY`.
-  - Payment card and UPI details are handled by the gateway, never by RE by PX.
+  - Payment card and UPI details are handled by the gateway, never by RE.
 - **Webhooks.** Payment and lead webhooks are verified by signature, deduplicated and rate-limited.
 - **Passwords and redirects.** Passwords follow `lib/auth/password-policy.ts`, and post-sign-in redirects go through
   `safeRedirectPath`.

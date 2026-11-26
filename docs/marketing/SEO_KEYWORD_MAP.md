@@ -1,4 +1,4 @@
-# RE by PX website — keyword clusters, page map and content roadmap (implemented 19 Nov 2026)
+# RE website — keyword clusters, page map and content roadmap (implemented 19 Nov 2026)
 
 One page per search intent. No duplicate landing pages, no location pages, no competitor names in navigation, titles or
 copy. The page map in code is `lib/marketing/site-pages.ts`; capability claims come only from
@@ -23,9 +23,9 @@ intent and commercial value, not volume.
 | Analytics | real estate sales analytics, real estate sales reports | `/sales-analytics` | Commercial |
 | Integrations | real estate CRM integrations, Meta lead ads CRM, property portal lead integration | `/integrations` | Commercial / navigational |
 | Migration | CRM migration real estate, switch real estate CRM | `/migration` | Commercial |
-| Brand / overview | RE by PX, real estate growth operating system | `/`, `/features` | Navigational |
+| Brand / overview | RE, real estate growth operating system | `/`, `/features` | Navigational |
 
-Not targeted (deliberately): "real estate project management software" in the construction sense. RE by PX manages
+Not targeted (deliberately): "real estate project management software" in the construction sense. RE manages
 sales-side projects (structure, inventory), not construction, so the term appears only where it is accurate.
 
 ## Implemented on every public page

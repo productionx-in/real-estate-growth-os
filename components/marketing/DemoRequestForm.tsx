@@ -1,7 +1,7 @@
 'use client'
 // components/marketing/DemoRequestForm.tsx
-// Demo / pilot request — RE by PX sells with RE by PX: the request is submitted as a website enquiry
-// (POST /api/forms/submit) to a website-form connection in Production X's own RE by PX workspace, so it
+// Demo / pilot request — RE sells with RE: the request is submitted as a website enquiry
+// (POST /api/forms/submit) to a website-form connection in Production X's own RE workspace, so it
 // becomes a lead there and is routed and alerted to the sales team like any customer's lead.
 // The connection id comes from REGROW_DEMO_FORM_CONNECTION_ID (server env, passed in as a prop).
 import { useEffect, useRef, useState } from 'react'
@@ -97,7 +97,7 @@ export function DemoRequestForm({ initialPlan, initialInterest = 'demo' }: { ini
           {PUBLIC_PLANS.map((p) => (
             <label key={p.id} className={`cursor-pointer rounded-xl border px-3 py-2.5 text-[14px] font-medium text-center transition-colors ${planId === p.id ? 'border-[var(--brand)] bg-[var(--brand-light)] text-[var(--brand)]' : 'border-[var(--border-strong)] hover:bg-[var(--surface-hover)]'}`}>
               <input type="radio" name="plan" value={p.id} checked={planId === p.id} onChange={() => setPlanId(p.id)} className="sr-only" />
-              {p.name.replace('RE by PX ', '')}
+              {p.name.replace('RE ', '')}
             </label>
           ))}
         </div>
@@ -149,7 +149,7 @@ export function DemoRequestForm({ initialPlan, initialInterest = 'demo' }: { ini
         {status === 'sending' && <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />}
         Send my request
       </button>
-      <p className="text-[12px] text-[var(--foreground-subtle)] text-center">We use these details only to contact you about RE by PX.</p>
+      <p className="text-[12px] text-[var(--foreground-subtle)] text-center">We use these details only to contact you about RE.</p>
     </form>
   )
 }

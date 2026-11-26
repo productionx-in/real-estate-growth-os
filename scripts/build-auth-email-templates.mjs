@@ -1,6 +1,6 @@
 // scripts/build-auth-email-templates.mjs
 // Generates Supabase Auth email templates (supabase/templates/*.html) from the app's own email layout, so
-// sign-up, password-reset, magic-link and email-change mail look like every other RE by PX email.
+// sign-up, password-reset, magic-link and email-change mail look like every other RE email.
 //   node scripts/build-auth-email-templates.mjs          → writes the files
 //   node scripts/build-auth-email-templates.mjs --check  → exits 1 if the committed files are out of date
 // Production: paste each file into Supabase → Authentication → Email Templates (subjects in config.toml).
@@ -16,38 +16,38 @@ const PLACEHOLDER = 'https://placeholder.invalid/__CONFIRMATION_URL__'
 
 export const TEMPLATES = {
   confirmation: {
-    subject: 'Confirm your email for RE by PX',
-    preheader: 'Confirm your email address to finish setting up your RE by PX account.',
+    subject: 'Confirm your email for RE',
+    preheader: 'Confirm your email address to finish setting up your RE account.',
     heading: 'Confirm your email address',
-    paragraphs: ['Confirm that this is your email address to finish setting up your RE by PX account.'],
+    paragraphs: ['Confirm that this is your email address to finish setting up your RE account.'],
     cta: 'Confirm email',
     // Token-hash links go to /auth/confirm and work on any device (a PKCE link only in the requesting browser).
     link: '{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/select-org',
-    footnote: 'If you didn’t create a RE by PX account, you can ignore this email.',
+    footnote: 'If you didn’t create a RE account, you can ignore this email.',
   },
   recovery: {
-    subject: 'Reset your RE by PX password',
-    preheader: 'Choose a new password for your RE by PX account.',
+    subject: 'Reset your RE password',
+    preheader: 'Choose a new password for your RE account.',
     heading: 'Reset your password',
-    paragraphs: ['We received a request to reset the password for your RE by PX account. Choose a new one with the button below.'],
+    paragraphs: ['We received a request to reset the password for your RE account. Choose a new one with the button below.'],
     cta: 'Choose a new password',
     link: '{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password',
     footnote: 'This link works once and expires soon. If you didn’t ask to reset your password, ignore this email — your password stays the same. After a reset, other devices are signed out.',
   },
   magic_link: {
-    subject: 'Your RE by PX sign-in link',
-    preheader: 'Sign in to RE by PX with one click.',
-    heading: 'Sign in to RE by PX',
+    subject: 'Your RE sign-in link',
+    preheader: 'Sign in to RE with one click.',
+    heading: 'Sign in to RE',
     paragraphs: ['Use the button below to sign in.'],
     cta: 'Sign in',
     link: '{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/select-org',
     footnote: 'This link works once and expires soon. If you didn’t try to sign in, ignore this email.',
   },
   email_change: {
-    subject: 'Confirm your new email for RE by PX',
-    preheader: 'Confirm the change of email address on your RE by PX account.',
+    subject: 'Confirm your new email for RE',
+    preheader: 'Confirm the change of email address on your RE account.',
     heading: 'Confirm your new email address',
-    paragraphs: ['Someone asked to change the email address on a RE by PX account to this one. Confirm it with the button below.'],
+    paragraphs: ['Someone asked to change the email address on a RE account to this one. Confirm it with the button below.'],
     cta: 'Confirm new email',
     footnote: 'If you didn’t ask for this change, ignore this email and tell your workspace administrator.',
   },

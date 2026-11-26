@@ -1,7 +1,7 @@
 'use client'
-// components/platform/PlotMapSetupActions.tsx — RE by PX staff actions on one project's map set-up (POST
+// components/platform/PlotMapSetupActions.tsx — RE staff actions on one project's map set-up (POST
 // /api/admin/plot-map-setup): assign a team member, raise a blocker (waiting on the customer pauses the clock and
-// tells them; waiting on RE by PX does not), and resolve one. Set-up metadata only.
+// tells them; waiting on RE does not), and resolve one. Set-up metadata only.
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Alert, Button, Textarea } from '@/components/ui'
@@ -48,7 +48,7 @@ export function PlotMapSetupActions({ orgId, projectId, assigneeUserId, staff, b
       </label>
       {blockers.map((b) => (
         <div key={b.id} className="flex items-start justify-between gap-2 rounded-md border border-default p-2 text-[12px]">
-          <span className="min-w-0 text-foreground"><span className="font-medium">{b.waitingOn === 'customer' ? 'Waiting on customer' : 'Waiting on RE by PX'}:</span> {b.reason}</span>
+          <span className="min-w-0 text-foreground"><span className="font-medium">{b.waitingOn === 'customer' ? 'Waiting on customer' : 'Waiting on RE'}:</span> {b.reason}</span>
           <Button size="sm" variant="ghost" loading={busy === b.id} onClick={() => send(b.id, { action: 'resolve', blockerId: b.id })}>Resolve</Button>
         </div>
       ))}
@@ -61,7 +61,7 @@ export function PlotMapSetupActions({ orgId, projectId, assigneeUserId, staff, b
             <label className="text-[12px] text-muted">Stage <select className={fieldCls} value={stage} onChange={(e) => setStage(e.target.value)}>
               {STAGES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>
             <label className="text-[12px] text-muted">Waiting on <select className={fieldCls} value={waitingOn} onChange={(e) => setWaitingOn(e.target.value as 'customer' | 'regrow')}>
-              <option value="customer">Customer (pauses the clock)</option><option value="regrow">RE by PX</option></select></label>
+              <option value="customer">Customer (pauses the clock)</option><option value="regrow">RE</option></select></label>
           </div>
           <label className="block text-[12px] text-muted">What is needed (the customer sees this when it waits on them)
             <Textarea required minLength={5} maxLength={500} rows={2} value={reason} onChange={(e) => setReason(e.target.value)}

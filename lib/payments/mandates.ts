@@ -80,7 +80,7 @@ export async function runMandateCycle(db: Db, resolver: AdapterResolver, opts: {
       const { data: after, error } = await db.rpc('payment_mandate_charge_notified', { p_charge: c.id })
       if (error) { summary.errors.push(`notify ${c.id}: ${error.message}`); continue }
       await sendDebitNotice(db, email, m.org_id, Number(c.amount_cents), new Date(after as string), c.id)
-      await db.from('org_audit_logs').insert({ org_id: m.org_id, actor_kind: 'system', actor_label: 'RE by PX billing', action: 'billing.mandate_debit_notice', target_type: 'payment_mandate_charges', target_id: c.id, metadata: { amount_cents: c.amount_cents, debit_after: after } })
+      await db.from('org_audit_logs').insert({ org_id: m.org_id, actor_kind: 'system', actor_label: 'RE billing', action: 'billing.mandate_debit_notice', target_type: 'payment_mandate_charges', target_id: c.id, metadata: { amount_cents: c.amount_cents, debit_after: after } })
       summary.notified++
       continue
     }
@@ -89,7 +89,7 @@ export async function runMandateCycle(db: Db, resolver: AdapterResolver, opts: {
     const adapter = resolver.get(m.provider, m.environment)
     if (!adapter?.mandates || !m.provider_mandate_id) { summary.errors.push(`charge ${c.id}: provider unavailable`); continue }
     try {
-      const out = await adapter.mandates.chargeMandate({ mandateId: m.provider_mandate_id, chargeReference: `rgc_${c.id.replace(/-/g, '')}_${c.attempt_count + 1}`, amountPaise: Number(c.amount_cents), scheduleAt: new Date(now.getTime() + 26 * 3_600_000).toISOString(), note: 'RE by PX subscription renewal' })
+      const out = await adapter.mandates.chargeMandate({ mandateId: m.provider_mandate_id, chargeReference: `rgc_${c.id.replace(/-/g, '')}_${c.attempt_count + 1}`, amountPaise: Number(c.amount_cents), scheduleAt: new Date(now.getTime() + 26 * 3_600_000).toISOString(), note: 'RE subscription renewal' })
       const { error } = await db.rpc('payment_mandate_charge_submit', { p_charge: c.id, p_provider_charge_id: out.chargeId, p_now: now.toISOString() })
       if (error) summary.errors.push(`submit ${c.id}: ${error.message}`); else summary.submitted++
     } catch (e) { summary.errors.push(`charge ${c.id}: ${(e as Error).message}`) }

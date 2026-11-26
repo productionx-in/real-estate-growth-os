@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const origin = appUrl(request.nextUrl.origin) ?? request.nextUrl.origin
 
   const jsContent = `/**
- * RE by PX - Real Estate Growth OS Embeddable Enquiry Form Runtime
+ * RE - Real Estate Growth OS Embeddable Enquiry Form Runtime
  * Lightweight, zero-dependency, responsive lead capture widget.
  */
 (function() {
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       var formLoadTime = Date.now();
 
       if (!connectionId) {
-        console.warn('[RE by PX] Missing data-connection-id on enquiry form container.');
+        console.warn('[RE] Missing data-connection-id on enquiry form container.');
         return;
       }
 

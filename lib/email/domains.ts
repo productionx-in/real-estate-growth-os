@@ -1,4 +1,4 @@
-// lib/email/domains.ts — registering a workspace's e-mail domain with RE by PX's e-mail provider (Resend), so buyer-facing
+// lib/email/domains.ts — registering a workspace's e-mail domain with RE’s e-mail provider (Resend), so buyer-facing
 // e-mail can be sent from it (20260103). The provider returns the exact sending records (DKIM, SPF, MX on its "send"
 // subdomain) for the customer to add; we show them in plain words and ask the provider to check them. Works only when
 // the provider is configured (RESEND_API_KEY); otherwise the domain is still verified for ownership, and the card says
@@ -14,7 +14,7 @@ interface ResendDomain { id?: string; name?: string; status?: string; records?: 
 
 const WHY: Record<string, string> = {
   DKIM: 'Signs your e-mail so inboxes know it really comes from you.',
-  SPF: 'Lets RE by PX’s mail service send for this domain without landing in spam.',
+  SPF: 'Lets RE’s mail service send for this domain without landing in spam.',
   MX: 'Lets bounces come back to the mail service (on a sub-address only — your normal inbox is not affected).',
 }
 

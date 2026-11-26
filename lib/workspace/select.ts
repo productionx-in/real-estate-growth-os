@@ -17,7 +17,7 @@ export type SignInAudience = 'developer' | 'agency' | 'staff'
 export const AUDIENCES: { id: SignInAudience; label: string; hint: string }[] = [
   { id: 'developer', label: 'Developer / builder', hint: 'Your projects, inventory, sales team and partner agencies' },
   { id: 'agency', label: 'Channel partner agency', hint: 'Your buyers, your team and the developers you work with' },
-  { id: 'staff', label: 'RE by PX team', hint: 'Internal console for RE by PX staff (authenticator app required)' },
+  { id: 'staff', label: 'RE team', hint: 'Internal console for RE staff (authenticator app required)' },
 ]
 /** Entry points shown on the public sign-in page. Staff sign in through an unlisted address. */
 export const PUBLIC_AUDIENCES = AUDIENCES.filter((a) => a.id !== 'staff')

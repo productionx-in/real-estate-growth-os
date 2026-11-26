@@ -5,8 +5,8 @@
 //   new lead      — the assignee, and the workspace's owners, admins and managers, hear about every new lead at once.
 //   not contacted — the assignee is reminded every N minutes until someone acts on the lead (at most 24 hours).
 //   follow-up     — a reminder N minutes before a follow-up or site visit is due.
-// Scheduling happens on the server (the minute job), so alerts arrive with RE by PX closed, as phone or desktop push.
-// The banners and sounds are what someone sees while RE by PX is open.
+// Scheduling happens on the server (the minute job), so alerts arrive with RE closed, as phone or desktop push.
+// The banners and sounds are what someone sees while RE is open.
 
 export const SOUNDS = {
   chime: 'Chime',

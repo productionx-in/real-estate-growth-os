@@ -1,5 +1,5 @@
 // lib/auth/platform.ts
-// RE by PX: Platform-Level Authorization Guard, Super Admin MFA Verification & Audit Logger
+// RE: Platform-Level Authorization Guard, Super Admin MFA Verification & Audit Logger
 import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import type { Json } from '@/types/database'
@@ -244,5 +244,5 @@ export async function getConsoleAccess(): Promise<ConsoleAccess> {
   }
   if (aal !== 'aal2') return { state: 'mfa_required', role }
   const { data: profile } = await service.from('profiles').select('full_name').eq('auth_user_id', user.id).maybeSingle()
-  return { state: 'ok', userId: user.id, email: user.email, label: profile?.full_name || user.email || 'RE by PX staff', role }
+  return { state: 'ok', userId: user.id, email: user.email, label: profile?.full_name || user.email || 'RE staff', role }
 }

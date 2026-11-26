@@ -1,6 +1,6 @@
 # Backups and recovery
 
-All RE by PX data is in the production Supabase project: database, sign-in accounts and stored files. The application
+All RE data is in the production Supabase project: database, sign-in accounts and stored files. The application
 code is in GitHub and is rebuilt from `main` by Vercel.
 
 ## What to confirm (owner, once)
@@ -21,7 +21,7 @@ Write the answers here when confirmed.
 Merging a PR that contains a migration applies it to production. Before merging:
 
 1. Check that the latest scheduled backup completed (Database → Backups).
-2. Read the migration. Every RE by PX migration so far is additive; new ones should be too.
+2. Read the migration. Every RE migration so far is additive; new ones should be too.
 3. After the merge, check production read-only: tables, row counts, and that the app loads.
 
 ## Restoring

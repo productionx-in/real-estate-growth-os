@@ -1,5 +1,5 @@
 // app/api/team/members/reset-password/route.ts — an owner or admin sends a team member a password-reset e-mail.
-// RE by PX never sees or sets the password: the member gets the normal reset link at their own address. Same rules as
+// RE never sees or sets the password: the member gets the normal reset link at their own address. Same rules as
 // changing a role: not your own account (use "Forgot password"), an owner only by an owner, active members only.
 // Audited, and limited to one e-mail per member every 10 minutes.
 import { NextResponse, type NextRequest } from 'next/server'

@@ -9,7 +9,7 @@ import { INTERESTS, type InterestId } from '@/lib/marketing/interests'
 
 export const metadata: Metadata = {
   title: { absolute: `Book a demo — ${PRODUCT_NAME}` },
-  description: 'See RE by PX on your own lead sources in 20 minutes, and get a free lead-leakage audit of last month’s leads.',
+  description: 'See RE on your own lead sources in 20 minutes, and get a free lead-leakage audit of last month’s leads.',
   alternates: { canonical: '/demo' },
 }
 
@@ -23,9 +23,9 @@ export const dynamic = 'force-dynamic'
 
 const HEADINGS: Record<InterestId, { eyebrow: string; title: string; body: string }> = {
   demo: { eyebrow: 'Book a demo', title: 'See every lead reach the right person in seconds', body: 'Tell us a little about your team and we will set up a demo around your projects and lead sources.' },
-  consultation: { eyebrow: 'Request a consultation', title: 'Talk through your sales process with us', body: 'Tell us how your team works today and where it struggles. We will come back with how RE by PX would fit — and where it would not.' },
-  migration: { eyebrow: 'Migration assessment', title: 'Plan your move to RE by PX', body: 'Tell us what you use today. We will review your current setup and a sample export, and agree a written migration scope with you.' },
-  contact: { eyebrow: 'Contact the team', title: 'Talk to the RE by PX team', body: 'Questions about the product, onboarding or plans — leave your details and we will call you back.' },
+  consultation: { eyebrow: 'Request a consultation', title: 'Talk through your sales process with us', body: 'Tell us how your team works today and where it struggles. We will come back with how RE would fit — and where it would not.' },
+  migration: { eyebrow: 'Migration assessment', title: 'Plan your move to RE', body: 'Tell us what you use today. We will review your current setup and a sample export, and agree a written migration scope with you.' },
+  contact: { eyebrow: 'Contact the team', title: 'Talk to the RE team', body: 'Questions about the product, onboarding or plans — leave your details and we will call you back.' },
 }
 
 export default async function DemoPage({ searchParams }: { searchParams: Promise<{ plan?: string; interest?: string }> }) {

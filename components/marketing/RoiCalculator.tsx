@@ -64,7 +64,7 @@ export function RoiCalculator() {
 
         {PRICES_PUBLISHED && (
         <div className="mt-5 pt-5 border-t border-white/10">
-          <p className="text-[13px] text-slate-400">RE by PX Leads for {users} user{users === 1 ? '' : 's'}</p>
+          <p className="text-[13px] text-slate-400">RE Leads for {users} user{users === 1 ? '' : 's'}</p>
           <p className="text-[18px] font-semibold tabular-nums">{formatInr(r.subscription)} / month</p>
           <p className="mt-2 text-[14px] text-slate-200" aria-live="polite">
             {r.multiple >= 1

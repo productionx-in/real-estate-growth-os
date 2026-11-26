@@ -61,7 +61,7 @@ export interface StageView {
   state: 'done' | 'current' | 'pending'
   startedAt: string | null
   completedAt: string | null
-  /** Business hours this stage is planned to take (RE by PX and system stages), or the stated customer assumption. */
+  /** Business hours this stage is planned to take (RE and system stages), or the stated customer assumption. */
   plannedHours: number
   assumed: boolean
 }

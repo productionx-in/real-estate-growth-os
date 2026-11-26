@@ -57,7 +57,7 @@ test('role matrix: sales never touches support or customer records; support neve
   for (const r of roles) assert.ok(P.ROLE_LABEL[r], r)
 })
 
-test('sales code reads no customer CRM table except RE by PX’s own website-request connection', () => {
+test('sales code reads no customer CRM table except RE’s own website-request connection', () => {
   const src = read('lib/platform/portal.ts')
   const sales = src.slice(src.indexOf('// ── Internal Sales'), src.indexOf('// ── Internal Support'))
   const tables = [...sales.matchAll(/from\('([a-z_]+)'\)/g)].map((m) => m[1])

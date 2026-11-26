@@ -1,10 +1,10 @@
-// lib/platform/people.ts — RE by PX staff managing the people who use customer workspaces (server only).
+// lib/platform/people.ts — RE staff managing the people who use customer workspaces (server only).
 //
 // Two levels, deliberately separate:
 //  * Workspace access (Platform Owner or platform admin): suspend or restore one person's membership of one
 //    workspace. Their open leads go to the unassigned queue; when it was their last active workspace they are
-//    signed out. The customer sees the change in their own audit log, attributed to RE by PX.
-//  * Sign-in account (Platform Owner only): block or unblock signing in to RE by PX at all, or delete the account.
+//    signed out. The customer sees the change in their own audit log, attributed to RE.
+//  * Sign-in account (Platform Owner only): block or unblock signing in to RE at all, or delete the account.
 //    Deleting removes them from every workspace and erases their personal details and sign-in for good; work they
 //    did inside a customer's workspace stays with that customer as "Deleted user". Never staff; never a sole owner.
 // Every action needs a reason and is written to the platform audit log. Staff accounts are managed on the
@@ -132,7 +132,7 @@ export async function setMemberAccess(actor: StaffActor, orgId: string, memberId
 
   const what = action === 'suspend' ? 'member.deactivated' : 'member.reactivated'
   await recordOrgAudit({
-    orgId, action: what, actorKind: 'platform', actorUserId: actor.userId, actorProfileId: actorProfile, actorLabel: `${actor.label} (RE by PX)`,
+    orgId, action: what, actorKind: 'platform', actorUserId: actor.userId, actorProfileId: actorProfile, actorLabel: `${actor.label} (RE)`,
     targetType: 'member', targetId: m.id, metadata: { profile_id: m.profile_id, role: m.role, reason, leads_unassigned: leadsUnassigned, sessions_revoked: signedOut },
   })
   await logPlatformAction({ actorUserId: actor.userId, actorRole: actor.role, action: `customer_${what}`, targetEntityType: 'org_members', targetEntityId: m.id, metadata: { org_id: orgId, name: p?.full_name ?? null, role: m.role, reason, leads_unassigned: leadsUnassigned } })
@@ -146,7 +146,7 @@ export async function changeAccount(actor: StaffActor, userId: string, action: '
   const db = createServiceClient()
   const acct = await getAccount(userId)
   if (!acct) return fail('Account not found.', 404)
-  if (acct.staff) return fail('This is a RE by PX staff account. Manage it on the Staff page.', 409)
+  if (acct.staff) return fail('This is a RE staff account. Manage it on the Staff page.', 409)
 
   if (action === 'block' || action === 'unblock') {
     const { error } = await db.auth.admin.updateUserById(userId, { ban_duration: action === 'block' ? FOREVER : 'none' } as never)

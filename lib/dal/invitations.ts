@@ -1,5 +1,5 @@
 // lib/dal/invitations.ts
-// RE by PX: Employee Invitation & Lifecycle Management Engine
+// RE: Employee Invitation & Lifecycle Management Engine
 import crypto from 'node:crypto'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getSubscriptionAndSeatUsage } from './subscriptions'
