@@ -68,7 +68,7 @@ function TargetsSection({ orgId, targets, people, teams, history, onSaved }: { o
     <Card>
       <CardHeader><div><CardTitle>Targets</CardTitle><CardDescription>For one person, a team, or everyone. A personal target overrides a team one, which overrides everyone’s, for the same activity and period.</CardDescription></div></CardHeader>
       <CardContent className="space-y-5">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 [&>*]:min-w-0">
           <label className="space-y-1 text-[12px] font-medium text-muted">For
             <Select value={f.scope} onChange={(e) => { const scope = e.target.value as typeof f.scope; setF({ ...f, scope, who: scope === 'member' ? people[0]?.id ?? '' : scope === 'team' ? teams[0]?.id ?? '' : '' }) }}>
               <option value="member">One person</option><option value="team" disabled={!teams.length}>A team{teams.length ? '' : ' (no teams yet)'}</option><option value="everyone">Everyone</option>

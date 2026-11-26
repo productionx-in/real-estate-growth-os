@@ -22,7 +22,7 @@ Textarea.displayName = 'Textarea'
 
 /** Native select: keyboard, screen-reader and mobile behaviour come for free. */
 export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(
-  ({ className, ...props }, ref) => <select ref={ref} className={cn(control, 'h-10 sm:h-9 pr-8', className)} {...props} />
+  ({ className, ...props }, ref) => <select ref={ref} className={cn(control, 'h-10 max-w-full min-w-0 sm:h-9 pr-8', className)} {...props} />
 )
 Select.displayName = 'Select'
 
