@@ -15,7 +15,7 @@ const nice = (s: string) => s.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpper
 
 export function ExecutiveBiDashboardView({ analytics, orgName }: ExecutiveBiDashboardProps) {
   const { funnel, salesVelocityDays, channels, inventoryAbsorption: inv } = analytics
-  const funnelRows = funnel.map((f, i) => ({ label: f.stage, value: f.count, hint: i ? `${f.conversionRateFromPrevious}% of the step before` : undefined, tone: 1 as const }))
+  const funnelRows = funnel.map((f, i) => ({ label: f.stage, value: f.count, hint: !i ? undefined : f.conversionRateFromPrevious > 100 ? 'includes some that skipped the step before' : `${f.conversionRateFromPrevious}% of the step before`, tone: 1 as const }))
   const channelRows = [...channels].sort((a, b) => b.leadCount - a.leadCount).map((c) => ({ label: nice(c.channel), value: c.leadCount, hint: `${c.bookingCount} booked · ${cr(c.bookingValue)}`, tone: 2 as const }))
   const unitRows = [
     { label: 'Available', value: inv.availableUnits, tone: 2 as const },
