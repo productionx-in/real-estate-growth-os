@@ -51,4 +51,13 @@ test('database: awarded once per place and per winner, only after the period, on
   assert.ok(!/[\u{1F300}-\u{1FAFF}]/u.test(sql), 'no emoji in notification text')
 })
 
+test('perf_rewards is copied verbatim from 20260098 apart from the level-up block', () => {
+  const fn = (s) => { const a = s.indexOf('CREATE OR REPLACE FUNCTION public.perf_rewards()'); return s.slice(a, s.indexOf('END $$;', a)) }
+  const cut = (f) => f.slice(0, f.indexOf('  -- Level up:')).replace('  v_before INTEGER;\n', '')
+  const prev = fn(read('supabase/migrations/20260098_shared_deal_credit.sql')), next = fn(read('supabase/migrations/20260099_trophies_and_challenges.sql'))
+  assert.equal(cut(next), cut(prev))
+  assert.match(next, /NOT EXISTS \(SELECT 1 FROM public\.notifications n WHERE n\.recipient_profile_id = NEW\.profile_id/)
+  assert.ok(!/v_before/.test(next))
+})
+
 console.log(`\nTrophies and challenges: ${passed} checks passed.`)

@@ -9,6 +9,7 @@
 --     trophy for the same place in the same period, and nothing that happens later changes a trophy already given.
 --     People rank as on the leaderboard (points, then deal credit, then leads contacted); teams by deal credit, then
 --     revenue, then points per member. Only people who sell are ranked (an owner who only manages is not).
+--   * Fix: a level-up is celebrated once the level is reached, even when the same event also unlocked achievements.
 -- Additive. The new table is server-only: RLS on, no client privileges.
 
 BEGIN;
@@ -38,6 +39,120 @@ LANGUAGE sql IMMUTABLE SET search_path = pg_catalog AS $$
     ('month_contacts_100','Hundred in a month',  'Contacted a hundred leads in one month.',            'contacted',  100,         'month', 100, 'star'),
     ('month_targets_3', 'Target hat-trick',      'Reached three targets in one month.',                'targets',    3,           'month', 120, 'target')
 $$;
+
+-- ── Level-ups: verbatim from 20260098 except the level block, which judged a crossing from one event's points and
+--    missed it when achievements unlocked by that same event had already added theirs (nested triggers). ─────────────
+CREATE OR REPLACE FUNCTION public.perf_rewards()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
+DECLARE
+  v_s      JSONB := public.gam_settings(NEW.org_id);
+  v_tz     TEXT := public.gam_tz(NEW.org_id);
+  v_on     BOOLEAN := coalesce(v_s -> 'enabled', 'true'::jsonb) <> 'false'::jsonb;
+  v_day    DATE := (NEW.occurred_at AT TIME ZONE v_tz)::date;
+  v_m      JSONB;
+  a        RECORD;
+  t        RECORD;
+  v_from   TIMESTAMPTZ;
+  v_to     TIMESTAMPTZ;
+  v_wstart DATE;
+  v_have   NUMERIC;
+  v_total  INTEGER;
+  v_level  TEXT;
+BEGIN
+  IF NOT v_on THEN RETURN NULL; END IF;
+
+  IF NEW.kind IN ('first_contact', 'follow_up_done', 'visit_done', 'deal_closed', 'deal_reversed', 'revenue', 'lead_assigned', 'deal_credit') THEN
+    -- Daily missions (defaults when the workspace has not set its own).
+    FOR v_m IN SELECT * FROM jsonb_array_elements(coalesce(v_s -> 'missions',
+        '[{"key":"contact5","title":"Contact 5 leads","metric":"contacted","count":5,"xp":20},
+          {"key":"followups3","title":"Complete 3 follow-ups","metric":"follow_ups","count":3,"xp":15},
+          {"key":"visit1","title":"Complete a site visit","metric":"meetings","count":1,"xp":25}]'::jsonb))
+    LOOP
+      CONTINUE WHEN jsonb_typeof(v_m -> 'count') <> 'number' OR v_m ->> 'key' IS NULL;
+      v_from := v_day::timestamp AT TIME ZONE v_tz;
+      IF public.gam_metric(NEW.org_id, NEW.profile_id, v_m ->> 'metric', v_from, v_from + interval '1 day') >= (v_m ->> 'count')::numeric THEN
+        IF public.record_performance_event(NEW.org_id, NEW.profile_id, NULL, 'mission', 'mission:' || (v_m ->> 'key') || ':' || NEW.profile_id || ':' || v_day,
+             NEW.occurred_at, 1, 0, least(1000, greatest(0, coalesce((v_m ->> 'xp')::int, 0))), jsonb_build_object('mission', v_m ->> 'key', 'title', v_m ->> 'title')) IS NOT NULL THEN
+          PERFORM public.perf_celebrate(NEW.org_id, NEW.profile_id, 'Mission complete: ' || left(v_m ->> 'title', 80),
+            '+' || coalesce((v_m ->> 'xp')::int, 0) || ' XP', 'mission:' || (v_m ->> 'key') || ':' || v_day);
+        END IF;
+      END IF;
+    END LOOP;
+
+    -- Targets that apply to this person now: their own, their team's, or everyone's. A personal target for the same
+    -- metric and period overrides a team one, which overrides an everyone one.
+    FOR t IN
+      SELECT DISTINCT ON (pt.metric, pt.period) pt.*
+      FROM public.performance_targets pt
+      WHERE pt.org_id = NEW.org_id AND pt.archived_at IS NULL AND pt.starts_on <= v_day AND (pt.ends_on IS NULL OR pt.ends_on >= v_day)
+        AND (pt.profile_id = NEW.profile_id OR pt.scope = 'everyone'
+             OR pt.team_id IN (SELECT tm.team_id FROM public.team_members tm WHERE tm.profile_id = NEW.profile_id))
+      ORDER BY pt.metric, pt.period, CASE pt.scope WHEN 'member' THEN 0 WHEN 'team' THEN 1 ELSE 2 END, pt.updated_at DESC
+    LOOP
+      v_wstart := CASE t.period WHEN 'day' THEN v_day WHEN 'week' THEN date_trunc('week', v_day)::date
+                                WHEN 'month' THEN date_trunc('month', v_day)::date ELSE t.starts_on END;
+      v_from := v_wstart::timestamp AT TIME ZONE v_tz;
+      v_to := (CASE t.period WHEN 'day' THEN v_wstart + 1 WHEN 'week' THEN v_wstart + 7
+                             WHEN 'month' THEN (v_wstart + interval '1 month')::date ELSE t.ends_on + 1 END)::timestamp AT TIME ZONE v_tz;
+      v_have := public.gam_metric(NEW.org_id, NEW.profile_id, t.metric, v_from, v_to);
+      IF v_have >= t.amount THEN
+        IF public.record_performance_event(NEW.org_id, NEW.profile_id, NULL, 'target_hit', 'target:' || t.id || ':' || NEW.profile_id || ':' || v_wstart,
+             NEW.occurred_at, 1, 0, NULL, jsonb_build_object('target_id', t.id, 'metric', t.metric, 'period', t.period, 'amount', t.amount)) IS NOT NULL THEN
+          PERFORM public.perf_celebrate(NEW.org_id, NEW.profile_id, 'Target reached!',
+            'Your ' || t.period || ' ' || replace(t.metric, '_', ' ') || ' target is done.', 'target:' || t.id || ':' || v_wstart);
+        END IF;
+      END IF;
+    END LOOP;
+  END IF;
+
+  -- Achievements: the built-ins the workspace did not switch off, plus its own.
+  IF NEW.kind NOT IN ('achievement', 'adjustment') THEN
+    FOR a IN
+      SELECT b.key, b.title, b.description, b.metric, b.threshold, b.window_kind, b.xp FROM public.builtin_achievements() b
+       WHERE NOT EXISTS (SELECT 1 FROM public.achievement_defs d WHERE d.org_id = NEW.org_id AND d.key = b.key)
+      UNION ALL
+      SELECT d.key, d.title, d.description, d.metric, d.threshold, d.window_kind, d.xp FROM public.achievement_defs d
+       WHERE d.org_id = NEW.org_id AND d.active
+    LOOP
+      v_wstart := CASE a.window_kind WHEN 'week' THEN date_trunc('week', v_day)::date WHEN 'month' THEN date_trunc('month', v_day)::date ELSE DATE '2000-01-01' END;
+      CONTINUE WHEN EXISTS (SELECT 1 FROM public.achievement_unlocks u WHERE u.org_id = NEW.org_id AND u.profile_id = NEW.profile_id AND u.key = a.key AND u.window_start = v_wstart);
+      v_from := CASE WHEN a.window_kind = 'all' THEN '-infinity'::timestamptz ELSE v_wstart::timestamp AT TIME ZONE v_tz END;
+      v_to := CASE a.window_kind WHEN 'week' THEN (v_wstart + 7)::timestamp AT TIME ZONE v_tz
+                                 WHEN 'month' THEN (v_wstart + interval '1 month')::date::timestamp AT TIME ZONE v_tz ELSE 'infinity'::timestamptz END;
+      IF public.gam_metric(NEW.org_id, NEW.profile_id, a.metric, v_from, v_to) >= a.threshold THEN
+        INSERT INTO public.achievement_unlocks (org_id, profile_id, key, window_start, title, xp, unlocked_at)
+        VALUES (NEW.org_id, NEW.profile_id, a.key, v_wstart, a.title, a.xp, NEW.occurred_at)
+        ON CONFLICT DO NOTHING;
+        IF FOUND THEN
+          PERFORM public.record_performance_event(NEW.org_id, NEW.profile_id, NULL, 'achievement', 'achievement:' || a.key || ':' || NEW.profile_id || ':' || v_wstart,
+            NEW.occurred_at, 1, 0, a.xp, jsonb_build_object('key', a.key, 'title', a.title));
+          PERFORM public.perf_celebrate(NEW.org_id, NEW.profile_id, 'Achievement unlocked: ' || a.title,
+            a.description || CASE WHEN a.xp > 0 THEN ' +' || a.xp || ' XP' ELSE '' END, 'achievement:' || a.key || ':' || v_wstart);
+        END IF;
+      END IF;
+    END LOOP;
+  END IF;
+
+  -- Level up: the highest level the person has reached, celebrated once (the notice's dedupe key). Judged from the
+  -- running total, not from this one event: points from achievements unlocked by the same event land first (nested),
+  -- so "before this event" cannot be worked out reliably (fixed in 20260099).
+  IF NEW.xp > 0 THEN
+    SELECT coalesce(sum(xp), 0) INTO v_total FROM public.performance_events WHERE org_id = NEW.org_id AND profile_id = NEW.profile_id;
+    SELECT l ->> 'name' INTO v_level
+      FROM jsonb_array_elements(coalesce(v_s -> 'levels',
+        '[{"name":"Beginner","xp":0},{"name":"Rising Star","xp":200},{"name":"Performer","xp":600},{"name":"Sales Expert","xp":1500},{"name":"Elite Closer","xp":3500},{"name":"Sales Champion","xp":7000}]'::jsonb)) l
+     WHERE jsonb_typeof(l -> 'xp') = 'number' AND (l ->> 'xp')::int > 0 AND (l ->> 'xp')::int <= v_total
+     ORDER BY (l ->> 'xp')::int DESC LIMIT 1;
+    IF v_level IS NOT NULL AND NOT EXISTS (SELECT 1 FROM public.notifications n WHERE n.recipient_profile_id = NEW.profile_id
+                                             AND n.dedupe_key = 'level:' || NEW.profile_id || ':' || v_level) THEN
+      PERFORM public.perf_celebrate(NEW.org_id, NEW.profile_id, 'Level up: ' || left(v_level, 40) || '!', v_total || ' XP so far.',
+        'level:' || NEW.profile_id || ':' || v_level);
+    END IF;
+  END IF
+;
+  RETURN NULL;
+END $$;
+REVOKE ALL ON FUNCTION public.perf_rewards() FROM PUBLIC, anon, authenticated;
 
 -- ── Trophies ────────────────────────────────────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.performance_trophies (
