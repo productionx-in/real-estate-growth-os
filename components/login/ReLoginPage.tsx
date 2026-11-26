@@ -72,11 +72,21 @@ const PLOTS: UnitSpec[] = [
   { code: "P-108", label: "108", colorClass: "bg-[var(--chart-2)]/90", detail: "Plot P-108 · 280 sq.yd Corner · Open" },
 ];
 
+type UnitStatus = "open" | "visit" | "booked" | "hold";
+const statusOf = (colorClass: string): UnitStatus =>
+  colorClass.includes("chart-2") ? "open" : colorClass.includes("chart-4") ? "visit" : colorClass.includes("chart-3") ? "hold" : "booked";
+const STATUS_PILL: Record<UnitStatus, { tag: string; tone: string }> = {
+  open: { tag: "Open unit", tone: "bg-success-bg text-success border-success/20" },
+  visit: { tag: "Site visit booked", tone: "bg-info-bg text-info border-info/20" },
+  booked: { tag: "Unit booked", tone: "bg-brand-light text-brand border-brand/20" },
+  hold: { tag: "Token hold", tone: "bg-warning-bg text-warning border-warning/25" },
+};
+
 const TIMELINE_STEPS = [
-  { tag: "Captured", tone: "bg-brand-light text-brand border-brand/20/80", time: "10:42:03", text: "Meta lead form · Rohan Iyer · 3 BHK" },
-  { tag: "Routed", tone: "bg-info-bg text-info border-info/20/80", time: "10:42:04", text: "Assigned to Asha (Towers Desk)" },
-  { tag: "Instant alert", tone: "bg-warning-bg text-warning border-warning/25/80", time: "10:42:05", text: "WhatsApp & call trigger delivered" },
-  { tag: "Site visit booked", tone: "bg-success-bg text-success border-success/20/80", time: "10:44:31", text: "Unit A-1403 · Confirmed Saturday 11:00 AM" },
+  { tag: "Captured", tone: "bg-brand-light text-brand border-brand/20", time: "10:42:03", text: "Meta lead form · Rohan Iyer · 3 BHK" },
+  { tag: "Routed", tone: "bg-info-bg text-info border-info/20", time: "10:42:04", text: "Assigned to Asha (Towers Desk)" },
+  { tag: "Instant alert", tone: "bg-warning-bg text-warning border-warning/25", time: "10:42:05", text: "WhatsApp & call trigger delivered" },
+  { tag: "Site visit booked", tone: "bg-success-bg text-success border-success/20", time: "10:44:31", text: "Unit A-1403 · Confirmed Saturday 11:00 AM" },
 ];
 
 export interface ReLoginPageProps {
@@ -119,6 +129,8 @@ export default function ReLoginPage({
     "Unit A-1403 · 3 BHK · Confirmed Saturday 11:00 AM"
   );
   const [activeStep, setActiveStep] = useState<number>(3);
+  const activeUnit = [...FLOORS.flatMap((f) => f.units), ...PLOTS].find((x) => x.code === activeUnitCode);
+  const activeStatus: UnitStatus = activeUnit ? statusOf(activeUnit.colorClass) : "visit";
 
   // Refs for smooth 60fps 3D spring loops (zero React re-renders per frame)
   const signinCardRef = useRef<HTMLElement | null>(null);
@@ -140,6 +152,11 @@ export default function ReLoginPage({
   useEffect(() => {
     let rafId = 0;
     const startTs = performance.now();
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (towerRef.current) towerRef.current.style.transform = "rotateX(56deg) rotateZ(-36deg)";
+      if (plotsRef.current) plotsRef.current.style.transform = "rotateX(54deg) rotateZ(-32deg)";
+      return;
+    }
 
     const tick = (now: number) => {
       const t = (now - startTs) / 1000;
@@ -185,7 +202,7 @@ export default function ReLoginPage({
       cardTarget.current = { rx: -ny * 1.8, ry: nx * 2.0 };
     }
     if (magLogoRef.current) {
-      magLogoRef.current.style.transform = `translate3d(${(nx * 4.5).toFixed(1)}px, ${(ny * 3.5).toFixed(1)}px, 0)`;
+      magLogoRef.current.style.transform = `translate3d(${(nx * 4).toFixed(1)}px, ${(ny * 4).toFixed(1)}px, 0)`;
     }
   };
 
@@ -365,7 +382,7 @@ export default function ReLoginPage({
                         {authMode === "otp" ? "Work email or mobile number" : "Email"}
                       </label>
                       <span
-                        className={`transition-all duration-200 inline-flex items-center gap-1 text-[10px] font-semibold text-success bg-success-bg border border-success/20/80 px-2 py-0.5 rounded-full ${
+                        className={`transition-all duration-200 inline-flex items-center gap-1 text-[10px] font-semibold text-success bg-success-bg border border-success/20 px-2 py-0.5 rounded-full ${
                           workspaceReady ? "opacity-100 translate-y-0" : "opacity-0 translate-y-0.5 pointer-events-none"
                         }`}
                       >
@@ -554,7 +571,7 @@ export default function ReLoginPage({
                   {typology === "plots" ? "Sector A · HMDA Villa Plots" : "Tower A · Live Floor Stack"}
                 </div>
               </div>
-              <div className="inline-flex bg-surface-hover/90 p-0.5 rounded-full border border-default/70 text-[11px] font-semibold">
+              <div className="inline-flex bg-surface-hover/90 p-0.5 rounded-full border border-default text-[11px] font-semibold">
                 <button
                   type="button"
                   onClick={() => {
@@ -596,12 +613,14 @@ export default function ReLoginPage({
                       key={floor.level}
                       data-level={floor.level}
                       onClick={() => {
+                        if (activeFloor === floor.level) return;
                         setActiveFloor(floor.level);
                         setActiveUnitCode(floor.units[0].code);
                         setSelectedDetail(floor.units[0].detail);
                         setActiveStep(3);
                       }}
-                      className={`re-iso-floor ${activeFloor === floor.level ? "is-selected" : ""}`}
+                      className={`re-iso-floor ${activeFloor === floor.level ? "is-selected" : ""} ${floor.level > activeFloor ? "is-peeled" : ""}`}
+                      aria-hidden={floor.level > activeFloor || undefined}
                     >
                       {floor.units.map((u) => (
                         <button
@@ -696,10 +715,10 @@ export default function ReLoginPage({
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="px-2.5 py-1 rounded-full bg-success-bg text-success border border-success/20/80 text-[11px] font-semibold">
+                <span className="px-2.5 py-1 rounded-full bg-success-bg text-success border border-success/20 text-[11px] font-semibold">
                   Optimal
                 </span>
-                <span className="px-2.5 py-1 rounded-full bg-success-bg text-success border border-success/20/80 text-[11px] font-semibold">
+                <span className="px-2.5 py-1 rounded-full bg-success-bg text-success border border-success/20 text-[11px] font-semibold">
                   2 min 28 s
                 </span>
               </div>
@@ -713,6 +732,7 @@ export default function ReLoginPage({
               {TIMELINE_STEPS.map((s, idx) => {
                 const active = idx === activeStep;
                 const rowText = idx === 3 ? selectedDetail : s.text;
+                const pill = idx === 3 ? STATUS_PILL[activeStatus] : s;
                 return (
                   <button
                     key={s.tag}
@@ -721,12 +741,12 @@ export default function ReLoginPage({
                     className={`w-full text-left flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl border transition-all ${
                       active
                         ? "bg-brand-light/55 border-brand/20 shadow-sm translate-x-1"
-                        : "bg-surface/75 border-default/60 hover:bg-surface"
+                        : "bg-surface/75 border-default hover:bg-surface"
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className={`px-2 py-0.5 rounded-full border text-[10px] font-semibold shrink-0 ${s.tone}`}>
-                        {s.tag}
+                      <span className={`px-2 py-0.5 rounded-full border text-[10px] font-semibold shrink-0 transition-colors ${pill.tone}`}>
+                        {pill.tag}
                       </span>
                       <span className="text-xs font-medium text-[#1E1B4B] truncate">{rowText}</span>
                     </div>
