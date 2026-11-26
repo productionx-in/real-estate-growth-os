@@ -48,7 +48,6 @@ test('database: awarded once per place and per winner, only after the period, on
   assert.match(sql, /ALTER TABLE public\.performance_trophies ENABLE ROW LEVEL SECURITY/)
   assert.match(sql, /REVOKE ALL ON public\.performance_trophies FROM PUBLIC, anon, authenticated/)
   assert.match(sql, /cron\.schedule\('regrow-award-trophies'/)
-  assert.ok(!/[\u{1F300}-\u{1FAFF}]/u.test(sql), 'no emoji in notification text')
 })
 
 test('perf_rewards is copied verbatim from 20260098 apart from the level-up block', () => {

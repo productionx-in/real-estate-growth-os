@@ -3,7 +3,7 @@
 // and visible (new items slide in), and lets people react where the workspace allows. Reactions are optimistic and are
 // put right from the server's answer.
 import { useEffect, useState } from 'react'
-import { Activity, Award, Crown, Flag, Flame, Gift, Handshake, Heart, ThumbsUp, Trophy } from 'lucide-react'
+import { Activity, Award, Crown, Flag, Gift, Handshake, Trophy } from 'lucide-react'
 import { EmptyState } from '@/components/ui'
 import { toast } from '@/components/ui/toast'
 import { cn } from '@/lib/utils/cn'
@@ -17,7 +17,7 @@ const ICON: Record<FeedKind, { icon: React.ComponentType<{ className?: string }>
   reward: { icon: Gift, tone: 'bg-brand-light text-brand' },
   lead: { icon: Crown, tone: 'bg-warning-bg text-warning' },
 }
-const RX_ICON: Record<ReactionKind, React.ComponentType<{ className?: string }>> = { clap: ThumbsUp, fire: Flame, heart: Heart, trophy: Trophy }
+const EMOJI: Record<ReactionKind, string> = { clap: '👏', fire: '🔥', heart: '❤️', trophy: '🏆' }
 const ago = (iso: string) => {
   const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000)
   if (m < 1) return 'just now'
@@ -77,11 +77,11 @@ export function ActivityFeed({ orgId, initial, reactions }: { orgId: string; ini
               <div className="mt-1 flex flex-wrap items-center gap-1.5">
                 <span className="text-[11px] text-subtle">{ago(i.at)}</span>
                 {reactions && (Object.keys(REACTIONS) as ReactionKind[]).map((k) => {
-                  const n = i.reactions[k] ?? 0, mine = i.mine.includes(k), R = RX_ICON[k]
+                  const n = i.reactions[k] ?? 0, mine = i.mine.includes(k)
                   return (
                     <button key={k} type="button" onClick={() => void react(i, k)} aria-pressed={mine} aria-label={`${REACTIONS[k]}${n ? ` (${n})` : ''}`}
                       className={cn('inline-flex min-h-7 items-center gap-1 rounded-full border px-2 text-[12px] transition-transform active:scale-95', mine ? 'border-brand bg-brand-light text-brand' : n ? 'border-default text-muted' : 'border-transparent text-subtle opacity-60 hover:opacity-100')}>
-                      <R className="size-3.5" aria-hidden />{n > 0 && <span className="tabular-nums">{n}</span>}
+                      <span aria-hidden className="text-[13px] leading-none">{EMOJI[k]}</span>{n > 0 && <span className="tabular-nums">{n}</span>}
                     </button>
                   )
                 })}
