@@ -33,6 +33,7 @@ import {
 } from '@/lib/import/validator'
 import type { ImportHistoryRecord } from '@/lib/dal/import'
 import { formatDate } from '@/lib/utils/format'
+import { ModalShell } from '@/components/ui/modal-shell'
 
 interface BulkImportModalProps {
   projectId: string
@@ -267,9 +268,8 @@ export function BulkImportModal({
 
   return (
     <>
-      <div className="modal-backdrop fixed inset-0 bg-overlay backdrop-blur-[1px] z-50 transition-opacity" onClick={onClose} />
 
-      <div className="fixed inset-4 sm:inset-10 lg:inset-y-12 lg:inset-x-32 z-50 bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in-50 duration-200">
+      <ModalShell onClose={onClose} label="Bulk inventory import" size="full" className="flex flex-col overflow-hidden sm:h-[calc(100dvh-4rem)]">
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-[var(--border)] flex items-center justify-between bg-[var(--surface-hover)]">
           <div className="flex items-center gap-3">
@@ -435,7 +435,7 @@ export function BulkImportModal({
                   </div>
 
                   <div className="border border-[var(--border)] rounded-xl overflow-hidden text-xs bg-[var(--surface)]">
-                    <table className="w-full text-left">
+                    <table className="data-table w-full text-left">
                       <thead>
                         <tr className="border-b border-[var(--border)] bg-[var(--surface-hover)] font-semibold text-[11px] uppercase tracking-wider text-[var(--foreground-muted)]">
                           <th className="px-4 py-3">Spreadsheet Header</th>
@@ -550,7 +550,7 @@ export function BulkImportModal({
 
                   {/* Preview Rows Table */}
                   <div className="border border-[var(--border)] rounded-xl overflow-hidden max-h-72 overflow-y-auto text-xs bg-[var(--surface)]">
-                    <table className="w-full text-left">
+                    <table className="data-table w-full text-left">
                       <thead className="sticky top-0 bg-[var(--surface-hover)] border-b border-[var(--border)]">
                         <tr className="font-semibold text-[11px] uppercase tracking-wider text-[var(--foreground-muted)]">
                           <th className="px-3 py-2 w-16">Row #</th>
@@ -765,7 +765,7 @@ export function BulkImportModal({
             </div>
           )}
         </div>
-      </div>
+      </ModalShell>
     </>
   )
 }

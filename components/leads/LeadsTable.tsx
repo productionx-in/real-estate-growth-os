@@ -47,7 +47,7 @@ export function LeadsTable({ leads, orgSlug, orgId, viewerRole, assignableIds = 
   return (
     <>
       <div className="border border-[var(--border)] rounded-lg overflow-hidden bg-[var(--surface)]">
-        <table className="w-full text-[13px]">
+        <table className="data-table w-full text-[13px]">
           <thead>
             <tr className="border-b border-[var(--border)] bg-[var(--surface-hover)]">
               <th className="text-left px-4 py-2.5 font-medium text-[var(--foreground-muted)]">

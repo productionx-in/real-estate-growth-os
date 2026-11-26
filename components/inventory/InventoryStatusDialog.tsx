@@ -11,6 +11,7 @@ import {
   type InventoryItem,
 } from '@/types/inventory'
 import { InventoryStatusBadge } from './InventoryStatusBadge'
+import { ModalShell } from '@/components/ui/modal-shell'
 
 interface InventoryStatusDialogProps {
   item: InventoryItem
@@ -74,12 +75,7 @@ export function InventoryStatusDialog({
 
   return (
     <>
-      <div
-        className="modal-backdrop fixed inset-0 bg-overlay backdrop-blur-[1px] z-50"
-        onClick={onClose}
-      />
-      <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <ModalShell onClose={onClose} label="Change unit status" size="md" className="overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
             <div>
@@ -207,8 +203,7 @@ export function InventoryStatusDialog({
               </button>
             )}
           </div>
-        </div>
-      </div>
+        </ModalShell>
     </>
   )
 }

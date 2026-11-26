@@ -121,7 +121,7 @@ export function ActionBoard({ board, orgSlug, showTeam, mine, keep = '' }: { boa
           </CardHeader>
           <CardContent className="overflow-x-auto p-0">
             {board.team.length === 0 ? <p className="px-4 pb-4 text-[13px] text-muted">No active salespeople yet.</p> : (
-              <table className="w-full min-w-[640px] text-[13px]">
+              <table className="data-table w-full min-w-[640px] text-[13px]">
                 <thead>
                   <tr className="border-b border-default text-left text-muted">
                     <th scope="col" className="px-4 py-2 font-medium">Person</th>

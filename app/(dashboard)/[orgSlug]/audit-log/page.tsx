@@ -110,7 +110,7 @@ export default async function AuditLogPage({
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-[12px] min-w-[720px]">
+              <table className="data-table w-full text-[12px] min-w-[720px]">
                 <thead>
                   <tr className="text-left text-[var(--foreground-muted)] border-b border-[var(--border)]">
                     <th scope="col" className="py-2.5 px-4 font-medium">When</th>

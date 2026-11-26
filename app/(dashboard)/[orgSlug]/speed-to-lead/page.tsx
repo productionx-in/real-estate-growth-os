@@ -40,7 +40,7 @@ function Table({ title, rows, labelFor, quality }: { title: string; rows: Report
       <h2 className="text-[13px] font-semibold mb-3">{title}</h2>
       {rows.length === 0 ? <p className="text-[12px] text-[var(--foreground-subtle)]">No leads in this period.</p> : (
         <div className="overflow-x-auto -mx-4 px-4">
-          <table className="w-full text-[12px] min-w-[560px]">
+          <table className="data-table w-full text-[12px] min-w-[560px]">
             <thead>
               <tr className="text-left text-[var(--foreground-muted)] border-b border-[var(--border)]">
                 <th className="py-2 pr-3 font-medium">{title.replace('By ', '').replace(/^./, (c) => c.toUpperCase())}</th>
@@ -140,7 +140,7 @@ export default async function SpeedToLeadPage({ params, searchParams }: { params
         <section className="surface-raised rounded-2xl border border-default bg-surface p-4" aria-labelledby="timing-h">
           <h2 id="timing-h" className="text-[13px] font-semibold">From enquiry to first call <span className="font-normal text-muted">· each step measured separately</span></h2>
           <div className="mt-3 overflow-x-auto">
-            <table className="w-full text-[13px]">
+            <table className="data-table w-full text-[13px]">
               <thead><tr className="border-b border-default text-left text-[12px] text-muted">
                 <th className="py-2 pr-4 font-medium">Step</th><th className="py-2 pr-4 text-right font-medium">Median</th>
                 <th className="py-2 pr-4 text-right font-medium">90% within</th><th className="py-2 text-right font-medium">Leads measured</th>

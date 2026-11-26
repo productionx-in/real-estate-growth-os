@@ -59,7 +59,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ orgSlu
           </div>
           <div className="text-right"><dt className="text-muted">Issued</dt><dd className="font-medium">{date(inv.created_at)}</dd></div>
         </dl>
-        <table className="w-full text-[13px]">
+        <table className="data-table w-full text-[13px]">
           <thead><tr className="border-b border-default text-left text-muted"><th className="py-2 font-medium">Description</th><th className="py-2 text-right font-medium">Amount</th></tr></thead>
           <tbody className="tabular">
             <tr className="border-b border-default"><td className="py-3">{what}{inv.sac_code && <span className="block text-[12px] text-muted">SAC {inv.sac_code}</span>}</td><td className="py-3 text-right">{rupees(subtotal)}</td></tr>

@@ -33,7 +33,7 @@ export default async function PlatformAuditPage() {
         <p className="text-[13px] text-muted">Latest 200 actions by REGrow staff. Entries cannot be edited or deleted.</p>
       </div>
       <Card className="overflow-x-auto rounded-2xl">
-        <table className="w-full min-w-[760px] text-[12px]">
+        <table className="data-table w-full min-w-[760px] text-[12px]">
           <thead>
             <tr className="border-b border-default text-left text-muted">
               <th scope="col" className="px-4 py-2.5 font-medium">When</th>

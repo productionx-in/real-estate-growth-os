@@ -42,7 +42,7 @@ export function TableCard({ children, minWidth = 720, className }: { children: R
   return (
     <Card className={cn('overflow-hidden rounded-2xl', className)}>
       <div className="overflow-x-auto">
-        <table className="w-full text-[13px]" style={{ minWidth }}>{children}</table>
+        <table className="data-table w-full text-[13px]" style={{ minWidth }}>{children}</table>
       </div>
     </Card>
   )

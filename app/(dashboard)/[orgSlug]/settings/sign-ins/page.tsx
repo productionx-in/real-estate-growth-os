@@ -42,7 +42,7 @@ export default async function SignInActivityPage({ params, searchParams }: { par
           <EmptyState icon={ShieldCheck} title="No sign-ins recorded yet" description="Sign-ins are recorded from now on and kept for 180 days." />
         ) : (
           <div className="-mx-4 overflow-x-auto">
-            <table className="w-full min-w-[640px] text-[13px]">
+            <table className="data-table w-full min-w-[640px] text-[13px]">
               <thead className="text-left text-[12px] text-muted">
                 <tr><th className="px-4 py-2 font-medium">Person</th><th className="px-4 py-2 font-medium">Signed in</th><th className="px-4 py-2 font-medium">Device</th><th className="px-4 py-2 font-medium">Address</th><th className="px-4 py-2 font-medium">Status</th></tr>
               </thead>

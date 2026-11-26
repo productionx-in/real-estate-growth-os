@@ -137,7 +137,7 @@ export default async function TeamOverviewPage({ params, searchParams }: { param
           <>
             {/* Larger screens: one row per person. */}
             <div className="surface-raised hidden overflow-x-auto rounded-2xl border border-default bg-surface md:block">
-              <table className="w-full text-left text-[13px]">
+              <table className="data-table w-full text-left text-[13px]">
                 <thead className="border-b border-default text-[11px] uppercase tracking-wide text-subtle">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Person</th>

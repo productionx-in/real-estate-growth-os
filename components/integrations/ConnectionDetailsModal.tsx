@@ -23,6 +23,7 @@ import type {
   IntegrationProjectMappingRecord,
   MetaPageAsset,
 } from '@/lib/integrations/types'
+import { ModalShell } from '@/components/ui/modal-shell'
 
 interface ProjectOption {
   id: string
@@ -225,8 +226,7 @@ export function ConnectionDetailsModal({
   }
 
   return (
-    <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-xs">
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <ModalShell onClose={onClose} label="Connection details" size="xl" className="flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-surface-muted/50">
           <div className="flex items-center gap-3">
@@ -405,7 +405,7 @@ export function ConnectionDetailsModal({
 
               {/* Mappings Table */}
               <div className="surface-raised border border-default rounded-2xl overflow-hidden bg-surface">
-                <table className="w-full text-left text-[12px]">
+                <table className="data-table w-full text-left text-[12px]">
                   <thead className="bg-surface-muted border-b border-default text-muted font-semibold">
                     <tr>
                       <th className="py-2.5 px-4">Identifier / Form</th>
@@ -647,7 +647,6 @@ export function ConnectionDetailsModal({
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </ModalShell>
   )
 }

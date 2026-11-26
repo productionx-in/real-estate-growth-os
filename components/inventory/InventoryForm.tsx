@@ -23,6 +23,7 @@ import {
   type InventoryItemWithRelations,
 } from '@/types/inventory'
 import { HierarchyNodeSelector, type FlatHierarchyNode } from './HierarchyNodeSelector'
+import { ModalShell } from '@/components/ui/modal-shell'
 
 interface InventoryFormProps {
   projectId: string
@@ -362,12 +363,7 @@ export function InventoryForm({
 
   return (
     <>
-      <div
-        className="modal-backdrop fixed inset-0 bg-overlay backdrop-blur-[1px] z-50"
-        onClick={onClose}
-      />
-      <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
+      <ModalShell onClose={onClose} label="Unit details" size="lg" className="flex flex-col overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-[var(--surface-muted)]">
             <div className="flex items-center gap-2.5">
@@ -874,8 +870,7 @@ export function InventoryForm({
               </button>
             </div>
           </form>
-        </div>
-      </div>
+        </ModalShell>
     </>
   )
 }

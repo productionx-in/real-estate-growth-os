@@ -27,6 +27,7 @@ import { InventoryStatusBadge } from './InventoryStatusBadge'
 import { InventoryStatusDialog } from './InventoryStatusDialog'
 import { InventoryForm } from './InventoryForm'
 import { InterestedBuyers } from '@/components/matching/InterestedBuyers'
+import { ModalShell } from '@/components/ui/modal-shell'
 
 interface InventoryHistoryRecord {
   id: string
@@ -111,25 +112,24 @@ export function InventoryDetailDrawer({
     }
   }, [initialItem.id])
 
-  // Keyboard navigation support: Left Arrow for Prev, Right Arrow for Next, Esc for Close
+  // Keyboard navigation: Left Arrow for previous, Right Arrow for next. Escape is handled by the shell (ModalShell), one
+  // layer at a time, so it closes a dialog opened from here before the drawer itself.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't intercept if an input or textarea is active
+      // Not while typing, and not while a dialog opened from the drawer is on top.
       const target = e.target as HTMLElement
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || showStatusModal || showEditModal) return
 
       if (e.key === 'ArrowLeft' && hasPrev && onNavigate) {
         onNavigate('prev')
       } else if (e.key === 'ArrowRight' && hasNext && onNavigate) {
         onNavigate('next')
-      } else if (e.key === 'Escape') {
-        onClose()
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [hasPrev, hasNext, onNavigate, onClose])
+  }, [hasPrev, hasNext, onNavigate, showStatusModal, showEditModal])
 
   const category = item.category
   const isMixedUse = item.project?.category === 'mixed_use'
@@ -148,14 +148,9 @@ export function InventoryDetailDrawer({
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className="modal-backdrop fixed inset-0 bg-overlay backdrop-blur-[1px] z-40 transition-opacity"
-        onClick={onClose}
-      />
 
       {/* Drawer panel */}
-      <aside aria-label="Inventory Unit Details" className="fixed inset-y-0 right-0 z-40 w-full max-w-xl bg-[var(--surface)] border-l border-[var(--border)] shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+      <ModalShell onClose={onClose} label="Inventory unit details" variant="drawer" className="right-0 flex flex-col">
         {/* Navigation & Header Toolbar */}
         <div className="p-4 border-b border-[var(--border)] flex items-center justify-between bg-[var(--surface-hover)]">
           <div className="flex items-center gap-1.5">
@@ -677,7 +672,7 @@ export function InventoryDetailDrawer({
             )}
           </div>
         </div>
-      </aside>
+      </ModalShell>
 
       {/* Status Modal Trigger */}
       {showStatusModal && (

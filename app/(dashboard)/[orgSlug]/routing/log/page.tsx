@@ -75,7 +75,7 @@ export default async function AssignmentLogPage({ params, searchParams }: { para
           {(outcome || person) && <Link href={href({ outcome: null, person: null })} className="h-9 px-2 text-[13px] leading-9 text-brand">Clear</Link>}
         </form>
         <div className="surface-raised overflow-x-auto rounded-2xl border border-default bg-surface">
-          <table className="w-full min-w-[640px] text-[13px]">
+          <table className="data-table w-full min-w-[640px] text-[13px]">
             <thead className="bg-surface-muted text-left text-[11px] font-semibold uppercase tracking-wide text-subtle">
               <tr><th className="px-4 py-2.5">When</th><th className="px-4 py-2.5">Lead</th><th className="px-4 py-2.5">Outcome</th><th className="px-4 py-2.5">Assigned to</th><th className="px-4 py-2.5">Rule / team</th></tr>
             </thead>

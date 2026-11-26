@@ -103,7 +103,7 @@ export default async function ConsoleHome() {
     <Panel title="Customers needing attention" className="lg:col-span-2" action={<Link href="/platform/organisations" className="text-[13px] font-medium text-brand hover:underline">All customers</Link>}>
       {health.filter((h) => h.band !== 'healthy').length === 0 ? <p className="py-6 text-center text-[13px] text-muted">Every customer is healthy.</p> : (
         <div className="-mx-5 -mb-5 overflow-x-auto">
-          <table className="w-full min-w-[560px] text-[13px]">
+          <table className="data-table w-full min-w-[560px] text-[13px]">
             <thead><tr><Th>Customer</Th><Th>Health</Th><Th>Why</Th><Th className="text-right">Last sign-in</Th></tr></thead>
             <tbody>
               {health.filter((h) => h.band !== 'healthy').slice(0, 6).map((h) => (
@@ -152,7 +152,7 @@ export default async function ConsoleHome() {
     <Panel title="Sales team" className="lg:col-span-2">
       {sales.team.length === 0 ? <p className="py-6 text-center text-[13px] text-muted">No prospects are assigned yet. Assign them from the Sales pipeline.</p> : (
         <div className="-mx-5 -mb-5 overflow-x-auto">
-          <table className="w-full min-w-[440px] text-[13px]">
+          <table className="data-table w-full min-w-[440px] text-[13px]">
             <thead><tr><Th>Person</Th><Th className="text-right">Open</Th><Th className="text-right">Overdue</Th><Th className="text-right">Won</Th></tr></thead>
             <tbody>
               {sales.team.map((t) => (
@@ -210,7 +210,7 @@ export default async function ConsoleHome() {
     <Panel title="Recent staff activity" className="lg:col-span-2" action={act.recent.length ? <Link href="/platform/audit" className="text-[13px] font-medium text-brand hover:underline">Audit log</Link> : undefined}>
       {act.recent.length === 0 ? <p className="py-6 text-center text-[13px] text-muted">No staff actions recorded yet.</p> : (
         <div className="-mx-5 -mb-5 overflow-x-auto">
-          <table className="w-full min-w-[520px] text-[13px]">
+          <table className="data-table w-full min-w-[520px] text-[13px]">
             <thead><tr><Th>Action</Th><Th>By</Th><Th>On</Th><Th className="text-right">When</Th></tr></thead>
             <tbody>
               {act.recent.map((r) => (

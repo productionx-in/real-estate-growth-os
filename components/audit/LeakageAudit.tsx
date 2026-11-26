@@ -157,7 +157,7 @@ export function LeakageAudit() {
           <section key={g.t} aria-label={g.t}>
             <h3 className="text-[15px] font-semibold mb-2">{g.t}</h3>
             <div className="overflow-x-auto">
-              <table className="w-full text-[13px]">
+              <table className="data-table w-full text-[13px]">
                 <thead><tr className="text-left text-[var(--foreground-muted)] border-b border-[var(--border)]">
                   <th className="py-2 pr-2 font-medium">{g.t.replace('By ', '').replace(/^./, (c) => c.toUpperCase())}</th>
                   <th className="py-2 px-2 font-medium text-right">Leads</th>

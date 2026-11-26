@@ -13,6 +13,7 @@ import {
   Webhook,
   Key,
 } from 'lucide-react'
+import { ModalShell } from '@/components/ui/modal-shell'
 
 interface DeveloperApiDocsModalProps {
   isOpen: boolean
@@ -64,8 +65,7 @@ export function verifySignature(rawBody, signatureHeader, timestampHeader, secre
 }`
 
   return (
-    <div role="dialog" aria-modal="true" className="modal-host fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
-      <div className="bg-surface rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-default">
+    <ModalShell onClose={onClose} label="API and webhooks" size="xl" className="flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-default bg-surface-muted/50">
           <div className="flex items-center space-x-3">
@@ -264,7 +264,6 @@ export function verifySignature(rawBody, signatureHeader, timestampHeader, secre
             Close
           </button>
         </div>
-      </div>
-    </div>
+      </ModalShell>
   )
 }

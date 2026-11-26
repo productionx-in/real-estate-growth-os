@@ -330,7 +330,7 @@ export function CsvImportDropzone({ orgSlug, orgId, projects }: CsvImportDropzon
             </div>
 
             <div className="max-h-72 overflow-y-auto">
-              <table className="w-full text-[12px]">
+              <table className="data-table w-full text-[12px]">
                 <thead>
                   <tr className="border-b border-[var(--border)] bg-surface-muted/50">
                     <th className="px-3 py-2 text-left w-12 font-medium text-[var(--foreground-muted)]">#</th>

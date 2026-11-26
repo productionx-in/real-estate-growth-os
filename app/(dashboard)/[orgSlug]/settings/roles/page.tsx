@@ -38,7 +38,7 @@ export default async function RolesPage({ params }: { params: Promise<{ orgSlug:
         {isAdmin && <p className="mt-3 text-[13px]"><Link href={`/${orgSlug}/team`} className="font-medium text-brand underline">Go to Team members</Link></p>}
       </SettingsCard>
       <div className="surface-raised overflow-x-auto rounded-2xl border border-default bg-surface">
-        <table className="w-full min-w-[880px] text-[13px]">
+        <table className="data-table w-full min-w-[880px] text-[13px]">
           <caption className="sr-only">What each role can do</caption>
           <thead className="bg-surface-muted text-left text-[11px] font-semibold uppercase tracking-wide text-subtle">
             <tr><th scope="col" className="px-4 py-2.5">Can…</th>{MEMBER_ROLES.map((r) => <th key={r} scope="col" className="px-3 py-2.5">{ROLE_LABELS[r]}</th>)}</tr>
