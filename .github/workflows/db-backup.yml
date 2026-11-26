@@ -40,6 +40,11 @@ jobs:
             echo "ok=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # First: checkout empties the working folder, so it must run before anything is written to backup/.
+      - name: Checkout (Storage copy script)
+        if: steps.ready.outputs.ok == 'true'
+        uses: actions/checkout@v4
+
       - name: Setup Supabase CLI
         if: steps.ready.outputs.ok == 'true'
         uses: supabase/setup-cli@v3
@@ -59,10 +64,6 @@ jobs:
           grep -q 'COPY "public"."organisations"\|COPY public.organisations' backup/data.sql
           ls -l backup
 
-      - name: Checkout (Storage copy script)
-        if: steps.ready.outputs.ok == 'true' && env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != ''
-        uses: actions/checkout@v4
-
       - name: Copy Storage files
         if: steps.ready.outputs.ok == 'true' && env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != ''
         run: node scripts/backup-storage.mjs backup/storage
@@ -75,6 +76,8 @@ jobs:
         if: steps.ready.outputs.ok == 'true'
         run: |
           set -euo pipefail
+          # Never encrypt a backup without the database: all three dump files must be present and non-empty.
+          for f in roles.sql schema.sql data.sql; do test -s "backup/$f" || { echo "::error::backup/$f missing"; exit 1; }; done
           STAMP=$(date -u +%Y%m%d-%H%M)
           echo "STAMP=$STAMP" >> "$GITHUB_ENV"
           tar -czf - -C backup . | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 3 \
