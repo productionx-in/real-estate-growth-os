@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, { params }: Ctx) {
     if (!uuid.safeParse(orgId).success) return NextResponse.json({ error: 'Missing required orgId' }, { status: 400 })
     const auth = await authorizeOrgAccess(orgId!, ['owner', 'admin', 'manager'])
     if (!auth.success) return auth.response
-    { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
+    { const gate = await requireModule(auth.context.orgId, 'partners'); if (gate) return gate }
     const units = await partnerInventory(auth.context.orgId, partnershipId, projectId)
     if (!units) return NextResponse.json({ error: 'This project’s inventory is not shared with you.' }, { status: 404 })
     return NextResponse.json({ data: units })

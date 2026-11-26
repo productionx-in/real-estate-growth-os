@@ -19,7 +19,7 @@ export async function PUT(request: NextRequest, { params }: Ctx) {
     if (!input.ok) return input.response
     const auth = await authorizeOrgAccess(input.data.orgId, ['owner', 'admin'])
     if (!auth.success) return auth.response
-    { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
+    { const gate = await requireModule(auth.context.orgId, 'partners'); if (gate) return gate }
     return respond(await shareProject(auth.context.orgId, auth.context.profile.id, partnershipId, input.data.projectId, input.data.visibility))
   } catch (err) {
     return serverError('share project', err)

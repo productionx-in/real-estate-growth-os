@@ -38,7 +38,7 @@ test('approving: locks the unit, re-checks it is available and the buyer still p
 test('routes and reads: management roles and the Sales module; no cross-side lead ids', () => {
   for (const f of ['app/api/partners/unit-requests/route.ts', 'app/api/partners/unit-requests/[requestId]/review/route.ts', 'app/api/partners/unit-requests/[requestId]/withdraw/route.ts']) {
     const s = read(f)
-    assert.match(s, /authorizeOrgAccess\([^)]*\[\.\.\.MANAGEMENT_ROLES\]\)/, f); assert.match(s, /requireModule\([^)]*'sales'\)/, f)
+    assert.match(s, /authorizeOrgAccess\([^)]*\[\.\.\.MANAGEMENT_ROLES\]\)/, f); assert.match(s, /requireModule\([^)]*'partners'\)/, f)
   }
   const dal = read('lib/dal/partners.ts')
   const list = dal.slice(dal.indexOf('export async function listUnitRequests'), dal.indexOf('export async function requestableUnits'))

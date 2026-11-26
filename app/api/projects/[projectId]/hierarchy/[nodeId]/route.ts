@@ -2,6 +2,7 @@
 // Individual Project Hierarchy Node endpoints (Update & Safe Delete)
 import { NextResponse, type NextRequest } from 'next/server'
 import { authorizeProjectAccess } from '@/lib/auth/tenant'
+import { requireModule } from '@/lib/auth/entitlements'
 import { UpdateHierarchyNodeSchema } from '@/lib/validations/hierarchy'
 import { updateHierarchyNode, safeDeleteHierarchyNode } from '@/lib/dal/hierarchy'
 
@@ -22,6 +23,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'projects'); if (gate) return gate }
 
     const body = await request.json()
     const parsed = UpdateHierarchyNodeSchema.safeParse(body)
@@ -59,6 +61,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'projects'); if (gate) return gate }
 
     const { orgId } = authResult.context
     const { success, error } = await safeDeleteHierarchyNode(nodeId, projectId, orgId)

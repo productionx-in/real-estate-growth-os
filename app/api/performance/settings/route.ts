@@ -3,6 +3,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
+import { requireModule } from '@/lib/auth/entitlements'
 import { auditMember } from '@/lib/dal/org-audit'
 import { getGamification, saveGamification } from '@/lib/dal/performance'
 import { normaliseGamification } from '@/lib/performance/rules'
@@ -14,6 +15,7 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: 'Invalid settings' }, { status: 400 })
   const access = await authorizeOrgAccess(parsed.data.orgId, ['owner', 'admin'])
   if (!access.success) return access.response
+  { const gate = await requireModule(access.context.orgId, 'performance'); if (gate) return gate }
   const { value, errors } = normaliseGamification(parsed.data.value)
   if (Object.keys(errors).length) return NextResponse.json({ error: Object.values(errors)[0], fields: errors }, { status: 400 })
   const before = await getGamification(parsed.data.orgId)

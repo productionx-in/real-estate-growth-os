@@ -4,6 +4,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
+import { requireModule } from '@/lib/auth/entitlements'
 import { auditMember } from '@/lib/dal/org-audit'
 import { getClaim, stepClaim } from '@/lib/dal/rewards'
 import { teamIdsOf } from '@/lib/dal/viewer'
@@ -18,6 +19,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { orgId, to } = parsed.data
   const access = await authorizeOrgAccess(orgId)
   if (!access.success) return access.response
+  { const gate = await requireModule(access.context.orgId, 'performance'); if (gate) return gate }
   const claim = await getClaim(orgId, claimId)
   if (!claim) return NextResponse.json({ error: 'Reward not found' }, { status: 404 })
   const me = access.context.profile.id

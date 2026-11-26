@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { ProjectSchema } from '@/lib/validations/project'
 import { getProjectById, updateProject } from '@/lib/dal/projects'
 import { authorizeProjectAccess } from '@/lib/auth/tenant'
+import { requireModule } from '@/lib/auth/entitlements'
 import { createServiceClient } from '@/lib/supabase/server'
 import { auditMember } from '@/lib/dal/org-audit'
 
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'projects'); if (gate) return gate }
 
     const project = await getProjectById(projectId)
     if (!project) {
@@ -42,6 +44,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'projects'); if (gate) return gate }
 
     const body = await request.json()
     const parsed = ProjectSchema.safeParse(body)
@@ -76,6 +79,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'projects'); if (gate) return gate }
     const { orgId, project } = authResult.context
 
     // The project's exact name must be typed to confirm (a delete cannot be undone).

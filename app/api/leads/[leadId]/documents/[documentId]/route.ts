@@ -12,7 +12,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   }
   const auth = await authorizeLeadWork(leadId)
   if (!auth.success) return auth.response
-  { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
+  { const gate = await requireModule(auth.context.orgId, 'documents'); if (gate) return gate }
   if (!(await revokeDocument(auth.context.orgId, leadId, documentId))) return NextResponse.json({ error: 'Document not found.' }, { status: 404 })
   return NextResponse.json({ ok: true })
 }

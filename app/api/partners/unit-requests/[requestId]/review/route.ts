@@ -20,7 +20,7 @@ export async function POST(request: NextRequest, { params }: Ctx) {
     if (!input.ok) return input.response
     const auth = await authorizeOrgAccess(input.data.orgId, [...MANAGEMENT_ROLES])
     if (!auth.success) return auth.response
-    { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
+    { const gate = await requireModule(auth.context.orgId, 'partners'); if (gate) return gate }
     return respond(await reviewUnitRequest(auth.context.orgId, auth.context.profile.id, requestId, input.data.approve, input.data.reason || null))
   } catch (err) {
     return serverError('review unit request', err)

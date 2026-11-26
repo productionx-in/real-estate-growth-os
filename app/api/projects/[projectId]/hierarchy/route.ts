@@ -2,6 +2,7 @@
 // Secure Project Hierarchy endpoints: Enforces authentication, tenant isolation, and RBAC.
 import { NextResponse, type NextRequest } from 'next/server'
 import { authorizeProjectAccess } from '@/lib/auth/tenant'
+import { requireModule } from '@/lib/auth/entitlements'
 import { CreateHierarchyNodeSchema } from '@/lib/validations/hierarchy'
 import { getProjectHierarchyTree, createHierarchyNode } from '@/lib/dal/hierarchy'
 
@@ -22,6 +23,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'projects'); if (gate) return gate }
 
     const { orgId } = authResult.context
     const tree = await getProjectHierarchyTree(projectId, orgId)
@@ -49,6 +51,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (!authResult.success) {
       return authResult.response
     }
+    { const gate = await requireModule(authResult.context.orgId, 'projects'); if (gate) return gate }
 
     const body = await request.json()
     const parsed = CreateHierarchyNodeSchema.safeParse(body)

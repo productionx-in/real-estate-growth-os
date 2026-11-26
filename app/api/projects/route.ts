@@ -1,5 +1,6 @@
 // app/api/projects/route.ts
 // Secure Project creation: Enforces authentication, multi-org resolution, and RBAC.
+import { requireModule } from '@/lib/auth/entitlements'
 import { NextResponse, type NextRequest } from 'next/server'
 import { ProjectSchema } from '@/lib/validations/project'
 import { createProject } from '@/lib/dal/projects'
@@ -113,6 +114,7 @@ export async function POST(request: NextRequest) {
       targetOrgId = managerMemberships[0].org_id
     }
 
+    { const gate = await requireModule(targetOrgId, 'projects'); if (gate) return gate }
     const { project, error } = await createProject(targetOrgId, parsed.data)
     if (error || !project) {
       return NextResponse.json({ error: error ?? 'Failed to create project' }, { status: 500 })

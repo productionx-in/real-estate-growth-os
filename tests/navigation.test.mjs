@@ -61,11 +61,13 @@ test('settings, billing, audit log and support access are only offered to owners
   }
 })
 
-test('a switched-off module hides its pages everywhere (sales covers visits and documents)', () => {
-  const k = keys('owner', 'developer', ['sales', 'inventory', 'analytics'])
-  for (const gone of ['sales', 'partners', 'visits', 'documents', 'inventory', 'analytics']) assert.ok(!k.includes(gone), gone)
+test('a switched-off module hides its pages everywhere; each module is switched on its own (20260107)', () => {
+  const k = keys('owner', 'developer', ['sales', 'inventory', 'analytics', 'partners', 'visits', 'documents', 'projects', 'campaigns'])
+  for (const gone of ['sales', 'partners', 'visits', 'documents', 'inventory', 'analytics', 'projects', 'campaigns']) assert.ok(!k.includes(gone), gone)
   assert.ok(k.includes('leads') && k.includes('today'))
-  assert.deepEqual(nav.navGroups('acme', 'readonly', 'developer', ['inventory', 'analytics', 'sales']).flatMap((g) => g.items).map((i) => i.key), ['home', 'projects', 'help'])
+  const onlySales = keys('owner', 'developer', ['sales'])
+  for (const kept of ['partners', 'visits']) assert.ok(onlySales.includes(kept), `${kept} stays when only the sales pipeline is off`)
+  assert.deepEqual(nav.navGroups('acme', 'readonly', 'developer', ['inventory', 'analytics', 'sales', 'projects']).flatMap((g) => g.items).map((i) => i.key), ['home', 'documents', 'help'])
 })
 
 test('Home is first; links stay inside the workspace', () => {

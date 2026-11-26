@@ -13,7 +13,8 @@ import { BillingBanner } from '@/components/billing/BillingBanner'
 import { billingHoldStatus } from '@/lib/billing/access'
 import { SupportAccessBanner } from '@/components/support/SupportAccessBanner'
 import { liveGrantsForOrg } from '@/lib/dal/support-access'
-import { getModules } from '@/lib/auth/entitlements'
+import { getModules, MODULES } from '@/lib/auth/entitlements'
+import { ModuleGate } from '@/components/layout/ModuleGate'
 import { DemoBanner } from '@/components/layout/DemoBanner'
 import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 import { WorkspacePrefsProvider } from '@/components/settings/WorkspacePrefs'
@@ -83,7 +84,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
         )}
         {/* On phones, leave room for the tab bar (and the home indicator) below the content. */}
         <main id="main" className="min-w-0 flex-1 overflow-x-clip overflow-y-auto pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom))] md:pb-0">
-          <WorkspacePrefsProvider value={{ areaUnitBuilt: inv.areaUnitBuilt, areaUnitLand: inv.areaUnitLand, canDeleteInventory: workspace.isAdmin, statusLabels: inv.statusLabels, ownerSells: sales.ownerSells, teamsEnabled: sales.teamsEnabled }}>{children}</WorkspacePrefsProvider>
+          <WorkspacePrefsProvider value={{ areaUnitBuilt: inv.areaUnitBuilt, areaUnitLand: inv.areaUnitLand, canDeleteInventory: workspace.isAdmin, statusLabels: inv.statusLabels, ownerSells: sales.ownerSells, teamsEnabled: sales.teamsEnabled }}><ModuleGate disabled={disabledModules} orgSlug={workspace.org.slug} labels={{ ...MODULES }}>{children}</ModuleGate></WorkspacePrefsProvider>
         </main>
       </div>
       <Toaster />

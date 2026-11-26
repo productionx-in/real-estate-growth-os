@@ -3,6 +3,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
+import { requireModule } from '@/lib/auth/entitlements'
 import { auditMember } from '@/lib/dal/org-audit'
 import { sendCampaign } from '@/lib/dal/campaigns'
 import { checkDistributedRateLimit } from '@/lib/integrations/webhooks/rate-limiter'
@@ -17,6 +18,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { orgId } = parsed.data
   const access = await authorizeOrgAccess(orgId)
   if (!access.success) return access.response
+  { const gate = await requireModule(access.context.orgId, 'campaigns'); if (gate) return gate }
   const { context } = access
   const limit = await checkDistributedRateLimit({ key: `campaign:send:${orgId}`, limit: 10, windowMs: 60 * 60_000 })
   if (!limit.allowed) return NextResponse.json({ error: 'This workspace has started 10 campaigns in the last hour. Wait before sending another.' }, { status: 429 })
