@@ -19,6 +19,9 @@ import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 import { WorkspacePrefsProvider } from '@/components/settings/WorkspacePrefs'
 import { LiveAlerts } from '@/components/notifications/LiveAlerts'
 import { Toaster } from '@/components/ui/toast'
+import { createClient } from '@/lib/supabase/server'
+import { readTwoStep, twoStepNeed } from '@/lib/auth/two-step'
+import { MfaGate } from '@/components/platform/MfaGate'
 
 interface OrgLayoutProps {
   children: React.ReactNode
@@ -32,7 +35,17 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
     ? await billingHoldStatus(workspace.org.id, workspace.profile.id) : { hold: false, canPay: false }
   const modules = await getModules(workspace.org.id)
   const disabledModules = Object.entries(modules).filter(([, on]) => !on).map(([m]) => m)
-  const [{ inventory: inv, alerts }, sales] = await Promise.all([getWorkspaceSettings(workspace.org.id), getSalesStructure(workspace.org.id)])
+  const [{ inventory: inv, alerts, security }, sales, twoStep] = await Promise.all([getWorkspaceSettings(workspace.org.id), getSalesStructure(workspace.org.id), createClient().then(readTwoStep)])
+  // Two-step verification (lib/auth/two-step.ts): the code each session, or set-up when the workspace requires it.
+  // The server refuses the same requests (lib/auth/tenant.ts); this is the screen that lets the person continue.
+  const need = twoStepNeed(twoStep, security.requireTwoStep)
+  if (need) {
+    return (
+      <div className="min-h-dvh bg-background">
+        <MfaGate intro={need === 'enrol' ? `${workspace.org.name} requires two-step verification for everyone.` : 'Your account uses two-step verification.'} />
+      </div>
+    )
+  }
   // Team structure off → no Teams link (it is not a module; nav.ts MODULE_OF_SEGMENT).
   const navDisabled = sales.teamsEnabled ? disabledModules : [...disabledModules, 'teams']
   const liveSupport = (await liveGrantsForOrg(workspace.org.id)).sort((a, b) => (b.expires_at ?? '').localeCompare(a.expires_at ?? ''))[0]

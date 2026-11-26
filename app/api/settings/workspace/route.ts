@@ -9,7 +9,7 @@ import { normaliseSection } from '@/lib/settings/workspace'
 
 const Schema = z.object({
   orgId: z.string().uuid(),
-  section: z.enum(['leads', 'inventory', 'reports', 'lists', 'fields', 'notifications', 'visits', 'matching', 'whatsapp', 'alerts']),
+  section: z.enum(['security', 'leads', 'inventory', 'reports', 'lists', 'fields', 'notifications', 'visits', 'matching', 'whatsapp', 'alerts']),
   value: z.record(z.string(), z.unknown()),
 })
 
@@ -23,6 +23,10 @@ export async function POST(request: NextRequest) {
   const current = await getWorkspaceSettings(orgId)
   const { value, errors } = normaliseSection(section, parsed.data.value, current)
   if (Object.keys(errors).length) return NextResponse.json({ error: Object.values(errors)[0], fields: errors }, { status: 400 })
+  // Requiring two-step for everyone: the person switching it on must be using it, so they can't lock themselves out.
+  if (section === 'security' && (value as { requireTwoStep: boolean }).requireTwoStep && !access.context.twoStep) {
+    return NextResponse.json({ error: 'Turn on two-step verification for your own account first (You → Sign-in & security).' }, { status: 400 })
+  }
   const before = current[section]
   if (!(await saveWorkspaceSection(orgId, access.context.profile.id, section, value))) {
     return NextResponse.json({ error: 'Could not save the settings.' }, { status: 500 })

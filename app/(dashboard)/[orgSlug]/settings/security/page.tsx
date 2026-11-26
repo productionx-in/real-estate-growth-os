@@ -6,14 +6,16 @@ import { ShieldCheck, ShieldAlert } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getVerifiedWorkspace } from '@/lib/dal/workspace'
 import { SettingsCard, SettingsHeader } from '@/components/settings/SettingsSection'
-import { ChangePasswordForm, SignOutOthers } from '@/components/settings/SecurityPanels'
+import { ChangePasswordForm, RequireTwoStep, SignOutOthers, TwoStepOff } from '@/components/settings/SecurityPanels'
+import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 
 export const metadata: Metadata = { title: 'Sign-in & security · Settings' }
 export const dynamic = 'force-dynamic'
 
 export default async function SecuritySettingsPage({ params }: { params: Promise<{ orgSlug: string }> }) {
   const { orgSlug } = await params
-  const { user } = await getVerifiedWorkspace(orgSlug)
+  const { user, org, isAdmin } = await getVerifiedWorkspace(orgSlug)
+  const { security } = await getWorkspaceSettings(org.id)
   const supabase = await createClient()
   const { data: factors } = await supabase.auth.mfa.listFactors()
   const mfaOn = (factors?.totp ?? []).some((f) => f.status === 'verified')
@@ -26,6 +28,7 @@ export default async function SecuritySettingsPage({ params }: { params: Promise
             {mfaOn ? <ShieldCheck aria-hidden className="size-5 text-success" /> : <ShieldAlert aria-hidden className="size-5 text-warning" />}
             {mfaOn ? 'On — your account asks for an authenticator code.' : 'Off — anyone with your password can sign in.'}
           </p>
+          {mfaOn && <TwoStepOff lockedByWorkspace={security.requireTwoStep} />}
           {!mfaOn && (
             <Link href={`/account/security?next=${encodeURIComponent(`/${orgSlug}/settings/security`)}`} className="btn-primary inline-flex min-h-10 items-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">
               Turn on
@@ -33,6 +36,11 @@ export default async function SecuritySettingsPage({ params }: { params: Promise
           )}
         </div>
       </SettingsCard>
+      {isAdmin && (
+        <SettingsCard title="Two-step verification for your team" description="Owners and admins: make every member use an authenticator app.">
+          <RequireTwoStep orgId={org.id} initial={security.requireTwoStep} selfHasIt={mfaOn} />
+        </SettingsCard>
+      )}
       <SettingsCard title="Password" description={`For ${user.email}.`}>
         <ChangePasswordForm email={user.email ?? ''} />
       </SettingsCard>
