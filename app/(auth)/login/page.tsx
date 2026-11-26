@@ -3,6 +3,7 @@
 // set by RE in the console). RE staff use an unlisted address (/login?for=staff, or any /platform link)
 // that looks different on purpose: a dark console card, so nobody mistakes one for the other. Hiding it is only tidiness: what anyone can open is always decided on the
 // server by memberships (customers) or platform role plus an authenticator code (staff).
+import { FullscreenLoader } from '@/components/ui/fullscreen-loader'
 import { LINK_PROBLEM_MESSAGE, type LinkProblem } from '@/lib/auth/recovery'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -60,7 +61,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <p role="alert" className="mb-4 rounded-lg border border-warning/30 bg-warning-bg px-3 py-2 text-[13px] text-[var(--foreground)]">{LINK_PROBLEM_MESSAGE.link_invalid}</p>
       )}
 
-      <Suspense fallback={<div>Loading login...</div>}>
+      <Suspense fallback={<FullscreenLoader label="Loading…" />}>
         <LoginForm defaultRedirect={staff ? audienceHome('staff') : '/select-org'} staff={staff} />
       </Suspense>
       {!staff && (
