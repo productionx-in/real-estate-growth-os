@@ -1,8 +1,11 @@
-// app/staff/page.tsx — the short address RE staff type to sign in (re.productionx.in/staff). Unlisted: never linked
-// from the public site. It only opens the staff sign-in; access is still decided on the server (platform role + an
-// authenticator code).
-import { redirect } from 'next/navigation'
+// app/staff/page.tsx — the RE team sign-in (re.productionx.in/staff). Unlisted: never linked from the public site.
+// Signing in here grants nothing by itself: the console checks the platform role and an authenticator code.
+import type { Metadata } from 'next'
+import { Suspense } from 'react'
+import { StaffSignIn } from '@/components/staff/StaffSignIn'
 
-export default function StaffShortcut() {
-  redirect('/login?for=staff')
+export const metadata: Metadata = { title: 'Team sign-in', robots: { index: false, follow: false } }
+
+export default function StaffPage() {
+  return <Suspense fallback={null}><StaffSignIn /></Suspense>
 }

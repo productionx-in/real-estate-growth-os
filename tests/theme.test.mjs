@@ -44,7 +44,7 @@ test('the other preferences: match device, always light, always dark', () => {
 })
 
 test('public, buyer-facing, marketing and sign-in pages stay light (no flash from the light site); the app follows the preference', () => {
-  for (const p of ['/', '/pricing', '/demo', '/leakage-audit', '/privacy', '/terms', '/p/skyline', '/d/abc', '/forms/x', '/login', '/reset-password', '/register', '/invite/abc']) assert.equal(T.lightOnly(p), true, p)
+  for (const p of ['/', '/pricing', '/demo', '/leakage-audit', '/privacy', '/terms', '/p/skyline', '/d/abc', '/forms/x', '/login', '/staff', '/reset-password', '/register', '/invite/abc']) assert.equal(T.lightOnly(p), true, p)
   for (const p of ['/acme/leads', '/select-org', '/platform', '/pricingcalc', '/loginx']) assert.equal(T.lightOnly(p), false, p)
 })
 

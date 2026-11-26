@@ -6,6 +6,7 @@
 import { LINK_PROBLEM_MESSAGE, type LinkProblem } from '@/lib/auth/recovery'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { LoginForm } from '@/components/auth/LoginForm'
@@ -19,6 +20,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const sp = await searchParams
   const staff = sp.for === 'staff' || !!sp.redirectTo?.startsWith('/platform')
   const linkProblem = sp.error && sp.error in LINK_PROBLEM_MESSAGE ? LINK_PROBLEM_MESSAGE[sp.error as LinkProblem] : sp.error === 'auth_callback_failed' ? LINK_PROBLEM_MESSAGE.link_invalid : null
+  // Staff sign in on /staff (the team page); "forgot password" stays here in the framed card.
+  if (staff && sp.mode !== 'forgot') {
+    const keep = new URLSearchParams()
+    if (sp.redirectTo) keep.set('redirectTo', sp.redirectTo)
+    redirect(`/staff${keep.size ? `?${keep}` : ''}`)
+  }
   // Customers: the full RE sign-in page. Staff, and "forgot password", use the framed card below.
   if (!staff && sp.mode !== 'forgot') {
     return (
