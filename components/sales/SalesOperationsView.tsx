@@ -17,7 +17,7 @@ export function SalesOperationsView({
   initialBookings,
   initialChannelPartners,
   initialDeals,
-  orgName,
+  orgName: _orgName,
 }: SalesOperationsViewProps) {
   const [activeTab, setActiveTab] = useState<'visits' | 'bookings' | 'partners' | 'deals'>('deals')
   const [siteVisits] = useState<SiteVisit[]>(initialSiteVisits)
@@ -27,36 +27,20 @@ export function SalesOperationsView({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-default pb-5">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Sales & Channel Partner Operations
-          </h1>
-          <p className="mt-1 text-sm text-subtle">
-            Manage site visits, inventory blockings, confirmed bookings, broker partnerships, and sales pipelines for {orgName}.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-bg text-success border border-success/30">
-            Pipeline Active
-          </span>
-        </div>
-      </div>
-
       {/* Tabs */}
-      <div className="border-b border-default">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+      <div className="-mx-4 border-b border-default px-4 sm:mx-0 sm:px-0">
+        <nav className="-mb-px flex gap-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Tabs">
           {[
-            { id: 'deals', label: 'Sales Deals Pipeline', count: deals.length },
-            { id: 'visits', label: 'Site Visits', count: siteVisits.length },
-            { id: 'bookings', label: 'Bookings & Holds', count: bookings.length },
-            { id: 'partners', label: 'Channel Partners', count: partners.length },
+            { id: 'deals', label: 'Pipeline', count: deals.length },
+            { id: 'visits', label: 'Site visits', count: siteVisits.length },
+            { id: 'bookings', label: 'Bookings & holds', count: bookings.length },
+            { id: 'partners', label: 'Channel partners', count: partners.length },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+              aria-current={activeTab === tab.id ? 'page' : undefined}
+              className={`shrink-0 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                 activeTab === tab.id
                   ? 'border-accent text-accent'
                   : 'border-transparent text-subtle hover:text-muted hover:border-strong'
