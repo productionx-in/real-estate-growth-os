@@ -1,6 +1,7 @@
 // lib/dal/workspace.ts
 // Robust workspace and tenant resolution for Server Components.
 // Validates session, loads organization, verifies membership, and provides tenant context.
+import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import type { MemberRole, OrgLifecycleState } from '@/types/database'
@@ -43,41 +44,55 @@ export interface VerifiedWorkspace {
   availableOrgs: AvailableOrgSummary[]
 }
 
-export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWorkspace> {
+/** Resolves the signed-in person's workspace. Wrapped in React cache(), so the workspace layout and its page share one
+ *  lookup per request instead of repeating it. Independent lookups run in parallel: the session check alongside the
+ *  organisation, then the profile alongside the memberships (joined through profiles.auth_user_id). */
+export const getVerifiedWorkspace = cache(async (orgSlug: string): Promise<VerifiedWorkspace> => {
   const supabase = await createClient()
+  // Use service client to guarantee lookup regardless of Supabase JWT claims hook configuration
+  const service = createServiceClient()
 
-  // 1. Verify user session
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  // 1. Verify the session (with the Auth server, so revoked sessions are refused) while loading the organisation.
+  const [{ data: { user }, error: authError }, { data: org }] = await Promise.all([
+    supabase.auth.getUser(),
+    service
+      .from('organisations')
+      .select('id, name, slug, type, plan, created_at, lifecycle_state, lifecycle_changed_at, is_demo')
+      .eq('slug', orgSlug)
+      .maybeSingle(),
+  ])
 
   if (authError || !user) {
     redirect(`/login?redirectTo=/${encodeURIComponent(orgSlug)}`)
   }
-
-  // Use service client to guarantee lookup regardless of Supabase JWT claims hook configuration
-  const service = createServiceClient()
-
-  // 2. Fetch organisation by slug
-  const { data: org } = await service
-    .from('organisations')
-    .select('id, name, slug, type, plan, created_at, lifecycle_state, lifecycle_changed_at, is_demo')
-    .eq('slug', orgSlug)
-    .maybeSingle()
 
   if (!org) {
     // Org does not exist — redirect to workspace selector instead of dead 404
     redirect('/select-org')
   }
 
-  // 3. Ensure profile exists for this user
-  let { data: profile } = await service
-    .from('profiles')
-    .select('id, full_name, avatar_url, phone')
-    .eq('auth_user_id', user.id)
-    .maybeSingle()
+  // 2. Profile and all memberships (for the workspace switcher), in parallel.
+  const [{ data: existingProfile }, { data: allMemberships }] = await Promise.all([
+    service
+      .from('profiles')
+      .select('id, full_name, avatar_url, phone')
+      .eq('auth_user_id', user.id)
+      .maybeSingle(),
+    service
+      .from('org_members')
+      .select(`
+        org_id,
+        role,
+        status,
+        organisation:organisations(id, name, slug, type),
+        member:profiles!org_members_profile_id_fkey!inner(auth_user_id)
+      `)
+      .eq('member.auth_user_id', user.id)
+      .order('joined_at', { ascending: true }),
+  ])
+  let profile = existingProfile
 
+  // 3. Ensure a profile exists for this user (a brand-new profile has no memberships, so step 4 sends them on).
   if (!profile) {
     const fullName =
       (user.user_metadata?.full_name as string) ||
@@ -100,18 +115,7 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
     redirect('/select-org')
   }
 
-  // 4. Verify membership in this organisation and load all authorized memberships for workspace switching
-  const { data: allMemberships } = await service
-    .from('org_members')
-    .select(`
-      org_id,
-      role,
-      status,
-      organisation:organisations(id, name, slug, type)
-    `)
-    .eq('profile_id', profile.id)
-    .order('joined_at', { ascending: true })
-
+  // 4. Verify membership in this organisation.
   const typedMemberships = (allMemberships ?? []) as unknown as Array<{
     org_id: string
     role: string | null
@@ -162,4 +166,4 @@ export async function getVerifiedWorkspace(orgSlug: string): Promise<VerifiedWor
     isAdmin,
     availableOrgs,
   }
-}
+})

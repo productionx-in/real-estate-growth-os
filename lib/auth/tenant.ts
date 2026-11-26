@@ -90,18 +90,17 @@ export async function authenticateCaller(): Promise<
     }
   }
 
-  // Two-step verification: an account with an authenticator must have entered its code this session.
-  const twoStep = await readTwoStep(supabase)
+  // Two-step verification (an account with an authenticator must have entered its code this session), read alongside
+  // the profile lookup.
+  const service = createServiceClient()
+  const [twoStep, { data: existingProfile }] = await Promise.all([
+    readTwoStep(supabase),
+    service.from('profiles').select('id, full_name').eq('auth_user_id', user.id).maybeSingle(),
+  ])
   if (twoStepNeed(twoStep, false) === 'verify') {
     return { success: false, response: NextResponse.json({ error: TWO_STEP_MESSAGES.verify, code: 'TWO_STEP_REQUIRED' }, { status: 401 }) }
   }
-
-  const service = createServiceClient()
-  let { data: profile } = await service
-    .from('profiles')
-    .select('id, full_name')
-    .eq('auth_user_id', user.id)
-    .maybeSingle()
+  let profile = existingProfile
 
   if (!profile) {
     const fullName =
@@ -153,6 +152,9 @@ export async function authorizeOrgAccess(
   const { auth } = authRes
   const service = createServiceClient()
 
+  // Read the workspace's two-step rule alongside the membership lookup; it is awaited after the membership checks.
+  const twoStepPending = workspaceTwoStepBlock(orgId, auth)
+  twoStepPending.catch(() => {})
   const { data: membership } = await service
     .from('org_members')
     .select('role, status')
@@ -192,7 +194,7 @@ export async function authorizeOrgAccess(
     }
   }
 
-  const twoStepBlock = await workspaceTwoStepBlock(orgId, auth)
+  const twoStepBlock = await twoStepPending
   if (twoStepBlock) return { success: false, response: twoStepBlock }
 
   return {
@@ -234,6 +236,9 @@ export async function authorizeProjectAccess(
     }
   }
 
+  // Read the workspace's two-step rule alongside the membership lookup; it is awaited after the membership checks.
+  const twoStepPending = workspaceTwoStepBlock(project.org_id, auth)
+  twoStepPending.catch(() => {})
   const { data: membership } = await service
     .from('org_members')
     .select('role, status')
@@ -273,7 +278,7 @@ export async function authorizeProjectAccess(
     }
   }
 
-  const twoStepBlock = await workspaceTwoStepBlock(project.org_id, auth)
+  const twoStepBlock = await twoStepPending
   if (twoStepBlock) return { success: false, response: twoStepBlock }
 
   return {
@@ -321,6 +326,9 @@ export async function authorizeInventoryAccess(
     }
   }
 
+  // Read the workspace's two-step rule alongside the membership lookup; it is awaited after the membership checks.
+  const twoStepPending = workspaceTwoStepBlock(item.org_id, auth)
+  twoStepPending.catch(() => {})
   const { data: membership } = await service
     .from('org_members')
     .select('role, status')
@@ -360,7 +368,7 @@ export async function authorizeInventoryAccess(
     }
   }
 
-  const twoStepBlock = await workspaceTwoStepBlock(item.org_id, auth)
+  const twoStepBlock = await twoStepPending
   if (twoStepBlock) return { success: false, response: twoStepBlock }
 
   return {
@@ -409,6 +417,9 @@ export async function authorizeLeadAccess(
     }
   }
 
+  // Read the workspace's two-step rule alongside the membership lookup; it is awaited after the membership checks.
+  const twoStepPending = workspaceTwoStepBlock(lead.org_id, auth)
+  twoStepPending.catch(() => {})
   const { data: membership } = await service
     .from('org_members')
     .select('role, status')
@@ -458,7 +469,7 @@ export async function authorizeLeadAccess(
     }
   }
 
-  const twoStepBlock = await workspaceTwoStepBlock(lead.org_id, auth)
+  const twoStepBlock = await twoStepPending
   if (twoStepBlock) return { success: false, response: twoStepBlock }
 
   return {
