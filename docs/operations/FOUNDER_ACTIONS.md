@@ -22,8 +22,8 @@ The production address is **https://re.productionx.in** (live). URLs below use i
       Open Graph, e-mail links and Meta/Google redirect URLs are built from them.
 - [ ] Supabase → Authentication → URL configuration: Site URL `https://re.productionx.in`, Redirect URLs
       `https://re.productionx.in/**` (keep the old address too until nobody uses it).
-- [ ] Contact mailboxes on productionx.in used in the site and e-mails (support@, hello@, noreply@) exist, and the
-      e-mail sending domain is verified in Resend (section 5).
+- [x] Contact address: re@productionx.in (support, sales and privacy; shown on Contact, Privacy and the chat assistant).
+- [ ] Verify productionx.in as the sending domain in Resend (section 5); replies go to re@productionx.in.
 - [ ] Confirm every *required* row in `ENVIRONMENT.md` (Supabase URL and keys, etc.) is set for Production.
 
 ## 2. Meta Lead Ads (Facebook & Instagram)

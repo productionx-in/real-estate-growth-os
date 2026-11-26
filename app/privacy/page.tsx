@@ -49,7 +49,7 @@ export default function PrivacyPage() {
             <li><strong>Billing:</strong> plan, invoices and payment status. Card and UPI details are entered with Razorpay and are not stored by us.</li>
             <li><strong>Lead-leakage audit:</strong> the file you choose is analysed in your browser and is not uploaded to us.</li>
             <li><strong>Cookies and similar storage:</strong> only what the service needs — sign-in cookies, and your appearance (light/dark) choice stored in your browser. We do not use advertising or cross-site tracking cookies.</li>
-            <li><strong>Website visit statistics:</strong> on our public website we count page views to see which pages help visitors — the page, the page before it, the referring site or campaign tag, country and device type. We use our own cookie-free counter and Vercel Web Analytics; neither sets a cookie or stores your IP address, and we skip counting when your browser sends Global Privacy Control or Do Not Track. These counts are kept for 13 months and are never used inside customer workspaces.</li>
+            <li><strong>Website visit statistics:</strong> on our public website we count page views to see which pages help visitors — the page, the page before it, the referring site or campaign tag, country and device type. We use our own cookie-free counter and Vercel Web Analytics; neither sets a cookie or stores your IP address, so the counts cannot be linked to you. These counts are kept for 13 months and are never used inside customer workspaces.</li>
           </ul>,
         },
         {

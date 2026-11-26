@@ -80,11 +80,11 @@ await test('staff access: Platform Owner, sales managers and auditors only', () 
   assert.match(page, /getConsoleAccess\(\)/); assert.match(page, /can\(access\.role as StaffRole, 'website'\)\) notFound\(\)/)
 })
 
-await test('wiring: no IP or user agent stored; privacy signals honoured; beacon only on the public site; Vercel Analytics once', () => {
+await test('wiring: no IP or user agent stored; privacy-signal browsers counted; beacon only on the public site; Vercel Analytics once', () => {
   const route = read('app/api/site/pv/route.ts')
   assert.doesNotMatch(route.split('.insert(')[1], /\bip\b|user_agent|userAgent|ua\b/)
-  assert.match(route, /sec-gpc/); assert.match(route, /checkDistributedRateLimit/); assert.match(route, /status: 204/)
-  assert.match(read('components/marketing/SiteBeacon.tsx'), /globalPrivacyControl/)
+  assert.match(route, /checkDistributedRateLimit/); assert.match(route, /status: 204/)
+  assert.doesNotMatch(route, /sec-gpc|dnt/i, 'privacy-signal browsers (e.g. Brave) are counted: nothing personal is stored')
   assert.doesNotMatch(read('components/marketing/SiteBeacon.tsx'), /localStorage|document\.cookie/)
   assert.match(read('components/marketing/MarketingShell.tsx'), /<SiteBeacon \/>/)
   const layout = read('app/layout.tsx')

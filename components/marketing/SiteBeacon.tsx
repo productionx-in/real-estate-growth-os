@@ -1,8 +1,7 @@
 'use client'
 // components/marketing/SiteBeacon.tsx — counts public website page views for Website analytics (platform console).
 // No cookie and nothing that identifies a person: a random visit id kept in this tab only (sessionStorage), the page,
-// the page before it, and — on the first page — where the visit came from. Skipped when the browser asks not to be
-// tracked (Global Privacy Control / Do Not Track).
+// the page before it, and — on the first page — where the visit came from.
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 
@@ -12,8 +11,6 @@ export function SiteBeacon() {
   const path = usePathname()
   useEffect(() => {
     try {
-      const nav = navigator as Navigator & { globalPrivacyControl?: boolean }
-      if (nav.globalPrivacyControl || nav.doNotTrack === '1') return
       const saved = JSON.parse(sessionStorage.getItem(KEY) ?? 'null') as { v: string; n: number; last: string } | null
       if (saved?.last === path) return // a re-render of the same page, not a new view
       const v = saved?.v ?? (crypto.randomUUID?.().replace(/-/g, '').slice(0, 20) ?? Math.random().toString(36).slice(2, 14))
