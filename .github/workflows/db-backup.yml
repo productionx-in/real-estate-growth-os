@@ -4,6 +4,8 @@
 # Read-only against production. Needs two repository secrets (Settings → Secrets and variables → Actions):
 #   SUPABASE_DB_URL     — Supabase → Connect → Session pooler connection string (port 5432, with the DB password)
 #   BACKUP_PASSPHRASE   — a long random passphrase; keep a copy in your password manager (without it, no restore)
+# Optional, to include Storage files (documents, plot maps, photos), which a database dump does not contain:
+#   SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY — the same values as in Vercel
 name: Database backup
 
 on:
@@ -25,6 +27,8 @@ jobs:
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - name: Check secrets
         id: ready
@@ -54,6 +58,18 @@ jobs:
           grep -q 'CREATE TABLE.*"leads_all"\|CREATE TABLE.*leads_all' backup/schema.sql
           grep -q 'COPY "public"."organisations"\|COPY public.organisations' backup/data.sql
           ls -l backup
+
+      - name: Checkout (Storage copy script)
+        if: steps.ready.outputs.ok == 'true' && env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != ''
+        uses: actions/checkout@v4
+
+      - name: Copy Storage files
+        if: steps.ready.outputs.ok == 'true' && env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != ''
+        run: node scripts/backup-storage.mjs backup/storage
+
+      - name: Note when Storage is not included
+        if: steps.ready.outputs.ok == 'true' && (env.SUPABASE_URL == '' || env.SUPABASE_SERVICE_ROLE_KEY == '')
+        run: echo "::notice::Storage files not included — add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY secrets to back them up too."
 
       - name: Encrypt
         if: steps.ready.outputs.ok == 'true'
