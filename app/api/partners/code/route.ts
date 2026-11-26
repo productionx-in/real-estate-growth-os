@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     if (!input.ok) return input.response
     const auth = await authorizeOrgAccess(input.data.orgId, ['owner', 'admin'])
     if (!auth.success) return auth.response
-    { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
+    { const gate = await requireModule(auth.context.orgId, 'partners'); if (gate) return gate }
     return respond(await ensurePartnerCode(auth.context.orgId, auth.context.profile.id))
   } catch (err) {
     return serverError('partner code', err)

@@ -6,16 +6,23 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 
 export const MODULES = {
-  sales: 'Sales & channel partners',
+  projects: 'Projects',
   inventory: 'Inventory',
+  sales: 'Sales pipeline',
+  visits: 'Site visits',
+  partners: 'Channel partners',
+  documents: 'Documents',
+  campaigns: 'Campaigns',
+  whatsapp: 'WhatsApp inbox',
   routing: 'Lead routing',
   integrations: 'Integrations',
-  analytics: 'Analytics & BI',
+  analytics: 'Analytics & reports',
+  performance: 'Performance & rewards',
 } as const
 export type ModuleKey = keyof typeof MODULES
 export type ModuleMap = Record<ModuleKey, boolean>
 
-export const ALL_ON: ModuleMap = { sales: true, inventory: true, routing: true, integrations: true, analytics: true }
+export const ALL_ON = Object.fromEntries(Object.keys(MODULES).map((k) => [k, true])) as ModuleMap
 
 export function resolveModules(rows: { module: string; enabled: boolean }[]): ModuleMap {
   const map = { ...ALL_ON }

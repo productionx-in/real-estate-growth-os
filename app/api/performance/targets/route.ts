@@ -3,6 +3,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
+import { requireModule } from '@/lib/auth/entitlements'
 import { auditMember } from '@/lib/dal/org-audit'
 import { performanceDb } from '@/lib/dal/performance'
 import { PERIODS, TARGET_METRICS } from '@/lib/performance/rules'
@@ -29,6 +30,7 @@ export async function POST(request: NextRequest) {
   const t = parsed.data
   const access = await authorizeOrgAccess(t.orgId, ['owner', 'admin'])
   if (!access.success) return access.response
+  { const gate = await requireModule(access.context.orgId, 'performance'); if (gate) return gate }
   const { data, error } = await performanceDb().from('performance_targets').insert({
     org_id: t.orgId, scope: t.scope, profile_id: t.profileId ?? null, team_id: t.teamId ?? null, metric: t.metric, amount: t.amount,
     period: t.period, starts_on: t.startsOn, ends_on: t.endsOn ?? null, created_by: access.context.profile.id, updated_by: access.context.profile.id,

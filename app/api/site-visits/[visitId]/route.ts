@@ -27,7 +27,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   // Same rule as working the lead: managers and above, or the salesperson the lead is assigned to.
   const auth = await authorizeLeadWork(visit.lead_id)
   if (!auth.success) return auth.response
-  { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
+  { const gate = await requireModule(auth.context.orgId, 'visits'); if (gate) return gate }
 
   const parsed = Schema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: 'Invalid request', details: parsed.error.flatten() }, { status: 400 })

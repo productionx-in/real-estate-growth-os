@@ -21,7 +21,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (!z.string().uuid().safeParse(leadId).success || !parsed.success) return NextResponse.json({ error: 'Invalid document' }, { status: 400 })
   const auth = await authorizeLeadWork(leadId)
   if (!auth.success) return auth.response
-  { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
+  { const gate = await requireModule(auth.context.orgId, 'documents'); if (gate) return gate }
 
   const result = await createDocument(auth.context.orgId, leadId, auth.context.profile.id, { ...parsed.data, unitId: parsed.data.unitId ?? null })
   if (!result.success) return NextResponse.json({ error: result.error }, { status: result.status })

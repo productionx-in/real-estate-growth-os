@@ -3,6 +3,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
+import { requireModule } from '@/lib/auth/entitlements'
 import { auditMember } from '@/lib/dal/org-audit'
 import { cancelProgram, getProgram, qualifyNow, saveProgram } from '@/lib/dal/rewards'
 import { REWARD_MANAGERS, normaliseProgram } from '@/lib/rewards/rules'
@@ -20,6 +21,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { orgId } = parsed.data
   const access = await authorizeOrgAccess(orgId, [...REWARD_MANAGERS])
   if (!access.success) return access.response
+  { const gate = await requireModule(access.context.orgId, 'performance'); if (gate) return gate }
   const existing = await getProgram(orgId, programId)
   if (!existing) return NextResponse.json({ error: 'Programme not found' }, { status: 404 })
   if (parsed.data.action === 'cancel') {

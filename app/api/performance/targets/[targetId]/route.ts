@@ -4,6 +4,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
+import { requireModule } from '@/lib/auth/entitlements'
 import { auditMember } from '@/lib/dal/org-audit'
 import { performanceDb } from '@/lib/dal/performance'
 
@@ -20,6 +21,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (!parsed.success || !/^[0-9a-f-]{36}$/.test(targetId)) return NextResponse.json({ error: 'Invalid change' }, { status: 400 })
   const access = await authorizeOrgAccess(parsed.data.orgId, ['owner', 'admin'])
   if (!access.success) return access.response
+  { const gate = await requireModule(access.context.orgId, 'performance'); if (gate) return gate }
   const { data: before } = await performanceDb().from('performance_targets').select('*').eq('id', targetId).eq('org_id', parsed.data.orgId).maybeSingle()
   if (!before) return NextResponse.json({ error: 'Target not found' }, { status: 404 })
   const patch: Record<string, unknown> = { updated_by: access.context.profile.id }

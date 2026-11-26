@@ -3,6 +3,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
+import { requireModule } from '@/lib/auth/entitlements'
 import { auditMember } from '@/lib/dal/org-audit'
 import { saveProgram } from '@/lib/dal/rewards'
 import { REWARD_MANAGERS, normaliseProgram } from '@/lib/rewards/rules'
@@ -15,6 +16,7 @@ export async function POST(request: NextRequest) {
   const { orgId } = parsed.data
   const access = await authorizeOrgAccess(orgId, [...REWARD_MANAGERS])
   if (!access.success) return access.response
+  { const gate = await requireModule(access.context.orgId, 'performance'); if (gate) return gate }
   const { value, error } = normaliseProgram(parsed.data.program)
   if (!value) return NextResponse.json({ error }, { status: 400 })
   const r = await saveProgram(orgId, null, value, access.context.profile.id)

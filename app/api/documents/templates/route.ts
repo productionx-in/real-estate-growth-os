@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   const { orgId, ...input } = parsed.data
   const access = await authorizeOrgAccess(orgId, ['owner', 'admin', 'manager'])
   if (!access.success) return access.response
-  { const gate = await requireModule(orgId, 'sales'); if (gate) return gate }
+  { const gate = await requireModule(orgId, 'documents'); if (gate) return gate }
 
   const result = await saveTemplate(orgId, access.context.profile.id, input)
   if (!result.success) return NextResponse.json({ error: result.error }, { status: result.status })

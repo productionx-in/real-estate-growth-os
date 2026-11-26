@@ -3,6 +3,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
+import { requireModule } from '@/lib/auth/entitlements'
 import { auditMember } from '@/lib/dal/org-audit'
 import { performanceDb } from '@/lib/dal/performance'
 import { ACHIEVEMENT_METRICS, BADGE_ICONS, BUILTIN_ACHIEVEMENTS } from '@/lib/performance/rules'
@@ -24,6 +25,7 @@ export async function POST(request: NextRequest) {
   const a = parsed.data
   const access = await authorizeOrgAccess(a.orgId, ['owner', 'admin'])
   if (!access.success) return access.response
+  { const gate = await requireModule(access.context.orgId, 'performance'); if (gate) return gate }
   const table = performanceDb().from('achievement_defs')
   if (a.action === 'toggle') {
     const builtin = BUILTIN_ACHIEVEMENTS.find((b) => b.key === a.key)

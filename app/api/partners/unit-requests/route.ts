@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     if (!z.string().uuid().safeParse(orgId).success || !z.string().uuid().safeParse(registrationId).success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     const auth = await authorizeOrgAccess(orgId, [...MANAGEMENT_ROLES])
     if (!auth.success) return auth.response
-    { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
+    { const gate = await requireModule(auth.context.orgId, 'partners'); if (gate) return gate }
     const units = await requestableUnits(auth.context.orgId, registrationId)
     if (!units) return NextResponse.json({ error: 'This buyer’s registration must be accepted and still protected, with the project’s inventory shared.' }, { status: 404 })
     return NextResponse.json({ units }, { headers: { 'Cache-Control': 'no-store' } })
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     if (!input.ok) return input.response
     const auth = await authorizeOrgAccess(input.data.orgId, [...MANAGEMENT_ROLES])
     if (!auth.success) return auth.response
-    { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
+    { const gate = await requireModule(auth.context.orgId, 'partners'); if (gate) return gate }
     return respond(await requestUnit({
       agencyOrgId: auth.context.orgId, actorProfileId: auth.context.profile.id, registrationId: input.data.registrationId,
       inventoryId: input.data.inventoryId, note: input.data.note || null, holdHours: input.data.holdHours ?? null,

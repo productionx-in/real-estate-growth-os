@@ -12,7 +12,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   if (!orgId.success || !z.string().uuid().safeParse(templateId).success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   const access = await authorizeOrgAccess(orgId.data, ['owner', 'admin', 'manager'])
   if (!access.success) return access.response
-  { const gate = await requireModule(orgId.data, 'sales'); if (gate) return gate }
+  { const gate = await requireModule(orgId.data, 'documents'); if (gate) return gate }
   if (!(await archiveTemplate(orgId.data, templateId))) return NextResponse.json({ error: 'Template not found.' }, { status: 404 })
   await auditMember(request, access.context, orgId.data, 'document.template_removed', { type: 'document_template', id: templateId })
   return NextResponse.json({ ok: true })

@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   const auth = await authorizeLeadWork(input.leadId)
   if (!auth.success) return auth.response
   const { context } = auth
-  { const gate = await requireModule(context.orgId, 'sales'); if (gate) return gate }
+  { const gate = await requireModule(context.orgId, 'visits'); if (gate) return gate }
 
   // A salesperson books visits for themselves; managers may give the visit to any active salesperson,
   // a team lead to someone in their team.

@@ -4,6 +4,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
+import { requireModule } from '@/lib/auth/entitlements'
 import { sendReply } from '@/lib/dal/whatsapp-inbox'
 import { MAX_TEMPLATE_PARAM, MAX_TEXT } from '@/lib/integrations/whatsapp/inbox-rules'
 import { resolveLeadViewer } from '@/lib/dal/viewer'
@@ -27,6 +28,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const access = await authorizeOrgAccess(orgId)
   if (!access.success) return access.response
+  { const gate = await requireModule(access.context.orgId, 'whatsapp'); if (gate) return gate }
   const { context } = access
 
   const result = await sendReply(orgId, conversationId, await resolveLeadViewer(orgId, context.role, context.profile.id), input)

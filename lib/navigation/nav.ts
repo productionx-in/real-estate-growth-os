@@ -27,8 +27,9 @@ export type OrgType = 'developer' | 'channel_partner'
 
 /** Path segment after the workspace slug → the module that must be on for the link to show (lib/auth/entitlements.ts). */
 export const MODULE_OF_SEGMENT: Record<string, string> = {
-  sales: 'sales', visits: 'sales', documents: 'sales', partners: 'sales', inventory: 'inventory', listings: 'inventory', routing: 'routing',
-  integrations: 'integrations', analytics: 'analytics',
+  projects: 'projects', sales: 'sales', visits: 'visits', documents: 'documents', partners: 'partners', inventory: 'inventory', listings: 'inventory',
+  campaigns: 'campaigns', inbox: 'whatsapp', routing: 'routing', integrations: 'integrations', analytics: 'analytics',
+  performance: 'performance', rewards: 'performance',
   // Not a paid module: the layout lists it as off while team structure is switched off (Settings → Sales structure).
   teams: 'teams',
 }

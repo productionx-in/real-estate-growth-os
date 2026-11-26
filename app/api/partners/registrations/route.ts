@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     if (!auth.success) return auth.response
     // The lead must be in the organisation the caller is acting for.
     if (auth.context.orgId !== input.data.orgId) return NextResponse.json({ error: 'Lead not found' }, { status: 404 })
-    { const gate = await requireModule(auth.context.orgId, 'sales'); if (gate) return gate }
+    { const gate = await requireModule(auth.context.orgId, 'partners'); if (gate) return gate }
     return respond(await submitRegistration({
       agencyOrgId: auth.context.orgId, actorProfileId: auth.context.profile.id, partnershipId: input.data.partnershipId,
       projectId: input.data.projectId, agencyLeadId: input.data.agencyLeadId, note: input.data.note || null, consent: input.data.consent,

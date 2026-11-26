@@ -2,6 +2,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authorizeOrgAccess } from '@/lib/auth/tenant'
+import { requireModule } from '@/lib/auth/entitlements'
 import { previewAudience } from '@/lib/dal/campaigns'
 
 const Id = z.string().uuid()
@@ -12,6 +13,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if (!Id.safeParse(campaignId).success || !Id.safeParse(orgId).success) return NextResponse.json({ error: 'Invalid campaign' }, { status: 400 })
   const access = await authorizeOrgAccess(orgId!)
   if (!access.success) return access.response
+  { const gate = await requireModule(access.context.orgId, 'campaigns'); if (gate) return gate }
   const { context } = access
   const result = await previewAudience(orgId!, { role: context.role, profileId: context.profile.id }, campaignId)
   if (!result.success) return NextResponse.json({ error: result.error }, { status: result.status })
