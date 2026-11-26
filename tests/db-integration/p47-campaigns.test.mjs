@@ -113,7 +113,7 @@ async function main() {
       const mail = await T.renderTemplate('campaign.email', { recipientId: r.id }, { db: service, orgId: org })
       assert.equal(mail.subject, 'Hello Asha')
       assert.match(mail.html, new RegExp(`/u/${r.unsubscribe_token}`))
-      assert.match(mail.text, /Unsubscribe from these e-mails: https:\/\/app\.regrow\.test\/u\//)
+      assert.match(mail.text, /Unsubscribe from these e-mails: https:\/\/re\.productionx\.in\/u\//)
       await assert.rejects(T.renderTemplate('campaign.email', { recipientId: r.id }, { db: service, orgId: other }), /not found in this organisation/)
       const target = await C.unsubscribeTarget(r.unsubscribe_token)
       assert.equal(target.done, false); assert.match(target.address, /^as•+@buyers\.test$/); assert.equal(target.orgName, `Lakeside ${RUN}`)

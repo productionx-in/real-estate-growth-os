@@ -36,7 +36,7 @@ await test('invalid or missing configuration is reported, never patched with a h
   assert.ok(cfg.getEmailConfig({ EMAIL_PROVIDER: 'sendgrid', VERCEL_ENV: 'production' }).problems.some((p) => /not supported/.test(p)))
   assert.ok(cfg.getEmailConfig({ EMAIL_PROVIDER: 'mock', VERCEL_ENV: 'production' }).problems.some((p) => /mock/.test(p)), 'the mock is never accepted in production')
   for (const f of ['lib/email/adapter.ts', 'lib/email/service.ts', 'lib/email/templates.ts', 'lib/jobs/customer-emails.ts', 'lib/jobs/daily-reports.ts', 'lib/jobs/site-visit-notify.ts', 'lib/payments/monitoring.ts', 'lib/payments/mandates.ts', 'app/api/website/demo-request/route.ts'])
-    assert.doesNotMatch(read(f), /noreply@|@productionx\.ai|@regrowth\.in/, `${f} hard-codes no sender`)
+    assert.doesNotMatch(read(f), /noreply@|@productionx\.(ai|in)|@regrowth\.in/, `${f} hard-codes no sender`)
 })
 await test('Resend: idempotency key, configured sender at send time, timeout, and error classes', async () => {
   const calls = []
