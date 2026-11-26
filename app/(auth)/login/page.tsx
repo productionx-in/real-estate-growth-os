@@ -10,13 +10,25 @@ import { Suspense } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { LoginForm } from '@/components/auth/LoginForm'
 import { audienceHome } from '@/lib/workspace/select'
+import { AuthFrame } from '@/components/auth/AuthFrame'
+import { CustomerSignIn } from '@/components/login/CustomerSignIn'
 
 export const metadata: Metadata = { title: 'Sign In' }
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ for?: string; redirectTo?: string; error?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ for?: string; redirectTo?: string; error?: string; mode?: string }> }) {
   const sp = await searchParams
   const staff = sp.for === 'staff' || !!sp.redirectTo?.startsWith('/platform')
+  const linkProblem = sp.error && sp.error in LINK_PROBLEM_MESSAGE ? LINK_PROBLEM_MESSAGE[sp.error as LinkProblem] : sp.error === 'auth_callback_failed' ? LINK_PROBLEM_MESSAGE.link_invalid : null
+  // Customers: the full RE sign-in page. Staff, and "forgot password", use the framed card below.
+  if (!staff && sp.mode !== 'forgot') {
+    return (
+      <Suspense fallback={null}>
+        <CustomerSignIn notice={linkProblem ? <p role="alert" className="rounded-lg border border-warning/30 bg-warning-bg px-3 py-2 text-[13px] text-foreground">{linkProblem}</p> : undefined} />
+      </Suspense>
+    )
+  }
   return (
+    <AuthFrame>
     <div className={staff ? 'theme-dark band-ink rounded-[28px] border border-[rgb(255_255_255/0.1)] p-6 shadow-xl sm:p-8' : 'ceramic !rounded-[28px] p-6 sm:p-9'} data-audience={staff ? 'staff' : 'customer'}>
       {staff ? (
         <div className="mb-6">
@@ -50,5 +62,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </p>
       )}
     </div>
+    </AuthFrame>
   )
 }

@@ -12,7 +12,8 @@ function test(name, fn) { fn(); passed++; console.log(`  ✓ ${name}`) }
 console.log('AUTH & TEAM UX')
 
 test('every sign-in screen has a way back to the home page', () => {
-  for (const f of ['app/(auth)/layout.tsx', 'app/invite/[token]/page.tsx']) assert.match(read(f), /<Link href="\/"[^>]*>[\s\S]{0,120}Back to home/, f)
+  for (const f of ['components/auth/AuthFrame.tsx', 'app/invite/[token]/page.tsx']) assert.match(read(f), /<Link href="\/"[^>]*>[\s\S]{0,120}Back to home/, f)
+  assert.match(read('components/login/ReLoginPage.tsx'), /href=\{homeHref\}[\s\S]{0,600}Back to home/); assert.match(read('components/login/CustomerSignIn.tsx'), /homeHref="\/"/)
 })
 
 test('every password field can be shown or hidden while typing', () => {

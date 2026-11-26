@@ -731,3 +731,11 @@ svg[data-animated] .rio-wing { transform-box: fill-box; transform-origin: 10% 20
 }
 .iso-tile:hover, .iso-tile.is-active, .iso-tile:focus-visible { transform: translateZ(10px) scale(1.07); box-shadow: 0 8px 16px -4px rgb(30 27 75 / 0.32); filter: brightness(1.06); outline: 2px solid #fff; }
 :root[data-theme="dark"] .iso-floor, :root[data-theme="dark"] .iso-plots { background: rgb(30 41 59 / 0.92); border-color: rgb(255 255 255 / 0.12); }
+
+/* RE sign-in page (components/login/re-login.css): pointer position, set at runtime; centred by default. */
+.re-signin-card, .re-stage {
+  --card-x: 50%;
+  --card-y: 50%;
+  --sheen-x: 50%;
+  --sheen-y: 50%;
+}

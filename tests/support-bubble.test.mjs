@@ -32,7 +32,8 @@ test('no contact detail is hard-coded: number from NEXT_PUBLIC_SUPPORT_WHATSAPP,
 
 test('Rio travels the whole journey: website, sign-in, choosing a workspace, invitations, every workspace', () => {
   assert.match(read('components/marketing/MarketingShell.tsx'), /<SupportBubble context="website" \/>/)
-  assert.match(read('app/(auth)/layout.tsx'), /<SupportBubble context="auth" \/>/)
+  assert.match(read('components/auth/AuthFrame.tsx'), /<SupportBubble context="auth" \/>/, 'staff sign-in and password reset keep the assistant')
+  assert.doesNotMatch(read('components/login/ReLoginPage.tsx'), /SupportBubble/, 'the customer sign-in page stays uncluttered (owner request)')
   assert.match(read('app/(dashboard)/select-org/page.tsx'), /<SupportBubble context="auth" \/>/)
   assert.match(read('app/invite/[token]/page.tsx'), /<SupportBubble context="auth" \/>/)
   assert.match(read('app/(dashboard)/[orgSlug]/layout.tsx'), /<SupportBubble context="workspace" orgSlug=\{workspace\.org\.slug\}/)
