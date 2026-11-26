@@ -28,7 +28,7 @@ test('only http(s) links can become buttons', () => {
 })
 test('the invitation names the role in words and has a plain-text version with the link', () => {
   const e = invitationEmail({ orgName: 'Skyline Developers', role: 'sales_exec', inviteUrl: 'https://re.productionx.in/invite/abc', inviterName: 'Kiran' })
-  assert.equal(e.subject, 'Kiran invited you to Skyline Developers on RE by PX')
+  assert.equal(e.subject, 'Kiran invited you to Skyline Developers on RE')
   assert.ok(e.html.includes('a sales executive'))
   assert.ok(e.text.includes('Accept invitation: https://re.productionx.in/invite/abc'))
   assert.ok(!e.text.includes('**'))

@@ -75,7 +75,7 @@ export default async function InboxPage({ params, searchParams }: PageProps) {
           icon={MessageCircle}
           title="WhatsApp is not connected yet"
           description={isManager
-            ? 'Connect your WhatsApp Business number in Integrations. Messages from buyers will appear here and you can reply from RE by PX.'
+            ? 'Connect your WhatsApp Business number in Integrations. Messages from buyers will appear here and you can reply from RE.'
             : 'Ask your manager to connect the company WhatsApp Business number.'}
           action={isManager ? <Button asChild size="sm"><Link href={`/${orgSlug}/integrations`}>Go to Integrations</Link></Button> : undefined}
         />

@@ -1,7 +1,7 @@
-# RE by PX URLs, domains and the domain-change checklist
+# RE URLs, domains and the domain-change checklist
 
 All absolute URLs come from `lib/site/urls.ts`. No domain is written in the code (`tests/site-urls.test.mjs` fails if
-one is added). Moving RE by PX to its production domain is a configuration change in four places, listed below.
+one is added). Moving RE to its production domain is a configuration change in four places, listed below.
 
 ## 1. How the code builds URLs
 

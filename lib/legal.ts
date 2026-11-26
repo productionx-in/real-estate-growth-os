@@ -7,7 +7,7 @@ export const LEGAL = {
   brand: 'Production X',
   /** Registered legal name exactly as on the certificate of incorporation (e.g. "… Private Limited"). Unconfirmed. */
   legalName: null as string | null,
-  product: 'RE by PX',
+  product: 'RE',
   lastUpdated: '19 November 2026',
   /** Corporate Identification Number (MCA). */
   cin: null as string | null,
@@ -45,12 +45,12 @@ export const REFUND_TERMS = {
   responseDays: null as number | null,
 }
 
-/** Service providers that process data for RE by PX (keep in step with the code and payment_gateway_configs). */
+/** Service providers that process data for RE (keep in step with the code and payment_gateway_configs). */
 export const SUBPROCESSORS = [
   { name: 'Supabase', purpose: 'Database, authentication and file storage' },
   { name: 'Vercel', purpose: 'Application hosting' },
   { name: 'Resend', purpose: 'Transactional email (invitations, password resets, notifications)' },
-  { name: 'Razorpay', purpose: 'Payment processing for subscriptions (card and UPI details are handled by Razorpay, not stored by RE by PX)' },
+  { name: 'Razorpay', purpose: 'Payment processing for subscriptions (card and UPI details are handled by Razorpay, not stored by RE)' },
 ]
 
 /**
@@ -58,7 +58,7 @@ export const SUBPROCESSORS = [
  * `active` is true — switch it on in the same change that enables the provider for customers.
  */
 export const PENDING_SUBPROCESSORS = [
-  { name: 'Cashfree Payments', purpose: 'Payment processing for subscriptions, including UPI AutoPay mandates (payment details are handled by Cashfree, not stored by RE by PX)', active: false },
+  { name: 'Cashfree Payments', purpose: 'Payment processing for subscriptions, including UPI AutoPay mandates (payment details are handled by Cashfree, not stored by RE)', active: false },
 ]
 
 /** Services that receive or send data only when a customer connects them to their own workspace. */

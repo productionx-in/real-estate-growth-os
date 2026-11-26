@@ -1,7 +1,7 @@
 // lib/email/layout.ts
-// RE by PX branded email: one table-based layout (renders in Gmail, Outlook, Apple Mail, dark mode) used by every
+// RE branded email: one table-based layout (renders in Gmail, Outlook, Apple Mail, dark mode) used by every
 // email the app sends. Every value placed in the HTML is escaped — names and organisation names are typed by
-// users, and unescaped they would let anyone put links or markup into mail sent from RE by PX's address.
+// users, and unescaped they would let anyone put links or markup into mail sent from RE’s address.
 import { COMPANY_NAME, PRODUCT_FULL_NAME, PRODUCT_NAME } from '@/lib/brand'
 
 export function escapeHtml(value: string): string {

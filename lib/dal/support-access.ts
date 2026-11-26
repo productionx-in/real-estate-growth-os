@@ -1,5 +1,5 @@
 // lib/dal/support-access.ts
-// RE by PX: support access grants — the only path by which platform staff see a customer's business data.
+// RE: support access grants — the only path by which platform staff see a customer's business data.
 // Rules live in migration 20260046 (service-role functions). Callers authorise first:
 //   - platform side: authenticatePlatformAdmin([...], true)  (role + MFA)
 //   - customer side: authorizeOrgAccess(orgId, ['owner', 'admin'])

@@ -1,5 +1,5 @@
 // app/api/admin/organisations/[orgId]/lifecycle/route.ts
-// RE by PX Platform Administration: change a customer organisation's lifecycle state.
+// RE Platform Administration: change a customer organisation's lifecycle state.
 //
 //   active      — normal use
 //   grace       — normal use, with a payment / renewal warning shown to the customer
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       p_reason: reason,
       p_actor_user: auth.user.id,
       p_actor_kind: 'platform',
-      p_actor_label: 'RE by PX platform team',
+      p_actor_label: 'RE platform team',
     })
     if (error) {
       const notFound = error.message.includes('not found')

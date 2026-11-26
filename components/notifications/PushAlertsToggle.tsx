@@ -1,7 +1,7 @@
 'use client'
 // components/notifications/PushAlertsToggle.tsx
 // "Phone alerts" switch inside the notification panel: registers the service worker and subscribes this
-// device to Web Push, so new-lead alerts arrive even when RE by PX is closed. iPhone needs the app installed
+// device to Web Push, so new-lead alerts arrive even when RE is closed. iPhone needs the app installed
 // to the home screen first (Safari only allows push for installed web apps), so we explain that instead.
 import { useCallback, useEffect, useState } from 'react'
 import { Smartphone } from 'lucide-react'
@@ -96,9 +96,9 @@ export function PushAlertsToggle() {
           </button>
         )}
       </div>
-      {state === 'off' && <p className="mt-1 text-[11px] text-[var(--foreground-muted)]">Get new-lead alerts even when RE by PX is closed.</p>}
+      {state === 'off' && <p className="mt-1 text-[11px] text-[var(--foreground-muted)]">Get new-lead alerts even when RE is closed.</p>}
       {state === 'denied' && <p className="mt-1 text-[11px] text-warning">Notifications are blocked for this site. Allow them in your browser settings, then reopen this panel.</p>}
-      {state === 'ios-install' && <p className="mt-1 text-[11px] text-[var(--foreground-muted)]">On iPhone: tap Share → “Add to Home Screen”, open RE by PX from there, then turn alerts on.</p>}
+      {state === 'ios-install' && <p className="mt-1 text-[11px] text-[var(--foreground-muted)]">On iPhone: tap Share → “Add to Home Screen”, open RE from there, then turn alerts on.</p>}
       {error && <p className="mt-1 text-[11px] text-danger">{error}</p>}
     </div>
   )

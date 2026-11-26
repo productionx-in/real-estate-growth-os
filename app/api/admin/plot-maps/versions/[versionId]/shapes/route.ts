@@ -1,4 +1,4 @@
-// app/api/admin/plot-maps/versions/[versionId]/shapes/route.ts — RE by PX staff draw plot boundaries on a customer's
+// app/api/admin/plot-maps/versions/[versionId]/shapes/route.ts — RE staff draw plot boundaries on a customer's
 // draft map version (option c), only while that workspace allows it for the project (20260085).
 // GET → the page image (10-minute link) and the outlines; linked plots are only marked as linked, never which unit.
 // PUT → save outlines and plot numbers; save_plot_map_shapes_as_staff() keeps the customer's links and makes none.
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, { params }: Ctx) {
   const orgId = request.nextUrl.searchParams.get('orgId') ?? ''
   if (!uuid.safeParse(versionId).success || !uuid.safeParse(orgId).success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   const data = await staffEditorData(orgId, versionId)
-  if (!data) return NextResponse.json({ error: 'Not available: the workspace has not allowed RE by PX to draw, or the page is not ready.' }, { status: 404 })
+  if (!data) return NextResponse.json({ error: 'Not available: the workspace has not allowed RE to draw, or the page is not ready.' }, { status: 404 })
   return NextResponse.json(data, { headers: { 'Cache-Control': 'no-store' } })
 }
 

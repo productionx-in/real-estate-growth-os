@@ -6,7 +6,7 @@ import { frameAncestors } from '@/lib/plots/embed'
 
 // /reset-password is public so a person whose reset link expired sees why (and can ask for a new one) instead of
 // being bounced to sign-in; the form itself needs the short recovery session to change anything.
-const PUBLIC_ROUTES = [...MARKETING_PATHS, ...LEGAL_PATHS, '/login', '/auth/callback', '/auth/confirm', '/reset-password']
+const PUBLIC_ROUTES = [...MARKETING_PATHS, ...LEGAL_PATHS, '/login', '/staff', '/auth/callback', '/auth/confirm', '/reset-password']
 // Loaded by visitors of customers' websites, who are never signed in to RE by PX.
 const PUBLIC_WEBSITE_ASSETS = ['/capture.js', '/forms/embed.js', '/forms/view', '/robots.txt', '/sitemap.xml', '/llms.txt']
 

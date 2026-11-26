@@ -36,7 +36,7 @@ export default async function CampaignsPage({ params }: { params: Promise<{ orgS
       <div className="space-y-6">
         {!emailReady && (
           <Alert tone="warning" title="E-mail sending is not set up yet">
-            E-mail campaigns can be drafted, but RE by PX cannot send e-mail until it is configured. Messages wait safely and go out once it is.
+            E-mail campaigns can be drafted, but RE cannot send e-mail until it is configured. Messages wait safely and go out once it is.
           </Alert>
         )}
         <Card>

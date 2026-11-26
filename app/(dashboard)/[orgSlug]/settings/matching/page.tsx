@@ -17,7 +17,7 @@ export default async function MatchingSettingsPage({ params }: { params: Promise
   const settings = await getWorkspaceSettings(org.id)
   return (
     <div className="max-w-4xl space-y-4">
-      <SettingsHeader title="Matching rules" scope="org" description="How RE by PX picks “Matching units” on a lead and “Interested buyers” on a unit. Wrong property type or configuration is never suggested." />
+      <SettingsHeader title="Matching rules" scope="org" description="How RE picks “Matching units” on a lead and “Interested buyers” on a unit. Wrong property type or configuration is never suggested." />
       <SettingsCard title="Rules">
         <MatchingSettingsForm orgId={org.id} initial={settings.matching} />
       </SettingsCard>

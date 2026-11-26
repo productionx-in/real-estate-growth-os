@@ -36,7 +36,7 @@ export function AlertPreferences({ initial, team }: { initial: PersonPrefs; team
     setBusy(true); setMsg(null)
     const err = await save({ prefs })
     setBusy(false)
-    setMsg(err ? { tone: 'danger', text: err } : { tone: 'success', text: 'Saved. Everything still appears in your inbox in RE by PX.' })
+    setMsg(err ? { tone: 'danger', text: err } : { tone: 'success', text: 'Saved. Everything still appears in your inbox in RE.' })
   }
   return (
     <div className="space-y-5">

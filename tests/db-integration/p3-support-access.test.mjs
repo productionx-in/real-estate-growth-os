@@ -79,7 +79,7 @@ async function main() {
 
     let g1
     await test('a request is pending, gives no access, and appears in the customer audit log', async () => {
-      const r = await sa.requestSupportAccess({ orgId: org, userId: agent.authId, label: 'Agent (RE by PX support)', reason: REASON, minutes: 60 })
+      const r = await sa.requestSupportAccess({ orgId: org, userId: agent.authId, label: 'Agent (RE support)', reason: REASON, minutes: 60 })
       assert.equal(r.ok, true, r.error)
       g1 = r.data.id
       assert.equal((await grant(g1)).status, 'pending')
@@ -160,7 +160,7 @@ async function main() {
       assert.equal((await sa.emergencySupportAccess({ grantId: r.data.id, userId: agent.authId, label: 'x', reason: longReason, minutes: 30 })).status, 403)
       assert.equal((await sa.emergencySupportAccess({ grantId: r.data.id, userId: superAdmin.authId, label: 'S', reason: 'urgent', minutes: 30 })).ok, false)
       assert.equal((await sa.emergencySupportAccess({ grantId: r.data.id, userId: superAdmin.authId, label: 'S', reason: longReason, minutes: 120 })).ok, false)
-      const ok = await sa.emergencySupportAccess({ grantId: r.data.id, userId: superAdmin.authId, label: 'Super (RE by PX)', reason: longReason, minutes: 30 })
+      const ok = await sa.emergencySupportAccess({ grantId: r.data.id, userId: superAdmin.authId, label: 'Super (RE)', reason: longReason, minutes: 30 })
       assert.equal(ok.ok, true, ok.error)
       const g = await grant(r.data.id)
       assert.deepEqual([g.status, g.emergency, g.duration_minutes], ['approved', true, 30])

@@ -19,7 +19,7 @@ async function test(name, fn) { try { await fn(); passed++; console.log(`  ✓ $
 async function main() {
   if (!globalThis.WebSocket) globalThis.WebSocket = class UnusedRealtimeTransport {}
   // Mock provider only; a valid sender for most checks. Nothing here can reach a real mailbox.
-  Object.assign(process.env, { EMAIL_PROVIDER: 'mock', EMAIL_FROM_NAME: 'RE by PX', EMAIL_FROM_ADDRESS: 'first@repx-mail-check.com', NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' })
+  Object.assign(process.env, { EMAIL_PROVIDER: 'mock', EMAIL_FROM_NAME: 'RE', EMAIL_FROM_ADDRESS: 'first@repx-mail-check.com', NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' })
   delete process.env.RESEND_API_KEY; delete process.env.EMAIL_REPLY_TO
   const jiti = createJiti(import.meta.url, { alias: { '@': root } })
   const svc = await jiti.import(path.join(root, 'lib/email/service.ts'))
@@ -123,7 +123,7 @@ async function main() {
     process.env.EMAIL_FROM_ADDRESS = 'second@repx-mail-check.com'
     await svc.deliverDue(db)
     assert.equal((await row(`held-${RUN}`)).status, 'sent')
-    assert.equal(sentTo(`held-${RUN}@acme-mail.in`)[0].from, 'RE by PX <second@repx-mail-check.com>')
+    assert.equal(sentTo(`held-${RUN}@acme-mail.in`)[0].from, 'RE <second@repx-mail-check.com>')
     assert.ok(sentTo(`owner-${RUN}@repx-mail-check.com`).some((e) => /held/.test(e.subject)), 'the alert went out too')
   })
 
@@ -132,13 +132,13 @@ async function main() {
     process.env.EMAIL_FROM_ADDRESS = 'before@repx-mail-check.com'
     const id = await q(`sender-${RUN}`, `sender-${RUN}@acme-mail.in`, { sendAfter: new Date(Date.now() + 60_000) })
     const before = await row(`sender-${RUN}`)
-    process.env.EMAIL_FROM_ADDRESS = 'after@repx-mail-check.com'; process.env.EMAIL_FROM_NAME = 'RE by PX Team'; process.env.EMAIL_REPLY_TO = 'help@repx-mail-check.com'
+    process.env.EMAIL_FROM_ADDRESS = 'after@repx-mail-check.com'; process.env.EMAIL_FROM_NAME = 'RE Team'; process.env.EMAIL_REPLY_TO = 'help@repx-mail-check.com'
     await sql.query(`UPDATE public.email_outbox SET next_attempt_at = now() WHERE id=$1`, [id])
     await svc.deliverDue(db)
     const sent = sentTo(`sender-${RUN}@acme-mail.in`)[0]
-    assert.deepEqual([sent.from, sent.replyTo], ['RE by PX Team <after@repx-mail-check.com>', 'help@repx-mail-check.com'])
+    assert.deepEqual([sent.from, sent.replyTo], ['RE Team <after@repx-mail-check.com>', 'help@repx-mail-check.com'])
     assert.deepEqual(JSON.stringify(before.payload), JSON.stringify((await row(`sender-${RUN}`)).payload), 'no queued data was touched')
-    process.env.EMAIL_FROM_NAME = 'RE by PX'; delete process.env.EMAIL_REPLY_TO
+    process.env.EMAIL_FROM_NAME = 'RE'; delete process.env.EMAIL_REPLY_TO
   })
 
   await test('invitations: the link is stored encrypted, delivered intact, and use the sender at delivery time', async () => {
@@ -151,7 +151,7 @@ async function main() {
     const stored = await one(`SELECT payload::text p FROM public.email_outbox WHERE template='invitation' AND payload->>'invitationId'=$1`, [inv])
     assert.ok(!stored.p.includes(raw), 'the one-time token is never stored in plain text')
     const m = sentTo(`invitee-${RUN}@acme-mail.in`)[0]
-    assert.ok(m.html.includes(`/invite/${raw}`)); assert.equal(m.from, 'RE by PX <invites@repx-mail-check.com>')
+    assert.ok(m.html.includes(`/invite/${raw}`)); assert.equal(m.from, 'RE <invites@repx-mail-check.com>')
     assert.equal((await one('SELECT delivery_status s FROM public.org_invitations WHERE id=$1', [inv])).s, 'delivered')
   })
 
@@ -164,7 +164,7 @@ async function main() {
     const id = await q(`legacy-${RUN}`, `legacy-${RUN}@acme-mail.in`)
     assert.equal((await svc.deliverOne(db, id)).outcome, 'sent')
     assert.equal(sentTo(`legacy-${RUN}@acme-mail.in`)[0].from, 'Legacy Name <legacy@repx-mail-check.com>')
-    delete process.env.RESEND_FROM_EMAIL; process.env.EMAIL_FROM_ADDRESS = 'first@repx-mail-check.com'; process.env.EMAIL_FROM_NAME = 'RE by PX'
+    delete process.env.RESEND_FROM_EMAIL; process.env.EMAIL_FROM_ADDRESS = 'first@repx-mail-check.com'; process.env.EMAIL_FROM_NAME = 'RE'
   })
 
   setEmailAdapterForTesting(null)

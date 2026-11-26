@@ -1,6 +1,6 @@
 // lib/payments/types.ts — the provider-independent payment contract. Nothing above lib/payments/<provider>/ uses a
 // provider's field names. Amounts are always integer paise. A provider only moves money and reports what happened;
-// prices, invoices, GST, contracts and entitlements belong to RE by PX (lib/dal/billing.ts and the database).
+// prices, invoices, GST, contracts and entitlements belong to RE (lib/dal/billing.ts and the database).
 
 export type ProviderCode = 'razorpay' | 'cashfree'
 export type PaymentEnvironment = 'test' | 'live'

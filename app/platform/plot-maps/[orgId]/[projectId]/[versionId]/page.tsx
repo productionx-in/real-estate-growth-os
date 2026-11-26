@@ -1,4 +1,4 @@
-// app/platform/plot-maps/[orgId]/[projectId]/[versionId]/page.tsx — RE by PX staff draw plot outlines and numbers on a
+// app/platform/plot-maps/[orgId]/[projectId]/[versionId]/page.tsx — RE staff draw plot outlines and numbers on a
 // customer's draft version (option c). The editor runs in draw-only mode: no units are shown or sent, and the
 // database keeps the customer's links (save_plot_map_shapes_as_staff). Only while the workspace allows it.
 import type { Metadata } from 'next'
@@ -22,7 +22,7 @@ export default async function StaffDrawPage({ params }: { params: Promise<{ orgI
   if (![orgId, projectId, versionId].every((x) => z.string().uuid().safeParse(x).success)) notFound()
   const data = await staffEditorData(orgId, versionId)
   const back = <Link href={`/platform/plot-maps/${orgId}/${projectId}`} className="text-[13px] font-medium text-brand hover:underline">Back to the project</Link>
-  if (!data || data.version.projectId !== projectId) return <div className="space-y-3"><Alert tone="info">Not available: the workspace has not allowed RE by PX to draw, or the page is not ready.</Alert>{back}</div>
+  if (!data || data.version.projectId !== projectId) return <div className="space-y-3"><Alert tone="info">Not available: the workspace has not allowed RE to draw, or the page is not ready.</Alert>{back}</div>
   if (!data.editable) return <div className="space-y-3"><Alert tone="info">This version is in review or later, so it can no longer be changed.</Alert>{back}</div>
   if (!data.imageUrl) return <div className="space-y-3"><Alert tone="danger">The layout page could not be loaded. Try again in a moment.</Alert>{back}</div>
   return (

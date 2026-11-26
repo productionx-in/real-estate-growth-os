@@ -1,4 +1,4 @@
-// app/platform/layout.tsx — RE by PX internal console. Platform staff only, MFA-verified session on every screen.
+// app/platform/layout.tsx — RE internal console. Platform staff only, MFA-verified session on every screen.
 // Shows customer workspace metadata; customer business data only through a support grant.
 import { Toaster } from '@/components/ui/toast'
 import type { Metadata } from 'next'
@@ -9,7 +9,7 @@ import { can, consoleNavCounts, ROLE_LABEL, type Db, type StaffRole } from '@/li
 import { MfaGate } from '@/components/platform/MfaGate'
 import { ConsoleShell, type ConsoleNavGroup } from '@/components/platform/ConsoleShell'
 
-export const metadata: Metadata = { title: { template: '%s | RE by PX console', default: 'RE by PX console' }, robots: { index: false } }
+export const metadata: Metadata = { title: { template: '%s | RE console', default: 'RE console' }, robots: { index: false } }
 export const dynamic = 'force-dynamic'
 
 export default async function PlatformLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +21,7 @@ export default async function PlatformLayout({ children }: { children: React.Rea
   const role = access.role as StaffRole
   const roleLabel = ROLE_LABEL[role] ?? access.role
   if (access.state === 'mfa_required') {
-    return <ConsoleShell groups={[]} userLabel="RE by PX staff" roleLabel={roleLabel}><MfaGate /></ConsoleShell>
+    return <ConsoleShell groups={[]} userLabel="RE staff" roleLabel={roleLabel}><MfaGate /></ConsoleShell>
   }
 
   const counts = await consoleNavCounts(createServiceClient() as unknown as Db, { userId: access.userId, role })

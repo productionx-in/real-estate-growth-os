@@ -1,4 +1,4 @@
-// tests/plot-map-staff.test.mjs — option (c): RE by PX staff draw plot boundaries only after the workspace allows it,
+// tests/plot-map-staff.test.mjs — option (c): RE staff draw plot boundaries only after the workspace allows it,
 // only for a limited time, never see units and can never link one (20260085, lib/dal/plot-map-staff.ts).
 import assert from 'node:assert/strict'
 import fs from 'node:fs'

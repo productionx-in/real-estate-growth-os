@@ -1,4 +1,4 @@
-// lib/support/memory.ts — Rio's memory for research and for training RE by PX's own assistant later
+// lib/support/memory.ts — Rio's memory for research and for training RE’s own assistant later
 // (docs/design/rio-assistant.md). Every turn is stored, whichever model (or the offline guide) answered.
 // Privacy by design: text is redacted before it is written, no user or organisation id is stored (a workspace is
 // kept only as a keyed one-way hash), and workspace conversations never leave the table in exports.
@@ -88,7 +88,7 @@ export async function exportConversations(db: Db, opts: { since?: string; onlyRa
     if (opts.onlyRatedGood && !(ratings.length && ratings.every((r) => r > 0))) continue
     out.push({
       messages: [
-        { role: 'system', content: `You are Rio, RE by PX's guide (${c.context === 'website' ? 'website visitor' : 'sign-in page'}).` },
+        { role: 'system', content: `You are Rio, RE’s guide (${c.context === 'website' ? 'website visitor' : 'sign-in page'}).` },
         ...msgs.map((m) => ({ role: m.role, content: m.content })),
       ],
       metadata: {

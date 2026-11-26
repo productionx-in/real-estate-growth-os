@@ -118,7 +118,7 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
   fields: { lead: [] },
   notifications: DEFAULT_TEAM,
   visits: { buyerConfirmation: true, buyerReminder24h: true, buyerReminder2h: true, checkinRadiusM: 500, maxPerPersonPerDay: 0 },
-  // Off until a workspace writes its own words: nothing is ever sent to buyers on RE by PX's say-so.
+  // Off until a workspace writes its own words: nothing is ever sent to buyers on RE’s say-so.
   whatsapp: {
     welcomeEnabled: false,
     welcomeMessage: 'Hi {{first_name}}, thank you for contacting us! One of our property advisors will reply shortly.',

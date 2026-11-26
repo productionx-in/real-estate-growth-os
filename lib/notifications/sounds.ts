@@ -2,7 +2,7 @@
 // to cache). Browser-only. Three are distinct by default (lib/notifications/lead-alerts.ts): a rising chime for a new
 // lead, an urgent triple pulse for "not contacted yet", a soft bell for a follow-up.
 //
-// Never two at once: within 1.5 s of a sound (in this tab or another tab of RE by PX) the next one is skipped.
+// Never two at once: within 1.5 s of a sound (in this tab or another tab of RE) the next one is skipped.
 // Browsers only allow sound after the person has interacted with the page; until then, play() quietly does nothing.
 import type { SoundId } from './lead-alerts'
 

@@ -1,4 +1,4 @@
-// tests/crm-import-mapping.test.mjs — CRM export → RE by PX mapping (real lib/import/crm-mapping.ts via jiti).
+// tests/crm-import-mapping.test.mjs — CRM export → RE mapping (real lib/import/crm-mapping.ts via jiti).
 import assert from 'node:assert/strict'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'

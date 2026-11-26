@@ -1,4 +1,4 @@
-// tests/people-control.test.mjs — RE by PX staff controlling the people who use customer workspaces, and staff
+// tests/people-control.test.mjs — RE staff controlling the people who use customer workspaces, and staff
 // accounts: who may do what, the guards, and that every action is audited.
 import assert from 'node:assert/strict'
 import fs from 'node:fs'

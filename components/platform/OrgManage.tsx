@@ -138,7 +138,7 @@ export function DeleteOrg({ orgId, name, state }: { orgId: string; name: string;
                 note={deactivated ? 'Already deactivated.' : undefined} />
               <ChoiceCard name="org-choice" value="delete" checked={choice === 'delete'} onSelect={() => setChoice('delete')} danger disabled={locked}
                 title="Permanently delete workspace" tag="Can’t be undone"
-                body="The workspace and everything in it are deleted for good. Members’ RE by PX accounts are kept."
+                body="The workspace and everything in it are deleted for good. Members’ RE accounts are kept."
                 note={locked ? `Not possible: it has ${preview!.lockedText}, which must be kept for tax and payment records. Deactivate it instead.` : undefined} />
             </fieldset>
 
@@ -210,7 +210,7 @@ export function InviteLinkButton({ orgId, invitationId, email, orgName }: { orgI
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="secondary" onClick={async () => { try { await navigator.clipboard.writeText(res.url); setCopied(true) } catch { setCopied(false) } }}>{copied ? 'Copied' : 'Copy link'}</Button>
             <Button size="sm" asChild>
-              <a target="_blank" rel="noopener noreferrer" href={`https://wa.me/?text=${encodeURIComponent(`Your RE by PX workspace "${orgName}" is ready. Set up your account here: ${res.url}`)}`}>Share on WhatsApp</a>
+              <a target="_blank" rel="noopener noreferrer" href={`https://wa.me/?text=${encodeURIComponent(`Your RE workspace "${orgName}" is ready. Set up your account here: ${res.url}`)}`}>Share on WhatsApp</a>
             </Button>
           </div>
         </div>

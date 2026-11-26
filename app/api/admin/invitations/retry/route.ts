@@ -1,5 +1,5 @@
 // app/api/admin/invitations/retry/route.ts
-// RE by PX Platform Administration: Super Admin Atomic Invitation Retry & Resend Endpoint
+// RE Platform Administration: Super Admin Atomic Invitation Retry & Resend Endpoint
 import { appUrl } from '@/lib/site/urls'
 import { NextResponse, type NextRequest } from 'next/server'
 import crypto from 'node:crypto'
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       if (!invRow?.org_id) throw new Error('Invitation not found.')
       const sent = await sendInvitation(service, {
         orgId: invRow.org_id, invitationId, to: email, orgName, role, inviteUrl,
-        inviterName: auth.profile?.full_name || 'RE by PX Super Admin',
+        inviterName: auth.profile?.full_name || 'RE Super Admin',
       })
       if (!sent.success) throw new Error(sent.error || 'The invitation e-mail could not be sent.')
       emailDispatched = true

@@ -1,5 +1,5 @@
 // tests/db-integration/m1-notifications.test.mjs
-// RE by PX M1 — notifications outbox, in-app inbox, durable job queue and scheduler (migration 20260039),
+// RE M1 — notifications outbox, in-app inbox, durable job queue and scheduler (migration 20260039),
 // plus the REAL lib/jobs/runner.ts and app/api/jobs/run/route.ts (imported via jiti) against local Supabase.
 import assert from 'node:assert/strict'
 import crypto from 'node:crypto'

@@ -36,7 +36,7 @@ export default async function RioInsights() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Rio insights" description="Every conversation with Rio is saved (redacted) for research and to train RE by PX's own assistant later. Last 30 days. Customer workspace conversations are counted but never shown or exported."
+      <PageHeader title="Rio insights" description="Every conversation with Rio is saved (redacted) for research and to train RE’s own assistant later. Last 30 days. Customer workspace conversations are counted but never shown or exported."
         actions={<>
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- a file download from an API route, not a page */}
           <a href="/api/platform/assistant/export?rated=good" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-default bg-surface px-4 text-[13px] font-medium hover:bg-surface-hover"><Download className="size-4" aria-hidden="true" />Export rated 👍</a>

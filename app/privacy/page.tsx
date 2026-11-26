@@ -1,4 +1,4 @@
-// app/privacy/page.tsx — Privacy Policy. Describes what RE by PX actually collects and who processes it (kept in
+// app/privacy/page.tsx — Privacy Policy. Describes what RE actually collects and who processes it (kept in
 // step with lib/legal.ts and the code). Not indexed until the company particulars are confirmed.
 import type { Metadata } from 'next'
 import Link from 'next/link'

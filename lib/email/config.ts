@@ -32,7 +32,7 @@ export interface EmailConfig {
 const ADDRESS = /^[^@\s<>"]+@[^@\s<>"]+\.[^@\s<>"]{2,}$/
 const clean = (v: string | undefined) => (v ?? '').trim() || null
 
-/** "RE by PX <noreply@x.in>" → { name, address }; "noreply@x.in" → { address }. */
+/** "RE <noreply@x.in>" → { name, address }; "noreply@x.in" → { address }. */
 export function parseMailbox(v: string | null): { name: string | null; address: string | null } {
   if (!v) return { name: null, address: null }
   const m = v.match(/^\s*"?([^"<]*?)"?\s*<\s*([^>]+)\s*>\s*$/)

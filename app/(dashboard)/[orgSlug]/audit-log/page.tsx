@@ -13,8 +13,8 @@ export const dynamic = 'force-dynamic'
 
 const ACTOR_KIND: Record<OrgAuditRow['actor_kind'], string> = {
   member: '',
-  platform: 'RE by PX staff',
-  support: 'RE by PX support',
+  platform: 'RE staff',
+  support: 'RE support',
   system: 'Automatic',
 }
 

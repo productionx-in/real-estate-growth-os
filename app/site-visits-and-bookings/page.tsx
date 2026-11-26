@@ -10,7 +10,7 @@ const c: ProductPageContent = {
   eyebrow: 'Site visit and booking management',
   h1: 'From scheduled site visit to booked unit, without losing the thread',
   intro:
-    'The site visit is where most property sales are won. RE by PX keeps each visit tied to the buyer, the salesperson and the project, and turns interest into a held unit and a booking that updates availability for everyone.',
+    'The site visit is where most property sales are won. RE keeps each visit tied to the buyer, the salesperson and the project, and turns interest into a held unit and a booking that updates availability for everyone.',
   definition: {
     question: 'What is site visit management in real estate?',
     answer:
@@ -34,12 +34,12 @@ const c: ProductPageContent = {
   faq: [
     { q: 'Can a unit be held for a buyer?', a: 'Yes. A hold records the token amount and an expiry; it is then converted to a booking, released or left to expire.' },
     { q: 'Do bookings update inventory?', a: 'Yes. Inventory and bookings are the same system, so a booked unit no longer shows as available.' },
-    { q: 'Does RE by PX send visit reminders to buyers?', a: 'Reminders inside RE by PX go to your team. Messages to buyers over WhatsApp need your WhatsApp Business account connected.' },
+    { q: 'Does RE send visit reminders to buyers?', a: 'Reminders inside RE go to your team. Messages to buyers over WhatsApp need your WhatsApp Business account connected.' },
   ],
   related: [
     { href: '/inventory-management', label: 'Inventory management', body: 'Live availability for every unit.' },
     { href: '/sales-analytics', label: 'Sales analytics', body: 'Lead-to-visit-to-booking conversion.' },
-    { href: '/developers', label: 'For developers', body: 'How developer sales teams use RE by PX.' },
+    { href: '/developers', label: 'For developers', body: 'How developer sales teams use RE.' },
   ],
 }
 

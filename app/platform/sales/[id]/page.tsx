@@ -52,7 +52,7 @@ export default async function ProspectPage({ params }: { params: Promise<{ id: s
             <>
               <div>
                 <p className="text-[14px] font-semibold">Workspace created</p>
-                <p className="text-[13px] text-muted">This request has a RE by PX workspace. Manage it, or get a new invitation link, from its page.</p>
+                <p className="text-[13px] text-muted">This request has a RE workspace. Manage it, or get a new invitation link, from its page.</p>
               </div>
               <Button asChild variant="secondary"><Link href={`/platform/organisations/${p.linked_org_id}`}>Open workspace</Link></Button>
             </>

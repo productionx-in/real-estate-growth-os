@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   const parsed = Schema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: 'Invalid request', details: parsed.error.flatten() }, { status: 400 })
 
-  const label = `${auth.profile.full_name} (RE by PX support)`
+  const label = `${auth.profile.full_name} (RE support)`
   const result = await requestSupportAccess({ orgId: parsed.data.orgId, userId: auth.user.id, label, reason: parsed.data.reason, minutes: parsed.data.minutes })
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status })
 

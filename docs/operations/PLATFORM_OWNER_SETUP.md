@@ -18,7 +18,7 @@ database refuses a second bootstrap.
 ## Steps
 
 1. **Create your sign-in account.** In Supabase → Authentication → Users → Add user → Create new user, enter your
-   e-mail and password and tick *Auto confirm user*. RE by PX has no public sign-up.
+   e-mail and password and tick *Auto confirm user*. RE has no public sign-up.
 2. **Sign in and turn on two-step verification.** Sign in at `<app URL>/login?for=staff` (staff sign-in is not listed on the public page), then open
    `<app URL>/account/security`.
    Scan the QR code with your authenticator app and enter the 6-digit code. The page then says *Two-step verification

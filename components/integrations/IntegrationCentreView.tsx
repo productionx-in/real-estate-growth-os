@@ -48,7 +48,7 @@ interface IntegrationCentreViewProps {
   canManage: boolean
   schemaAvailable?: boolean
   schemaError?: string | null
-  /** Is RE by PX's side of each sign-in set up (yes/no only, lib/integrations/readiness.ts). */
+  /** Is RE’s side of each sign-in set up (yes/no only, lib/integrations/readiness.ts). */
   ready: { meta_lead_ads: boolean; whatsapp_cloud: boolean; google_ads: boolean }
   /** Website and e-mail domains (20260103). */
   domains: DomainView[]
@@ -122,7 +122,7 @@ export function IntegrationCentreView({
       {!schemaAvailable && (
         <div className="flex items-start gap-3 rounded-2xl border border-warning/30 bg-warning-bg p-4 text-[13px] text-warning">
           <span aria-hidden>⚠️</span>
-          <p><span className="font-semibold">Integrations aren’t switched on for this workspace yet.</span> RE by PX support can turn them on — tap the parrot to ask.</p>
+          <p><span className="font-semibold">Integrations aren’t switched on for this workspace yet.</span> RE support can turn them on — tap the parrot to ask.</p>
         </div>
       )}
 

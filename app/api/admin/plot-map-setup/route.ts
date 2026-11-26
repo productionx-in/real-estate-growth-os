@@ -1,6 +1,6 @@
-// app/api/admin/plot-map-setup/route.ts — RE by PX's operations on a project's Interactive Plot Map set-up: assign a
+// app/api/admin/plot-map-setup/route.ts — RE’s operations on a project's Interactive Plot Map set-up: assign a
 // team member, raise a blocker (waiting on the customer — which pauses the service clock and tells the customer — or
-// on RE by PX), resolve a blocker. Staff with CAN.plotMapSetup, with MFA; audited in the platform log. Touches set-up
+// on RE), resolve a blocker. Staff with CAN.plotMapSetup, with MFA; audited in the platform log. Touches set-up
 // metadata only: never the customer's map, inventory or buyers.
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'

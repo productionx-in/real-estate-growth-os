@@ -190,7 +190,7 @@ export function StaffControls({ id, role, active, self, founding = false }: { id
       {!active && founding && <span className="text-[12px] text-muted">Set up the platform — kept on record, no access</span>}
       {!active && !founding && (
         <Button size="sm" variant="danger" disabled={busy}
-          onClick={() => { if (window.confirm('Remove this person from the staff list? Their RE by PX account is kept.')) run(() => send(`/api/platform/staff/${id}`, 'DELETE', {}), 'Removed.') }}>
+          onClick={() => { if (window.confirm('Remove this person from the staff list? Their RE account is kept.')) run(() => send(`/api/platform/staff/${id}`, 'DELETE', {}), 'Removed.') }}>
           Remove
         </Button>
       )}

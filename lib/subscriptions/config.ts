@@ -1,5 +1,5 @@
 // lib/subscriptions/config.ts
-// RE by PX: Subscription Plans & Seat Entitlement Configurations
+// RE: Subscription Plans & Seat Entitlement Configurations
 // Safe for both client and server imports (zero DB/server dependencies)
 
 export type PlanTier = 'free' | 'starter' | 'growth' | 'enterprise' | 'custom'

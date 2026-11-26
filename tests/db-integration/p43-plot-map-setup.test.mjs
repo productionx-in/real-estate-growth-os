@@ -57,7 +57,7 @@ async function main() {
 
   const layout = (await one(`INSERT INTO public.plot_layouts (org_id, project_id, name) VALUES ($1,$2,'Phase 1') RETURNING id`, [org, project])).id
   const doc = crypto.randomUUID(), version = crypto.randomUUID()
-  await test('upload and a checked render complete the next stages; mapping is then with RE by PX and has a due time', async () => {
+  await test('upload and a checked render complete the next stages; mapping is then with RE and has a due time', async () => {
     await sql.query(`INSERT INTO public.plot_map_documents (id, org_id, project_id, layout_id, kind, file_name, byte_size, storage_path, status, sha256, page_count, pages)
       VALUES ($1,$2,$3,$4,'pdf','a.pdf',100,$5,'ready',$6,1,'[{"page":1,"width":842,"height":595,"rotate":0}]')`,
       [doc, org, project, layout, `org/${org}/project/${project}/documents/${doc}/original.pdf`, 'b'.repeat(64)])
@@ -90,7 +90,7 @@ async function main() {
     assert.equal((await D.getSetupView(org, project)).waitingOnCustomer, null)
   })
 
-  await test('assignment only to active RE by PX staff; the queue shows metadata only', async () => {
+  await test('assignment only to active RE staff; the queue shows metadata only', async () => {
     assert.equal((await D.assignSetup(org, project, owner.id, staffer.id)).status, 400)
     assert.equal((await D.assignSetup(other, project, staffer.id, staffer.id)).success, false)
     assert.equal((await D.assignSetup(org, project, staffer.id, staffer.id)).success, true)

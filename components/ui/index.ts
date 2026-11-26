@@ -1,4 +1,4 @@
-// components/ui — RE by PX design-system primitives. Build screens from these; see /dev/ui for the gallery.
+// components/ui — RE design-system primitives. Build screens from these; see /dev/ui for the gallery.
 export * from './button'
 export * from './field'
 export * from './badge'

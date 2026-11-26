@@ -1,5 +1,5 @@
 // app/platform/staff/page.tsx — staff accounts and roles (Platform Owner only). Adding someone gives an existing
-// RE by PX account a staff role; they must enrol an authenticator app before any console page opens.
+// RE account a staff role; they must enrol an authenticator app before any console page opens.
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getConsoleAccess } from '@/lib/auth/platform'

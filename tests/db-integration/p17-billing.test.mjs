@@ -1,6 +1,6 @@
 // tests/db-integration/p17-billing.test.mjs — self-serve billing (migration 20260056, lib/dal/billing.ts)
 // against the local Supabase stack. Razorpay itself is replaced by a stub fetch: these checks are about what
-// RE by PX does with an order and a payment, never trusting the browser for amounts.
+// RE does with an order and a payment, never trusting the browser for amounts.
 import assert from 'node:assert/strict'
 import crypto from 'node:crypto'
 import path from 'node:path'
@@ -55,7 +55,7 @@ async function main() {
     const sub = () => one('SELECT * FROM public.org_subscriptions WHERE org_id=$1', [org])
     const inv = (id) => one('SELECT * FROM public.org_subscription_invoices WHERE id=$1', [id])
 
-    await test('catalogue: a developer sees RE by PX Leads, an agency RE for Agencies, at the published prices', async () => {
+    await test('catalogue: a developer sees RE Leads, an agency RE for Agencies, at the published prices', async () => {
       const dev = (await billing.getBillingOverview(org)).plans
       assert.deepEqual(dev.map((p) => [p.code, p.includedSeats, p.monthlyPaise, p.annualPaise, p.seatPaise]), [['leads', 10, 1200000, 12000000, 90000]])
       const cp = (await billing.getBillingOverview(agency)).plans

@@ -1,5 +1,6 @@
 'use client'
 // components/auth/LoginForm.tsx
+import { FullscreenLoader } from '@/components/ui/fullscreen-loader'
 import { useState } from 'react'
 import { Input } from '@/components/ui'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -17,6 +18,7 @@ export function LoginForm({ defaultRedirect, staff = false }: { defaultRedirect?
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [entering, setEntering] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Forgot password flow
@@ -39,6 +41,7 @@ export function LoginForm({ defaultRedirect, staff = false }: { defaultRedirect?
       return
     }
 
+    setEntering(true)
     router.push(redirectTo)
     router.refresh()
   }
@@ -145,6 +148,8 @@ export function LoginForm({ defaultRedirect, staff = false }: { defaultRedirect?
     )
   }
 
+  if (entering) return <FullscreenLoader label={staff ? 'Opening the console…' : 'Opening your workspace…'} />
+
   return (
     <form onSubmit={handleSignIn} className="space-y-4">
       {searchParams.get('notice') === 'closed_saas' && (
@@ -153,7 +158,7 @@ export function LoginForm({ defaultRedirect, staff = false }: { defaultRedirect?
           <div>
             <div className="font-semibold text-brand">Closed-SaaS Platform</div>
             <div className="text-[12px] text-brand mt-0.5 leading-relaxed">
-              Public self-service registration is disabled. RE by PX workspaces are provisioned by invitation or through our sales team. Please sign in to an existing account.
+              Public self-service registration is disabled. RE workspaces are provisioned by invitation or through our sales team. Please sign in to an existing account.
             </div>
           </div>
         </div>

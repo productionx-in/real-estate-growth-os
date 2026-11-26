@@ -1,4 +1,4 @@
-// app/platform/plot-maps/page.tsx — RE by PX's Interactive Plot Map set-up queue: every project with the add-on active,
+// app/platform/plot-maps/page.tsx — RE’s Interactive Plot Map set-up queue: every project with the add-on active,
 // where its set-up stands (stages derived from recorded steps), the expected completion, overdue work, blockers and
 // who on the team looks after it. Metadata only — no plots, inventory or buyers; the map itself is the customer's.
 import type { Metadata } from 'next'
@@ -52,7 +52,7 @@ export default async function PlotMapSetupQueuePage({ searchParams }: { searchPa
                 <tr key={r.projectId} className="align-top">
                   <Td><Link className="font-medium text-brand hover:underline" href={`/platform/organisations/${r.orgId}`}>{r.orgName}</Link><div className="text-[12px] text-muted">{r.projectName}</div></Td>
                   <Td>
-                    {r.view.current ? <>{r.view.current.label}<div className="text-[12px] text-muted">{r.view.current.owner === 'customer' ? 'With the customer' : r.view.current.owner === 'system' ? 'Automatic' : 'With RE by PX'}</div></> : 'Published'}
+                    {r.view.current ? <>{r.view.current.label}<div className="text-[12px] text-muted">{r.view.current.owner === 'customer' ? 'With the customer' : r.view.current.owner === 'system' ? 'Automatic' : 'With RE'}</div></> : 'Published'}
                     {r.view.overdue && <Badge tone="danger" className="mt-1">Overdue</Badge>}
                     {r.view.waitingOnCustomer && <Badge tone="warning" className="mt-1">Paused · customer</Badge>}
                     {drawing.get(r.projectId) && <div className="mt-1"><Link className="text-[12px] font-medium text-brand hover:underline" href={`/platform/plot-maps/${r.orgId}/${r.projectId}`}>Draw (allowed)</Link></div>}

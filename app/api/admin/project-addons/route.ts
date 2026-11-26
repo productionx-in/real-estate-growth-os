@@ -1,6 +1,6 @@
 // app/api/admin/project-addons/route.ts — activate, suspend, resume or change the terms of a paid add-on for one
 // developer project. Platform Owner only, MFA-verified, audited (platform audit log; the database also keeps
-// project_addon_events). Touches RE by PX's commercial terms only, never the customer's layouts or inventory.
+// project_addon_events). Touches RE’s commercial terms only, never the customer's layouts or inventory.
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authenticatePlatformAdmin, logPlatformAction } from '@/lib/auth/platform'

@@ -1,5 +1,5 @@
 // tests/db-integration/m0-sales-tenant-integrity.test.mjs
-// RE by PX M0 — real-database tests for migration 20260036 (enforce_sales_tenant_integrity).
+// RE M0 — real-database tests for migration 20260036 (enforce_sales_tenant_integrity).
 // Runs against a disposable local Supabase stack (`supabase db reset`). Writes go through a superuser
 // connection, which — like the application's service-role client — bypasses RLS but NOT triggers,
 // so these tests exercise exactly the path the production DAL uses.

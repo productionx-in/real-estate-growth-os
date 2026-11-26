@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Moves in-app screens from raw Tailwind palette classes to RE by PX semantic tokens (app/globals.css).
+"""Moves in-app screens from raw Tailwind palette classes to RE semantic tokens (app/globals.css).
 
 Neutrals -> surface/foreground/muted/subtle/border; blue -> brand; red/rose -> danger; green/emerald -> success;
 amber/yellow/orange -> warning; white text on a filled button -> that fill's foreground token.

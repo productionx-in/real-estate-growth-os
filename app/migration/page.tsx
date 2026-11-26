@@ -1,4 +1,4 @@
-// app/migration/page.tsx — Moving to RE by PX: assessment-led migration and onboarding. Deliberately names no other
+// app/migration/page.tsx — Moving to RE: assessment-led migration and onboarding. Deliberately names no other
 // product: the scope of every migration is agreed after we look at the customer's own system and data.
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -11,7 +11,7 @@ import { JsonLd, breadcrumbJsonLd, webPageJsonLd } from '@/components/marketing/
 
 const TITLE = `Moving to ${PRODUCT_NAME} — CRM migration and onboarding for real estate teams`
 const DESCRIPTION =
-  'Moving to RE by PX from another CRM or spreadsheets? We assess your system and data, then plan lead import, inventory setup, workflows and team onboarding with you.'
+  'Moving to RE from another CRM or spreadsheets? We assess your system and data, then plan lead import, inventory setup, workflows and team onboarding with you.'
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -27,7 +27,7 @@ const STEPS = [
   },
   {
     icon: FileSpreadsheet, title: 'Leads and contacts',
-    body: 'Leads and buyer contacts are imported from CSV or Excel exports. Name, phone, email, source, stage, salesperson, project and enquiry date are mapped to RE by PX fields; duplicates are matched on phone number. We review a sample with you before the full import.',
+    body: 'Leads and buyer contacts are imported from CSV or Excel exports. Name, phone, email, source, stage, salesperson, project and enquiry date are mapped to RE fields; duplicates are matched on phone number. We review a sample with you before the full import.',
   },
   {
     icon: Building2, title: 'Projects and property inventory',
@@ -43,19 +43,19 @@ const STEPS = [
   },
   {
     icon: GraduationCap, title: 'Training and guided transition',
-    body: 'Role-based walkthroughs for salespeople and managers, and support through the first weeks. Teams can run RE by PX alongside their current tools during the transition, so nothing is switched off before you are ready.',
+    body: 'Role-based walkthroughs for salespeople and managers, and support through the first weeks. Teams can run RE alongside their current tools during the transition, so nothing is switched off before you are ready.',
   },
 ]
 
 const SCOPE = [
   ['What we can usually move', 'Leads and contacts with their source, stage, owner and dates; projects; unit inventory from a structured sheet; team members and roles.'],
   ['What depends on your current system', 'Activity history, notes, documents and custom fields depend on what your current system can export and in what format. We confirm this in the assessment.'],
-  ['What we set up fresh', 'Routing rules, follow-up rules, notifications and lead-source connections are configured in RE by PX rather than copied, so they work the way RE by PX works.'],
+  ['What we set up fresh', 'Routing rules, follow-up rules, notifications and lead-source connections are configured in RE rather than copied, so they work the way RE works.'],
 ]
 
 const FAQ = [
   {
-    q: 'Can RE by PX import data from our current CRM?',
+    q: 'Can RE import data from our current CRM?',
     a: 'In most cases, yes — through a CSV or Excel export of your leads and contacts. What can be moved depends on what your current system can export. We review a sample export during the assessment and confirm the scope before anything is imported.',
   },
   {
@@ -64,7 +64,7 @@ const FAQ = [
   },
   {
     q: 'Do we have to stop using our current system on day one?',
-    a: 'No. Many teams run RE by PX alongside their current tools for a period — for example, for new leads first — and complete the move once their teams are comfortable.',
+    a: 'No. Many teams run RE alongside their current tools for a period — for example, for new leads first — and complete the move once their teams are comfortable.',
   },
   {
     q: 'Can our project and unit inventory be set up for us?',

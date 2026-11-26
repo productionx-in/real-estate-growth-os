@@ -1,6 +1,6 @@
-# Adding and removing RE by PX staff
+# Adding and removing RE staff
 
-Staff work in the RE by PX console (`/platform`). They never see customer leads, buyers or documents. The only way
+Staff work in the RE console (`/platform`). They never see customer leads, buyers or documents. The only way
 into a customer's data is a support access grant: the customer approves it, it is time-limited, and every use is
 audited. Every staff member needs their own account; shared logins are not allowed.
 
@@ -21,7 +21,7 @@ Give each person the narrowest role their job needs.
 ## Add someone (Platform Owner)
 
 1. Platform Admin → Staff → enter their work e-mail and choose a role. The change is audited.
-2. If they have no RE by PX account yet, RE by PX creates one (with no password) and shows you a **one-time setup link**.
+2. If they have no RE account yet, RE creates one (with no password) and shows you a **one-time setup link**.
    Copy it and send it to them privately. It works once and expires (Supabase → Authentication → email OTP
    expiry, 1 hour by default). If it expires before they use it, add them again: you get a fresh link, and no
    duplicate is created. Nobody chooses a password for them, and no e-mail service is needed.
@@ -29,7 +29,7 @@ Give each person the narrowest role their job needs.
    before any screen opens. Afterwards they sign in at `<app URL>/login?for=staff`. The public sign-in page does not
    show a staff option; share this address only with staff.
 
-If they already have a RE by PX account and have signed in before, step 2 is skipped: they use their existing password.
+If they already have a RE account and have signed in before, step 2 is skipped: they use their existing password.
 
 ## Change a role or remove access
 

@@ -88,7 +88,7 @@ await test('billing access: owners/admins; their real role counts only during a 
   assert.equal(billingRoleOf({ role: 'owner', status: 'active' }, false), 'owner')
   assert.equal(billingRoleOf({ role: 'manager', status: 'active' }, false), null)
   assert.equal(billingRoleOf({ role: 'readonly', status: 'active', lifecycle_saved_role: 'owner' }, true), 'owner', 'billing hold: the owner can pay')
-  assert.equal(billingRoleOf({ role: 'readonly', status: 'active', lifecycle_saved_role: 'owner' }, false), null, 'suspended by RE by PX staff: no')
+  assert.equal(billingRoleOf({ role: 'readonly', status: 'active', lifecycle_saved_role: 'owner' }, false), null, 'suspended by RE staff: no')
   assert.equal(billingRoleOf({ role: 'readonly', status: 'active', lifecycle_saved_role: 'sales_exec' }, true), null)
   assert.equal(billingRoleOf({ role: 'owner', status: 'suspended' }, true), null, 'deactivated workspace: no')
 })

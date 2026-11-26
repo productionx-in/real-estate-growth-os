@@ -5,10 +5,10 @@
 
 ## What the customer gets
 
-- Each project layout (phase) as a live, clickable map inside RE by PX. Every plot is coloured by its real inventory
+- Each project layout (phase) as a live, clickable map inside RE. Every plot is coloured by its real inventory
   status, with search, filters and a details card.
 - A public link that buyers can open on their phones. It shows plots as available, reserved or sold. Prices appear only if the developer chooses, and buyers can Enquire on WhatsApp or by phone.
-- **Done-for-you set-up:** RE by PX's team converts the builder's approved layout (PDF, DWG or image) into the map
+- **Done-for-you set-up:** RE’s team converts the builder's approved layout (PDF, DWG or image) into the map
   file and checks that every plot matches the inventory.
 
 ## What it costs us to deliver
@@ -44,7 +44,7 @@ therefore covers the occasional **drawing revision**, support and hosting, not r
 | 401–1,000 | ₹39,999 |
 | more, or multi-phase townships | quoted |
 
-That is about ₹40–100 per plot, well below the ₹500/plot reference, because RE by PX already holds the inventory.
+That is about ₹40–100 per plot, well below the ₹500/plot reference, because RE already holds the inventory.
 
 **Monthly, per published layout:** ₹2,999. It includes:
 - live status sync and the public buyer link;
@@ -63,10 +63,10 @@ keeps the feature recurring. Revisions are capped so heavy re-plotting is billed
 
 - Platform Admin → workspace → **Paid add-ons**: switch the add-on on or off and record the setup fee, the monthly fee and how many layouts are included. Platform Owner only; audited.
 - Recording fees does not bill the customer. Invoice them as a line item until add-ons are added to self-serve billing.
-- RE by PX staff never open the customer's inventory to build the map. The prepared SVG is uploaded in the customer's
-  workspace, either by the customer or by RE by PX staff under an audited, time-limited support access grant.
+- RE staff never open the customer's inventory to build the map. The prepared SVG is uploaded in the customer's
+  workspace, either by the customer or by RE staff under an audited, time-limited support access grant.
 
-## Preparing a layout file (for RE by PX's team)
+## Preparing a layout file (for RE’s team)
 
 1. Trace the approved layout in Illustrator, Inkscape or CAD. Draw each plot as a closed shape: a rectangle,
    polygon or closed path.

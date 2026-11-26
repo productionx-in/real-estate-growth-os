@@ -79,7 +79,7 @@ export function BillingClient({ orgId, orgSlug, orgName, overview, payOnline }: 
       await new Promise<void>((resolve) => {
         const rz = new window.Razorpay!({
           key: o.keyId, order_id: o.orderId, amount: o.amount, currency: o.currency,
-          name: 'RE by PX', description: `${orgName} · invoice ${o.invoiceNumber}`,
+          name: 'RE', description: `${orgName} · invoice ${o.invoiceNumber}`,
           prefill: o.email ? { email: o.email } : undefined,
           theme: { color: getComputedStyle(document.documentElement).getPropertyValue('--brand').trim() || undefined },
           handler: async (r: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {

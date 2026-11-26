@@ -1,4 +1,4 @@
-// lib/platform/portal.ts — RE by PX's internal experiences: Platform Admin, Internal Sales, Internal Support.
+// lib/platform/portal.ts — RE’s internal experiences: Platform Admin, Internal Sales, Internal Support.
 // Every function takes the acting staff member ({ userId, role }) and checks what that role may do, on the server,
 // before touching data (the routes also check the role and MFA first). Sales never reads customer CRM tables;
 // support reads customer-opened cases only — customer business data still needs a customer-approved support grant.
@@ -258,9 +258,9 @@ export async function addProspectActivity(db: Db, actor: Actor, id: string, kind
 }
 
 /**
- * Demo and consultation requests from the website arrive as leads in RE by PX's own workspace (the website form's
+ * Demo and consultation requests from the website arrive as leads in RE’s own workspace (the website form's
  * connection, REGROW_DEMO_FORM_CONNECTION_ID). Import them as prospects, once each. Reads only that connection's
- * leads — RE by PX's own enquiries, never a customer's.
+ * leads — RE’s own enquiries, never a customer's.
  */
 export async function importWebsiteRequests(db: Db, actor: Actor, connectionId: string | null) {
   if (!can(actor.role, 'salesAll') || actor.role === 'auditor') return fail('Only a sales manager or the Platform Owner can import requests.', 403)
@@ -316,7 +316,7 @@ export async function staffReply(db: Db, actor: Actor & { label: string }, id: s
   const { data: c } = await db.from('support_cases').select('id, status').eq('id', id).maybeSingle()
   if (!c) return fail('Case not found.', 404)
   if (c.status === 'closed') return fail('This case is closed.', 409)
-  const { error } = await db.from('support_case_messages').insert({ case_id: id, author_kind: 'staff', author_user: actor.userId, author_label: `${actor.label} (RE by PX support)`, body, internal })
+  const { error } = await db.from('support_case_messages').insert({ case_id: id, author_kind: 'staff', author_user: actor.userId, author_label: `${actor.label} (RE support)`, body, internal })
   if (error) return fail('Could not save the reply.', 400)
   await db.from('support_cases').update({ updated_at: new Date().toISOString(), status: internal ? c.status : 'waiting_on_customer' }).eq('id', id)
   await audit(db, actor, internal ? 'support.case_note_added' : 'support.case_replied', 'support_cases', id)
@@ -391,7 +391,7 @@ export async function listStaff(db: Db, actor: Actor) {
 }
 
 /**
- * Give an existing RE by PX account a staff role. Accounts are never created here: the person signs up or is invited
+ * Give an existing RE account a staff role. Accounts are never created here: the person signs up or is invited
  * first, and must enrol an authenticator app before any console page opens (AAL2). Production staff accounts are
  * added only with the founder's approval (docs/design/internal-portal.md §5).
  */
@@ -474,7 +474,7 @@ async function foundingStaffRecord(db: Db): Promise<string | null> {
   return (data?.initial_super_admin_record_id as string | undefined) ?? null
 }
 
-/** Take a deactivated person off the staff list. Their RE by PX sign-in account is kept; the audit trail too. */
+/** Take a deactivated person off the staff list. Their RE sign-in account is kept; the audit trail too. */
 export async function removeStaff(db: Db, actor: Actor, platformUserId: string) {
   if (!can(actor.role, 'staff')) return fail('Not permitted.', 403)
   const { data: s } = await db.from('platform_users').select('id, user_id, role, is_active').eq('id', platformUserId).maybeSingle()

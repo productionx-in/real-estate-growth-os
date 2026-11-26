@@ -13,7 +13,7 @@ const COPY: Partial<Record<OrgLifecycleState, { title: string; body: string; ton
   },
   suspended: {
     title: 'Workspace is read-only',
-    body: 'This workspace has been suspended. You can view leads and reports, but changes are paused. New enquiries are still being captured. Your administrator can contact RE by PX support to restore full access.',
+    body: 'This workspace has been suspended. You can view leads and reports, but changes are paused. New enquiries are still being captured. Your administrator can contact RE support to restore full access.',
     tone: 'danger',
   },
 }
