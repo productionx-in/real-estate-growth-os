@@ -3,6 +3,7 @@
 // Nothing here is a secret; owners and admins change it (the API authorises), everyone in the workspace reads it.
 import { DEFAULT_TEAM, normaliseTeam, teamFromStored, type TeamDefaults } from '@/lib/notifications/prefs'
 import { fieldsFromStored, normaliseFields, type FieldDef } from '@/lib/settings/fields'
+import { DEFAULT_CALCULATORS, calculatorsFromStored, normaliseCalculators, type CalculatorSettings } from '@/lib/calculators/settings'
 import { DEFAULT_LEAD_ALERTS, leadAlertsFromStored, normaliseLeadAlerts, type LeadAlertSettings } from '@/lib/notifications/lead-alerts'
 
 export interface LeadSettings {
@@ -101,7 +102,7 @@ export interface SecuritySettings {
   requireTwoStep: boolean
 }
 
-export interface WorkspaceSettings { security: SecuritySettings; leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings; notifications: TeamDefaults; visits: VisitSettings; matching: MatchingSettings; whatsapp: WhatsAppSettings; alerts: LeadAlertSettings }
+export interface WorkspaceSettings { security: SecuritySettings; leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings; notifications: TeamDefaults; visits: VisitSettings; matching: MatchingSettings; whatsapp: WhatsAppSettings; alerts: LeadAlertSettings; calculators: CalculatorSettings }
 export type SettingsSection = keyof WorkspaceSettings
 
 // The reasons Indian sales teams record most often; a workspace edits, reorders or replaces them.
@@ -129,6 +130,7 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
   matching: { overBudgetPct: 10, minScore: 0, maxSuggestions: 8 },
   // Lead alerts are on until a workspace turns them off (lib/notifications/lead-alerts.ts).
   alerts: DEFAULT_LEAD_ALERTS,
+  calculators: DEFAULT_CALCULATORS,
 }
 
 export const LIMITS = { reasons: 20, reasonLength: 80, holdHours: 720, locations: 200, locationLength: 60, statusLabel: 24 } as const
@@ -159,6 +161,10 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
   const o = (input && typeof input === 'object' && !Array.isArray(input) ? input : {}) as Record<string, unknown>
   if (section === 'security') {
     return { value: { requireTwoStep: o.requireTwoStep === true } as WorkspaceSettings[S], errors }
+  }
+  if (section === 'calculators') {
+    const r = normaliseCalculators(o)
+    return { value: r.value as WorkspaceSettings[S], errors: r.errors }
   }
   if (section === 'alerts') {
     const r = normaliseLeadAlerts(o)
@@ -296,7 +302,7 @@ function statusLabelsFrom(v: unknown, errors: Record<string, string>): Record<Un
 }
 
 /** A stored row (possibly partial or from an older version) merged over the defaults; never throws. */
-export function settingsFromRow(row: { security?: unknown; leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown; notifications?: unknown; visits?: unknown; matching?: unknown; whatsapp?: unknown; alerts?: unknown } | null | undefined): WorkspaceSettings {
+export function settingsFromRow(row: { security?: unknown; leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown; notifications?: unknown; visits?: unknown; matching?: unknown; whatsapp?: unknown; alerts?: unknown; calculators?: unknown } | null | undefined): WorkspaceSettings {
   const merge = <S extends SettingsSection>(s: S, stored: unknown): WorkspaceSettings[S] => {
     if (!stored || typeof stored !== 'object' || Array.isArray(stored) || !Object.keys(stored).length) return DEFAULT_SETTINGS[s]
     const { value } = normaliseSection(s, { ...DEFAULT_SETTINGS[s], ...(stored as object) })
@@ -313,6 +319,7 @@ export function settingsFromRow(row: { security?: unknown; leads?: unknown; inve
     visits: merge('visits', row?.visits), matching: merge('matching', row?.matching),
     whatsapp: merge('whatsapp', row?.whatsapp),
     alerts: leadAlertsFromStored(row?.alerts),
+    calculators: calculatorsFromStored(row?.calculators),
   }
 }
 
