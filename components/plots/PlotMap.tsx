@@ -175,9 +175,9 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
           </svg>
           <div className="pointer-events-none absolute left-3 top-3 grid size-12 place-items-center rounded-full border border-default bg-surface/90 shadow-sm" role="img" aria-label={`Compass: north points ${northDeg ? `${northDeg}° clockwise from up` : 'up'}`}>
             <svg viewBox="-20 -20 40 40" className="size-10" style={{ transform: `rotate(${northDeg}deg)` }} aria-hidden="true">
-              <polygon points="0,-15 5,0 0,-3 -5,0" fill="var(--danger)" />
-              <polygon points="0,15 5,0 0,3 -5,0" fill="var(--foreground-muted)" />
-              <text x="0" y="-16.5" textAnchor="middle" fontSize="8" fontWeight="700" className="fill-[var(--foreground)]" style={{ transform: 'translateY(-1px)' }}>N</text>
+              <text x="0" y="-9" textAnchor="middle" fontSize="9" fontWeight="700" className="fill-[var(--danger)]">N</text>
+              <polygon points="0,-6 4,4 0,2 -4,4" fill="var(--danger)" />
+              <polygon points="0,15 4,4 0,6 -4,4" fill="var(--foreground-muted)" />
             </svg>
           </div>
           <div className="absolute bottom-3 right-3 flex flex-col overflow-hidden rounded-lg border border-default bg-surface shadow-sm">
