@@ -195,7 +195,7 @@ export function SupportBubble({ context, orgSlug, orgName }: Props) {
       )}
 
       {greet && !open && (
-        <div className="relative max-w-[250px] rounded-3xl rounded-br-md border border-default bg-surface px-4 py-3 text-[13px] text-foreground shadow-md">
+        <div className="relative hidden max-w-[250px] rounded-3xl rounded-br-md border sm:block border-default bg-surface px-4 py-3 text-[13px] text-foreground shadow-md">
           <button type="button" aria-label="Dismiss" onClick={dismissGreeting} className="absolute -right-2 -top-2 grid size-6 place-items-center rounded-full border border-default bg-surface text-muted hover:text-foreground">
             <X className="size-3" aria-hidden="true" />
           </button>

@@ -9,7 +9,7 @@ import { ProductTour, type TourStep } from '@/components/marketing/ProductTour'
 
 export const metadata: Metadata = {
   title: { absolute: `Product tour — see ${PRODUCT_NAME} with sample data` },
-  description: 'Click through RE with sample data: the morning dashboard, a lead from first call to site visit, routing, inventory, a live plot map, and channel partners — no sign-up.',
+  description: 'Try RE with sample data: the daily dashboard, leads, routing, inventory, a live 3D plot map, sales calculators and calendar sync. No sign-up.',
   alternates: { canonical: '/tour' },
 }
 
@@ -57,22 +57,44 @@ const STEPS: TourStep[] = [
   {
     id: 'inventory', nav: 'Inventory', image: '/tour/inventory.jpg',
     title: 'Live availability for every unit',
-    body: 'Projects, towers, floors and plots with prices and status. Holds expire on their own, so the availability your team quotes is always current.',
+    body: 'Projects, towers, floors and plots with price, rate per sq ft and status. Holds expire on their own, so the availability your team quotes is always current.',
     hotspots: [
       { x: 42, y: 22, title: 'At a glance', text: 'Available, on hold, booked, sold and blocked across all projects.' },
       { x: 29, y: 52, title: 'Tower and plot views', text: 'Open a project as a floor-by-floor tower or a plot map.' },
-      { x: 67, y: 74, title: 'Price and status', text: 'Every unit with its size, price and current status.' },
+      { x: 67, y: 74, title: 'Price and rate per sq ft', text: 'Every unit with its size, price, rate per sq ft and current status.' },
     ],
   },
   {
-    id: 'plot-map', nav: 'Plot map (try it)', live: 'plot-map',
-    title: 'A live plot map buyers can open on their phone',
-    body: 'Your approved layout becomes a clickable map: every plot coloured by its real status from inventory. Share the link with buyers and partners — it updates itself as plots are held, booked or sold. Try it: tap a plot, search, filter or zoom.',
+    id: 'plot-map', nav: 'Plot map in 3D (try it)', live: 'plot-map',
+    title: 'A live 3D plot map buyers can open on their phone',
+    body: 'Your approved layout becomes a clickable map, every plot coloured by its real status from inventory. In 3D each plot is a block that lifts out when tapped; drag to turn the layout, and the compass turns with it. Try it: tap a plot, search, filter, zoom or switch 3D off.',
     hotspots: [
+      { x: 0, y: 0, title: '3D, with a compass', text: 'Raised plot blocks, a turnable layout, and north marked the way the drawing faces.' },
       { x: 0, y: 0, title: 'Always current', text: 'Each plot is linked to its unit, so the colour is the live status.' },
-      { x: 0, y: 0, title: 'One link for buyers', text: 'Opens on any phone, no app; enquiries and site visits come back as leads.' },
-      { x: 0, y: 0, title: 'Prices your choice', text: 'Show prices, or availability only.' },
-      { x: 0, y: 0, title: 'On your website', text: 'Embed the same map on your project page.' },
+      { x: 0, y: 0, title: 'You choose what buyers see', text: 'Price, rate per sq ft, area, facing, road width, corner — switch each on or off.' },
+      { x: 0, y: 0, title: 'One link for buyers', text: 'Opens on any phone, no app; enquiries and site visits come back as leads. Embed it on your website too.' },
+    ],
+  },
+  {
+    id: 'calculators', nav: 'Calculators (try it)', live: 'calculators',
+    title: 'Cost sheet, EMI and affordability — in front of the buyer',
+    body: 'Salespeople answer the money questions on the spot: the full cost with GST, stamp duty and registration, the home-loan EMI, and what the buyer can afford. Then send it on WhatsApp. Try it: slide the numbers.',
+    hotspots: [
+      { x: 0, y: 0, title: 'Full cost sheet', text: 'Area × rate, parking, club, floor rise, GST, stamp duty and registration — with the all-in rate per sq ft.' },
+      { x: 0, y: 0, title: 'Loan EMI', text: 'EMI, total interest and a year-by-year balance chart.' },
+      { x: 0, y: 0, title: 'Affordability and area units', text: 'The loan a buyer may get from their income; sq ft, gaj, acre, gunta, cent.' },
+      { x: 0, y: 0, title: 'Your numbers', text: 'Admins set the bank rate, taxes and standard charges once; everyone starts from them.' },
+    ],
+  },
+  {
+    id: 'calendar', nav: 'Calendar & alerts', image: '/tour/calendar-sync.jpg',
+    title: 'Never miss a follow-up — on phone or computer',
+    body: 'Every follow-up and site visit lands in the calendar app your team already uses, with a reminder before it. New leads arrive as phone alerts the moment they come in, even with RE closed.',
+    hotspots: [
+      { x: 35, y: 50, title: 'Apple Calendar', text: 'iPhone, iPad and Mac, in one tap.' },
+      { x: 50, y: 50, title: 'Google Calendar', text: 'On Android phones and any computer.' },
+      { x: 65, y: 50, title: 'Outlook', text: 'For teams on Microsoft.' },
+      { x: 47, y: 55, title: 'Private to each person', text: 'Only their own follow-ups; the link can be replaced or switched off.' },
     ],
   },
   {
@@ -102,7 +124,7 @@ export default function TourPage() {
         <p className="text-[13px] font-semibold text-[var(--brand)]">Product tour · about 2 minutes</p>
         <h1 className="mt-2 max-w-3xl text-[32px] font-extrabold leading-tight tracking-tight sm:text-[40px]">See {PRODUCT_NAME} the way your team will use it</h1>
         <p className="mt-3 max-w-2xl text-[16px] leading-relaxed text-muted">
-          Real screens with sample data, plus a live plot map you can click. Tap the numbered dots, or use the arrow keys. Every name and number shown is fictional.
+          Real screens with sample data, plus a live 3D plot map and calculators you can use. Tap the numbered dots, or use the arrow keys. Every name and number shown is fictional.
         </p>
         <div className="mt-10"><ProductTour steps={STEPS} /></div>
         <div className="ceramic mt-14 flex flex-col items-start gap-4 rounded-2xl p-6 sm:flex-row sm:items-center sm:justify-between">

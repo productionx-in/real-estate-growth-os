@@ -44,9 +44,11 @@ export interface PlotMapProps {
   enquiryToken?: string
   /** Compass: degrees clockwise from up that north points on this drawing (0 = north is up). */
   northDeg?: number
+  /** Open in the 3D view (the website tour). */
+  initial3d?: boolean
 }
 
-export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, contact, image, enquiryToken, northDeg = 0 }: PlotMapProps) {
+export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, contact, image, enquiryToken, northDeg = 0, initial3d = false }: PlotMapProps) {
   const statusLabels = useStatusLabels()
   const labelOf = (st: string) => statusLabels[st as keyof typeof statusLabels] ?? statusOf(st).label
   const base = useMemo(() => viewBox.split(' ').map(Number) as [number, number, number, number], [viewBox])
@@ -55,7 +57,7 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
   const [hidden, setHidden] = useState<Set<string>>(new Set())
   const [query, setQuery] = useState('')
   // 3D view: the layout tilted, each plot a raised block (selected ones lift further); drag turns it.
-  const [is3d, setIs3d] = useState(false)
+  const [is3d, setIs3d] = useState(initial3d)
   const [spin, setSpin] = useState(-25)
   const svgRef = useRef<SVGSVGElement>(null)
   const drag = useRef<{ x: number; y: number; view: typeof base; moved: boolean } | null>(null)
