@@ -6,7 +6,7 @@
 import { useStatusLabels } from '@/components/settings/WorkspacePrefs'
 import { Input } from '@/components/ui'
 import { createElement, useMemo, useRef, useState } from 'react'
-import { Maximize2, MessageCircle, Minus, Phone, Plus, Search, X } from 'lucide-react'
+import { Maximize2, MessageCircle, Minus, Phone, Plus, Search, X, RotateCw } from 'lucide-react'
 import type { LayoutGeometry, PlotInfo } from '@/lib/dal/plot-layouts'
 import { cn } from '@/lib/utils/cn'
 import { PlotEnquiryForm } from '@/components/plots/PlotEnquiryForm'
@@ -54,6 +54,9 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
   const [selected, setSelected] = useState<string | null>(null)
   const [hidden, setHidden] = useState<Set<string>>(new Set())
   const [query, setQuery] = useState('')
+  // 3D view: the layout tilted, each plot a raised block (selected ones lift further); drag turns it.
+  const [is3d, setIs3d] = useState(false)
+  const [spin, setSpin] = useState(-25)
   const svgRef = useRef<SVGSVGElement>(null)
   const drag = useRef<{ x: number; y: number; view: typeof base; moved: boolean } | null>(null)
 
@@ -67,6 +70,7 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
     ? Object.keys(plots).filter((k) => k.toLowerCase().replace(/[\s-]/g, '').includes(query.toLowerCase().replace(/[\s-]/g, ''))).slice(0, 8)
     : []
   const sel = selected ? plots[selected] : null
+  const depth = Math.max(base[2], base[3]) * 0.022
 
   function zoom(factor: number, cx?: number, cy?: number) {
     setView(([x, y, w, h]) => {
@@ -86,7 +90,7 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
     zoom(e.deltaY > 0 ? 1.15 : 1 / 1.15, cx, cy)
   }
   function onPointerDown(e: React.PointerEvent) {
-    drag.current = { x: e.clientX, y: e.clientY, view, moved: false }
+    drag.current = Object.assign({ x: e.clientX, y: e.clientY, view, moved: false }, { spin0: spin })
   }
   function onPointerMove(e: React.PointerEvent) {
     const d = drag.current
@@ -94,7 +98,10 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
     const r = svgRef.current.getBoundingClientRect()
     const dx = ((e.clientX - d.x) / r.width) * d.view[2], dy = ((e.clientY - d.y) / r.height) * d.view[3]
     if (Math.abs(e.clientX - d.x) + Math.abs(e.clientY - d.y) > 4) { d.moved = true; svgRef.current.setPointerCapture?.(e.pointerId) }
-    if (d.moved) setView([d.view[0] - dx, d.view[1] - dy, d.view[2], d.view[3]])
+    if (d.moved) {
+      if (is3d) setSpin((d as typeof d & { spin0?: number }).spin0! + (e.clientX - d.x) * 0.4)
+      else setView([d.view[0] - dx, d.view[1] - dy, d.view[2], d.view[3]])
+    }
   }
   function onPointerUp() { setTimeout(() => { drag.current = null }, 0) }
   // One click handler for the whole map (event delegation): a drag that moved the map is not a click on a plot.
@@ -147,11 +154,20 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
         </div>
 
         <div className="relative overflow-hidden rounded-xl border border-default bg-surface-muted">
+          <div style={is3d ? { perspective: '1400px' } : undefined} className={is3d ? 'py-6' : undefined}>
           <svg ref={svgRef} viewBox={view.join(' ')} role="group" aria-label="Plot layout"
-            style={{ aspectRatio: `${base[2]} / ${base[3]}` }}
-            className="block max-h-[70dvh] w-full touch-none select-none"
+            style={{ aspectRatio: `${base[2]} / ${base[3]}`, ...(is3d ? { transform: `rotateX(52deg) rotateZ(${spin}deg) scale(0.86)`, transformStyle: 'preserve-3d' as const } : {}) }}
+            className="block max-h-[70dvh] w-full touch-none select-none motion-safe:transition-transform motion-safe:duration-300"
             onClick={onMapClick} onWheel={onWheel} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={onPointerUp}>
             {image?.href && <image href={image.href} x={0} y={0} width={image.width} height={image.height} preserveAspectRatio="none" aria-hidden />}
+            {is3d && geometry.shapes.map((s, i) => {
+              // The block's sides: the same outline, darker, a little lower — drawn first so every top sits on its sides.
+              if (!s.key) return null
+              const plot = plots[s.key]
+              const st = plot ? statusOf(plot.status) : null
+              if (!st || (plot && hidden.has(plot.status))) return null
+              return createElement(s.kind, { key: `side${i}`, ...s.attrs, transform: `${s.transform ?? ''} translate(0 ${depth})`, fill: st.color, fillOpacity: 1, style: { filter: 'brightness(0.62)' }, 'aria-hidden': true, className: 'pointer-events-none' })
+            })}
             {geometry.shapes.map((s, i) => {
               const plot = s.key ? plots[s.key] : undefined
               const common = { ...s.attrs, transform: s.transform, vectorEffect: 'non-scaling-stroke' as const }
@@ -161,7 +177,8 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
               const isSel = selected === s.key
               return createElement(s.kind, {
                 key: i, ...common, role: 'button', tabIndex: dim ? -1 : 0, 'aria-label': describe(s.key, plot), 'aria-pressed': isSel,
-                fill: st ? st.color : 'var(--surface)', fillOpacity: dim ? 0.08 : isSel ? 0.95 : image ? 0.45 : 0.7,
+                fill: st ? st.color : 'var(--surface)', fillOpacity: dim ? 0.08 : is3d ? 1 : isSel ? 0.95 : image ? 0.45 : 0.7,
+                ...(is3d ? { transform: `${s.transform ?? ''} translate(0 ${isSel ? -depth * 1.8 : -depth * 0.35})` } : {}),
                 stroke: isSel ? 'var(--foreground)' : plot ? 'var(--surface)' : 'var(--border-strong)', strokeWidth: isSel ? 3 : 1,
                 strokeDasharray: plot ? undefined : '4 3',
                 className: 'cursor-pointer outline-none transition-[fill-opacity] hover:[fill-opacity:0.95] focus-visible:[stroke:var(--brand)] focus-visible:[stroke-width:3]',
@@ -173,8 +190,9 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
                 className="pointer-events-none fill-[var(--foreground)] font-semibold" stroke={image ? 'var(--surface)' : undefined} strokeWidth={image ? (l.size ?? 12) / 5 : undefined} paintOrder="stroke">{l.text}</text>
             ))}
           </svg>
+          </div>
           <div className="pointer-events-none absolute left-3 top-3 grid size-12 place-items-center rounded-full border border-default bg-surface/90 shadow-sm" role="img" aria-label={`Compass: north points ${northDeg ? `${northDeg}° clockwise from up` : 'up'}`}>
-            <svg viewBox="-20 -20 40 40" className="size-10" style={{ transform: `rotate(${northDeg}deg)` }} aria-hidden="true">
+            <svg viewBox="-20 -20 40 40" className="size-10" style={{ transform: `rotate(${northDeg + (is3d ? spin : 0)}deg)` }} aria-hidden="true">
               <text x="0" y="-9" textAnchor="middle" fontSize="9" fontWeight="700" className="fill-[var(--danger)]">N</text>
               <polygon points="0,-6 4,4 0,2 -4,4" fill="var(--danger)" />
               <polygon points="0,15 4,4 0,6 -4,4" fill="var(--foreground-muted)" />
@@ -184,9 +202,12 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
             <button type="button" aria-label="Zoom in" onClick={() => zoom(1 / 1.4)} className="grid size-10 place-items-center hover:bg-surface-hover"><Plus aria-hidden className="size-4" /></button>
             <button type="button" aria-label="Zoom out" onClick={() => zoom(1.4)} className="grid size-10 place-items-center border-t border-default hover:bg-surface-hover"><Minus aria-hidden className="size-4" /></button>
             <button type="button" aria-label="Show the whole layout" onClick={() => setView(base)} className="grid size-10 place-items-center border-t border-default hover:bg-surface-hover"><Maximize2 aria-hidden className="size-4" /></button>
+            <button type="button" aria-pressed={is3d} aria-label={is3d ? 'Flat view' : '3D view'} onClick={() => setIs3d((v) => !v)}
+              className={cn('grid size-10 place-items-center border-t border-default text-[12px] font-bold hover:bg-surface-hover', is3d && 'bg-[var(--brand)] text-[#fff] hover:bg-[var(--brand)]')}>3D</button>
+            {is3d && <button type="button" aria-label="Turn the layout" onClick={() => setSpin((v) => v + 45)} className="grid size-10 place-items-center border-t border-default hover:bg-surface-hover"><RotateCw aria-hidden className="size-4" /></button>}
           </div>
         </div>
-        <p className="text-[12px] text-muted">Drag to move, pinch or Ctrl + scroll to zoom. Tap a plot for its details.</p>
+        <p className="text-[12px] text-muted">{is3d ? 'Drag to turn the layout. Tap a plot to lift it and see its details.' : 'Drag to move, pinch or Ctrl + scroll to zoom. Tap a plot for its details. Try 3D.'}</p>
       </div>
 
       {/* Phones: the details slide up as a bottom sheet over the map; larger screens: a panel beside it. */}
