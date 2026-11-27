@@ -117,7 +117,7 @@ export default async function ProjectMapPage({ params, searchParams }: {
         {files && <MapDocuments orgId={org.id} orgSlug={orgSlug} projectId={projectId} layouts={all.map((l) => ({ id: l.id, name: l.name }))} documents={files.documents} versions={files.versions} canApprove={isAdmin} reviews={reviews} />}
         {isManager && <LayoutManager key={current?.id ?? 'new'} orgId={org.id} projectId={projectId} layout={current} />}
         {live ? (
-          <><AutoRefresh seconds={30} /><PlotMap mode="team" viewBox={live.viewBox} geometry={live.geometry} plots={live.plots} showPrices unitHref={back.href} image={live.image} /></>
+          <><AutoRefresh seconds={30} /><PlotMap mode="team" viewBox={live.viewBox} geometry={live.geometry} plots={live.plots} showPrices unitHref={back.href} image={live.image} northDeg={live.northDeg} /></>
         ) : !isManager && (
           <div className="rounded-xl border border-dashed border-default p-8 text-center text-[13px] text-muted">
             <Link href={back.href} className="inline-flex items-center gap-1 font-medium text-brand"><ArrowLeft aria-hidden className="size-3.5" /> Back to the project</Link>

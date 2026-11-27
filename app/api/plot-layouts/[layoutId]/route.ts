@@ -1,5 +1,5 @@
 // app/api/plot-layouts/[layoutId]/route.ts — publish or unpublish a layout, turn its public link on or off (or issue
-// a new one), show or hide prices on it, choose the websites that may embed it, rename it, or delete it. Owners, admins and managers; the project's add-on
+// a new one), show or hide prices on it, set which way north points (compass), choose the websites that may embed it, rename it, or delete it. Owners, admins and managers; the project's add-on
 // must be active, except to take the map offline (unpublish, link off, delete).
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
@@ -14,6 +14,7 @@ const Patch = z.object({
   publish: z.boolean().optional(),
   share: z.boolean().optional(),
   showPrices: z.boolean().optional(),
+  northDeg: z.number().int().min(0).max(359).optional(),
   name: z.string().trim().min(1).max(80).optional(),
   newLink: z.literal(true).optional(),
   embedDomains: z.array(z.string().max(300)).max(20).optional(),
@@ -36,7 +37,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const parsed = Patch.safeParse(await request.json().catch(() => null))
   if (!z.string().uuid().safeParse(layoutId).success || !parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   const { orgId, newLink, ...change } = parsed.data
-  const takesOffline = !newLink && change.name === undefined && change.showPrices === undefined && change.embedDomains === undefined && change.publish !== true && change.share !== true
+  const takesOffline = !newLink && change.name === undefined && change.showPrices === undefined && change.northDeg === undefined && change.embedDomains === undefined && change.publish !== true && change.share !== true
   const g = await gate(orgId, layoutId, takesOffline)
   if (g.response) return g.response
   if (newLink && !(await rotateShareLink(orgId, layoutId))) return NextResponse.json({ error: 'Layout not found.' }, { status: 404 })

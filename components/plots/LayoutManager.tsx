@@ -4,7 +4,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, Copy, Link2, RefreshCw, Trash2, Upload } from 'lucide-react'
-import { Alert, Badge, Button, Field, Input, Textarea } from '@/components/ui'
+import { Alert, Badge, Button, Field, Input, Textarea, Select } from '@/components/ui'
 import type { LayoutSummary } from '@/lib/dal/plot-layouts'
 import type { MatchReport } from '@/lib/plots/match'
 
@@ -99,6 +99,16 @@ export function LayoutManager({ orgId, projectId, layout }: { orgId: string; pro
               <label className="flex items-center gap-2 text-[13px] text-foreground">
                 <input type="checkbox" className="size-4 accent-[var(--brand)]" checked={layout.showPrices} disabled={busy} onChange={(e) => patch({ showPrices: e.target.checked })} />
                 Show prices on the public link
+              </label>
+              <label className="flex flex-wrap items-center gap-2 text-[13px] text-foreground">
+                Compass — north points
+                <Select className="w-auto" aria-label="Which way north points" value={layout.northDeg} disabled={busy}
+                  onChange={(e) => patch({ northDeg: Number(e.target.value) })}>
+                  {[['Up', 0], ['Up-right', 45], ['Right', 90], ['Down-right', 135], ['Down', 180], ['Down-left', 225], ['Left', 270], ['Up-left', 315]].map(([l, d]) => (
+                    <option key={d} value={d}>{l}</option>
+                  ))}
+                </Select>
+                <span className="text-[12px] text-muted">on this drawing</span>
               </label>
               {layout.shareEnabled && link && (
                 <div className="flex flex-wrap items-center gap-2">

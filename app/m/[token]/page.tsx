@@ -32,7 +32,7 @@ export default async function SharedPlotMapPage({ params, searchParams }: { para
           <p className="mt-1 text-[14px] text-muted">{available} plot{available === 1 ? '' : 's'} available now · updated live</p>
         </header>
         <PlotMap mode="public" viewBox={map.viewBox} geometry={map.geometry} plots={map.plots} showPrices={map.showPrices}
-          contact={{ phone: map.contactPhone, projectName: map.projectName, orgName: map.orgName }} image={map.image} enquiryToken={token} />
+          contact={{ phone: map.contactPhone, projectName: map.projectName, orgName: map.orgName }} image={map.image} enquiryToken={token} northDeg={map.northDeg} />
         <p className="text-[11px] text-subtle">Availability is shown for information and can change at any time. A plot is yours only once the developer confirms your booking.</p>
       </div>
     </main>

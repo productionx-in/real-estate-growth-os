@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react'
 import { Alert, Button, Field, Input, Select } from '@/components/ui'
-import { AREA_UNITS, DEFAULT_STATUS_LABELS, LIMITS, STATUS_MEANING, UNIT_STATUSES, describeHold, normaliseSection, type AreaUnit, type InventorySettings, type LeadSettings, type ReportSettings, type SettingsSection } from '@/lib/settings/workspace'
+import { AREA_UNITS, BUYER_DETAILS, DEFAULT_STATUS_LABELS, LIMITS, STATUS_MEANING, UNIT_STATUSES, describeHold, normaliseSection, type AreaUnit, type BuyerDetail, type InventorySettings, type LeadSettings, type ReportSettings, type SettingsSection } from '@/lib/settings/workspace'
 
 function useSave(orgId: string, section: SettingsSection) {
   const router = useRouter()
@@ -115,6 +115,19 @@ export function InventorySettingsForm({ orgId, initial }: { orgId: string; initi
               <Input value={value.statusLabels[k]} maxLength={LIMITS.statusLabel} placeholder={DEFAULT_STATUS_LABELS[k]}
                 onChange={(e) => setValue({ ...value, statusLabels: { ...value.statusLabels, [k]: e.target.value } })} />
             </Field>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset className="space-y-3">
+        <legend className="text-[13px] font-semibold text-foreground">What buyers see on shared plot maps</legend>
+        <p className="text-[12px] text-muted">Tick the unit details a buyer sees when they tap a plot on a shared map link. Unticked details are removed before the page is sent. Prices are switched on or off on each map.</p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {(Object.keys(BUYER_DETAILS) as BuyerDetail[]).map((k) => (
+            <label key={k} className="flex min-h-11 items-center gap-2 rounded-lg border border-default px-3 text-[13px]">
+              <input type="checkbox" className="size-4 accent-[var(--brand)]" checked={value.buyerDetails[k]}
+                onChange={(e) => setValue({ ...value, buyerDetails: { ...value.buyerDetails, [k]: e.target.checked } })} />
+              {BUYER_DETAILS[k]}
+            </label>
           ))}
         </div>
       </fieldset>
