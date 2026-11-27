@@ -23,7 +23,7 @@ export function sampleLayout(): { viewBox: string; geometry: LayoutGeometry; plo
       plots[key] = {
         unitId: `sample-${n}`, unitNumber: key, status: statuses[n % statuses.length], category: 'plots',
         area: 1800 + (n % 5) * 200, areaUnit: 'sqft', dimensions: `${30 + (n % 3) * 5} × ${60} ft`, facing: ['East', 'North', 'West', 'South'][n % 4],
-        corner: c === 0 || c === cols - 1, roadWidthFt: r === rows - 1 ? 40 : 30, price: (1800 + (n % 5) * 200) * 4200,
+        corner: c === 0 || c === cols - 1, roadWidthFt: r === rows - 1 ? 40 : 30, price: (1800 + (n % 5) * 200) * 4200, rate: 4200,
       }
       n++
     }

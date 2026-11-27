@@ -10,8 +10,7 @@ import {
   LayoutDashboard, Users, UsersRound, Gift, FolderOpen, UserCircle, Settings, Building2, Layers, Plug, TrendingUp, Briefcase,
   ChevronsUpDown, Check, Compass, Shuffle, ListChecks, Gauge, ScrollText, LifeBuoy, CalendarDays,
   MessageCircle, FileText, PanelLeftClose, PanelLeftOpen, X, CreditCard,
-  Handshake, ShieldCheck, House, Megaphone, Trophy, CalendarRange,
-} from 'lucide-react'
+  Handshake, ShieldCheck, House, Megaphone, Trophy, CalendarRange, Calculator } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { PRODUCT_NAME } from '@/lib/brand'
 import { ReMark } from '@/components/brand/Logo'
@@ -30,7 +29,7 @@ const COLLAPSE_KEY = 'repx:nav-collapsed'
 export const NAV_ICONS: Record<NavKey, React.ComponentType<{ className?: string }>> = {
   home: LayoutDashboard, today: ListChecks, leads: Users, visits: CalendarDays, inbox: MessageCircle,
   sales: Briefcase, routing: Shuffle, speed: Gauge, projects: FolderOpen, inventory: Layers, documents: FileText,
-  analytics: TrendingUp, integrations: Plug, team: UserCircle, settings: Settings, billing: CreditCard, audit: ScrollText, support: ShieldCheck, partners: Handshake, help: LifeBuoy, listings: House, campaigns: Megaphone, performance: Trophy, calendar: CalendarRange, teams: UsersRound, rewards: Gift,
+  analytics: TrendingUp, integrations: Plug, team: UserCircle, settings: Settings, billing: CreditCard, audit: ScrollText, support: ShieldCheck, partners: Handshake, help: LifeBuoy, listings: House, campaigns: Megaphone, performance: Trophy, calendar: CalendarRange, teams: UsersRound, rewards: Gift, calculators: Calculator,
 }
 
 export interface SidebarProps {

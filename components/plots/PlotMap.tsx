@@ -42,9 +42,11 @@ export interface PlotMapProps {
   image?: { href: string; width: number; height: number }
   /** Public mode: the share link's token — shows the enquiry / site-visit form for an available plot. */
   enquiryToken?: string
+  /** Compass: degrees clockwise from up that north points on this drawing (0 = north is up). */
+  northDeg?: number
 }
 
-export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, contact, image, enquiryToken }: PlotMapProps) {
+export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, contact, image, enquiryToken, northDeg = 0 }: PlotMapProps) {
   const statusLabels = useStatusLabels()
   const labelOf = (st: string) => statusLabels[st as keyof typeof statusLabels] ?? statusOf(st).label
   const base = useMemo(() => viewBox.split(' ').map(Number) as [number, number, number, number], [viewBox])
@@ -171,6 +173,13 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
                 className="pointer-events-none fill-[var(--foreground)] font-semibold" stroke={image ? 'var(--surface)' : undefined} strokeWidth={image ? (l.size ?? 12) / 5 : undefined} paintOrder="stroke">{l.text}</text>
             ))}
           </svg>
+          <div className="pointer-events-none absolute left-3 top-3 grid size-12 place-items-center rounded-full border border-default bg-surface/90 shadow-sm" role="img" aria-label={`Compass: north points ${northDeg ? `${northDeg}° clockwise from up` : 'up'}`}>
+            <svg viewBox="-20 -20 40 40" className="size-10" style={{ transform: `rotate(${northDeg}deg)` }} aria-hidden="true">
+              <text x="0" y="-9" textAnchor="middle" fontSize="9" fontWeight="700" className="fill-[var(--danger)]">N</text>
+              <polygon points="0,-6 4,4 0,2 -4,4" fill="var(--danger)" />
+              <polygon points="0,15 4,4 0,6 -4,4" fill="var(--foreground-muted)" />
+            </svg>
+          </div>
           <div className="absolute bottom-3 right-3 flex flex-col overflow-hidden rounded-lg border border-default bg-surface shadow-sm">
             <button type="button" aria-label="Zoom in" onClick={() => zoom(1 / 1.4)} className="grid size-10 place-items-center hover:bg-surface-hover"><Plus aria-hidden className="size-4" /></button>
             <button type="button" aria-label="Zoom out" onClick={() => zoom(1.4)} className="grid size-10 place-items-center border-t border-default hover:bg-surface-hover"><Minus aria-hidden className="size-4" /></button>
@@ -211,6 +220,7 @@ export function PlotMap({ mode, viewBox, geometry, plots, showPrices, unitHref, 
               {sel.roadWidthFt != null && <div><dt className="text-[11px] text-muted">Road</dt><dd className="font-medium">{sel.roadWidthFt} ft</dd></div>}
               {sel.corner && <div><dt className="text-[11px] text-muted">Position</dt><dd className="font-medium">Corner plot</dd></div>}
               {showPrices && sel.price != null && <div className="col-span-2"><dt className="text-[11px] text-muted">Price</dt><dd className="text-[15px] font-semibold">{inr(sel.price)}</dd></div>}
+              {showPrices && sel.rate != null && <div className="col-span-2"><dt className="text-[11px] text-muted">Rate</dt><dd className="font-medium">{inr(sel.rate)} / {AREA_UNIT[sel.areaUnit ?? ''] ?? sel.areaUnit ?? 'sq ft'}</dd></div>}
             </dl>
             {mode === 'team' && unitHref && (
               <a href={unitHref} className="btn-primary inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-brand px-4 text-[13px] font-medium text-brand-foreground hover:bg-brand-hover">Open in project</a>

@@ -55,12 +55,21 @@ test('status names reach every inventory screen through the workspace provider',
 })
 
 test('hold time is a whole number of hours from 0 to 720; area units come from the inventory form’s list', () => {
-  assert.deepEqual(w.normaliseSection('inventory', { holdHours: 48, areaUnitBuilt: 'sqft', areaUnitLand: 'guntas' }), { value: { holdHours: 48, areaUnitBuilt: 'sqft', areaUnitLand: 'guntas', statusLabels: w.DEFAULT_STATUS_LABELS }, errors: {} })
+  assert.deepEqual(w.normaliseSection('inventory', { holdHours: 48, areaUnitBuilt: 'sqft', areaUnitLand: 'guntas' }), { value: { holdHours: 48, areaUnitBuilt: 'sqft', areaUnitLand: 'guntas', statusLabels: w.DEFAULT_STATUS_LABELS, buyerDetails: { area: true, dimensions: true, facing: true, road: true, corner: true, rate: true } }, errors: {} })
   assert.ok(w.normaliseSection('inventory', { holdHours: 0, areaUnitBuilt: 'sqm', areaUnitLand: 'sqyd' }).errors.areaUnitBuilt)
   const formUnits = read('lib/validations/inventory.ts').match(/area_unit: z\.enum\(\[([^\]]+)\]/)[1].match(/'(\w+)'/g).map((x) => x.slice(1, -1))
   assert.deepEqual(Object.keys(w.AREA_UNITS).sort(), formUnits.sort(), 'every setting value is one the inventory form accepts')
   for (const bad of [-1, 721, 1.5, 'x', null]) assert.ok(w.normaliseSection('inventory', { holdHours: bad }).errors.holdHours, String(bad))
   assert.equal(w.describeHold(0), 'Holds stay until someone releases them'); assert.equal(w.describeHold(48), '2 days'); assert.equal(w.describeHold(36), '36 hours')
+})
+
+test('buyer details on shared maps: shown unless switched off; only real booleans count', () => {
+  const d = (v) => w.normaliseSection('inventory', { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', buyerDetails: v }).value.buyerDetails
+  assert.equal(d(undefined).facing, true, 'older settings show everything')
+  assert.equal(d({ facing: false }).facing, false)
+  assert.equal(d({ facing: 'no' }).facing, true, 'not a boolean: unchanged')
+  const dal = read('lib/dal/plot-layouts.ts')
+  assert.match(dal, /if \(!show\.facing\) p\.facing = null/, 'hidden details are removed on the server')
 })
 
 test('report settings: a month 1–12 and a week that starts on Sunday or Monday', () => {
@@ -98,7 +107,7 @@ test('a missing, empty or malformed stored row falls back to the defaults', () =
   const s = w.settingsFromRow({ leads: { lostReasons: ['Price'] }, inventory: { holdHours: 'abc' } })
   assert.deepEqual(s.leads.lostReasons, ['Price']); assert.deepEqual(s.leads.junkReasons, w.DEFAULT_SETTINGS.leads.junkReasons)
   assert.equal(s.inventory.holdHours, 0)
-  assert.deepEqual(w.settingsFromRow({ inventory: { holdHours: 12 } }).inventory, { holdHours: 12, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', statusLabels: w.DEFAULT_STATUS_LABELS }, 'rows saved before a field existed get its default')
+  assert.deepEqual(w.settingsFromRow({ inventory: { holdHours: 12 } }).inventory, { holdHours: 12, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', statusLabels: w.DEFAULT_STATUS_LABELS, buyerDetails: { area: true, dimensions: true, facing: true, road: true, corner: true, rate: true } }, 'rows saved before a field existed get its default')
 })
 
 test('closing a lead: the reason must be on the workspace’s list, or “Other” with a note', () => {

@@ -3,6 +3,7 @@
 // Nothing here is a secret; owners and admins change it (the API authorises), everyone in the workspace reads it.
 import { DEFAULT_TEAM, normaliseTeam, teamFromStored, type TeamDefaults } from '@/lib/notifications/prefs'
 import { fieldsFromStored, normaliseFields, type FieldDef } from '@/lib/settings/fields'
+import { DEFAULT_CALCULATORS, calculatorsFromStored, normaliseCalculators, type CalculatorSettings } from '@/lib/calculators/settings'
 import { DEFAULT_LEAD_ALERTS, leadAlertsFromStored, normaliseLeadAlerts, type LeadAlertSettings } from '@/lib/notifications/lead-alerts'
 
 export interface LeadSettings {
@@ -30,7 +31,13 @@ export interface InventorySettings {
    * statuses, what they mean for matching, the plot map and bookings, and the allowed changes between them stay fixed.
    */
   statusLabels: Record<UnitStatus, string>
+  /** Unit details buyers see on shared plot maps (prices are set per map). Off = removed before the page is sent. */
+  buyerDetails: Record<BuyerDetail, boolean>
 }
+
+export const BUYER_DETAILS = { area: 'Area', dimensions: 'Dimensions', facing: 'Facing', road: 'Road width', corner: 'Corner plot', rate: 'Rate per sq ft (when prices are shown)' } as const
+export type BuyerDetail = keyof typeof BUYER_DETAILS
+const ALL_BUYER_DETAILS = Object.fromEntries(Object.keys(BUYER_DETAILS).map((k) => [k, true])) as Record<BuyerDetail, boolean>
 
 export const UNIT_STATUSES = ['available', 'on_hold', 'booked', 'sold', 'blocked'] as const
 export type UnitStatus = (typeof UNIT_STATUSES)[number]
@@ -101,7 +108,7 @@ export interface SecuritySettings {
   requireTwoStep: boolean
 }
 
-export interface WorkspaceSettings { security: SecuritySettings; leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings; notifications: TeamDefaults; visits: VisitSettings; matching: MatchingSettings; whatsapp: WhatsAppSettings; alerts: LeadAlertSettings }
+export interface WorkspaceSettings { security: SecuritySettings; leads: LeadSettings; inventory: InventorySettings; reports: ReportSettings; lists: ListSettings; fields: FieldSettings; notifications: TeamDefaults; visits: VisitSettings; matching: MatchingSettings; whatsapp: WhatsAppSettings; alerts: LeadAlertSettings; calculators: CalculatorSettings }
 export type SettingsSection = keyof WorkspaceSettings
 
 // The reasons Indian sales teams record most often; a workspace edits, reorders or replaces them.
@@ -112,7 +119,7 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
     junkReasons: ['Wrong or invalid number', 'Duplicate enquiry', 'Not looking to buy', 'Broker or agent', 'Spam or test'],
     requireReason: true,
   },
-  inventory: { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', statusLabels: DEFAULT_STATUS_LABELS },
+  inventory: { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', statusLabels: DEFAULT_STATUS_LABELS, buyerDetails: ALL_BUYER_DETAILS },
   reports: { fyStartMonth: 4, weekStartsOn: 1 },
   lists: { locations: [] },
   fields: { lead: [] },
@@ -129,6 +136,7 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
   matching: { overBudgetPct: 10, minScore: 0, maxSuggestions: 8 },
   // Lead alerts are on until a workspace turns them off (lib/notifications/lead-alerts.ts).
   alerts: DEFAULT_LEAD_ALERTS,
+  calculators: DEFAULT_CALCULATORS,
 }
 
 export const LIMITS = { reasons: 20, reasonLength: 80, holdHours: 720, locations: 200, locationLength: 60, statusLabel: 24 } as const
@@ -159,6 +167,10 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
   const o = (input && typeof input === 'object' && !Array.isArray(input) ? input : {}) as Record<string, unknown>
   if (section === 'security') {
     return { value: { requireTwoStep: o.requireTwoStep === true } as WorkspaceSettings[S], errors }
+  }
+  if (section === 'calculators') {
+    const r = normaliseCalculators(o)
+    return { value: r.value as WorkspaceSettings[S], errors: r.errors }
   }
   if (section === 'alerts') {
     const r = normaliseLeadAlerts(o)
@@ -271,9 +283,18 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
     areaUnitBuilt: unit(o.areaUnitBuilt, 'sqft', 'areaUnitBuilt'),
     areaUnitLand: unit(o.areaUnitLand, 'sqyd', 'areaUnitLand'),
     statusLabels: statusLabelsFrom(o.statusLabels, errors),
+    buyerDetails: buyerDetailsFrom(o.buyerDetails),
   }
   if (!(Number.isInteger(hours) && hours >= 0 && hours <= LIMITS.holdHours)) errors.holdHours = `Hold time is a whole number of hours from 0 to ${LIMITS.holdHours} (30 days).`
   return { value: value as WorkspaceSettings[S], errors }
+}
+
+/** Buyer-visible details: each switch is a real boolean; anything missing (older rows) stays shown. */
+function buyerDetailsFrom(v: unknown): Record<BuyerDetail, boolean> {
+  const given = v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {}
+  const out = { ...ALL_BUYER_DETAILS }
+  for (const k of Object.keys(BUYER_DETAILS) as BuyerDetail[]) if (typeof given[k] === 'boolean') out[k] = given[k] as boolean
+  return out
 }
 
 /** Status names: each 1–24 characters after trimming, no two the same (ignoring case); blanks fall back to the default. */
@@ -296,7 +317,7 @@ function statusLabelsFrom(v: unknown, errors: Record<string, string>): Record<Un
 }
 
 /** A stored row (possibly partial or from an older version) merged over the defaults; never throws. */
-export function settingsFromRow(row: { security?: unknown; leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown; notifications?: unknown; visits?: unknown; matching?: unknown; whatsapp?: unknown; alerts?: unknown } | null | undefined): WorkspaceSettings {
+export function settingsFromRow(row: { security?: unknown; leads?: unknown; inventory?: unknown; reports?: unknown; lists?: unknown; fields?: unknown; notifications?: unknown; visits?: unknown; matching?: unknown; whatsapp?: unknown; alerts?: unknown; calculators?: unknown } | null | undefined): WorkspaceSettings {
   const merge = <S extends SettingsSection>(s: S, stored: unknown): WorkspaceSettings[S] => {
     if (!stored || typeof stored !== 'object' || Array.isArray(stored) || !Object.keys(stored).length) return DEFAULT_SETTINGS[s]
     const { value } = normaliseSection(s, { ...DEFAULT_SETTINGS[s], ...(stored as object) })
@@ -313,6 +334,7 @@ export function settingsFromRow(row: { security?: unknown; leads?: unknown; inve
     visits: merge('visits', row?.visits), matching: merge('matching', row?.matching),
     whatsapp: merge('whatsapp', row?.whatsapp),
     alerts: leadAlertsFromStored(row?.alerts),
+    calculators: calculatorsFromStored(row?.calculators),
   }
 }
 
