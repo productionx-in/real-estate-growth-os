@@ -30,7 +30,13 @@ export interface InventorySettings {
    * statuses, what they mean for matching, the plot map and bookings, and the allowed changes between them stay fixed.
    */
   statusLabels: Record<UnitStatus, string>
+  /** Unit details buyers see on shared plot maps (prices are set per map). Off = removed before the page is sent. */
+  buyerDetails: Record<BuyerDetail, boolean>
 }
+
+export const BUYER_DETAILS = { area: 'Area', dimensions: 'Dimensions', facing: 'Facing', road: 'Road width', corner: 'Corner plot', rate: 'Rate per sq ft (when prices are shown)' } as const
+export type BuyerDetail = keyof typeof BUYER_DETAILS
+const ALL_BUYER_DETAILS = Object.fromEntries(Object.keys(BUYER_DETAILS).map((k) => [k, true])) as Record<BuyerDetail, boolean>
 
 export const UNIT_STATUSES = ['available', 'on_hold', 'booked', 'sold', 'blocked'] as const
 export type UnitStatus = (typeof UNIT_STATUSES)[number]
@@ -112,7 +118,7 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
     junkReasons: ['Wrong or invalid number', 'Duplicate enquiry', 'Not looking to buy', 'Broker or agent', 'Spam or test'],
     requireReason: true,
   },
-  inventory: { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', statusLabels: DEFAULT_STATUS_LABELS },
+  inventory: { holdHours: 0, areaUnitBuilt: 'sqft', areaUnitLand: 'sqyd', statusLabels: DEFAULT_STATUS_LABELS, buyerDetails: ALL_BUYER_DETAILS },
   reports: { fyStartMonth: 4, weekStartsOn: 1 },
   lists: { locations: [] },
   fields: { lead: [] },
@@ -271,9 +277,18 @@ export function normaliseSection<S extends SettingsSection>(section: S, input: u
     areaUnitBuilt: unit(o.areaUnitBuilt, 'sqft', 'areaUnitBuilt'),
     areaUnitLand: unit(o.areaUnitLand, 'sqyd', 'areaUnitLand'),
     statusLabels: statusLabelsFrom(o.statusLabels, errors),
+    buyerDetails: buyerDetailsFrom(o.buyerDetails),
   }
   if (!(Number.isInteger(hours) && hours >= 0 && hours <= LIMITS.holdHours)) errors.holdHours = `Hold time is a whole number of hours from 0 to ${LIMITS.holdHours} (30 days).`
   return { value: value as WorkspaceSettings[S], errors }
+}
+
+/** Buyer-visible details: each switch is a real boolean; anything missing (older rows) stays shown. */
+function buyerDetailsFrom(v: unknown): Record<BuyerDetail, boolean> {
+  const given = v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {}
+  const out = { ...ALL_BUYER_DETAILS }
+  for (const k of Object.keys(BUYER_DETAILS) as BuyerDetail[]) if (typeof given[k] === 'boolean') out[k] = given[k] as boolean
+  return out
 }
 
 /** Status names: each 1–24 characters after trimming, no two the same (ignoring case); blanks fall back to the default. */

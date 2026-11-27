@@ -1,6 +1,7 @@
 // lib/dal/plot-layouts.ts — interactive plot maps (add-on, 20260072). Callers authorise first and check the add-on
 // (lib/plots/addons.ts); every query here is scoped by organisation, and the database re-checks that a layout's
 // project and every linked unit belong to it. Statuses are read live from inventory_items: the map is never a copy.
+import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 import crypto from 'node:crypto'
 import { parseEmbedDomains } from '@/lib/plots/embed'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -14,6 +15,8 @@ import type { Json } from '@/types/database'
 export interface LayoutGeometry { shapes: LayoutShape[]; labels: LayoutLabel[] }
 export interface LayoutSummary {
   id: string; projectId: string; name: string; status: 'draft' | 'published'; shareEnabled: boolean; showPrices: boolean
+  /** Compass: degrees clockwise from up that north points on the drawing. */
+  northDeg: number
   /** Websites (https origins) allowed to show the public map in a frame. */
   embedDomains: string[]
   shareToken: string | null; plots: number; linked: number; publishedAt: string | null; updatedAt: string
@@ -24,20 +27,23 @@ export interface PlotInfo {
   unitId: string; unitNumber: string; status: string; category: string
   area: number | null; areaUnit: string | null; dimensions: string | null; facing: string | null
   corner: boolean; roadWidthFt: number | null; price: number | null
+  /** Price per area unit (inventory_items.base_rate); null when prices are hidden. */
+  rate: number | null
 }
 
-const UNIT_COLUMNS = 'id, unit_number, status, category, plot_area, area_value, area_unit, plot_dimensions, facing, is_corner_plot, road_width_ft, total_price'
-type UnitRow = { id: string; unit_number: string; status: string; category: string; plot_area: number | null; area_value: number | null; area_unit: string | null; plot_dimensions: string | null; facing: string | null; is_corner_plot: boolean; road_width_ft: number | null; total_price: number | null }
+const UNIT_COLUMNS = 'id, unit_number, status, category, plot_area, area_value, area_unit, plot_dimensions, facing, is_corner_plot, road_width_ft, total_price, base_rate'
+type UnitRow = { id: string; unit_number: string; status: string; category: string; plot_area: number | null; area_value: number | null; area_unit: string | null; plot_dimensions: string | null; facing: string | null; is_corner_plot: boolean; road_width_ft: number | null; total_price: number | null; base_rate: number | null }
 
 const toInfo = (u: UnitRow, withPrice: boolean): PlotInfo => ({
   unitId: u.id, unitNumber: u.unit_number, status: u.status, category: u.category,
   area: u.plot_area ?? u.area_value, areaUnit: u.area_unit, dimensions: u.plot_dimensions, facing: u.facing,
   corner: u.is_corner_plot === true, roadWidthFt: u.road_width_ft, price: withPrice ? u.total_price : null,
+  rate: withPrice && u.base_rate != null ? Number(u.base_rate) : null,
 })
 
 export async function listLayouts(orgId: string, projectId?: string): Promise<LayoutSummary[]> {
   const db = createServiceClient()
-  let q = db.from('plot_layouts').select('id, project_id, name, status, share_enabled, show_prices, embed_domains, share_token, geometry, published_at, updated_at, published_version_id').eq('org_id', orgId)
+  let q = db.from('plot_layouts').select('id, project_id, name, status, share_enabled, show_prices, north_deg, embed_domains, share_token, geometry, published_at, updated_at, published_version_id').eq('org_id', orgId)
   if (projectId) q = q.eq('project_id', projectId)
   const { data } = await q.order('created_at')
   const rows = data ?? []
@@ -57,7 +63,7 @@ export async function listLayouts(orgId: string, projectId?: string): Promise<La
     }
   }
   return rows.map((r) => ({
-    id: r.id, projectId: r.project_id, name: r.name, status: r.status as 'draft' | 'published', shareEnabled: r.share_enabled, showPrices: r.show_prices,
+    id: r.id, projectId: r.project_id, name: r.name, status: r.status as 'draft' | 'published', shareEnabled: r.share_enabled, showPrices: r.show_prices, northDeg: r.north_deg ?? 0,
     embedDomains: r.embed_domains ?? [], shareToken: r.share_token,
     plots: r.published_version_id ? vPlots.get(r.published_version_id) ?? 0 : ((r.geometry as unknown as LayoutGeometry)?.shapes ?? []).filter((s) => s.key).length,
     linked: r.published_version_id ? vLinked.get(r.published_version_id) ?? 0 : counts.get(r.id) ?? 0,
@@ -100,12 +106,12 @@ export async function saveLayout(
 }
 
 export async function updateLayout(
-  orgId: string, layoutId: string, actorId: string, change: { publish?: boolean; share?: boolean; showPrices?: boolean; name?: string; embedDomains?: string[] },
+  orgId: string, layoutId: string, actorId: string, change: { publish?: boolean; share?: boolean; showPrices?: boolean; name?: string; embedDomains?: string[]; northDeg?: number },
 ): Promise<DalResult<LayoutSummary>> {
   const db = createServiceClient()
   const { data: cur } = await db.from('plot_layouts').select('id, status, share_token').eq('org_id', orgId).eq('id', layoutId).maybeSingle()
   if (!cur) return { success: false, error: 'Layout not found.', status: 404 }
-  const patch: { updated_by: string; name?: string; status?: string; published_at?: string; share_enabled?: boolean; share_token?: string; show_prices?: boolean; embed_domains?: string[] } = { updated_by: actorId }
+  const patch: { updated_by: string; name?: string; status?: string; published_at?: string; share_enabled?: boolean; share_token?: string; show_prices?: boolean; embed_domains?: string[]; north_deg?: number } = { updated_by: actorId }
   if (change.name !== undefined) patch.name = change.name.trim()
   if (change.publish !== undefined) {
     patch.status = change.publish ? 'published' : 'draft'
@@ -120,6 +126,7 @@ export async function updateLayout(
     if (change.share && !cur.share_token) patch.share_token = crypto.randomBytes(32).toString('base64url')
   }
   if (change.showPrices !== undefined) patch.show_prices = change.showPrices
+  if (change.northDeg !== undefined) patch.north_deg = ((Math.round(change.northDeg) % 360) + 360) % 360
   if (change.embedDomains !== undefined) {
     const parsed = parseEmbedDomains(change.embedDomains)
     if (!parsed.ok) return { success: false, error: parsed.error, status: 400 }
@@ -152,6 +159,8 @@ export async function deleteLayout(orgId: string, layoutId: string): Promise<boo
 
 export interface LiveLayout {
   id: string; name: string; projectId: string; viewBox: string; geometry: LayoutGeometry
+  /** Compass: degrees clockwise from up that north points. */
+  northDeg?: number
   /** shape key → the unit it is, with its live status. */
   plots: Record<string, PlotInfo>
   /** A map drawn on a page image (published version, 20260083): the image behind the plots. */
@@ -162,7 +171,7 @@ export interface LiveLayout {
   imagePath?: string
 }
 
-type LayoutRow = { id: string; name: string; project_id: string; view_box: string; geometry: unknown; published_version_id?: string | null }
+type LayoutRow = { id: string; name: string; project_id: string; view_box: string; geometry: unknown; published_version_id?: string | null; north_deg?: number | null }
 
 async function unitsById(orgId: string, ids: string[]) {
   const db = createServiceClient()
@@ -177,6 +186,10 @@ async function unitsById(orgId: string, ids: string[]) {
 /** The map as the team or buyers see it: the published version (page image + drawn plots) when there is one,
  *  otherwise the uploaded SVG drawing. Statuses always come live from inventory_items. */
 async function liveFrom(orgId: string, layout: LayoutRow, withPrice: boolean): Promise<LiveLayout> {
+  return { ...(await liveFromInner(orgId, layout, withPrice)), northDeg: layout.north_deg ?? 0 }
+}
+
+async function liveFromInner(orgId: string, layout: LayoutRow, withPrice: boolean): Promise<LiveLayout> {
   if (layout.published_version_id) {
     const g = await publishedVersionGeometry(orgId, layout.published_version_id)
     if (g) {
@@ -209,7 +222,7 @@ async function withUnits(orgId: string, layout: { id: string; name: string; proj
 
 /** For the workspace (team members who can see the project). Prices included; the page image by a 10-minute link. */
 export async function getLiveLayout(orgId: string, layoutId: string): Promise<LiveLayout | null> {
-  const { data } = await createServiceClient().from('plot_layouts').select('id, name, project_id, view_box, geometry, published_version_id').eq('org_id', orgId).eq('id', layoutId).maybeSingle()
+  const { data } = await createServiceClient().from('plot_layouts').select('id, name, project_id, view_box, geometry, published_version_id, north_deg').eq('org_id', orgId).eq('id', layoutId).maybeSingle()
   if (!data) return null
   const live = await liveFrom(orgId, data, true)
   if (live.image && live.imagePath) live.image.href = (await versionImageUrl(live.imagePath)) ?? ''
@@ -227,7 +240,7 @@ export interface SharedLayout extends LiveLayout {
 export async function openSharedLayout(token: string): Promise<SharedLayout | null> {
   if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return null
   const db = createServiceClient()
-  const { data: layout } = await db.from('plot_layouts').select('id, org_id, name, project_id, view_box, geometry, show_prices, published_version_id')
+  const { data: layout } = await db.from('plot_layouts').select('id, org_id, name, project_id, view_box, geometry, show_prices, published_version_id, north_deg')
     .eq('share_token', token).eq('share_enabled', true).eq('status', 'published').maybeSingle()
   if (!layout) return null
   if ((await getProjectAddon(layout.org_id, layout.project_id, 'plot_maps')).state !== 'active') return null
@@ -239,7 +252,18 @@ export async function openSharedLayout(token: string): Promise<SharedLayout | nu
   ])
   // Buyers see a plot as available, reserved or sold — never the internal reason (blocked, on hold).
   // …and never internal ids: the public page does not need them.
-  for (const p of Object.values(live.plots)) { p.status = publicStatus(p.status); p.unitId = '' }
+  // …and only the details the workspace chose to show buyers (Settings → Inventory → What buyers see), removed here
+  // on the server so hidden details never leave it.
+  const show = (await getWorkspaceSettings(layout.org_id)).inventory.buyerDetails
+  for (const p of Object.values(live.plots)) {
+    p.status = publicStatus(p.status); p.unitId = ''
+    if (!show.area) { p.area = null; p.areaUnit = null }
+    if (!show.dimensions) p.dimensions = null
+    if (!show.facing) p.facing = null
+    if (!show.road) p.roadWidthFt = null
+    if (!show.corner) p.corner = false
+    if (!show.rate) p.rate = null
+  }
   // The page image goes to buyers only through the token route, never as a storage link.
   if (live.image) live.image.href = `/api/public/plot-maps/${token}/image`
   return { ...live, orgId: layout.org_id, projectName: project?.name ?? '', orgName: biz?.legal_name || org?.name || '', contactPhone: biz?.phone ?? null, showPrices: layout.show_prices }

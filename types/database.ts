@@ -3611,6 +3611,7 @@ export interface Database {
           updated_by: string | null
           created_at: string
           updated_at: string
+          north_deg: number
         }
         Insert: {
           embed_domains?: string[]
@@ -3630,6 +3631,7 @@ export interface Database {
           updated_by?: string | null
           created_at?: string
           updated_at?: string
+          north_deg?: number
         }
         Update: {
           embed_domains?: string[]
@@ -3644,6 +3646,7 @@ export interface Database {
           published_at?: string | null
           updated_by?: string | null
           updated_at?: string
+          north_deg?: number
         }
         Relationships: []
       }

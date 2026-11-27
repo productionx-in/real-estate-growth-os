@@ -75,7 +75,7 @@ test('the add-on is activated per project; every map route checks it after autho
   assert.ok(upload.indexOf('authorizeOrgAccess(') < upload.indexOf('requireProjectAddon('), 'authorise first')
   const layout = read('app/api/plot-layouts/[layoutId]/route.ts')
   assert.match(layout, /authorizeOrgAccess\(orgId, \['owner', 'admin', 'manager'\]\)[\s\S]*layoutProject\(orgId, layoutId\)[\s\S]*if \(!takesOffline\) \{ const a = await requireProjectAddon\(orgId, projectId, 'plot_maps'\)/)
-  assert.match(layout, /const takesOffline = !newLink && change\.name === undefined && change\.showPrices === undefined && change\.embedDomains === undefined && change\.publish !== true && change\.share !== true/,
+  assert.match(layout, /const takesOffline = !newLink && change\.name === undefined && change\.showPrices === undefined && change\.northDeg === undefined && change\.embedDomains === undefined && change\.publish !== true && change\.share !== true/,
     'only unpublishing / link-off skip the check')
   assert.match(read('app/(dashboard)/[orgSlug]/projects/[projectId]/map/page.tsx'), /if \(addon\.state !== 'active' \|\| !modules\.inventory\)/)
   assert.match(read('lib/dal/plot-layouts.ts'), /if \(\(await getProjectAddon\(layout\.org_id, layout\.project_id, 'plot_maps'\)\)\.state !== 'active'\) return null/,
