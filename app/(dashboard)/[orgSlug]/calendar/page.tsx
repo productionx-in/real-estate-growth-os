@@ -11,6 +11,8 @@ import { teamProfileIdsOf } from '@/lib/dal/viewer'
 import { canAssignLeads } from '@/lib/auth/permissions'
 import { calendarScope, canOpenCalendarOf, localDay, parseDay, parseView, viewDays, workload } from '@/lib/calendar/rules'
 import { PageShell } from '@/components/layout/PageShell'
+import { CalendarSync } from '@/components/calendar/CalendarSync'
+import { hasFeed } from '@/lib/dal/calendar-feed'
 import { CalendarBoard } from '@/components/calendar/CalendarBoard'
 
 export const metadata: Metadata = { title: 'Calendar' }
@@ -40,9 +42,9 @@ export default async function CalendarPage({ params, searchParams }: { params: P
   const who = wantTeam ? (scope === 'team' ? teamIds : null) : [person]
 
   const days = viewDays(view, anchor)
-  const { items, overdue } = await calendarItems(org.id, days, tz, who, now)
+  const [{ items, overdue }, syncing] = await Promise.all([calendarItems(org.id, days, tz, who, now), hasFeed(org.id, profile.id)])
   return (
-    <PageShell title="Calendar" description="Follow-ups and site visits from your leads, kept in step automatically. Drag a follow-up to another day to move it.">
+    <PageShell title="Calendar" description="Follow-ups and site visits from your leads, kept in step automatically. Drag a follow-up to another day to move it." actions={<CalendarSync orgId={org.id} active={syncing} />}>
       <CalendarBoard
         orgId={org.id} orgSlug={orgSlug} tz={tz} view={view} anchor={anchor} today={localDay(now, tz)} days={days}
         items={items} overdue={overdue} people={people} person={wantTeam ? 'team' : person} me={profile.id}
