@@ -7,9 +7,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { PlotMap } from '@/components/plots/PlotMap'
+import { sampleLayout } from '@/lib/plots/sample'
 
 interface Hotspot { x: number; y: number; title: string; text: string }
-export interface TourStep { id: string; image: string; nav: string; title: string; body: string; hotspots: Hotspot[] }
+export interface TourStep { id: string; image?: string; nav: string; title: string; body: string; hotspots: Hotspot[]; /** A live, clickable component instead of a screenshot. */ live?: 'plot-map' }
+
+const SAMPLE_MAP = sampleLayout()
 
 export function ProductTour({ steps }: { steps: TourStep[] }) {
   const [i, setI] = useState(0)
@@ -51,10 +55,15 @@ export function ProductTour({ steps }: { steps: TourStep[] }) {
             <span className="size-2.5 rounded-full bg-[var(--border-strong)]" /><span className="size-2.5 rounded-full bg-[var(--border-strong)]" /><span className="size-2.5 rounded-full bg-[var(--border-strong)]" />
             <span className="ml-3 truncate text-[12px] text-muted">re.productionx.in · sample data</span>
           </div>
+          {step.live === 'plot-map' ? (
+            <div className="p-2 sm:p-4">
+              <PlotMap mode="public" {...SAMPLE_MAP} showPrices contact={{ phone: null, projectName: 'Sample Enclave', orgName: 'Sample Developers' }} />
+            </div>
+          ) : (
           <div className="relative">
-            <Image key={step.image} src={step.image} alt={`${step.title} — RE screen with sample data`} width={2160} height={1350}
+            <Image key={step.image} src={step.image!} alt={`${step.title} — RE screen with sample data`} width={2160} height={1350}
               sizes="(min-width: 1024px) 900px, 100vw" priority={i === 0} className="h-auto w-full" />
-            {step.hotspots.map((h, n) => (
+            {step.hotspots.filter(() => !step.live).map((h, n) => (
               <button key={n} type="button" onClick={() => setSpot(spot === n ? null : n)} aria-label={`${n + 1}: ${h.title}`} aria-expanded={spot === n}
                 style={{ left: `${h.x}%`, top: `${h.y}%` }}
                 className="absolute grid size-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[var(--brand)] text-[12px] font-bold text-[#fff] shadow-lg ring-4 ring-[var(--surface)] transition-transform hover:scale-110 sm:size-8">
@@ -63,6 +72,7 @@ export function ProductTour({ steps }: { steps: TourStep[] }) {
               </button>
             ))}
           </div>
+          )}
         </div>
 
         {/* Caption */}

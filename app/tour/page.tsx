@@ -9,7 +9,7 @@ import { ProductTour, type TourStep } from '@/components/marketing/ProductTour'
 
 export const metadata: Metadata = {
   title: { absolute: `Product tour — see ${PRODUCT_NAME} with sample data` },
-  description: 'Click through RE with sample data: the morning dashboard, a lead from first call to site visit, routing, inventory, and channel partners — no sign-up.',
+  description: 'Click through RE with sample data: the morning dashboard, a lead from first call to site visit, routing, inventory, a live plot map, and channel partners — no sign-up.',
   alternates: { canonical: '/tour' },
 }
 
@@ -65,6 +65,17 @@ const STEPS: TourStep[] = [
     ],
   },
   {
+    id: 'plot-map', nav: 'Plot map (try it)', live: 'plot-map',
+    title: 'A live plot map buyers can open on their phone',
+    body: 'Your approved layout becomes a clickable map: every plot coloured by its real status from inventory. Share the link with buyers and partners — it updates itself as plots are held, booked or sold. Try it: tap a plot, search, filter or zoom.',
+    hotspots: [
+      { x: 0, y: 0, title: 'Always current', text: 'Each plot is linked to its unit, so the colour is the live status.' },
+      { x: 0, y: 0, title: 'One link for buyers', text: 'Opens on any phone, no app; enquiries and site visits come back as leads.' },
+      { x: 0, y: 0, title: 'Prices your choice', text: 'Show prices, or availability only.' },
+      { x: 0, y: 0, title: 'On your website', text: 'Embed the same map on your project page.' },
+    ],
+  },
+  {
     id: 'partners', nav: 'Channel partners', image: '/tour/partners.jpg',
     title: 'Work with agencies without losing track of buyers',
     body: 'Share projects with partner agencies — with prices or availability only — and review the buyers they register. Each agency keeps its own workspace.',
@@ -91,7 +102,7 @@ export default function TourPage() {
         <p className="text-[13px] font-semibold text-[var(--brand)]">Product tour · about 2 minutes</p>
         <h1 className="mt-2 max-w-3xl text-[32px] font-extrabold leading-tight tracking-tight sm:text-[40px]">See {PRODUCT_NAME} the way your team will use it</h1>
         <p className="mt-3 max-w-2xl text-[16px] leading-relaxed text-muted">
-          Seven real screens with sample data. Tap the numbered dots, or use the arrow keys. Every name and number shown is fictional.
+          Real screens with sample data, plus a live plot map you can click. Tap the numbered dots, or use the arrow keys. Every name and number shown is fictional.
         </p>
         <div className="mt-10"><ProductTour steps={STEPS} /></div>
         <div className="ceramic mt-14 flex flex-col items-start gap-4 rounded-2xl p-6 sm:flex-row sm:items-center sm:justify-between">
