@@ -20,7 +20,7 @@ const LINKS = [
 
 export function MarketingHeader() {
   return (
-    <header className="sticky top-0 z-30 px-3 pt-3 sm:px-4">
+    <header className="sticky top-0 z-30 bg-gradient-to-b from-[var(--background)] from-60% to-transparent px-3 pb-2 pt-3 sm:px-4">
       <div className="ceramic mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 !rounded-full px-4 sm:px-5">
         <Link href="/" aria-label="RE home" className="rounded-[10px] shadow-[0_6px_16px_-4px_rgba(67,56,202,0.4)]"><BrandMark size={36} /></Link>
         <nav aria-label="Main" className="hidden lg:flex items-center gap-1 text-[14px] text-muted">

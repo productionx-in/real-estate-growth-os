@@ -44,8 +44,8 @@ export function CalculatorSettingsForm({ orgId, initial }: { orgId: string; init
         <legend className="text-[13px] font-semibold text-foreground">Extra charges on the cost sheet</legend>
         <p className="text-[12px] text-muted">Car parking, club membership, floor rise, PLC, maintenance deposit… A fixed amount, or an amount per sq ft.</p>
         {value.charges.map((c, i) => (
-          <div key={i} className="grid grid-cols-[1fr_8rem_8rem_auto] items-center gap-2">
-            <Input value={c.label} maxLength={CALC_LIMITS.label} aria-label="Charge name" onChange={(e) => setValue({ ...value, charges: value.charges.map((x, k) => (k === i ? { ...x, label: e.target.value } : x)) })} />
+          <div key={i} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2 border-b border-default pb-2 last:border-0 sm:grid-cols-[1fr_8rem_8rem_auto] sm:border-0 sm:pb-0">
+            <Input className="col-span-3 sm:col-span-1" value={c.label} maxLength={CALC_LIMITS.label} aria-label="Charge name" onChange={(e) => setValue({ ...value, charges: value.charges.map((x, k) => (k === i ? { ...x, label: e.target.value } : x)) })} />
             <Select aria-label="How it is charged" value={c.kind} onChange={(e) => setValue({ ...value, charges: value.charges.map((x, k) => (k === i ? { ...x, kind: e.target.value as 'fixed' | 'per_area' } : x)) })}>
               <option value="fixed">Fixed ₹</option><option value="per_area">₹ per sq ft</option>
             </Select>

@@ -134,8 +134,8 @@ export function Calculators({ defaults, areaUnit = 'sqft' }: { defaults: Calcula
             <fieldset className="space-y-2">
               <legend className="text-[13px] font-medium">Other charges</legend>
               {charges.map((c, i) => (
-                <div key={i} className="grid grid-cols-[1fr_7rem_8rem_auto] items-center gap-2">
-                  <Input value={c.label} aria-label="Charge name" onChange={(e) => setCharge(i, { label: e.target.value })} />
+                <div key={i} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2 border-b border-default pb-2 last:border-0 sm:grid-cols-[1fr_7rem_8rem_auto] sm:border-0 sm:pb-0">
+                  <Input className="col-span-3 sm:col-span-1" value={c.label} aria-label="Charge name" onChange={(e) => setCharge(i, { label: e.target.value })} />
                   <Select aria-label="How it is charged" value={c.kind} onChange={(e) => setCharge(i, { kind: e.target.value as Charge['kind'] })}>
                     <option value="fixed">Fixed ₹</option><option value="per_area">₹ / {unitLabel}</option>
                   </Select>
