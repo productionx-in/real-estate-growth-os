@@ -84,7 +84,7 @@ test('wiring: banners in every workspace page, owner/admin-only settings, the nu
   const page = read('app/(dashboard)/[orgSlug]/settings/alerts/page.tsx')
   assert.match(page, /if \(!isAdmin\) redirect/)
   assert.match(page, /LeadAlertSettingsForm/)
-  assert.match(read('app/api/settings/workspace/route.ts'), /'alerts'\]\)/)
+  assert.match(read('app/api/settings/workspace/route.ts'), /'alerts'[,\]]/)
   const live = read('app/api/notifications/live/route.ts')
   assert.match(live, /authorizeOrgAccess\(orgId\)/)
   assert.match(live, /profileId: auth\.context\.profile\.id/)
