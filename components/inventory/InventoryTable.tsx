@@ -26,6 +26,8 @@ import {
   Layers,
 } from 'lucide-react'
 
+
+const AREA_UNIT_SHORT: Record<string, string> = { sqft: 'sq ft', sqyd: 'sq yd', sqm: 'sq m', acres: 'acre', guntas: 'gunta', cents: 'cent' }
 export interface InventoryTableProps {
   items: (InventoryItemWithRelations & { hierarchy_path?: string })[]
   onItemUpdated?: () => void
@@ -206,7 +208,7 @@ export function InventoryTable({
                   Config / Typology
                 </th>
                 {renderSortHeader('Area', 'area_value')}
-                {renderSortHeader('Total price', 'total_price')}
+                {renderSortHeader('Price · rate', 'total_price')}
                 {renderSortHeader('Status', 'status')}
                 {renderSortHeader('Updated', 'updated_at')}
                 <th scope="col" className="px-4 py-3 text-right font-medium text-[12px] text-[var(--foreground-muted)]">
@@ -279,6 +281,16 @@ export function InventoryTable({
                     {item.total_price
                       ? formatCurrency(Number(item.total_price))
                       : '—'}
+                    {(() => {
+                      // Rate per area unit: the unit's own rate, or worked out from price ÷ area (marked ≈).
+                      const rate = Number(item.base_rate) || (Number(item.total_price) && Number(item.area_value) ? Number(item.total_price) / Number(item.area_value) : 0)
+                      if (!rate) return null
+                      return (
+                        <span className="block text-[11px] font-normal text-[var(--foreground-muted)]">
+                          {item.base_rate ? '' : '≈ '}{formatCurrency(Math.round(rate))} / {AREA_UNIT_SHORT[item.area_unit] ?? item.area_unit}
+                        </span>
+                      )
+                    })()}
                   </td>
 
                   {/* Status Badge */}
