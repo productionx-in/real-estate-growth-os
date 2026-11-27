@@ -9,7 +9,7 @@ import { ProductTour, type TourStep } from '@/components/marketing/ProductTour'
 
 export const metadata: Metadata = {
   title: { absolute: `Product tour — see ${PRODUCT_NAME} with sample data` },
-  description: 'Click through RE with sample data: the morning dashboard, a lead from first call to site visit, routing, inventory, a live 3D plot map, sales calculators, calendar sync and channel partners — no sign-up.',
+  description: 'Try RE with sample data: the daily dashboard, leads, routing, inventory, a live 3D plot map, sales calculators and calendar sync. No sign-up.',
   alternates: { canonical: '/tour' },
 }
 
