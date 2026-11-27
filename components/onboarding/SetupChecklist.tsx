@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { CheckCircle2, Circle, Rocket, X } from 'lucide-react'
 import type { SetupStep } from '@/lib/dal/onboarding'
+import { EnablePushButton } from '@/components/notifications/PushAlertsPrompt'
 
 export function SetupChecklist({ orgId, steps }: { orgId: string; steps: SetupStep[] }) {
   const key = `repx:setup-dismissed:${orgId}`
@@ -47,7 +48,8 @@ export function SetupChecklist({ orgId, steps }: { orgId: string; steps: SetupSt
               </p>
               {!s.done && <p className="text-[12px] text-[var(--foreground-muted)]">{s.body}</p>}
             </div>
-            {!s.done && <Link href={s.href} className="text-[12px] font-semibold text-brand hover:underline flex-shrink-0">{s.cta}</Link>}
+            {!s.done && s.id === 'alerts' && <EnablePushButton />}
+            {!s.done && s.id !== 'alerts' && <Link href={s.href} className="text-[12px] font-semibold text-brand hover:underline flex-shrink-0">{s.cta}</Link>}
           </li>
         ))}
       </ol>

@@ -16,6 +16,7 @@ import { liveGrantsForOrg } from '@/lib/dal/support-access'
 import { getModules, MODULES } from '@/lib/auth/entitlements'
 import { ModuleGate } from '@/components/layout/ModuleGate'
 import { DemoBanner } from '@/components/layout/DemoBanner'
+import { PushAlertsPrompt } from '@/components/notifications/PushAlertsPrompt'
 import { getWorkspaceSettings } from '@/lib/dal/workspace-settings'
 import { WorkspacePrefsProvider } from '@/components/settings/WorkspacePrefs'
 import { LiveAlerts } from '@/components/notifications/LiveAlerts'
@@ -82,6 +83,7 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
         {liveSupport?.expires_at && (
           <SupportAccessBanner orgSlug={workspace.org.slug} until={liveSupport.expires_at} emergency={liveSupport.emergency} canManage={workspace.isAdmin} />
         )}
+        <PushAlertsPrompt />
         {/* On phones, leave room for the tab bar (and the home indicator) below the content. */}
         <main id="main" className="min-w-0 flex-1 overflow-x-clip overflow-y-auto pb-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom))] md:pb-0">
           <WorkspacePrefsProvider value={{ areaUnitBuilt: inv.areaUnitBuilt, areaUnitLand: inv.areaUnitLand, canDeleteInventory: workspace.isAdmin, statusLabels: inv.statusLabels, ownerSells: sales.ownerSells, teamsEnabled: sales.teamsEnabled }}><ModuleGate disabled={disabledModules} orgSlug={workspace.org.slug} labels={{ ...MODULES }}>{children}</ModuleGate></WorkspacePrefsProvider>

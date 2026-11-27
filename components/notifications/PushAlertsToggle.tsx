@@ -20,7 +20,9 @@ async function registration(): Promise<ServiceWorkerRegistration> {
   return (await navigator.serviceWorker.getRegistration('/')) ?? navigator.serviceWorker.register('/sw.js', { scope: '/' })
 }
 
-export function PushAlertsToggle() {
+/** Web Push state for this device, plus enable/disable. enable() must run from a tap: browsers only show the
+ *  permission prompt in response to a user gesture. */
+export function usePushAlerts() {
   const [state, setState] = useState<State>('loading')
   const [publicKey, setPublicKey] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -80,7 +82,16 @@ export function PushAlertsToggle() {
     }
   }
 
-  if (state === 'loading' || state === 'unsupported' || state === 'not-configured') return null
+  return { state, error, enable, disable }
+}
+
+export function PushAlertsToggle() {
+  const { state, error, enable, disable } = usePushAlerts()
+
+  if (state === 'loading' || state === 'unsupported') return null
+  if (state === 'not-configured') return (
+    <p className="px-3 py-2.5 border-b border-[var(--border)] text-[11px] text-[var(--foreground-muted)]">Phone alerts aren’t switched on for RE yet. Ask RE support.</p>
+  )
 
   return (
     <div className="px-3 py-2.5 border-b border-[var(--border)] bg-[var(--background)]">
