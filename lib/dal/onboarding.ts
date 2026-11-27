@@ -31,7 +31,7 @@ export async function getSetupChecklist(orgId: string, orgSlug: string, profileI
     { id: 'team', title: 'Invite your sales team', body: 'Everyone who calls leads needs a login.', href: at('/team'), cta: 'Invite', done: members > 1 },
     { id: 'routing', title: 'Decide who gets which leads', body: 'Create a team and a routing rule.', href: at('/routing'), cta: 'Set up routing', done: rules > 0 },
     { id: 'response', title: 'Set your response rules', body: 'How fast a new lead must be called, and working hours.', href: at('/routing'), cta: 'Set rules', done: settings > 0 },
-    { id: 'alerts', title: 'Turn on phone alerts', body: 'Open the bell and switch on “Alerts on this device”.', href: at('/today'), cta: 'Open Today', done: devices > 0 },
+    { id: 'alerts', title: 'Turn on phone alerts', body: 'A phone alert the moment a new lead arrives. Each person turns it on, once per device.', href: at('/settings/notifications'), cta: 'Turn on', done: devices > 0 },
     { id: 'import', title: 'Bring your existing leads', body: 'Import a CSV export from your current CRM or a spreadsheet.', href: at('/leads/import'), cta: 'Import', done: imported > 0, optional: true },
   ]
 }
