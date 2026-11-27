@@ -7,7 +7,7 @@ import { canCreateLeads } from '@/lib/auth/permissions'
 
 export type NavKey =
   | 'home' | 'today' | 'leads' | 'visits' | 'inbox' | 'sales' | 'routing' | 'speed' | 'projects' | 'inventory'
-  | 'documents' | 'analytics' | 'integrations' | 'team' | 'settings' | 'billing' | 'audit' | 'support' | 'partners' | 'help' | 'listings' | 'campaigns' | 'performance' | 'calendar' | 'teams' | 'rewards'
+  | 'documents' | 'analytics' | 'integrations' | 'team' | 'settings' | 'billing' | 'audit' | 'support' | 'partners' | 'help' | 'listings' | 'campaigns' | 'performance' | 'calendar' | 'teams' | 'rewards' | 'calculators'
 
 export interface NavLink {
   key: NavKey
@@ -64,6 +64,8 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
   const listings = L('listings', 'Listings', '/listings')
   // Marketing campaigns to lead segments: owners, admins and managers (the pages and API check again).
   const campaigns = L('campaigns', 'Campaigns', '/campaigns')
+  // Loan, cost-sheet, affordability and area calculators with the workspace's defaults (Settings → Calculators).
+  const calculators = L('calculators', 'Calculators', '/calculators')
   const agency = orgType === 'channel_partner'
   const adminLinks = [L('settings', 'Settings', '/settings'), L('billing', 'Plan & billing', '/billing'), L('audit', 'Audit log', '/audit-log'), L('support', 'Support access', '/support-access')]
 
@@ -73,12 +75,12 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
   } else if (role === 'sales_exec') {
     groups = [
       { items: [home, today, L('leads', 'My leads', '/leads'), calendar, visits, inbox, performance, rewards] },
-      { title: 'Selling', items: [L('sales', 'Sales', '/sales'), ...(agency ? [listings] : []), inventory] },
+      { title: 'Selling', items: [L('sales', 'Sales', '/sales'), ...(agency ? [listings] : []), inventory, calculators] },
     ]
   } else if (role === 'team_lead') {
     groups = [
       { items: [home, today, L('leads', 'Team leads', '/leads'), calendar, visits, inbox, performance, rewards, teams] },
-      { title: 'Selling', items: [L('sales', 'Sales', '/sales'), ...(agency ? [listings] : []), inventory] },
+      { title: 'Selling', items: [L('sales', 'Sales', '/sales'), ...(agency ? [listings] : []), inventory, calculators] },
     ]
   } else if (role === 'post_sales') {
     groups = [
@@ -87,21 +89,21 @@ export function navGroups(orgSlug: string, role: MemberRole = 'sales_exec', orgT
     ]
   } else if (orgType === 'channel_partner') {
     groups = [
-      { items: [home, today, L('leads', 'Referred leads', '/leads'), calendar, visits, inbox, listings, L('sales', 'Deals & commissions', '/sales'), partners, campaigns, performance, rewards] },
+      { items: [home, today, L('leads', 'Referred leads', '/leads'), calendar, visits, inbox, listings, L('sales', 'Deals & commissions', '/sales'), partners, campaigns, performance, rewards, calculators] },
       { title: 'Agency', items: [teams, team, ...(isAdmin(role) ? adminLinks : [])] },
     ]
   } else if (role === 'manager') {
     groups = [
       { items: [home, today, L('leads', 'Leads', '/leads'), calendar, visits, inbox] },
       { title: 'Sales', items: [L('sales', 'Sales', '/sales'), partners, campaigns, L('routing', 'Lead routing', '/routing'), L('speed', 'Speed to lead', '/speed-to-lead')] },
-      { title: 'Portfolio', items: [projects, inventory, documents] },
+      { title: 'Portfolio', items: [projects, inventory, documents, calculators] },
       { title: 'Insights', items: [performance, rewards, teams, analytics, team] },
     ]
   } else {
     groups = [
       { items: [home, today, L('leads', 'Leads', '/leads'), calendar, visits, inbox] },
       { title: 'Sales', items: [L('sales', 'Sales & partners', '/sales'), partners, campaigns, L('routing', 'Lead routing', '/routing'), L('speed', 'Speed to lead', '/speed-to-lead')] },
-      { title: 'Portfolio', items: [projects, inventory, documents] },
+      { title: 'Portfolio', items: [projects, inventory, documents, calculators] },
       { title: 'Insights', items: [performance, rewards, teams, analytics] },
       { title: 'Workspace', items: [L('integrations', 'Integrations', '/integrations'), team, ...adminLinks] },
     ]

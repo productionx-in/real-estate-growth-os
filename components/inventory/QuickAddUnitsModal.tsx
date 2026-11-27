@@ -170,6 +170,13 @@ export function QuickAddUnitsModal({ projectId, projectCategory, onClose, onSucc
                     {FACINGS.map((f) => <option key={f}>{f}</option>)}
                   </Select>
                 </Field>
+                <Field label={`Rate (₹ per ${shared.area_unit === 'sqyd' ? 'sq yd' : shared.area_unit === 'sqm' ? 'sq m' : shared.area_unit || 'sq ft'})`} hint="Optional. Fills the price below from the area.">
+                  <Input type="number" inputMode="decimal" min={0} value={shared.base_rate ?? ''} onChange={(e) => {
+                    const rate = e.target.value
+                    setShared((s) => ({ ...s, base_rate: rate, ...(Number(rate) && Number(s.area_value) ? { total_price: String(Math.round(Number(rate) * Number(s.area_value))) } : {}) }))
+                    setCheck(null)
+                  }} />
+                </Field>
                 <Field label="Price per unit (₹)" hint="Optional. Leave empty and set prices later.">
                   <Input type="number" inputMode="numeric" min={0} value={shared.total_price ?? ''} onChange={(e) => set('total_price', e.target.value)} />
                 </Field>
