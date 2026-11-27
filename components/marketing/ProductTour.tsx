@@ -1,7 +1,7 @@
 'use client'
 // components/marketing/ProductTour.tsx — the website's click-through product tour: real RE screens with fictional
 // sample data (captured from the demo seed), one step per screen, with numbered hotspots that explain what to look at.
-// Keyboard: ← / → move between steps. No sign-in, no live data.
+// Keyboard: ← / → move between steps. No sign-in; the plot map and calculators are live with sample data.
 import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -9,9 +9,11 @@ import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { PlotMap } from '@/components/plots/PlotMap'
 import { sampleLayout } from '@/lib/plots/sample'
+import { Calculators } from '@/components/calculators/Calculators'
+import { DEFAULT_CALCULATORS } from '@/lib/calculators/settings'
 
 interface Hotspot { x: number; y: number; title: string; text: string }
-export interface TourStep { id: string; image?: string; nav: string; title: string; body: string; hotspots: Hotspot[]; /** A live, clickable component instead of a screenshot. */ live?: 'plot-map' }
+export interface TourStep { id: string; image?: string; nav: string; title: string; body: string; hotspots: Hotspot[]; /** A live, clickable component instead of a screenshot. */ live?: 'plot-map' | 'calculators' }
 
 const SAMPLE_MAP = sampleLayout()
 
@@ -57,7 +59,11 @@ export function ProductTour({ steps }: { steps: TourStep[] }) {
           </div>
           {step.live === 'plot-map' ? (
             <div className="p-2 sm:p-4">
-              <PlotMap mode="public" {...SAMPLE_MAP} showPrices contact={{ phone: null, projectName: 'Sample Enclave', orgName: 'Sample Developers' }} />
+              <PlotMap mode="public" {...SAMPLE_MAP} showPrices northDeg={20} initial3d contact={{ phone: null, projectName: 'Sample Enclave', orgName: 'Sample Developers' }} />
+            </div>
+          ) : step.live === 'calculators' ? (
+            <div className="p-3 sm:p-5">
+              <Calculators defaults={{ ...DEFAULT_CALCULATORS, charges: [{ label: 'Car parking', kind: 'fixed', amount: 300000 }, { label: 'Club membership', kind: 'fixed', amount: 150000 }, { label: 'Floor rise / PLC', kind: 'per_area', amount: 75 }] }} />
             </div>
           ) : (
           <div className="relative">
